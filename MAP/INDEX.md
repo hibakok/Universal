@@ -28,18 +28,21 @@
 | `SPEC/05-X86-SUBSET.md` | реестр инструкций и кодировок | 68 |
 | `SPEC/06-ARCHITECTURE.md` | целевая архитектура системы | 72 |
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
+| `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 139 |
+| `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 139 |
 
 ## MAP/ — навигация
 
 | Файл | Роль | Строк |
 |---|---|---|
 | `MAP/INDEX.md` | этот файл | 105 |
-| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 146 |
+| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 188 |
 | `MAP/M0-SEED.md` | карточки кирпичей M0-SEED (8) | 126 |
 | `MAP/M0-SEED2.md` | карточки кирпичей M0-SEED2 (19) | 295 |
 | `MAP/M0-HXDUMP.md` | карточки кирпичей M0-HXDUMP (23) | 356 |
 | `MAP/M0-HEXGEN.md` | карточки кирпичей M0-HEXGEN (29) | 452 |
 | `MAP/M0-PEGEN.md` | карточки кирпичей M0-PEGEN (37) | 500 |
+| `MAP/M1-BRICK.md` | карточки кирпичей M1-BRICK (42) | 479 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 32 |
 
 ## KERNEL/ — ядро
@@ -75,7 +78,14 @@
 | `KERNEL/L0-PEGEN/pegen.peg` | обёртка pegen (самосборка) | 13 |
 | `KERNEL/L0-PEGEN/pegen.exe` | материализация: hexgen + pegen, 4096 байт, PE32+ | — |
 | `KERNEL/L0-PEGEN/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 112 |
-| `KERNEL/L0-PEGEN/VERIFY.md` | проверка, журнал, пойманные ошибки | 90 |
+| `KERNEL/L0-PEGEN/VERIFY.md` | проверка, журнал, пойманные ошибки | 95 |
+| `KERNEL/L1-BRICK/CARD.md` | карточка модуля M1-BRICK (ассемблер BRICK) | 140 |
+| `KERNEL/L1-BRICK/brick.hex` | тело секции brick, ATOM v1 (бутстрап-истина E5) | 667 |
+| `KERNEL/L1-BRICK/brick.brick` | тот же источник в BRICK v1 (канонический) | 610 |
+| `KERNEL/L1-BRICK/brick.peg` | обёртка brick (PEG v1, SPEC/07) | 11 |
+| `KERNEL/L1-BRICK/brick.exe` | материализация: hexgen + pegen, 3584 байта, PE32+ | — |
+| `KERNEL/L1-BRICK/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 100 |
+| `KERNEL/L1-BRICK/VERIFY.md` | SHA-256, 4 уровня проверки, журнал | 95 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -93,21 +103,23 @@
 | `TESTS/T-L0-HXDUMP.md` | тест-план hxdump T-M3-01..T-M3-13 | 126 |
 | `TESTS/T-L0-HEXGEN.md` | тест-план hexgen T-M4-01..T-M4-14 | 108 |
 | `TESTS/T-L0-PEGEN.md` | тест-план pegen T-M5-01..T-M5-17 | 131 |
+| `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17 | 120 |
 
 ## Корень
 
 | Файл | Роль |
 |---|---|
 | `README.md` | входная точка репозитория |
-| `.gitattributes` | защита *.hex от CRLF-искажений, *.exe как бинарный |
+| `.gitattributes` | защита *.hex/*.peg/*.brick от CRLF, *.exe как бинарный |
 
 ## Счётчики состояния (обновлять при каждом изменении)
 
-- Кирпичей в реестре: **116** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
-  23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN).
-- Модулей: **5** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN).
-- Тестов: **61** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17).
-- Этап: **E4 завершён** (конвейер hexgen+pegen воспроизводит все модули
-  и сам себя из текстов ATOM+PEG); следующий — E5 BRICK (метки; см.
-  `DOCS/03-ROADMAP.md`).
+- Кирпичей в реестре: **158** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
+  23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK).
+- Модулей: **6** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
+  M1-BRICK — первый модуль слоя L1).
+- Тестов: **78** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17).
+- Этап: **E5 завершён** (BRICK v1: метки, имена, автоматический расчёт
+  rip-смещений; ассемблер собирает себя из собственного BRICK-исходника);
+  следующий — E6 (см. `DOCS/03-ROADMAP.md`).

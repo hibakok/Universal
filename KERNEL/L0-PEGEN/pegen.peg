@@ -3,7 +3,7 @@
 !module pegen
 !entry 1000
 !idata 1C60 28
-!iat 1C84 40
-!bss 20406
+!iat 1C88 40
+!bss 20402
 !stackcom 4000
 !heapcom 4000

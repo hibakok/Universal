@@ -477,8 +477,8 @@ print_error — таблица сообщений заменяет ветвь U 
 | Поле | Значение |
 |---|---|
 | Ветвь | D — данные |
-| Файл | KERNEL/L0-PEGEN/pegen.hex, @0C60 (IDT/IAT/INT/имена) |
-| Функция | Импорт 7 функций kernel32.dll (как в M0-HEXGEN): IDT 0x28 + терминатор, IAT 8 qword, INT 8 qword, имя DLL, hint-записи |
+| Файл | KERNEL/L0-PEGEN/pegen.hex, @0C60 (дескриптор 20 байт: INT/время/цепочка/имя/IAT), @0C88 IAT, @0CC8 INT, @0D08 имя DLL и hint-записи |
+| Функция | Импорт 7 функций kernel32.dll (как в M0-HEXGEN): IDT 0x28 (описатель + нулевой терминатор), IAT 8 qword, INT 8 qword, имя DLL, hint-записи. E4a: восстановлен нулевой ForwarderChain в дескрипторе (16 -> 20 байт) |
 | Вход | — (константы) |
 | Выход | заполняется загрузчиком Windows |
 | Состоит из | — |
@@ -490,7 +490,7 @@ print_error — таблица сообщений заменяет ветвь U 
 | Поле | Значение |
 |---|---|
 | Ветвь | D — данные |
-| Файл | KERNEL/L0-PEGEN/pegen.hex, виртуальные нули (RVA 0x1D80..0x21F7C) |
+| Файл | KERNEL/L0-PEGEN/pegen.hex, виртуальные нули (RVA 0x1D7A+0x1000..0x21F7C) |
 | Функция | Буферы: fname_img/fname_peg/fname_out (по 0x80), modname (0x20), filebuf (0x10000, peg-текст), imagebuf (0x10010, образ + запас), zeropad (0x200, нули дозаписи) |
 | Вход | — (bss) |
 | Выход | заполняют K0-C036, K0-Q001, K0-F024, K0-G041 |

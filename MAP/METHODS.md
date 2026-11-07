@@ -126,6 +126,47 @@
 | K0-D044 | шаблон PE-заголовка | D | готов | `MAP/M0-PEGEN.md` |
 | K0-D045 | таблица импортов | D | готов | `MAP/M0-PEGEN.md` |
 | K0-D046 | буферы | D | готов | `MAP/M0-PEGEN.md` |
+| K1-X001 | prepare_stack | X | готов | `MAP/M1-BRICK.md` |
+| K1-S001 | get_image_base | S | готов | `MAP/M1-BRICK.md` |
+| K1-C001 | get_cmdline | C | готов | `MAP/M1-BRICK.md` |
+| K1-C002 | skip_argv0 | C | готов | `MAP/M1-BRICK.md` |
+| K1-C003 | next_arg | C | готов | `MAP/M1-BRICK.md` |
+| K1-C004 | read_word | C | готов | `MAP/M1-BRICK.md` |
+| K1-C005 | copy_word_dst | C | готов | `MAP/M1-BRICK.md` |
+| K1-C006 | skip_seps | C | готов | `MAP/M1-BRICK.md` |
+| K1-G001 | dispatch | G | готов | `MAP/M1-BRICK.md` |
+| K1-G002 | print_error | G | готов | `MAP/M1-BRICK.md` |
+| K1-G003 | fail_format | G | готов | `MAP/M1-BRICK.md` |
+| K1-A001 | assemble_pass | A | готов | `MAP/M1-BRICK.md` |
+| K1-A002 | parse_h | A | готов | `MAP/M1-BRICK.md` |
+| K1-A003 | parse_db | A | готов | `MAP/M1-BRICK.md` |
+| K1-A004 | parse_dz | A | готов | `MAP/M1-BRICK.md` |
+| K1-A005 | parse_ddq | A | готов | `MAP/M1-BRICK.md` |
+| K1-A006 | emit_le | A | готов | `MAP/M1-BRICK.md` |
+| K1-A007 | read_hex_byte | A | готов | `MAP/M1-BRICK.md` |
+| K1-A008 | parse_data | A | готов | `MAP/M1-BRICK.md` |
+| K1-A009 | expect_eol | A | готов | `MAP/M1-BRICK.md` |
+| K1-A010 | parse_dbz | A | готов | `MAP/M1-BRICK.md` |
+| K1-T001 | skip_seps_rsi | T | готов | `MAP/M1-BRICK.md` |
+| K1-T002 | hex_digit | T | готов | `MAP/M1-BRICK.md` |
+| K1-T003 | read_hexval | T | готов | `MAP/M1-BRICK.md` |
+| K1-T004 | read_name | T | готов | `MAP/M1-BRICK.md` |
+| K1-N001 | define_label | N | готов | `MAP/M1-BRICK.md` |
+| K1-N002 | find_label | N | готов | `MAP/M1-BRICK.md` |
+| K1-H001 | hex16_to_4 | H | готов | `MAP/M1-BRICK.md` |
+| K1-P001 | print_line | P | готов | `MAP/M1-BRICK.md` |
+| K1-F001 | open_file_read | F | готов | `MAP/M1-BRICK.md` |
+| K1-F002 | create_file_write | F | готов | `MAP/M1-BRICK.md` |
+| K1-F003 | close_file | F | готов | `MAP/M1-BRICK.md` |
+| K1-F004 | read_whole_dst | F | готов | `MAP/M1-BRICK.md` |
+| K1-F005 | write_all | F | готов | `MAP/M1-BRICK.md` |
+| K1-X002 | exit_code | X | готов | `MAP/M1-BRICK.md` |
+| K1-D001 | таблица цифр | D | готов | `MAP/M1-BRICK.md` |
+| K1-D002 | errtab | D | готов | `MAP/M1-BRICK.md` |
+| K1-D003 | строки вывода | D | готов | `MAP/M1-BRICK.md` |
+| K1-D004 | таблица импортов | D | готов | `MAP/M1-BRICK.md` |
+| K1-D005 | hint-записи | D | готов | `MAP/M1-BRICK.md` |
+| K1-D006 | виртуальные нули | D | готов | `MAP/M1-BRICK.md` |
 
 ## Правила реестра
 
@@ -140,7 +181,8 @@
 
 ## Счётчики (обновлять при каждом изменении)
 
-- Кирпичей в реестре: 116 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
-  M0-HEXGEN — 29, M0-PEGEN — 37).
-- Ветви кода: X, S, C, H, P, A, U, G, D, F, B, R (разбор ATOM, E3) +
-  Q (разбор PEG), E (заголовок EXE), M (математика) — новые в M0-PEGEN.
+- Кирпичей в реестре: 158 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
+  M0-HEXGEN — 29, M0-PEGEN — 37, M1-BRICK — 42).
+- Ветви кода: X, S, C, H, P, A, U, G, D, F, B, R (E3) + Q, E, M (E4) +
+  T, N (лексика и таблица меток, новые в M1-BRICK; A — сборка).
+- Модули: M0-* (слой L0) и первый модуль слоя L1 — M1-BRICK.

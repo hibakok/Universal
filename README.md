@@ -4,16 +4,19 @@
 > машина, библиотеки и проекты — построенные вручную из мельчайших кирпичей,
 > без использования чужих языков, компиляторов, ассемблеров и библиотек.
 
-**Статус: этапы E0–E4 выполнены.** Артефакты:
+**Статус: этапы E0–E5 выполнены.** Артефакты:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 байт, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
 (3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
 **первый компилятор**: ATOM-текст → тело образа байт-в-байт) и
 `KERNEL/L0-PEGEN/pegen.exe` (4096 Б, **обёртка**: тело + PEG-файл →
-готовый EXE, заголовки генерируются автоматически) — все написаны
-вручную на уровне байтов машинного кода x86-64 и верифицированы тремя
-независимыми способами (PE-разбор, дизассемблер, эмуляция). Полный
-конвейер «правка текста → готовый EXE» замкнут и самовоспроизводим.
+готовый EXE, заголовки генерируются автоматически; этап E4a устранил
+дефект дескриптора импорта) — написаны вручную на уровне байтов машинного
+кода x86-64 и верифицированы независимо (PE-разбор, дизассемблер,
+эмуляция). **Этап E5: `KERNEL/L1-BRICK/brick.exe` (3584 Б) — ассемблер
+BRICK v1** (SPEC/08): метки, имена, автоматический расчёт rip-смещений и
+rel-переходов; собирает сам себя из собственного исходника `brick.brick`
+(самохостинг слоя L1). Ручной счёт адресов прекращён.
 
 ## С чего начать (обязательно прочитать по порядку)
 
@@ -30,7 +33,7 @@
 | `DOCS/`  | манифест, методология, навигация, дорожная карта, правила изменений |
 | `SPEC/`  | формальные спецификации: карточки методов, слои, форматы, PE, x86 |
 | `MAP/`   | карта репозитория, указатель кирпичей, реестры модулей, слои |
-| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE) |
+| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE); слой L1: brick (ассемблер BRICK) |
 | `PROJECTS/` | внешние проекты — программы, исполняемые ядром          |
 | `TESTS/` | политика тестирования и тест-планы                        |
 
@@ -73,15 +76,28 @@ L0-PEGEN\pegen.exe t_body.bin L0-SEED\seed.peg t_seed.exe
 L0-PEGEN\pegen.exe
 Ожидаемый вывод:  U-L0-PEGEN CMDS: PEGEN <IMAGE.BIN> <CTRL.PEG> <OUT.EXE>
 Код возврата:     2
-SHA-256 pegen.exe: A371EB9154C9A94C6B85D7EB658F44A8AC7529AF716428F8B677967D47792081
+SHA-256 pegen.exe: 39B7D78C344B2FAC0000AD929764EBF418D9EF98D394457826E5B8C806F1906C
 Команды:          pegen.exe <образ.bin> <управляющий.peg> <выход.exe> (см. CARD.md)
 
 Самосборка pegen (круг E4):
 L0-HEXGEN\hexgen.exe L0-PEGEN\pegen.hex t_pb.bin
 L0-PEGEN\pegen.exe t_pb.bin L0-PEGEN\pegen.peg t_pegen.exe
 Ожидаемо:         fc /b t_pegen.exe L0-PEGEN\pegen.exe -> различий нет
+
+cmd -> KERNEL\L1-BRICK\brick.exe
+Ожидаемый вывод:  U-L1-BRICK CMDS: BRICK <SRC.BRICK> <OUT.BIN>
+Код возврата:     2
+SHA-256:          3FA5E5789A6E6CCA38D2814A36EAF02CD94184CA2F59E13B65AD0D042A1AB404
+Команды:          brick.exe <src.brick> <out.bin> (см. CARD.md)
+
+Самохостинг BRICK (DoD этапа E5, из папки KERNEL):
+L1-BRICK\brick.exe L1-BRICK\brick.brick t_self.bin
+L0-HEXGEN\hexgen.exe L1-BRICK\brick.hex t_body.bin
+Ожидаемо:         fc /b t_self.bin t_body.bin -> различий нет (2964 байта)
+L0-PEGEN\pegen.exe t_self.bin L1-BRICK\brick.peg t_brick.exe
+Ожидаемо:         fc /b t_brick.exe L1-BRICK\brick.exe -> различий нет
 ```
 
 Подробности: `KERNEL/L0-SEED/VERIFY.md`, `KERNEL/L0-SEED2/VERIFY.md`,
 `KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`,
-`KERNEL/L0-PEGEN/VERIFY.md`.
+`KERNEL/L0-PEGEN/VERIFY.md`, `KERNEL/L1-BRICK/VERIFY.md`.
