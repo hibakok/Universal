@@ -1,0 +1,20 @@
+# CI: автоматическая батарея LAB при каждом пуше (внешний прибор, как LAB/)
+# Паспорт файла: .github/workflows/verify.yml | слой: внешний инструмент
+#                | роль: автозапуск верификации репозитория на GitHub Actions.
+# Правило: RED = коммит нельзя считать завершённым (DOCS/04, шаг 5).
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Батарея LAB (SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC, круги E4/E5)
+        run: python3 LAB/py/lab_verify.py
