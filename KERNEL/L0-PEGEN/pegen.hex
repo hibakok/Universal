@@ -1,0 +1,409 @@
+; UNIVERSAL / ATOM v1 / слой L0 / модуль M0-PEGEN (телесная форма E4)
+; Исходник pegen.exe. Каждый байт назначен явно (ведомость e4_ledger:
+; кодировки назначены вручную, компоновка лишь разрешает rip-смещения
+; и длины переходов). Смещения — от начала СЕКЦИИ (RVA = смещение + 0x1000);
+; PE-заголовки в листинг не входят: их генерирует pegen по pegen.peg (E4).
+; Формат: @<смещение> <байты> ; <пояснение>;  Z <от> <до> — нули [от, до).
+; Виртуальные нули (fname/filebuf/imagebuf/zeropad) в файл не входят —
+; они объявлены директивой !bss файла pegen.peg.
+
+@0000 48 83 EC 38 ; K0-X041 sub rsp,0x38
+@0004 48 8D 1D F5 EF FF FF ; K0-S041 lea rbx,[rip+image_base]
+@000B 48 C7 C1 F5 FF FF FF FF 15 6C 0C 00 00 ; K0-init mov rcx,-11 (STD_OUTPUT_HANDLE) + call [rip]GetStdHandle
+@0018 48 89 05 01 0F 00 00 ; K0-init mov [rip+hstdout],rax
+@001F C7 05 2F 0F 00 00 00 10 00 00 ; K0-init mov dword [rip+stackcom],0x1000
+@0029 C7 05 29 0F 00 00 00 10 00 00 ; K0-init mov dword [rip+heapcom],0x1000
+@0033 FF 15 63 0C 00 00 48 89 C7 ; K0-C031 call [rip]GetCommandLineA + mov rdi,rax
+@003C 0F B6 07 3C 22 ; K0-C032 movzx eax,byte [rdi] + cmp al,'"'
+@0041 75 13 48 FF C7 ; K0-C032 jnz sa_unq + inc rdi
+@0046 0F B6 07 84 C0 ; K0-C032 movzx eax,byte [rdi] + test al,al
+@004B 74 30 3C 22 ; K0-C032 jz noargs + cmp al,'"'
+@004F 74 16 48 FF C7 ; K0-C032 jz sa_adv + inc rdi
+@0054 EB F0 84 C0 ; K0-C032 jmp sa_qloop + test al,al
+@0058 74 23 3C 20 ; K0-C032 jz noargs + cmp al,' '
+@005C 74 0E 3C 09 ; K0-C032 jz sa_delims + cmp al,9
+@0060 74 0A 48 FF C7 ; K0-C032 jz sa_delims + inc rdi (очередной символ argv0)
+@0065 EB D5 48 FF C7 ; K0-C032 jmp sa_start + inc rdi
+@006A EB 00 0F B6 07 ; K0-C032 jmp sa_delims + movzx eax,byte [rdi]
+@006F 84 C0 74 0A ; K0-C032 test al,al + jz noargs
+@0073 3C 20 74 F0 ; K0-C032 cmp al,' ' + jz sa_adv
+@0077 3C 09 74 EC ; K0-C032 cmp al,9 + jz sa_adv
+@007B EB 0A ; K0-C032 jmp word1
+@007D B9 00 00 00 00 E8 B7 02 00 00 ; K0-G041 mov ecx,0 (индекс справки) + call print_error
+@0087 4C 8D 05 F2 0C 00 00 E8 3D 03 00 00 ; K0-G041 lea r8,[rip+fname_img] + call next_arg
+@0093 4C 8D 05 66 0D 00 00 E8 31 03 00 00 ; K0-G041 lea r8,[rip+fname_peg] + call next_arg
+@009F 4C 8D 05 DA 0D 00 00 E8 25 03 00 00 ; K0-G041 lea r8,[rip+fname_out] + call next_arg
+@00AB 48 8D 0D CE 0C 00 00 E8 82 01 00 00 ; K0-G041 lea rcx,[rip+fname_img] + call open_file_read
+@00B7 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok1
+@00BD B9 02 00 00 00 E8 77 02 00 00 ; K0-G041 mov ecx,2 (ERR=OPEN IMAGE) + call print_error
+@00C7 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл образа) + mov rcx,r12
+@00CD 48 8D 15 98 0E 01 00 41 B8 01 00 01 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8d,0x10001 (вместимость)
+@00DA 4C 8D 0D 4F 0E 00 00 E8 CF 01 00 00 ; K0-G041 lea r9,[rip+imgsize] + call read_whole_dst
+@00E6 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok2
+@00EC B9 03 00 00 00 E8 48 02 00 00 ; K0-G041 mov ecx,3 (ERR=READ IMAGE) + call print_error
+@00F6 48 3D 00 00 01 00 76 0A ; K0-G041 cmp rax,0x10000 (предел образа) + jbe ok3
+@00FE B9 04 00 00 00 E8 36 02 00 00 ; K0-G041 mov ecx,4 (ERR=BIG IMAGE) + call print_error
+@0108 4C 89 E1 E8 96 01 00 00 ; K0-G041 mov rcx,r12 + call close_file
+@0110 48 8D 0D E9 0C 00 00 E8 1D 01 00 00 ; K0-G041 lea rcx,[rip+fname_peg] + call open_file_read
+@011C 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok4
+@0122 B9 05 00 00 00 E8 12 02 00 00 ; K0-G041 mov ecx,5 (ERR=OPEN PEG) + call print_error
+@012C 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл peg) + mov rcx,r12
+@0132 48 8D 15 33 0E 00 00 41 B8 00 00 01 00 ; K0-G041 lea rdx,[rip+filebuf] + mov r8d,0x10000 (вместимость)
+@013F 4C 8D 0D F2 0D 00 00 E8 6A 01 00 00 ; K0-G041 lea r9,[rip+pegsize] + call read_whole_dst
+@014B 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz pg2
+@0151 B9 06 00 00 00 E8 E3 01 00 00 ; K0-G041 mov ecx,6 (ERR=READ PEG) + call print_error
+@015B 48 3D 00 00 01 00 72 0A ; K0-G041 cmp rax,0x10000 (сентинелу нужен запас) + jb ok5
+@0163 B9 06 00 00 00 E8 D1 01 00 00 ; K0-G041 mov ecx,6 (ERR=READ PEG) + call print_error
+@016D 4C 89 E1 E8 31 01 00 00 ; K0-G041 mov rcx,r12 + call close_file
+@0175 E8 85 02 00 00 48 85 C0 ; K0-G041 call parse_peg + test rax,rax
+@017D 74 0A B9 07 00 00 00 ; K0-G041 jz ok6 + mov ecx,7 (ERR=FORMAT)
+@0184 E8 B5 01 00 00 E8 ED 04 00 00 ; K0-G041 call print_error + call build_header
+@018E 48 8D 0D EB 0C 00 00 E8 D7 00 00 00 ; K0-G041 lea rcx,[rip+fname_out] + call create_file_write
+@019A 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok7
+@01A0 B9 08 00 00 00 E8 94 01 00 00 ; K0-G041 mov ecx,8 (ERR=OPEN OUT) + call print_error
+@01AA 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл выхода) + mov rcx,r12
+@01B0 48 8D 15 A9 08 00 00 41 B8 00 02 00 00 ; K0-G041 lea rdx,[rip+hdr] + mov r8d,0x200
+@01BD E8 1B 01 00 00 48 85 C0 ; K0-G041 call write_all + test rax,rax
+@01C5 74 0A B9 09 00 00 00 ; K0-G041 jz ok8 + mov ecx,9 (ERR=WRITE OUT)
+@01CC E8 6D 01 00 00 4C 89 E1 ; K0-G041 call print_error + mov rcx,r12
+@01D4 48 8D 15 91 0D 01 00 4C 8B 05 4E 0D 00 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8,[rip+imgsize]
+@01E2 E8 F6 00 00 00 48 85 C0 ; K0-G041 call write_all + test rax,rax
+@01EA 74 0A B9 09 00 00 00 ; K0-G041 jz ok9 + mov ecx,9 (ERR=WRITE OUT)
+@01F1 E8 48 01 00 00 44 8B 05 67 0D 00 00 ; K0-G041 call print_error + mov r8d,[rip+srd]
+@01FD 44 2B 05 2C 0D 00 00 45 85 C0 ; K0-G041 sub r8d,[rip+imgsize] + test r8d,r8d
+@0207 74 1E 4C 89 E1 ; K0-G041 jz ok10 + mov rcx,r12
+@020C 48 8D 15 69 0D 02 00 E8 C5 00 00 00 ; K0-G041 lea rdx,[rip+zeropad] + call write_all
+@0218 48 85 C0 74 0A ; K0-G041 test rax,rax + jz ok10b
+@021D B9 09 00 00 00 E8 17 01 00 00 ; K0-G041 mov ecx,9 (ERR=WRITE OUT) + call print_error
+@0227 4C 89 E1 E8 77 00 00 00 ; K0-G041 mov rcx,r12 + call close_file
+@022F 48 31 C9 FF 15 5C 0A 00 00 ; K0-X042 xor ecx,ecx (код возврата 0) + call [rip]ExitProcess
+@0238 CC ; K0-X042 int3 (страховка)
+@0239 48 83 EC 38 BA 00 00 00 80 ; K0-F021 sub rsp,0x38 + mov edx,0x80000000 (GENERIC_READ)
+@0242 41 B8 01 00 00 00 45 31 C9 ; K0-F021 mov r8d,1 (FILE_SHARE_READ) + xor r9d,r9d (SA=NULL)
+@024B 48 C7 44 24 20 03 00 00 00 ; K0-F021 mov qword [rsp+0x20],3 (OPEN_EXISTING)
+@0254 48 C7 44 24 28 80 00 00 00 ; K0-F021 mov qword [rsp+0x28],0x80 (NORMAL)
+@025D 48 C7 44 24 30 00 00 00 00 ; K0-F021 mov qword [rsp+0x30],0 (шаблон=NULL)
+@0266 FF 15 38 0A 00 00 48 83 C4 38 ; K0-F021 call [rip]CreateFileA + add rsp,0x38
+@0270 C3 ; K0-F021 ret
+@0271 48 83 EC 38 BA 00 00 00 40 ; K0-F022 sub rsp,0x38 + mov edx,0x40000000 (GENERIC_WRITE)
+@027A 45 31 C0 45 31 C9 ; K0-F022 xor r8d,r8d (без разделения) + xor r9d,r9d (SA=NULL)
+@0280 48 C7 44 24 20 02 00 00 00 ; K0-F022 mov qword [rsp+0x20],2 (CREATE_ALWAYS)
+@0289 48 C7 44 24 28 80 00 00 00 ; K0-F022 mov qword [rsp+0x28],0x80 (NORMAL)
+@0292 48 C7 44 24 30 00 00 00 00 ; K0-F022 mov qword [rsp+0x30],0 (шаблон=NULL)
+@029B FF 15 03 0A 00 00 48 83 C4 38 ; K0-F022 call [rip]CreateFileA + add rsp,0x38
+@02A5 C3 ; K0-F022 ret
+@02A6 48 83 EC 28 FF 15 04 0A 00 00 ; K0-F023 sub rsp,0x28 + call [rip]CloseHandle
+@02B0 48 83 C4 28 C3 ; K0-F023 add rsp,0x28 + ret
+@02B5 48 83 EC 28 48 C7 44 24 20 00 00 00 00 ; K0-F024 sub rsp,0x28 + mov qword [rsp+0x20],0 (ovl=NULL)
+@02C2 FF 15 E4 09 00 00 48 83 C4 28 ; K0-F024 call [rip]ReadFile + add rsp,0x28
+@02CC 48 85 C0 75 08 ; K0-F024 test rax,rax + jnz rw_ok
+@02D1 48 C7 C0 FF FF FF FF C3 ; K0-F024 mov rax,-1 + ret
+@02D9 41 8B 01 C3 ; K0-F024 mov eax,[r9] (счётчик) + ret
+@02DD 48 83 EC 28 4D 89 C5 ; K0-F025 sub rsp,0x28 + mov r13,r8 (сохранить длину)
+@02E4 4C 8D 0D 3D 0C 00 00 ; K0-F025 lea r9,[rip+written]
+@02EB 48 C7 44 24 20 00 00 00 00 ; K0-F025 mov qword [rsp+0x20],0 (ovl=NULL)
+@02F4 FF 15 92 09 00 00 48 83 C4 28 ; K0-F025 call [rip]WriteFile + add rsp,0x28
+@02FE 48 85 C0 74 0F ; K0-F025 test rax,rax + jz wa_err
+@0303 48 8B 05 1E 0C 00 00 4C 39 E8 ; K0-F025 mov rax,[rip+written] + cmp rax,r13
+@030D 75 03 31 C0 ; K0-F025 jne wa_err + xor eax,eax (успех)
+@0311 C3 B8 01 00 00 00 ; K0-F025 ret + mov eax,1 (ошибка)
+@0317 C3 ; K0-F025 ret
+@0318 48 83 EC 28 48 8B 0D FD 0B 00 00 ; K0-P041 sub rsp,0x28 + mov rcx,[rip+hstdout]
+@0323 4C 8D 0D FE 0B 00 00 ; K0-P041 lea r9,[rip+written]
+@032A 48 C7 44 24 20 00 00 00 00 ; K0-P041 mov qword [rsp+0x20],0 (ovl=NULL)
+@0333 FF 15 53 09 00 00 48 83 C4 28 ; K0-P041 call [rip]WriteFile + add rsp,0x28
+@033D C3 ; K0-P041 ret
+@033E 48 83 EC 28 89 C8 ; K0-G042 sub rsp,0x28 + mov eax,ecx (индекс)
+@0344 C1 E0 04 48 98 ; K0-G042 shl eax,4 (x16) + cdqe
+@0349 48 8D 15 70 06 00 00 48 01 C2 ; K0-G042 lea rdx,[rip+errtab] + add rdx,rax (адрес записи)
+@0353 44 8B 42 04 44 8B 4A 08 ; K0-G042 mov r8d,[rdx+4] (длина) + mov r9d,[rdx+8] (код)
+@035B 44 89 4C 24 10 8B 12 ; K0-G042 mov [rsp+0x10],r9d (сохранить код) + mov edx,[rdx] (RVA строки)
+@0362 48 01 DA E8 AE FF FF FF ; K0-G042 add rdx,rbx (адрес строки) + call print_line
+@036A 8B 4C 24 10 FF 15 20 09 00 00 ; K0-G042 mov ecx,[rsp+0x10] (код возврата) + call [rip]ExitProcess
+@0374 CC ; K0-G042 int3 (страховка)
+@0375 48 89 FE 0F B6 07 ; K0-C033 mov rsi,rdi + movzx eax,byte [rdi]
+@037B 84 C0 74 0D ; K0-C033 test al,al + jz rw2_end
+@037F 3C 20 74 09 ; K0-C033 cmp al,' ' + jz rw2_end
+@0383 3C 09 74 05 ; K0-C033 cmp al,9 + jz rw2_end
+@0387 48 FF C7 EB EC ; K0-C033 inc rdi + jmp rw2_loop
+@038C C3 ; K0-C033 ret
+@038D 4D 89 C2 48 39 FE ; K0-C034 mov r10,r8 (курсор записи) + cmp rsi,rdi
+@0393 74 1A 4C 89 D2 ; K0-C034 jz cwd_done + mov rdx,r10
+@0398 4C 29 C2 48 83 FA 7F ; K0-C034 sub rdx,r8 (записано) + cmp rdx,0x7F
+@039F 73 14 0F B6 16 ; K0-C034 jae cwd_long + movzx edx,byte [rsi]
+@03A4 41 88 12 48 FF C6 ; K0-C034 mov [r10],dl + inc rsi
+@03AA 49 FF C2 EB E1 ; K0-C034 inc r10 + jmp cwd_loop
+@03AF 31 C0 41 88 02 ; K0-C034 xor eax,eax + mov [r10],al (NUL)
+@03B4 C3 41 C6 02 00 ; K0-C034 ret + mov byte [r10],0
+@03B9 B8 01 00 00 00 C3 ; K0-C034 mov eax,1 + ret
+@03BF 0F B6 07 3C 20 ; K0-C035 movzx eax,byte [rdi] + cmp al,' '
+@03C4 74 05 3C 09 ; K0-C035 jz ss_adv + cmp al,9
+@03C8 74 01 C3 ; K0-C035 jz ss_adv + ret
+@03CB 48 FF C7 EB EF ; K0-C035 inc rdi + jmp ss_loop
+@03D0 E8 EA FF FF FF 0F B6 07 ; K0-C036 call skip_seps + movzx eax,byte [rdi]
+@03D8 84 C0 74 19 ; K0-C036 test al,al + jz na_miss
+@03DC E8 94 FF FF FF E8 A7 FF FF FF ; K0-C036 call read_word + call copy_word_dst
+@03E6 85 C0 74 0A ; K0-C036 test eax,eax + jz na_ok
+@03EA B9 01 00 00 00 E8 4A FF FF FF ; K0-C036 mov ecx,1 (ERR=LONG NAME) + call print_error
+@03F4 C3 B9 00 00 00 00 ; K0-C036 ret + mov ecx,0 (справка)
+@03FA E8 3F FF FF FF ; K0-C036 call print_error
+@03FF 48 8D 35 66 0B 00 00 8B 05 2C 0B 00 00 ; K0-Q001 lea rsi,[rip+filebuf] + mov eax,[rip+pegsize]
+@040C 48 98 48 8D 0D 57 0B 00 00 ; K0-Q001 cdqe + lea rcx,[rip+filebuf]
+@0415 48 01 C1 C6 01 00 ; K0-Q001 add rcx,rax (конец текста) + mov byte [rcx],0 (сентинел)
+@041B 0F B6 06 84 C0 ; K0-Q001 movzx eax,byte [rsi] + test al,al
+@0420 74 5E 3C 3B ; K0-Q001 jz pp_done + cmp al,';'
+@0424 74 0E 3C 0D ; K0-Q001 jz pp_comment + cmp al,0x0D
+@0428 74 1F 3C 0A ; K0-Q001 jz pp_skip1 + cmp al,0x0A
+@042C 74 1B 3C 21 ; K0-Q001 jz pp_skip1 + cmp al,'!'
+@0430 74 1C EB 46 ; K0-Q001 jz pp_dir + jmp pp_bad
+@0434 0F B6 06 84 C0 ; K0-Q001 movzx eax,byte [rsi] + test al,al
+@0439 74 45 3C 0A ; K0-Q001 jz pp_done + cmp al,0x0A
+@043D 74 05 48 FF C6 ; K0-Q001 jz pp_skiplf + inc rsi
+@0442 EB F0 48 FF C6 ; K0-Q001 jmp pp_comment + inc rsi
+@0447 EB D2 48 FF C6 ; K0-Q001 jmp pp_next + inc rsi
+@044C EB CD 48 FF C6 ; K0-Q001 jmp pp_next + inc rsi (пропуск '!')
+@0451 E8 3D 00 00 00 48 83 F8 FF ; K0-Q001 call match_keyword + cmp rax,-1
+@045A 74 1E 85 C0 ; K0-Q001 jz pp_bad + test eax,eax
+@045E 75 0C E8 3E 01 00 00 ; K0-Q001 jnz pp_value + call do_module
+@0465 48 85 C0 75 10 ; K0-Q001 test rax,rax + jnz pp_bad
+@046A EB AF 89 C1 ; K0-Q001 jmp pp_next + mov ecx,eax (индекс)
+@046E E8 8D 01 00 00 48 85 C0 ; K0-Q001 call do_value + test rax,rax
+@0476 75 02 EB A1 ; K0-Q001 jnz pp_bad + jmp pp_next
+@047A B8 01 00 00 00 C3 ; K0-Q001 mov eax,1 (ошибка) + ret
+@0480 8B 05 B6 0A 00 00 83 E0 0F ; K0-Q001 mov eax,[rip+seen] + and eax,0xF (обязательные)
+@0489 3D 0F 00 00 00 75 EA ; K0-Q001 cmp eax,0xF + jnz pp_bad
+@0490 31 C0 C3 ; K0-Q001 xor eax,eax (успех) + ret
+@0493 4C 8D 1D 16 03 00 00 45 31 C9 ; K0-Q002 lea r11,[rip+kwtab] + xor r9d,r9d (индекс)
+@049D 4D 8B 03 49 01 D8 ; K0-Q002 mov r8,[r11] (RVA слова) + add r8,rbx (адрес слова)
+@04A3 45 31 D2 43 0F B6 0C 10 ; K0-Q002 xor r10d,r10d (смещение буквы) + movzx ecx,byte [r8+r10]
+@04AB 84 C9 74 0E ; K0-Q002 test cl,cl + jz mk_bound (конец слова)
+@04AF 42 0F B6 04 16 38 C8 ; K0-Q002 movzx eax,byte [rsi+r10] + cmp al,cl
+@04B6 75 2C 49 FF C2 ; K0-Q002 jnz mk_next + inc r10
+@04BB EB E9 42 0F B6 04 16 ; K0-Q002 jmp mk_cmp + movzx eax,byte [rsi+r10]
+@04C2 3C 20 74 16 ; K0-Q002 cmp al,' ' + jz mk_hit
+@04C6 3C 09 74 12 ; K0-Q002 cmp al,9 + jz mk_hit
+@04CA 3C 0D 74 0E ; K0-Q002 cmp al,0x0D + jz mk_hit
+@04CE 3C 0A 74 0A ; K0-Q002 cmp al,0x0A + jz mk_hit
+@04D2 3C 3B 74 06 ; K0-Q002 cmp al,';' + jz mk_hit
+@04D6 84 C0 74 02 ; K0-Q002 test al,al + jz mk_hit
+@04DA EB 08 4A 8D 34 16 ; K0-Q002 jmp mk_next (нет границы) + lea rsi,[rsi+r10] (за словом)
+@04E0 4C 89 C8 C3 ; K0-Q002 mov rax,r9 (индекс) + ret
+@04E4 49 83 C3 08 49 FF C1 ; K0-Q002 add r11,8 + inc r9
+@04EB 49 83 F9 07 72 AC ; K0-Q002 cmp r9,7 + jb mk_loop
+@04F1 48 C7 C0 FF FF FF FF C3 ; K0-Q002 mov rax,-1 (не найдено) + ret
+@04F9 45 31 D2 45 31 C0 ; K0-Q003 xor r10d,r10d (накопитель) + xor r8d,r8d (счётчик цифр)
+@04FF 0F B6 06 E8 2C 00 00 00 ; K0-Q003 movzx eax,byte [rsi] + call hex_digit
+@0507 48 83 F8 FF 74 15 ; K0-Q003 cmp rax,-1 + jz rhv_end
+@050D 41 83 F8 08 73 18 ; K0-Q003 cmp r8d,8 (не больше 8) + jae rhv_bad
+@0513 41 C1 E2 04 41 01 C2 ; K0-Q003 shl r10d,4 + add r10d,eax
+@051A 48 FF C6 41 FF C0 ; K0-Q003 inc rsi + inc r8d
+@0520 EB DD 45 85 C0 ; K0-Q003 jmp rhv_loop + test r8d,r8d (ни одной цифры?)
+@0525 74 04 44 89 D0 ; K0-Q003 jz rhv_bad + mov eax,r10d
+@052A C3 48 C7 C0 FF FF FF FF ; K0-Q003 ret + mov rax,-1
+@0532 C3 ; K0-Q003 ret
+@0533 3C 30 72 14 ; K0-Q007 cmp al,'0' + jb hd_bad
+@0537 3C 39 77 04 ; K0-Q007 cmp al,'9' + ja hd_letter
+@053B 83 E8 30 C3 ; K0-Q007 sub eax,0x30 + ret
+@053F 3C 41 72 08 ; K0-Q007 cmp al,'A' + jb hd_bad
+@0543 3C 46 77 04 ; K0-Q007 cmp al,'F' + ja hd_bad
+@0547 83 E8 37 C3 ; K0-Q007 sub eax,0x37 + ret
+@054B 48 C7 C0 FF FF FF FF C3 ; K0-Q007 mov rax,-1 (не hex-цифра) + ret
+@0553 E8 40 00 00 00 0F B6 06 ; K0-Q004 call skip_spaces + movzx eax,byte [rsi]
+@055B 84 C0 74 12 ; K0-Q004 test al,al + jz ee_ok
+@055F 3C 0D 74 0E ; K0-Q004 cmp al,0x0D + jz ee_ok
+@0563 3C 0A 74 0A ; K0-Q004 cmp al,0x0A + jz ee_ok
+@0567 3C 3B 74 06 ; K0-Q004 cmp al,';' + jz ee_ok
+@056B B8 01 00 00 00 C3 ; K0-Q004 mov eax,1 (мусор) + ret
+@0571 31 C0 C3 ; K0-Q004 xor eax,eax + ret
+@0574 48 89 F7 0F B6 07 ; K0-Q005 mov rdi,rsi + movzx eax,byte [rdi]
+@057A 84 C0 74 19 ; K0-Q005 test al,al + jz st_end
+@057E 3C 20 74 15 ; K0-Q005 cmp al,' ' + jz st_end
+@0582 3C 09 74 11 ; K0-Q005 cmp al,9 + jz st_end
+@0586 3C 0D 74 0D ; K0-Q005 cmp al,0x0D + jz st_end
+@058A 3C 0A 74 09 ; K0-Q005 cmp al,0x0A + jz st_end
+@058E 3C 3B 74 05 ; K0-Q005 cmp al,';' + jz st_end
+@0592 48 FF C7 EB E0 ; K0-Q005 inc rdi + jmp st_loop
+@0597 C3 ; K0-Q005 ret
+@0598 80 3E 20 75 05 ; K0-Q006 cmp byte [rsi],' ' + jnz ssp_done
+@059D 48 FF C6 EB F6 ; K0-Q006 inc rsi + jmp ssp_loop
+@05A2 C3 ; K0-Q006 ret
+@05A3 E8 F0 FF FF FF E8 C7 FF FF FF ; K0-Q010 call skip_spaces + call scan_token
+@05AD 48 89 F8 48 29 F0 ; K0-Q010 mov rax,rdi + sub rax,rsi (длина имени)
+@05B3 48 83 F8 1F 77 3F ; K0-Q010 cmp rax,31 + ja dm_bad (длиннее 31)
+@05B9 48 85 C0 74 3A ; K0-Q010 test rax,rax + jz dm_bad (пустое имя)
+@05BE 4C 8D 15 3B 09 00 00 48 39 FE ; K0-Q010 lea r10,[rip+modname] + cmp rsi,rdi
+@05C8 74 0E 0F B6 06 ; K0-Q010 jz dm_end + movzx eax,byte [rsi]
+@05CD 41 88 02 48 FF C6 ; K0-Q010 mov [r10],al + inc rsi
+@05D3 49 FF C2 EB ED ; K0-Q010 inc r10 + jmp dm_loop
+@05D8 41 C6 02 00 E8 72 FF FF FF ; K0-Q010 mov byte [r10],0 (NUL) + call expect_eol
+@05E1 48 85 C0 75 12 ; K0-Q010 test rax,rax + jnz dm_bad
+@05E6 8B 05 50 09 00 00 83 C8 01 ; K0-Q010 mov eax,[rip+seen] + or eax,1 (бит module)
+@05EF 89 05 47 09 00 00 31 C0 ; K0-Q010 mov [rip+seen],eax + xor eax,eax
+@05F7 C3 48 C7 C0 FF FF FF FF ; K0-Q010 ret + mov rax,-1
+@05FF C3 ; K0-Q010 ret
+@0600 8D 41 FF C1 E0 04 ; K0-Q011 lea eax,[rcx-1] (индекс vdesc) + shl eax,4 (x16)
+@0606 48 98 4C 8D 1D D9 01 00 00 ; K0-Q011 cdqe + lea r11,[rip+vdesc]
+@060F 49 01 C3 E8 81 FF FF FF ; K0-Q011 add r11,rax (адрес описателя) + call skip_spaces
+@0617 E8 DD FE FF FF 48 83 F8 FF ; K0-Q011 call read_hexv + cmp rax,-1
+@0620 74 48 49 8B 13 ; K0-Q011 jz dv_bad + mov rdx,[r11] (RVA перем.1)
+@0625 48 01 DA 89 02 ; K0-Q011 add rdx,rbx + mov [rdx],eax
+@062A 49 83 7B 08 00 74 19 ; K0-Q011 cmp qword [r11+8],0 (есть вторая?) + jz dv_one
+@0631 E8 62 FF FF FF E8 BE FE FF FF ; K0-Q011 call skip_spaces + call read_hexv
+@063B 48 83 F8 FF 74 29 ; K0-Q011 cmp rax,-1 + jz dv_bad
+@0641 49 8B 53 08 48 01 DA ; K0-Q011 mov rdx,[r11+8] (RVA перем.2) + add rdx,rbx
+@0648 89 02 E8 04 FF FF FF ; K0-Q011 mov [rdx],eax + call expect_eol
+@064F 48 85 C0 75 16 ; K0-Q011 test rax,rax + jnz dv_bad
+@0654 B8 01 00 00 00 D3 E0 ; K0-Q011 mov eax,1 + shl eax,cl (бит индекса)
+@065B 0B 05 DB 08 00 00 89 05 D5 08 00 00 ; K0-Q011 or eax,[rip+seen] + mov [rip+seen],eax
+@0667 31 C0 C3 ; K0-Q011 xor eax,eax + ret
+@066A 48 C7 C0 FF FF FF FF C3 ; K0-Q011 mov rax,-1 + ret
+@0672 8D 44 08 FF F7 D9 ; K0-M001 lea eax,[rax+rcx-1] (v+a-1) + neg ecx (-a = маска ~(a-1))
+@0678 21 C8 C3 ; K0-M001 and eax,ecx (обнулить младшие) + ret
+@067B 8B 05 AF 08 00 00 03 05 CD 08 00 00 ; K0-E001 mov eax,[rip+imgsize] + add eax,[rip+bssv]
+@0687 89 05 D3 08 00 00 8B 05 9D 08 00 00 ; K0-E001 mov [rip+vsize],eax + mov eax,[rip+imgsize]
+@0693 B9 00 02 00 00 E8 D5 FF FF FF ; K0-E001 mov ecx,0x200 (FileAlignment) + call align_up
+@069D 89 05 C1 08 00 00 8B 05 B7 08 00 00 ; K0-E001 mov [rip+srd],eax + mov eax,[rip+vsize]
+@06A9 B9 00 10 00 00 E8 BF FF FF FF ; K0-E001 mov ecx,0x1000 (SectionAlignment) + call align_up
+@06B3 05 00 10 00 00 89 05 AA 08 00 00 ; K0-E001 add eax,0x1000 (страница заголовков) + mov [rip+soi],eax
+@06BE 48 8D 3D 9B 03 00 00 8B 05 95 08 00 00 ; K0-E001 lea rdi,[rip+hdr] (шаблон) + mov eax,[rip+vsize]
+@06CB 89 87 90 01 00 00 8B 05 8D 08 00 00 ; K0-E001 mov [rdi+0x190],eax (VirtualSize) + mov eax,[rip+srd]
+@06D7 89 87 98 01 00 00 8B 05 81 08 00 00 ; K0-E001 mov [rdi+0x198],eax (SizeOfRawData) + mov eax,[rip+srd]
+@06E3 89 87 9C 00 00 00 8B 05 79 08 00 00 ; K0-E001 mov [rdi+0x9C],eax (SizeOfCode) + mov eax,[rip+soi]
+@06EF 89 87 D0 00 00 00 E8 06 00 00 00 ; K0-E001 mov [rdi+0xD0],eax (SizeOfImage) + call patch_dirs
+@06FA E8 56 00 00 00 C3 ; K0-E001 call build_stub + ret
+@0700 8B 05 3A 08 00 00 89 87 A8 00 00 00 ; K0-E002 mov eax,[rip+entry] + mov [rdi+0xA8],eax (EntryPoint)
+@070C 8B 05 32 08 00 00 89 87 10 01 00 00 ; K0-E002 mov eax,[rip+idata_rva] + mov [rdi+0x110],eax (DD1 RVA)
+@0718 8B 05 2A 08 00 00 89 87 14 01 00 00 ; K0-E002 mov eax,[rip+idata_size] + mov [rdi+0x114],eax (DD1 размер)
+@0724 8B 05 22 08 00 00 89 87 68 01 00 00 ; K0-E002 mov eax,[rip+iat_rva] + mov [rdi+0x168],eax (DD12 RVA)
+@0730 8B 05 1A 08 00 00 89 87 6C 01 00 00 ; K0-E002 mov eax,[rip+iat_size] + mov [rdi+0x16C],eax (DD12 размер)
+@073C 8B 05 16 08 00 00 89 87 E8 00 00 00 ; K0-E002 mov eax,[rip+stackcom] + mov [rdi+0xE8],eax (фиксация стека)
+@0748 8B 05 0E 08 00 00 89 87 F8 00 00 00 ; K0-E002 mov eax,[rip+heapcom] + mov [rdi+0xF8],eax (фиксация кучи)
+@0754 C3 ; K0-E002 ret
+@0755 48 83 C7 40 48 8D 35 3D 02 00 00 ; K0-E003 add rdi,0x40 (зона заглушки) + lea rsi,[rip+stub_pfx]
+@0760 E8 36 00 00 00 48 8D 35 94 07 00 00 ; K0-E003 call copy_str + lea rsi,[rip+modname]
+@076C E8 2A 00 00 00 48 8D 35 33 02 00 00 ; K0-E003 call copy_str + lea rsi,[rip+stub_sfx]
+@0778 E8 1E 00 00 00 48 8D 05 DC 02 00 00 ; K0-E003 call copy_str + lea rax,[rip+hdr] (база шаблона)
+@0784 48 89 FA 48 29 C2 ; K0-E003 mov rdx,rdi + sub rdx,rax (позиция в шаблоне)
+@078A 81 FA 80 00 00 00 73 08 ; K0-E003 cmp edx,0x80 (конец заглушки) + jae bs_done
+@0792 C6 07 00 48 FF C7 ; K0-E003 mov byte [rdi],0 (дозапись нулями) + inc rdi
+@0798 EB EA C3 ; K0-E003 jmp bs_loop + ret
+@079B 0F B6 06 84 C0 ; K0-E004 movzx eax,byte [rsi] + test al,al
+@07A0 74 0A 88 07 ; K0-E004 jz cs_done + mov [rdi],al
+@07A4 48 FF C6 48 FF C7 ; K0-E004 inc rsi + inc rdi
+@07AA EB EF C3 ; K0-E004 jmp cs_loop + ret
+Z 07AD 07B0
+@07B0 48 18 00 00 00 00 00 00 4F 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom)
+@07C0 55 18 00 00 00 00 00 00 5B 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
+@07D0 5F 18 00 00 00 00 00 00 63 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
+@07E0 6C 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
+@07E8 40 1F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: entry {entry,-}
+@07F8 44 1F 00 00 00 00 00 00 48 1F 00 00 00 00 00 00 ; vdesc: idata {idata_rva,idata_size}
+@0808 4C 1F 00 00 00 00 00 00 50 1F 00 00 00 00 00 00 ; vdesc: iat {iat_rva,iat_size}
+@0818 54 1F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: bss {bssv,-}
+@0828 58 1F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: stackcom {stackcom,-}
+@0838 5C 1F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: heapcom {heapcom,-}
+@0848 6D 6F 64 75 6C 65 00 ; kw_module: ключевое слово module
+@084F 65 6E 74 72 79 00 ; kw_entry: ключевое слово entry
+@0855 69 64 61 74 61 00 ; kw_idata: ключевое слово idata
+@085B 69 61 74 00 ; kw_iat: ключевое слово iat
+@085F 62 73 73 00 ; kw_bss: ключевое слово bss
+@0863 73 74 61 63 6B 63 6F 6D 00 ; kw_stackcom: ключевое слово stackcom
+@086C 68 65 61 70 63 6F 6D 00 ; kw_heapcom: ключевое слово heapcom
+@0874 55 2D 4C 30 2D 50 45 47 45 4E 20 43 4D 44 53 3A ; usage_str: справка
+@0884 20 50 45 47 45 4E 20 3C 49 4D 41 47 45 2E 42 49 ; usage_str: справка (продолжение)
+@0894 4E 3E 20 3C 43 54 52 4C 2E 50 45 47 3E 20 3C 4F ; usage_str: справка (продолжение)
+@08A4 55 54 2E 45 58 45 3E 0D 0A 00 ; usage_str: справка (продолжение)
+@08AE 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 4C ; err1_str: имя длиннее 127
+@08BE 4F 4E 47 20 4E 41 4D 45 0D 0A 00 ; err1_str: имя длиннее 127 (продолжение)
+@08C9 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 4F ; err2_str: образ не открыт
+@08D9 50 45 4E 20 49 4D 41 47 45 0D 0A 00 ; err2_str: образ не открыт (продолжение)
+@08E5 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 52 ; err3_str: ошибка чтения образа
+@08F5 45 41 44 20 49 4D 41 47 45 0D 0A 00 ; err3_str: ошибка чтения образа (продолжение)
+@0901 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 42 ; err4_str: образ больше 64 КиБ
+@0911 49 47 20 49 4D 41 47 45 0D 0A 00 ; err4_str: образ больше 64 КиБ (продолжение)
+@091C 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 4F ; err5_str: управляющий файл не открыт
+@092C 50 45 4E 20 50 45 47 0D 0A 00 ; err5_str: управляющий файл не открыт (продолжение)
+@0936 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 52 ; err6_str: ошибка чтения peg
+@0946 45 41 44 20 50 45 47 0D 0A 00 ; err6_str: ошибка чтения peg (продолжение)
+@0950 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 46 ; err7_str: плохой формат peg
+@0960 4F 52 4D 41 54 0D 0A 00 ; err7_str: плохой формат peg (продолжение)
+@0968 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 4F ; err8_str: выход не создан
+@0978 50 45 4E 20 4F 55 54 0D 0A 00 ; err8_str: выход не создан (продолжение)
+@0982 55 2D 4C 30 2D 50 45 47 45 4E 20 45 52 52 3D 57 ; err9_str: ошибка записи выхода
+@0992 52 49 54 45 20 4F 55 54 0D 0A 00 ; err9_str: ошибка записи выхода (продолжение)
+@099D 55 6E 69 76 65 72 73 61 6C 20 4C 30 20 00 ; stub_pfx: префикс заглушки (13)
+@09AB 2E 20 4E 6F 20 44 4F 53 20 73 75 70 70 6F 72 74 ; stub_sfx: суффикс заглушки (20)
+@09BB 2E 0D 0A 24 00 ; stub_sfx: суффикс заглушки (20) (продолжение)
+@09C0 74 18 00 00 39 00 00 00 02 00 00 00 00 00 00 00 ; errtab[2]: {usage_str, 57, 2}
+@09D0 AE 18 00 00 1A 00 00 00 03 00 00 00 00 00 00 00 ; errtab[3]: {err1_str, 26, 3}
+@09E0 C9 18 00 00 1B 00 00 00 04 00 00 00 00 00 00 00 ; errtab[4]: {err2_str, 27, 4}
+@09F0 E5 18 00 00 1B 00 00 00 05 00 00 00 00 00 00 00 ; errtab[5]: {err3_str, 27, 5}
+@0A00 01 19 00 00 1A 00 00 00 06 00 00 00 00 00 00 00 ; errtab[6]: {err4_str, 26, 6}
+@0A10 1C 19 00 00 19 00 00 00 07 00 00 00 00 00 00 00 ; errtab[7]: {err5_str, 25, 7}
+@0A20 36 19 00 00 19 00 00 00 08 00 00 00 00 00 00 00 ; errtab[8]: {err6_str, 25, 8}
+@0A30 50 19 00 00 17 00 00 00 09 00 00 00 00 00 00 00 ; errtab[9]: {err7_str, 23, 9}
+@0A40 68 19 00 00 19 00 00 00 0A 00 00 00 00 00 00 00 ; errtab[10]: {err8_str, 25, 10}
+@0A50 82 19 00 00 1A 00 00 00 0B 00 00 00 00 00 00 00 ; errtab[11]: {err9_str, 26, 11}
+@0A60 4D 5A 90 00 03 00 00 00 04 00 00 00 FF FF 00 00 ; hdr+0x000: шаблон заголовка
+@0A70 B8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 ; hdr+0x010: шаблон заголовка
+@0A80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x020: шаблон заголовка
+@0A90 00 00 00 00 00 00 00 00 00 00 00 00 80 00 00 00 ; hdr+0x030: шаблон заголовка
+@0AA0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x040: шаблон заголовка
+@0AB0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x050: шаблон заголовка
+@0AC0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x060: шаблон заголовка
+@0AD0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x070: шаблон заголовка
+@0AE0 50 45 00 00 64 86 01 00 00 00 00 00 00 00 00 00 ; hdr+0x080: шаблон заголовка
+@0AF0 00 00 00 00 F0 00 22 00 0B 02 01 00 00 00 00 00 ; hdr+0x090: шаблон заголовка
+@0B00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 00 00 ; hdr+0x0A0: шаблон заголовка
+@0B10 00 00 00 40 01 00 00 00 00 10 00 00 00 02 00 00 ; hdr+0x0B0: шаблон заголовка
+@0B20 06 00 00 00 00 00 01 00 06 00 00 00 00 00 00 00 ; hdr+0x0C0: шаблон заголовка
+@0B30 00 00 00 00 00 02 00 00 00 00 00 00 03 00 00 00 ; hdr+0x0D0: шаблон заголовка
+@0B40 00 00 10 00 00 00 00 00 00 10 00 00 00 00 00 00 ; hdr+0x0E0: шаблон заголовка
+@0B50 00 00 10 00 00 00 00 00 00 10 00 00 00 00 00 00 ; hdr+0x0F0: шаблон заголовка
+@0B60 00 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x100: шаблон заголовка
+@0B70 00 00 00 00 28 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x110: шаблон заголовка
+@0B80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x120: шаблон заголовка
+@0B90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x130: шаблон заголовка
+@0BA0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x140: шаблон заголовка
+@0BB0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x150: шаблон заголовка
+@0BC0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x160: шаблон заголовка
+@0BD0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x170: шаблон заголовка
+@0BE0 00 00 00 00 00 00 00 00 2E 74 65 78 74 00 00 00 ; hdr+0x180: шаблон заголовка
+@0BF0 00 00 00 00 00 10 00 00 00 00 00 00 00 02 00 00 ; hdr+0x190: шаблон заголовка
+@0C00 00 00 00 00 00 00 00 00 00 00 00 00 20 00 00 E0 ; hdr+0x1A0: шаблон заголовка
+@0C10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x1B0: шаблон заголовка
+@0C20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x1C0: шаблон заголовка
+@0C30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x1D0: шаблон заголовка
+@0C40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x1E0: шаблон заголовка
+@0C50 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; hdr+0x1F0: шаблон заголовка
+@0C60 C4 1C 00 00 00 00 00 00 04 1D 00 00 84 1C 00 00 ; IDT: описатель (INT, время, цепочка, имя, IAT)
+@0C70 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; IDT: терминатор (нулевая запись 20 байт)
+@0C80 00 00 00 00 ; IDT: терминатор (нулевая запись 20 байт) (продолжение)
+@0C84 12 1D 00 00 00 00 00 00 ; iat0 -> hint GetStdHandle
+@0C8C 22 1D 00 00 00 00 00 00 ; iat1 -> hint WriteFile
+@0C94 2E 1D 00 00 00 00 00 00 ; iat2 -> hint ExitProcess
+@0C9C 3C 1D 00 00 00 00 00 00 ; iat3 -> hint GetCommandLineA
+@0CA4 4E 1D 00 00 00 00 00 00 ; iat4 -> hint CreateFileA
+@0CAC 5C 1D 00 00 00 00 00 00 ; iat5 -> hint ReadFile
+@0CB4 68 1D 00 00 00 00 00 00 ; iat6 -> hint CloseHandle
+@0CBC 00 00 00 00 00 00 00 00 ; iat: терминатор
+@0CC4 12 1D 00 00 00 00 00 00 ; int0 -> hint GetStdHandle
+@0CCC 22 1D 00 00 00 00 00 00 ; int1 -> hint WriteFile
+@0CD4 2E 1D 00 00 00 00 00 00 ; int2 -> hint ExitProcess
+@0CDC 3C 1D 00 00 00 00 00 00 ; int3 -> hint GetCommandLineA
+@0CE4 4E 1D 00 00 00 00 00 00 ; int4 -> hint CreateFileA
+@0CEC 5C 1D 00 00 00 00 00 00 ; int5 -> hint ReadFile
+@0CF4 68 1D 00 00 00 00 00 00 ; int6 -> hint CloseHandle
+@0CFC 00 00 00 00 00 00 00 00 ; int: терминатор
+@0D04 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; имя DLL "kernel32.dll"
+Z 0D11 0D12
+@0D12 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; hint=0 + имя GetStdHandle
+Z 0D21 0D22
+@0D22 00 00 57 72 69 74 65 46 69 6C 65 00 ; hint=0 + имя WriteFile
+@0D2E 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; hint=0 + имя ExitProcess
+@0D3C 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; hint=0 + имя GetCommandLineA
+@0D4C 41 00 ; hint=0 + имя GetCommandLineA (продолжение)
+@0D4E 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; hint=0 + имя CreateFileA
+@0D5C 00 00 52 65 61 64 46 69 6C 65 00 ; hint=0 + имя ReadFile
+Z 0D67 0D68
+@0D68 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; hint=0 + имя CloseHandle

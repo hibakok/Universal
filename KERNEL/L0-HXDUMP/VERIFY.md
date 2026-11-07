@@ -10,7 +10,7 @@
 | Размер | 3584 байта (0xE00) |
 | SHA-256 | `F0CEE97E45B1399FF13151BF4587BA2A02465E793FB9C92F525CDD69A7B4A8E3` |
 | Тип | PE32+ (консоль, x86-64), 1 секция, импорт kernel32.dll (7 функций) |
-| Исходник | `hxdump.hex` (формат ATOM v1) — полный байтовый листинг |
+| Исходники | `hxdump.hex` (тело секции, ATOM v1, телесная форма) + `hxdump.peg` (обёртка, SPEC/07) |
 | Использование | `hxdump.exe <файл>` (см. CARD.md) |
 
 ## Проверка 1: подлинность (хэш)
@@ -48,6 +48,17 @@ hxdump.exe no_such_file.bin    → echo %errorlevel%  → 4
 ## Проверка 4: соответствие листингу
 
 Контрольные байты (тест T-M3-12, `TESTS/T-L0-HXDUMP.md`).
+
+## Сборка (с этапа E4)
+
+```
+hexgen.exe hxdump.hex  t_body.bin
+pegen.exe  t_body.bin  hxdump.peg  t.exe
+fc /b t.exe hxdump.exe   ->  различий нет
+```
+
+Полный круг «текст → EXE» — `T-M5-04` в `TESTS/T-L0-PEGEN.md`
+(заголовки генерирует pegen из `hxdump.peg`; SHA-256 артефакта не изменился).
 
 ## Журнал верификации
 

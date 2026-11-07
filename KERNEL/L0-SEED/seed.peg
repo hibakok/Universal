@@ -1,0 +1,6 @@
+; UNIVERSAL / PEG v1 / слой L0 / модуль M0-SEED
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module seed
+!entry 1000
+!idata 1100 28
+!iat 1130 20

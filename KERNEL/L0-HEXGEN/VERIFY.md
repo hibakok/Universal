@@ -11,7 +11,7 @@
 | SHA-256 | `947AD0182A0162CB402CB4D92A7932681CE6B2BF16B5B524ACCE07AB3FD241BF` |
 | Тип | PE32+ (консоль, x86-64), 1 секция, импорт kernel32.dll (7 функций) |
 | Особенность | SizeOfRawData (0x800) < VirtualSize (0x20880): буферы — виртуальные нули (bss) |
-| Исходник | `hexgen.hex` (формат ATOM v1) — полный байтовый листинг |
+| Исходники | `hexgen.hex` (тело секции, ATOM v1, телесная форма) + `hexgen.peg` (обёртка, SPEC/07) |
 | Использование | `hexgen.exe <вход.hex> <выход.bin>` (см. CARD.md) |
 
 ## Проверка 1: подлинность (хэш)
@@ -62,6 +62,17 @@ hexgen.exe ok.hex nodir\t.bin  -> ERR=OPEN OUTPUT, код 8
 ```
 
 Полный список сценариев — `TESTS/T-L0-HEXGEN.md` (T-M4-01..14).
+
+## Сборка (с этапа E4)
+
+```
+hexgen.exe hexgen.hex  t_body.bin
+pegen.exe  t_body.bin  hexgen.peg  t.exe
+fc /b t.exe hexgen.exe   ->  различий нет
+```
+
+Полный круг «текст → EXE» — `T-M5-05` в `TESTS/T-L0-PEGEN.md`
+(заголовки генерирует pegen из `hexgen.peg`; SHA-256 артефакта не изменился).
 
 ## Журнал верификации
 

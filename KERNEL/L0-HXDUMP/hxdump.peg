@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / слой L0 / модуль M0-HXDUMP
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module hxdump
+!entry 1000
+!idata 18F0 28
+!iat 1918 40
+!stackcom 4000
+!heapcom 4000

@@ -4,14 +4,16 @@
 > машина, библиотеки и проекты — построенные вручную из мельчайших кирпичей,
 > без использования чужих языков, компиляторов, ассемблеров и библиотек.
 
-**Статус: этапы E0–E3 выполнены.** Артефакты:
+**Статус: этапы E0–E4 выполнены.** Артефакты:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 байт, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
-(3584 Б, файловый ввод) и `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
-**первый компилятор**: ATOM-текст → бинарный файл байт-в-байт, собирает
-сам себя) — все написаны вручную на уровне байтов машинного кода x86-64
-и верифицированы тремя независимыми способами (PE-разбор, дизассемблер,
-эмуляция).
+(3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
+**первый компилятор**: ATOM-текст → тело образа байт-в-байт) и
+`KERNEL/L0-PEGEN/pegen.exe` (4096 Б, **обёртка**: тело + PEG-файл →
+готовый EXE, заголовки генерируются автоматически) — все написаны
+вручную на уровне байтов машинного кода x86-64 и верифицированы тремя
+независимыми способами (PE-разбор, дизассемблер, эмуляция). Полный
+конвейер «правка текста → готовый EXE» замкнут и самовоспроизводим.
 
 ## С чего начать (обязательно прочитать по порядку)
 
@@ -28,7 +30,7 @@
 | `DOCS/`  | манифест, методология, навигация, дорожная карта, правила изменений |
 | `SPEC/`  | формальные спецификации: карточки методов, слои, форматы, PE, x86 |
 | `MAP/`   | карта репозитория, указатель кирпичей, реестры модулей, слои |
-| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор) |
+| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE) |
 | `PROJECTS/` | внешние проекты — программы, исполняемые ядром          |
 | `TESTS/` | политика тестирования и тест-планы                        |
 
@@ -62,16 +64,24 @@ cmd -> KERNEL\L0-HXDUMP\hxdump.exe KERNEL\L0-SEED\seed.exe
 SHA-256:          F0CEE97E45B1399FF13151BF4587BA2A02465E793FB9C92F525CDD69A7B4A8E3
 Команды:          hxdump.exe <файл> (см. CARD.md)
 
-Из папки KERNEL\L0-HEXGEN:
-hexgen.exe ..\L0-SEED\seed.hex t_seed.exe
-Ожидаемо:         вывод пуст; код 0;
-                  fc /b t_seed.exe ..\L0-SEED\seed.exe -> различий нет
-                  (DoD E3: компилятор воспроизводит артефакт из текста)
-hexgen.exe hexgen.hex t_hg.exe
-Ожидаемо:         различий нет с hexgen.exe (самосборка)
-SHA-256:          947AD0182A0162CB402CB4D92A7932681CE6B2BF16B5B524ACCE07AB3FD241BF
-Команды:          hexgen.exe <вход.hex> <выход.bin> (см. CARD.md)
+Из папки KERNEL (конвейер E4 — полный круг «текст → EXE»):
+L0-HEXGEN\hexgen.exe L0-SEED\seed.hex t_body.bin
+L0-PEGEN\pegen.exe t_body.bin L0-SEED\seed.peg t_seed.exe
+Ожидаемо:         вывод пуст; коды 0;
+                  fc /b t_seed.exe L0-SEED\seed.exe -> различий нет
+                  (DoD E4: конвейер воспроизводит артефакт из текстов)
+L0-PEGEN\pegen.exe
+Ожидаемый вывод:  U-L0-PEGEN CMDS: PEGEN <IMAGE.BIN> <CTRL.PEG> <OUT.EXE>
+Код возврата:     2
+SHA-256 pegen.exe: A371EB9154C9A94C6B85D7EB658F44A8AC7529AF716428F8B677967D47792081
+Команды:          pegen.exe <образ.bin> <управляющий.peg> <выход.exe> (см. CARD.md)
+
+Самосборка pegen (круг E4):
+L0-HEXGEN\hexgen.exe L0-PEGEN\pegen.hex t_pb.bin
+L0-PEGEN\pegen.exe t_pb.bin L0-PEGEN\pegen.peg t_pegen.exe
+Ожидаемо:         fc /b t_pegen.exe L0-PEGEN\pegen.exe -> различий нет
 ```
 
 Подробности: `KERNEL/L0-SEED/VERIFY.md`, `KERNEL/L0-SEED2/VERIFY.md`,
-`KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`.
+`KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`,
+`KERNEL/L0-PEGEN/VERIFY.md`.

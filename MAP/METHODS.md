@@ -89,6 +89,43 @@
 | K0-D035 | filebuf | D | готов | `MAP/M0-HEXGEN.md` |
 | K0-D036 | imagebuf | D | готов | `MAP/M0-HEXGEN.md` |
 | K0-D037 | таблица импортов | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-X041 | prepare_stack | X | готов | `MAP/M0-PEGEN.md` |
+| K0-S041 | get_image_base | S | готов | `MAP/M0-PEGEN.md` |
+| K0-C031 | get_cmdline | C | готов | `MAP/M0-PEGEN.md` |
+| K0-C032 | skip_argv0 | C | готов | `MAP/M0-PEGEN.md` |
+| K0-C033 | read_word | C | готов | `MAP/M0-PEGEN.md` |
+| K0-C034 | copy_word_dst | C | готов | `MAP/M0-PEGEN.md` |
+| K0-C035 | skip_seps | C | готов | `MAP/M0-PEGEN.md` |
+| K0-C036 | next_arg | C | готов | `MAP/M0-PEGEN.md` |
+| K0-G041 | dispatch | G | готов | `MAP/M0-PEGEN.md` |
+| K0-G042 | print_error | G | готов | `MAP/M0-PEGEN.md` |
+| K0-F021 | open_file_read | F | готов | `MAP/M0-PEGEN.md` |
+| K0-F022 | create_file_write | F | готов | `MAP/M0-PEGEN.md` |
+| K0-F023 | close_file | F | готов | `MAP/M0-PEGEN.md` |
+| K0-F024 | read_whole_dst | F | готов | `MAP/M0-PEGEN.md` |
+| K0-F025 | write_all | F | готов | `MAP/M0-PEGEN.md` |
+| K0-P041 | print_line | P | готов | `MAP/M0-PEGEN.md` |
+| K0-Q001 | parse_peg | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q002 | match_keyword | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q003 | read_hexv | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q004 | expect_eol | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q005 | scan_token | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q006 | skip_spaces | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q007 | hex_digit | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q010 | do_module | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-Q011 | do_value | Q | готов | `MAP/M0-PEGEN.md` |
+| K0-M001 | align_up | M | готов | `MAP/M0-PEGEN.md` |
+| K0-E001 | build_header | E | готов | `MAP/M0-PEGEN.md` |
+| K0-E002 | patch_dirs | E | готов | `MAP/M0-PEGEN.md` |
+| K0-E003 | build_stub | E | готов | `MAP/M0-PEGEN.md` |
+| K0-E004 | copy_str | E | готов | `MAP/M0-PEGEN.md` |
+| K0-X042 | exit_code | X | готов | `MAP/M0-PEGEN.md` |
+| K0-D041 | служебные ячейки | D | готов | `MAP/M0-PEGEN.md` |
+| K0-D042 | таблицы | D | готов | `MAP/M0-PEGEN.md` |
+| K0-D043 | строки вывода | D | готов | `MAP/M0-PEGEN.md` |
+| K0-D044 | шаблон PE-заголовка | D | готов | `MAP/M0-PEGEN.md` |
+| K0-D045 | таблица импортов | D | готов | `MAP/M0-PEGEN.md` |
+| K0-D046 | буферы | D | готов | `MAP/M0-PEGEN.md` |
 
 ## Правила реестра
 
@@ -103,7 +140,7 @@
 
 ## Счётчики (обновлять при каждом изменении)
 
-- Кирпичей в реестре: 79 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
-  M0-HEXGEN — 29).
-- Ветви кода: X, S, C, H, P, A, U, G, D, F, B + R (разбор ATOM — новая
-  в M0-HEXGEN).
+- Кирпичей в реестре: 116 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
+  M0-HEXGEN — 29, M0-PEGEN — 37).
+- Ветви кода: X, S, C, H, P, A, U, G, D, F, B, R (разбор ATOM, E3) +
+  Q (разбор PEG), E (заголовок EXE), M (математика) — новые в M0-PEGEN.

@@ -1,0 +1,9 @@
+; UNIVERSAL / PEG v1 / слой L0 / модуль M0-HEXGEN
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module hexgen
+!entry 1000
+!idata 1660 28
+!iat 1688 40
+!bss 20080
+!stackcom 4000
+!heapcom 4000
