@@ -29,7 +29,6 @@
 | `SPEC/06-ARCHITECTURE.md` | целевая архитектура системы | 72 |
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 139 |
-| `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 139 |
 
 ## MAP/ — навигация
 
@@ -80,11 +79,11 @@
 | `KERNEL/L0-PEGEN/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 112 |
 | `KERNEL/L0-PEGEN/VERIFY.md` | проверка, журнал, пойманные ошибки | 95 |
 | `KERNEL/L1-BRICK/CARD.md` | карточка модуля M1-BRICK (ассемблер BRICK) | 140 |
-| `KERNEL/L1-BRICK/brick.hex` | тело секции brick, ATOM v1 (бутстрап-истина E5) | 667 |
-| `KERNEL/L1-BRICK/brick.brick` | тот же источник в BRICK v1 (канонический) | 610 |
+| `KERNEL/L1-BRICK/brick.hex` | тело секции brick, ATOM v1 (истина E5a) | 671 |
+| `KERNEL/L1-BRICK/brick.brick` | тот же источник в BRICK v1 (канонический) | 850 |
 | `KERNEL/L1-BRICK/brick.peg` | обёртка brick (PEG v1, SPEC/07) | 11 |
 | `KERNEL/L1-BRICK/brick.exe` | материализация: hexgen + pegen, 3584 байта, PE32+ | — |
-| `KERNEL/L1-BRICK/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 100 |
+| `KERNEL/L1-BRICK/BYTECODE.md` | сводка, карта кирпичей, данные, импорты, история | 112 |
 | `KERNEL/L1-BRICK/VERIFY.md` | SHA-256, 4 уровня проверки, журнал | 95 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
@@ -105,6 +104,25 @@
 | `TESTS/T-L0-PEGEN.md` | тест-план pegen T-M5-01..T-M5-17 | 131 |
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17 | 120 |
 
+## LAB/ — внешняя лаборатория ИИ (не часть системы)
+
+| Файл | Роль | Строк |
+|---|---|---|
+| `LAB/README.md` | статус и правила лаборатории | 65 |
+| `LAB/py/lab_pe.py` | разбор PE32+ + инварианты SPEC/04 | 178 |
+| `LAB/py/lab_atom.py` | оракул ATOM v1 (SPEC/03) | 68 |
+| `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08) | 312 |
+| `LAB/py/lab_pegen.py` | оракул PEG v1 (SPEC/07) | 125 |
+| `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05) | 316 |
+| `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток | 354 |
+| `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС | 223 |
+| `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
+| `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
+| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 306 |
+
+LAB — измерительный прибор (Python только здесь); подробности —
+`LAB/README.md`. Система UNIVERSAL от LAB не зависит.
+
 ## Корень
 
 | Файл | Роль |
@@ -120,6 +138,6 @@
   M1-BRICK — первый модуль слоя L1).
 - Тестов: **78** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17).
-- Этап: **E5 завершён** (BRICK v1: метки, имена, автоматический расчёт
-  rip-смещений; ассемблер собирает себя из собственного BRICK-исходника);
-  следующий — E6 (см. `DOCS/03-ROADMAP.md`).
+- Этап: **E5a завершён** (E5 + лаборатория LAB: 67 автоматических
+  проверок, исправлен дефект hex16_to_4 в brick.exe); следующий — E6
+  (см. `DOCS/03-ROADMAP.md`).

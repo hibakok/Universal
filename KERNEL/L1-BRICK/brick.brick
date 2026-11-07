@@ -646,6 +646,7 @@ H 48 C7 C0 FF FF FF FF ; K1-N002 mov rax,-1 (не найдена)
 H 41 5B C3 ; K1-N002 pop r11 + ret
 :hex16_to_4
 H B9 04 00 00 00 ; K1-H001 mov ecx,4 (4 цифры)
+H C1 E0 10 ; K1-H001 shl eax,16 (число ≤ 0xFFFF — в старшие 16 бит: 4 ротации по 4 бита прочитают его)
 :h4_loop
 H C1 C0 04 ; K1-H001 rol eax,4 (старшая тетрада -> младшие биты)
 H 89 C2 83 E2 0F ; K1-H001 mov edx,eax + and edx,0xF
@@ -805,6 +806,7 @@ DQ 0 ; K1-D004 IAT: терминатор
 DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; K1-D004 INT: копия IAT до заполнения
 :dll_name
 H 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; K1-D004 имя DLL
+DZ 1 ; K1-D004 выравнивание записей hint на чётные RVA
 :hint_gsh
 H 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; K1-D005 hint=0 + имя GetStdHandle
 DZ 1 ; K1-D005 выравнивание hint-записи на чётное RVA

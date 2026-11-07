@@ -4,7 +4,7 @@
 > машина, библиотеки и проекты — построенные вручную из мельчайших кирпичей,
 > без использования чужих языков, компиляторов, ассемблеров и библиотек.
 
-**Статус: этапы E0–E5 выполнены.** Артефакты:
+**Статус: этапы E0–E5 и E5a выполнены** (E5a: лаборатория LAB + исправление дефекта hex16_to_4 в brick.exe). Артефакты:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 байт, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
 (3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
@@ -35,6 +35,7 @@ rel-переходов; собирает сам себя из собственн
 | `MAP/`   | карта репозитория, указатель кирпичей, реестры модулей, слои |
 | `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE); слой L1: brick (ассемблер BRICK) |
 | `PROJECTS/` | внешние проекты — программы, исполняемые ядром          |
+| `LAB/` | внешняя лаборатория ИИ (Python): эмулятор, оракулы, батарея |
 | `TESTS/` | политика тестирования и тест-планы                        |
 
 ## Непреложные правила (полный список — `DOCS/01-METHODOLOGY.md`)
@@ -87,16 +88,22 @@ L0-PEGEN\pegen.exe t_pb.bin L0-PEGEN\pegen.peg t_pegen.exe
 cmd -> KERNEL\L1-BRICK\brick.exe
 Ожидаемый вывод:  U-L1-BRICK CMDS: BRICK <SRC.BRICK> <OUT.BIN>
 Код возврата:     2
-SHA-256:          3FA5E5789A6E6CCA38D2814A36EAF02CD94184CA2F59E13B65AD0D042A1AB404
+SHA-256:          5F7F9EFD3398B735E762B37610ED1F197C383DA7252A3CD0C73DD3EE31A5C857
 Команды:          brick.exe <src.brick> <out.bin> (см. CARD.md)
 
 Самохостинг BRICK (DoD этапа E5, из папки KERNEL):
 L1-BRICK\brick.exe L1-BRICK\brick.brick t_self.bin
 L0-HEXGEN\hexgen.exe L1-BRICK\brick.hex t_body.bin
-Ожидаемо:         fc /b t_self.bin t_body.bin -> различий нет (2964 байта)
+Ожидаемо:         fc /b t_self.bin t_body.bin -> различий нет (2968 байт)
 L0-PEGEN\pegen.exe t_self.bin L1-BRICK\brick.peg t_brick.exe
 Ожидаемо:         fc /b t_brick.exe L1-BRICK\brick.exe -> различий нет
 ```
+
+Автоматическая батарея (без Windows, нужен Python 3.8+):
+python3 LAB/py/lab_verify.py
+Ожидаемо:         ИТОГ: 67/67 OK (~7 секунд) — SHA, PE-инварианты,
+                  эмуляция сценариев TESTS/, оракулы ATOM/BRICK/PEG,
+                  круги E4 и самохостинг E5.
 
 Подробности: `KERNEL/L0-SEED/VERIFY.md`, `KERNEL/L0-SEED2/VERIFY.md`,
 `KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`,

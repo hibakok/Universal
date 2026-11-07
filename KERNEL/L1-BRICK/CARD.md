@@ -140,7 +140,7 @@ cmd -> KERNEL\L1-BRICK\brick.exe
 Из папки KERNEL (самохостинг):
   L1-BRICK\brick.exe L1-BRICK\brick.brick t_self.bin
   L0-HEXGEN\hexgen.exe L1-BRICK\brick.hex t_body.bin
-  fc /b t_self.bin t_body.bin   ->  различий нет (2964 байта)
+  fc /b t_self.bin t_body.bin   ->  различий нет (2968 байт)
   L0-PEGEN\pegen.exe t_self.bin L1-BRICK\brick.peg t_brick.exe
   fc /b t_brick.exe L1-BRICK\brick.exe   ->  различий нет
 ```

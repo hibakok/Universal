@@ -43,11 +43,23 @@
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
+| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (67 проверок: SHA, PE, эмуляция, оракулы, круги; ~7 с) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
 | Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |
 | Проверить hexgen | `KERNEL/L0-HEXGEN/VERIFY.md`, `TESTS/T-L0-HEXGEN.md` |
 | Проверить pegen | `KERNEL/L0-PEGEN/VERIFY.md`, `TESTS/T-L0-PEGEN.md` |
 | Начать новый проект | `PROJECTS/README.md`, `SPEC/06-ARCHITECTURE.md` |
+
+## Лаборатория LAB (внешний инструмент верификации)
+
+`LAB/` — измерительный прибор, а не часть системы (правила —
+`LAB/README.md`). Python там допустим ТОЛЬКО внутри LAB. Перед любым
+изменением KERNEL/ и после него: `python3 LAB/py/lab_verify.py` —
+должно быть 67/67. Эмулятор (lab_cpu/lab_win) исполняет наши EXE с
+заглушками kernel32; оракулы (lab_atom/lab_brick/lab_pegen) —
+независимые реализации SPEC/03/08/07; расхождение оракула с
+инструментом — находка, а не повод «подогнать» (см. журнал
+KERNEL/L1-BRICK/VERIFY.md, дефект № 12).
 
 ## Правила выживания в репозитории
 
