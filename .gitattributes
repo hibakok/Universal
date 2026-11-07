@@ -2,9 +2,11 @@
 *.hex text eol=lf
 *.peg text eol=lf
 *.brick text eol=lf
+*.b2 text eol=lf
 # Исполняемые образы — бинарные
 *.exe binary
 # Текстовая документация — как есть (LF в репозитории)
 *.md text
 # Инструменты лаборатории — текст, LF
 *.py text eol=lf
+*.yml text eol=lf
