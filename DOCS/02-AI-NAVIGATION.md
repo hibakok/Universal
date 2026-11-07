@@ -23,11 +23,14 @@
 | Задача | Обязательные файлы |
 |---|---|
 | Изменить код семени (L0) | `KERNEL/L0-SEED/CARD.md`, `seed.hex`, `SPEC/05-X86-SUBSET.md`, `SPEC/04-PE-MINIMAL.md` |
-| Добавить кирпич L0 | `SPEC/01-METHOD-CARD.md`, `MAP/METHODS.md`, `KERNEL/L0-SEED/CARD.md`, `seed.hex` |
+| Изменить код семени-2 | `KERNEL/L0-SEED2/CARD.md`, `seed2.hex`, `SPEC/05-X86-SUBSET.md`, `SPEC/04-PE-MINIMAL.md` |
+| Добавить команду seed2 | `KERNEL/L0-SEED2/CARD.md`, `BYTECODE.md` §7 (формат записи), `MAP/METHODS.md` (K0-D012, K0-D011) |
+| Добавить кирпич L0 | `SPEC/01-METHOD-CARD.md`, `MAP/METHODS.md`, `KERNEL/L0-SEED2/CARD.md`, `seed2.hex` |
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
+| Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |
 | Начать новый проект | `PROJECTS/README.md`, `SPEC/06-ARCHITECTURE.md` |
 
 ## Правила выживания в репозитории
