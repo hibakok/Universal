@@ -6,22 +6,28 @@
          1) целостность артефактов (SHA-256 из VERIFY.md);
          2) инварианты PE (SPEC/04);
          3) эмуляция всех документированных сценариев TESTS/;
-         4) оракулы форматов против инструментов (ATOM/BRICK/PEG);
+         4) оракулы форматов против инструментов (ATOM/BRICK/PEG/ENC);
          5) круги воспроизведения E4 (hexgen+pegen == EXE) и
-            самохостинг E5 (brick(brick.brick) == hexgen(brick.hex)).
+            самохостинг E5 (brick(brick.brick) == hexgen(brick.hex));
+         6) оракул ENC (SPEC/09): якорные кодировки, отвержение
+            ошибок, декодер lab_x86, полный круг v2 -> EXE -> эмуляция.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
 import os
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import lab_atom
 import lab_brick
+import lab_enc
+import lab_enc_cases
 import lab_pe
 import lab_pegen
 import lab_run
+import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))), "KERNEL")
@@ -287,6 +293,79 @@ def t_cycles():
           "шагов=%d" % r3.steps)
 
 
+# ------------------------------------------------------------------ 6
+def t_enc():
+    """Оракул ENC (SPEC/09): якоря, ошибки, декодер, круг v2->EXE."""
+    bad = []
+    for m, h in lab_enc_cases.CASES:
+        try:
+            if lab_enc.normalize(m + "\n").strip() != h:
+                bad.append(m)
+        except lab_enc.EncError:
+            bad.append(m + " (ошибка)")
+    check("ENC: якорные кодировки SPEC/05 (%d)" % len(lab_enc_cases.CASES),
+          not bad, "; ".join(bad[:3]) if bad else "")
+
+    bad = [e for e in lab_enc_cases.ERRORS
+           if not _enc_rejects(e)]
+    check("ENC: отвержение некорректных M-строк (%d)"
+          % len(lab_enc_cases.ERRORS), not bad,
+          "; ".join(bad[:3]) if bad else "")
+
+    # структурный контроль: каждая кодировка декодируется обратно
+    # декодером lab_x86 ровно той же длины (слоты заменяются нулями)
+    bad = []
+    for m, _h in lab_enc_cases.CASES:
+        toks = lab_enc.encode_m(*_enc_parse(m), 1)
+        bs = bytearray()
+        for t in toks:
+            if isinstance(t, int):
+                bs.append(t)
+            else:
+                bs += b"\x00" * t[2]
+        fetch = lambda a, n: int.from_bytes(bs[a:a + n], "little")
+        try:
+            _name, length, _args = lab_x86.decode(fetch, 0)
+            if length != len(bs):
+                bad.append(m)
+        except Exception:
+            bad.append(m)
+    check("ENC: декодер lab_x86 подтверждает структуру (%d)"
+          % len(lab_enc_cases.CASES), not bad,
+          "; ".join(bad[:3]) if bad else "")
+
+    # полный круг: DEMO_B2 -> enc -> brick -> pegen -> эмуляция
+    v1 = lab_enc.normalize(lab_enc_cases.DEMO_B2)
+    body = lab_brick.assemble(v1.encode("utf-8"))
+    exe = lab_pegen.wrap(body, lab_enc_cases.DEMO_PEG)
+    fd, path = tempfile.mkstemp(suffix=".exe")
+    try:
+        os.write(fd, exe)
+        os.close(fd)
+        r = lab_run.run_kv(path, [], {})
+    finally:
+        os.unlink(path)
+    check("ENC: полный круг v2->EXE->эмуляция (U-ENC-OK)",
+          r.stdout == b"U-ENC-OK\r\n" and r.exit_code == 0,
+          "%r код=%s шагов=%d" % (r.stdout[:24], r.exit_code, r.steps))
+
+
+def _enc_parse(m):
+    """'M mov rax, 5' -> ('mov', ['rax', '5']) без проверки."""
+    body = m[1:].strip()
+    parts = body.split(None, 1)
+    rest = parts[1].strip() if len(parts) > 1 else ""
+    return parts[0], [p.strip() for p in rest.split(",")] if rest else []
+
+
+def _enc_rejects(m):
+    try:
+        lab_enc.normalize(m + "\n")
+        return False
+    except lab_enc.EncError:
+        return True
+
+
 def main():
     print("=== UNIVERSAL / LAB: батарея верификации ===")
     t_integrity()
@@ -294,6 +373,7 @@ def main():
     t_scenarios()
     t_oracles()
     t_cycles()
+    t_enc()
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
