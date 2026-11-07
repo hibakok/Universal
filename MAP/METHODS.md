@@ -60,6 +60,35 @@
 | K0-D024 | служебные данные | D | готов | `MAP/M0-HXDUMP.md` |
 | K0-D025 | строки вывода | D | готов | `MAP/M0-HXDUMP.md` |
 | K0-D026 | таблица импортов | D | готов | `MAP/M0-HXDUMP.md` |
+| K0-X031 | prepare_stack | X | готов | `MAP/M0-HEXGEN.md` |
+| K0-S031 | get_image_base | S | готов | `MAP/M0-HEXGEN.md` |
+| K0-C021 | get_cmdline | C | готов | `MAP/M0-HEXGEN.md` |
+| K0-C022 | skip_argv0 | C | готов | `MAP/M0-HEXGEN.md` |
+| K0-C023 | read_word | C | готов | `MAP/M0-HEXGEN.md` |
+| K0-C024 | copy_word_dst | C | готов | `MAP/M0-HEXGEN.md` |
+| K0-C025 | skip_seps | C | готов | `MAP/M0-HEXGEN.md` |
+| K0-G031 | dispatch | G | готов | `MAP/M0-HEXGEN.md` |
+| K0-F004 | read_whole | F | готов | `MAP/M0-HEXGEN.md` |
+| K0-F011 | open_file_read | F | готов | `MAP/M0-HEXGEN.md` |
+| K0-F005 | create_file_write | F | готов | `MAP/M0-HEXGEN.md` |
+| K0-F006 | write_image | F | готов | `MAP/M0-HEXGEN.md` |
+| K0-F013 | close_file | F | готов | `MAP/M0-HEXGEN.md` |
+| K0-R001 | parse_atom | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-R002 | hex_digit | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-R003 | read_hex4 | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-R004 | parse_data_line | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-R005 | parse_zero_line | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-R006 | skip_spaces | R | готов | `MAP/M0-HEXGEN.md` |
+| K0-P031 | print_line | P | готов | `MAP/M0-HEXGEN.md` |
+| K0-U031 | print_usage | U | готов | `MAP/M0-HEXGEN.md` |
+| K0-X032 | exit_code | X | готов | `MAP/M0-HEXGEN.md` |
+| K0-D031 | служебные данные | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D032 | строки вывода | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D033 | fname_in | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D034 | fname_out | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D035 | filebuf | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D036 | imagebuf | D | готов | `MAP/M0-HEXGEN.md` |
+| K0-D037 | таблица импортов | D | готов | `MAP/M0-HEXGEN.md` |
 
 ## Правила реестра
 
@@ -74,5 +103,7 @@
 
 ## Счётчики (обновлять при каждом изменении)
 
-- Кирпичей в реестре: 50 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23).
-- Ветви кода: X, S, C, H, P, A, U, G, D (M0-SEED/M0-SEED2) + F, B (M0-HXDUMP).
+- Кирпичей в реестре: 79 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
+  M0-HEXGEN — 29).
+- Ветви кода: X, S, C, H, P, A, U, G, D, F, B + R (разбор ATOM — новая
+  в M0-HEXGEN).
