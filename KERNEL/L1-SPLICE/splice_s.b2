@@ -1,0 +1,248 @@
+; ===== S011 process_loop: цикл строк текущего уровня (LF/CRLF/CR) =====
+:process_loop
+M mov r14, rsi ; K1-S011 R14 = начало строки
+:pl_scan
+M movzx eax, byte [rsi] ; K1-S011
+M test al, al ; K1-S011
+M jz $pl_eof ; K1-S011 конец файла (сентинел NUL)
+M cmp al, 0A ; K1-S011 LF?
+M jz $pl_endlf ; K1-S011
+M cmp al, 0D ; K1-S011 CR?
+M jz $pl_endcr ; K1-S011
+M inc rsi ; K1-S011
+M jmp $pl_scan ; K1-S011
+:pl_endlf
+M mov r15, rsi ; K1-S011 R15 = конец строки (на LF)
+M inc rsi ; K1-S011 пропуск LF
+M mov eax, [rip+$curline] ; K1-S011 номер строки +1
+M inc eax ; K1-S011
+M mov [rip+$curline], eax ; K1-S011
+M call $handle_line ; K1-S012 директива или вывод (может спуститься)
+M jmp $process_loop ; K1-S011
+:pl_endcr
+M mov r15, rsi ; K1-S011 конец строки (на CR)
+M inc rsi ; K1-S011 пропуск CR
+M movzx eax, byte [rsi] ; K1-S011
+M cmp al, 0A ; K1-S011 CRLF — один терминатор?
+M jne $pl_nolf ; K1-S011
+M inc rsi ; K1-S011 пропуск LF тоже
+:pl_nolf
+M mov eax, [rip+$curline] ; K1-S011 номер строки +1
+M inc eax ; K1-S011
+M mov [rip+$curline], eax ; K1-S011
+M call $handle_line ; K1-S012
+M jmp $process_loop ; K1-S011
+:pl_eof
+M cmp rsi, r14 ; K1-S011 пустой хвост без терминатора?
+M je $pl_filedone ; K1-S011
+M mov r15, rsi ; K1-S011 последняя строка
+M mov eax, [rip+$curline] ; K1-S011 номер строки +1
+M inc eax ; K1-S011
+M mov [rip+$curline], eax ; K1-S011
+M call $handle_line ; K1-S012 директива на последней строке?
+M test r13, r13 ; K1-S011 спуск произошёл (уровень вырос)?
+M jz $pl_filedone ; K1-S011 нет — файл исчерпан
+M jmp $process_loop ; K1-S011 да — цикл продолжится с нового уровня
+:pl_filedone
+M test r13, r13 ; K1-S011 уровень 0 — конец склейки?
+M jz $pl_done ; K1-S011
+M dec r13 ; K1-S011 возврат к родителю
+M mov rdx, r13 ; K1-S011
+M shl rdx, 3 ; K1-S011 x 8
+M lea rcx, [rip+$lv_cur] ; K1-S011
+M add rcx, rdx ; K1-S011 lv_cur[level]
+M mov rsi, [rcx] ; K1-S011 сохранённый курсор родителя
+M jmp $process_loop ; K1-S011
+:pl_done
+M ret ; K1-S011
+; ===== S012 handle_line: '!include'-директива (спуск) или проход строки =====
+:handle_line
+M movzx eax, byte [r14] ; K1-S012
+M cmp al, 21 ; K1-S012 '!' — директива?
+M jnz $hl_emit ; K1-S012 обычная строка
+M mov rax, r15 ; K1-S012 длина строки
+M sub rax, r14 ; K1-S012
+M cmp rax, 0A ; K1-S012 минимум "!include x" (10 байт)
+M jb $hl_bad ; K1-S012
+M mov eax, [r14] ; K1-S012 байты 0..3
+M cmp eax, 636E6921 ; K1-S012 "!inc" (LE dword)
+M jne $hl_bad ; K1-S012
+M mov eax, [r14+4] ; K1-S012 байты 4..7
+M cmp eax, 6564756C ; K1-S012 "lude" (LE dword)
+M jne $hl_bad ; K1-S012
+M movzx eax, byte [r14+8] ; K1-S012 байт 8
+M cmp al, 20 ; K1-S012 ' ' после "!include"
+M jne $hl_bad ; K1-S012
+M jmp $hl_inc ; K1-S012 корректная директива
+:hl_bad
+M call $fail_format ; K1-G023 ERR=FORMAT AT=XXXX (не возвращается)
+:hl_inc
+M mov rax, r13 ; K1-S012 следующий уровень
+M inc rax ; K1-S012
+M cmp rax, 8 ; K1-S012 предел глубины (уровни 0..7)
+M jae $hl_depth ; K1-S012 ERR=DEPTH
+M mov rdx, r13 ; K1-S012 сохранить курсор родителя
+M shl rdx, 3 ; K1-S012 x 8
+M lea rcx, [rip+$lv_cur] ; K1-S012
+M add rcx, rdx ; K1-S012
+M mov [rcx], rsi ; K1-S012 lv_cur[level] = RSI
+M mov rdx, r13 ; K1-S012 имя родителя
+M shl rdx, 7 ; K1-S012 x 0x80
+M lea rsi, [rip+$lv_name] ; K1-S012
+M add rsi, rdx ; K1-S012 RSI = lv_name[level]
+M lea rax, [rip+$lv_pref] ; K1-S012
+M add rax, r13 ; K1-S012 lv_pref[level]
+M movzx ecx, byte [rax] ; K1-S012 ECX = длина префикса (0..127)
+M lea rdi, [rip+$namebuild] ; K1-S012 RDI = сборка полного имени
+:hl_cp1
+M test rcx, rcx ; K1-S012
+M jz $hl_cp1d ; K1-S012
+M movzx eax, byte [rsi] ; K1-S012
+M mov [rdi], al ; K1-S012
+M inc rsi ; K1-S012
+M inc rdi ; K1-S012
+M dec rcx ; K1-S012
+M jmp $hl_cp1 ; K1-S012
+:hl_cp1d
+M lea rsi, [r14+9] ; K1-S012 путь директивы
+M mov rcx, r15 ; K1-S012
+M sub rcx, r14 ; K1-S012
+M sub rcx, 9 ; K1-S012 длина пути (>= 1)
+:hl_cp2
+M test rcx, rcx ; K1-S012
+M jz $hl_cp2d ; K1-S012
+M movzx eax, byte [rsi] ; K1-S012
+M mov [rdi], al ; K1-S012
+M inc rsi ; K1-S012
+M inc rdi ; K1-S012
+M dec rcx ; K1-S012
+M jmp $hl_cp2 ; K1-S012
+:hl_cp2d
+M lea rax, [rip+$namebuild] ; K1-S012
+M mov rdx, rdi ; K1-S012
+M sub rdx, rax ; K1-S012 полная длина имени
+M cmp rdx, 7F ; K1-S012 предел 127 байт
+M ja $hl_long ; K1-S012 ERR=LONG NAME
+M mov byte [rdi], 0 ; K1-S012 NUL
+M mov rdx, r13 ; K1-S012 имя -> lv_name[level+1]
+M inc rdx ; K1-S012
+M shl rdx, 7 ; K1-S012 x 0x80
+M lea rdi, [rip+$lv_name] ; K1-S012
+M add rdi, rdx ; K1-S012
+M lea rsi, [rip+$namebuild] ; K1-S012
+:hl_cp3
+M movzx eax, byte [rsi] ; K1-S012
+M test al, al ; K1-S012
+M jz $hl_cp3d ; K1-S012
+M mov [rdi], al ; K1-S012
+M inc rsi ; K1-S012
+M inc rdi ; K1-S012
+M jmp $hl_cp3 ; K1-S012
+:hl_cp3d
+M mov byte [rdi], 0 ; K1-S012
+M mov rdx, r13 ; K1-S012 префикс нового уровня
+M inc rdx ; K1-S012
+M shl rdx, 7 ; K1-S012 x 0x80
+M lea rcx, [rip+$lv_name] ; K1-S012
+M add rcx, rdx ; K1-S012 lv_name[level+1]
+M call $name_prefix ; K1-N011 RAX = длина префикса
+M mov rdx, r13 ; K1-S012
+M inc rdx ; K1-S012
+M lea rcx, [rip+$lv_pref] ; K1-S012
+M add rcx, rdx ; K1-S012 lv_pref[level+1]
+M mov [rcx], al ; K1-S012
+M lea rcx, [rip+$namebuild] ; K1-S012 загрузка файла нового уровня
+M call $open_file_read ; K1-F021
+M cmp rax, -1 ; K1-S012
+M jnz $hl_opened ; K1-S012
+M mov ecx, 2 ; K1-S012 ERR=OPEN SRC
+M call $print_error ; K1-G022
+:hl_opened
+M mov r11, rax ; K1-S012 R11 = хэндл (живёт через read)
+M mov rcx, r11 ; K1-S012
+M mov rdx, r13 ; K1-S012
+M inc rdx ; K1-S012
+M shl rdx, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M lea rax, [rip+$filebufs] ; K1-S012
+M add rdx, rax ; K1-S012 RDX = буфер нового уровня
+M mov r8d, 20000 ; K1-S012 вместимость 0x20000
+M lea r9, [rip+$srclen] ; K1-S012
+M call $read_whole_dst ; K1-F024
+M cmp rax, -1 ; K1-S012
+M jnz $hl_read2 ; K1-S012
+M mov ecx, 3 ; K1-S012 ERR=READ SRC
+M call $print_error ; K1-G022
+:hl_read2
+M cmp rax, 20000 ; K1-S012 предел 128 КиБ
+M jb $hl_size2 ; K1-S012
+M mov ecx, 4 ; K1-S012 ERR=BIG SRC
+M call $print_error ; K1-G022
+:hl_size2
+M mov rcx, r11 ; K1-S012
+M call $close_file ; K1-F023
+M mov rdx, r13 ; K1-S012 сентинел нового уровня
+M inc rdx ; K1-S012
+M shl rdx, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M lea rcx, [rip+$filebufs] ; K1-S012
+M add rcx, rdx ; K1-S012
+M mov edx, [rip+$srclen] ; K1-S012 длина прочитанного
+M add rcx, rdx ; K1-S012
+M mov byte [rcx], 0 ; K1-S012 NUL-сентинел
+M inc r13 ; K1-S012 спуск на уровень ниже
+M mov rax, r13 ; K1-S012
+M shl rax, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M lea rsi, [rip+$filebufs] ; K1-S012
+M add rsi, rax ; K1-S012 RSI = начало файла
+M ret ; K1-S012 цикл продолжится с нового уровня
+:hl_depth
+M mov ecx, 8 ; K1-S012 errtab: DEPTH
+M call $print_error ; K1-G022
+:hl_long
+M mov ecx, 1 ; K1-S012 errtab: LONG NAME
+M call $print_error ; K1-G022
+; ===== S013 emit_line: строка -> outbuf + LF (предел 128 КиБ) =====
+:hl_emit
+M mov rax, r12 ; K1-S013 занято в outbuf
+M sub rax, r10 ; K1-S013
+M mov rcx, r15 ; K1-S013 длина строки
+M sub rcx, r14 ; K1-S013
+M lea rdx, [rax+rcx] ; K1-S013 занято + длина
+M inc rdx ; K1-S013 + LF
+M cmp rdx, 20000 ; K1-S013 предел вывода 128 КиБ
+M jbe $hl_room ; K1-S013
+M mov ecx, 7 ; K1-S013 errtab: BIG OUT
+M call $print_error ; K1-G022
+:hl_room
+M mov rcx, r14 ; K1-S013
+:hl_e1
+M cmp rcx, r15 ; K1-S013
+M jae $hl_e2 ; K1-S013
+M movzx eax, byte [rcx] ; K1-S013
+M mov [r12], al ; K1-S013
+M inc r12 ; K1-S013
+M inc rcx ; K1-S013
+M jmp $hl_e1 ; K1-S013
+:hl_e2
+M mov byte [r12], 0A ; K1-S013 LF
+M inc r12 ; K1-S013
+M ret ; K1-S013
+; ===== N011 name_prefix: RCX = имя (NUL) -> RAX = длина префикса каталога =====
+:name_prefix
+M xor eax, eax ; K1-N011 результат (0 = нет каталога)
+M xor edx, edx ; K1-N011 позиция
+:npf_loop
+M movzx r8d, byte [rcx] ; K1-N011
+M test r8d, r8d ; K1-N011
+M jz $npf_done ; K1-N011
+M cmp r8d, 2F ; K1-N011 '/'?
+M jz $npf_sep ; K1-N011
+M cmp r8d, 5C ; K1-N011 '\'?
+M jnz $npf_adv ; K1-N011
+:npf_sep
+M lea rax, [rdx+1] ; K1-N011 позиция ПОСЛЕ последнего разделителя
+:npf_adv
+M inc rcx ; K1-N011
+M inc rdx ; K1-N011
+M jmp $npf_loop ; K1-N011
+:npf_done
+M ret ; K1-N011

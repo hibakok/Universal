@@ -1,0 +1,381 @@
+; ===== E011 emit2: байт AL -> "XX " в [R12] =====
+:emit2
+M movzx eax, al ; K1-E011 только AL (старшие биты мусор)
+M mov r11d, eax ; K1-E011 сохранить байт
+M mov edx, eax ; K1-E011
+M shr eax, 4 ; K1-E011 старшая тетрада
+M lea rdi, [rip+$digits] ; K1-E011
+M movzx eax, byte [rdi+rax] ; K1-E011 цифра
+M mov [r12], al ; K1-E011
+M inc r12 ; K1-E011
+M mov eax, r11d ; K1-E011
+M and eax, 0F ; K1-E011 младшая тетрада
+M movzx eax, byte [rdi+rax] ; K1-E011
+M mov [r12], al ; K1-E011
+M inc r12 ; K1-E011
+M mov byte [r12], 20 ; K1-E011 пробел-разделитель
+M inc r12 ; K1-E011
+M ret ; K1-E011
+; ===== E012 emit_rex: AL = REX; 0 — не выдавать =====
+:emit_rex
+M test al, al ; K1-E012
+M jz $erx_done ; K1-E012
+M call $emit2 ; K1-E011
+:erx_done
+M ret ; K1-E012
+; ===== E013 emit_slot: "$имя" / "$имя:1" =====
+:emit_slot
+M mov byte [r12], 24 ; K1-E013 '$'
+M inc r12 ; K1-E013
+M mov r11, r8 ; K1-E013 размер слота
+:es_loop
+M test rdx, rdx ; K1-E013
+M jz $es_name ; K1-E013
+M movzx eax, byte [rcx] ; K1-E013
+M mov [r12], al ; K1-E013
+M inc r12 ; K1-E013
+M inc rcx ; K1-E013
+M dec rdx ; K1-E013
+M jmp $es_loop ; K1-E013
+:es_name
+M cmp r11d, 1 ; K1-E013 суффикс ":1"?
+M jne $es_sp ; K1-E013
+M mov byte [r12], 3A ; K1-E013 ':'
+M inc r12 ; K1-E013
+M mov byte [r12], 31 ; K1-E013 '1'
+M inc r12 ; K1-E013
+:es_sp
+M mov byte [r12], 20 ; K1-E013 хвостовой пробел (как у байтов)
+M inc r12 ; K1-E013
+M ret ; K1-E013
+; ===== E014 emit_i32: EAX -> 4 байта "XX XX XX XX " =====
+:emit_i32
+M mov [rip+$ei_val], eax ; K1-E014
+M xor r9d, r9d ; K1-E014
+:ei_loop
+M cmp r9d, 4 ; K1-E014
+M jae $ei_done ; K1-E014
+M mov ecx, r9d ; K1-E014
+M shl ecx, 3 ; K1-E014 x 8
+M mov eax, [rip+$ei_val] ; K1-E014
+M shr eax, cl ; K1-E014
+M call $emit2 ; K1-E011
+M inc r9d ; K1-E014
+M jmp $ei_loop ; K1-E014
+:ei_done
+M ret ; K1-E014
+; ===== E020 check_imm_range: RAX = значение, ECX = 0 строгий / 1 полный =====
+:check_imm_range
+M mov r11, rax ; K1-E020
+M test r11, r11 ; K1-E020
+M js $cir_neg ; K1-E020 отрицательное
+M test ecx, ecx ; K1-E020
+M jnz $cir_full ; K1-E020 полный: старшие 32 бита нулевые
+M cmp r11, 7FFFFFFF ; K1-E020 строгий: <= 0x7FFFFFFF
+M jg $fail_format ; K1-E020
+M ret ; K1-E020
+:cir_full
+M mov rax, r11 ; K1-E020
+M shr rax, 20 ; K1-E020 старшие 32 бита
+M test rax, rax ; K1-E020
+M jnz $fail_format ; K1-E020
+M ret ; K1-E020
+:cir_neg
+M cmp r11, -80000000 ; K1-E020 >= -0x80000000
+M jl $fail_format ; K1-E020
+M ret ; K1-E020
+; ===== E018 sel_imm: RCX = размер, RAX = значение -> 80/83/81 + imm =====
+:sel_imm
+M mov [rip+$si_size], rcx ; K1-E018
+M mov [rip+$si_val], rax ; K1-E018
+M cmp rcx, 8 ; K1-E018 8-бит: -0x80..0xFF -> 80 /x ib
+M jne $si_wide ; K1-E018
+M cmp rax, 7F ; K1-E018
+M jg $fail_format ; K1-E018
+M cmp rax, -80 ; K1-E018
+M jl $fail_format ; K1-E018
+M mov eax, 80 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 1 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M mov [rip+$im_b0], rax ; K1-E018
+M ret ; K1-E018
+:si_wide
+M cmp rax, 7F ; K1-E018 знаковый байт? -> 83 /x ib
+M jg $si_81 ; K1-E018
+M cmp rax, -80 ; K1-E018
+M jl $si_81 ; K1-E018
+M mov eax, 83 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 1 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M mov [rip+$im_b0], rax ; K1-E018
+M ret ; K1-E018
+:si_81
+M mov rax, [rip+$si_size] ; K1-E018 64-бит: строгий диапазон
+M cmp rax, 40 ; K1-E018
+M jne $si_32 ; K1-E018
+M mov rcx, 0 ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M call $check_imm_range ; K1-E020
+M jmp $si_emit81 ; K1-E018
+:si_32
+M mov rcx, 1 ; K1-E018 32-бит: полный диапазон i32
+M mov rax, [rip+$si_val] ; K1-E018
+M call $check_imm_range ; K1-E020
+:si_emit81
+M mov eax, 81 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 4 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov eax, [rip+$si_val] ; K1-E018 младшие 32 бита
+M mov [rip+$im_b0], eax ; K1-E018
+M ret ; K1-E018
+; ===== E019 emit_immres: выдать im_len байт из im_b0 =====
+:emit_immres
+M xor r9d, r9d ; K1-E019
+:ei2_loop
+M cmp r9, [rip+$im_len] ; K1-E019
+M jae $ei2_done ; K1-E019
+M mov eax, [rip+$im_b0] ; K1-E019
+M mov ecx, r9d ; K1-E019
+M shl ecx, 3 ; K1-E019
+M shr eax, cl ; K1-E019
+M call $emit2 ; K1-E011
+M inc r9 ; K1-E019
+M jmp $ei2_loop ; K1-E019
+:ei2_done
+M ret ; K1-E019
+; ===== E015 enc_mem: память -> memres (modrm/SIB/disp/слот) =====
+:enc_mem
+M mov [rip+$mr_regv], rcx ; K1-E015 regv (0..7)
+M mov rax, [r8+30] ; K1-E015 rip-ссылка?
+M test rax, rax ; K1-E015
+M jz $em_land ; K1-E015 обычная память
+M mov eax, ecx ; K1-E015 rip: modrm = 05|regv<<3, слот 4
+M shl eax, 3 ; K1-E015
+M or eax, 5 ; K1-E015
+M mov [rip+$mr_modrm], rax ; K1-E015
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_slotf], rax ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_ssz], rax ; K1-E015
+M mov rax, [r8+30] ; K1-E015
+M mov [rip+$mr_sptr], rax ; K1-E015
+M mov rax, [r8+38] ; K1-E015
+M mov [rip+$mr_slen], rax ; K1-E015
+M ret ; K1-E015
+:em_land
+M mov r11, [r8+28] ; K1-E015 D = смещение (int64)
+M cmp r11, 7FFFFFFF ; K1-E015 диапазон disp32
+M jg $fail_format ; K1-E015
+M cmp r11, -80000000 ; K1-E015
+M jl $fail_format ; K1-E015
+M mov r9, [r8+18] ; K1-E015 база
+M mov rdx, [r8+20] ; K1-E015 индекс (-1 = нет)
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_slotf], rax ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M cmp rdx, -1 ; K1-E015 есть индекс?
+M jne $em_sib ; K1-E015
+M mov rax, r9 ; K1-E015 база rsp/r12 (&7 == 4) -> SIB
+M and eax, 7 ; K1-E015
+M cmp eax, 4 ; K1-E015
+M je $em_sib ; K1-E015
+M mov rcx, r9 ; K1-E015 rm = база&7
+M and ecx, 7 ; K1-E015
+M mov [rip+$mr_rm], rcx ; K1-E015
+M jmp $em_mod ; K1-E015
+:em_sib
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M mov ecx, 4 ; K1-E015 «нет индекса» (поле 100)
+M cmp rdx, -1 ; K1-E015
+M je $em_sidx ; K1-E015
+M mov rcx, rdx ; K1-E015
+M and ecx, 7 ; K1-E015 индекс&7
+:em_sidx
+M shl ecx, 3 ; K1-E015
+M mov rax, r9 ; K1-E015
+M and eax, 7 ; K1-E015 база&7
+M or ecx, eax ; K1-E015 SIB
+M mov [rip+$mr_sib], rcx ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_rm], rax ; K1-E015 rm = 100
+:em_mod
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015
+M test r11, r11 ; K1-E015 D == 0?
+M jnz $em_disp ; K1-E015
+M mov rax, [rip+$mr_rm] ; K1-E015
+M cmp rax, 4 ; K1-E015
+M jne $em_rm5 ; K1-E015
+M mov rax, [rip+$mr_sibf] ; K1-E015
+M test rax, rax ; K1-E015
+M jz $em_rex ; K1-E015 [rsp]: mod 00, без disp
+M mov rax, r9 ; K1-E015 SIB-база rbp/r13 (&7 == 5)?
+M and eax, 7 ; K1-E015
+M cmp eax, 5 ; K1-E015
+M jne $em_rex ; K1-E015 mod 00
+M jmp $em_m1z ; K1-E015 -> mod 01, disp8 = 0
+:em_rm5
+M cmp rax, 5 ; K1-E015 rbp/r13 без disp = rip!
+M jne $em_rex ; K1-E015 mod 00
+:em_m1z
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015 disp8 = 0
+M jmp $em_rex ; K1-E015
+:em_disp
+M cmp r11, 7F ; K1-E015 disp8?
+M jg $em_d32 ; K1-E015
+M cmp r11, -80 ; K1-E015
+M jl $em_d32 ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov eax, r11d ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015 младший байт
+M jmp $em_rex ; K1-E015
+:em_d32
+M mov eax, 2 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov eax, r11d ; K1-E015
+M mov [rip+$mr_tail], eax ; K1-E015 4 байта LE
+:em_rex
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+M cmp rdx, -1 ; K1-E015 X: индекс >= r8
+M je $em_nox ; K1-E015
+M cmp rdx, 8 ; K1-E015
+M jl $em_nox ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+:em_nox
+M cmp r9, 8 ; K1-E015 B: база >= r8
+M jl $em_nob ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+:em_nob
+M mov rax, [rip+$mr_mod] ; K1-E015 modrm = mod<<6|regv<<3|rm
+M shl eax, 6 ; K1-E015
+M mov rcx, [rip+$mr_regv] ; K1-E015
+M shl ecx, 3 ; K1-E015
+M or eax, ecx ; K1-E015
+M mov rcx, [rip+$mr_rm] ; K1-E015
+M or eax, ecx ; K1-E015
+M mov [rip+$mr_modrm], rax ; K1-E015
+M ret ; K1-E015
+; ===== E016 emit_rm: RAX=опк, R8=mem, ECX=regv, EDX=флаги(w1|r2) =====
+:emit_rm
+M mov [rip+$er_opc], rax ; K1-E016
+M mov [rip+$er_flags], rdx ; K1-E016
+M call $enc_mem ; K1-E015 (R8/ECX на месте)
+M mov eax, [rip+$er_flags] ; K1-E016
+M and eax, 1 ; K1-E016 w (бит 0)
+M shl eax, 3 ; K1-E016 W<<3
+M mov rcx, [rip+$er_flags] ; K1-E016
+M and ecx, 2 ; K1-E016 r-флаг (бит 1)
+M shl ecx, 1 ; K1-E016 R<<2
+M or eax, ecx ; K1-E016
+M mov rcx, [rip+$mr_x] ; K1-E016
+M shl ecx, 1 ; K1-E016 X<<1
+M or eax, ecx ; K1-E016
+M mov rcx, [rip+$mr_b] ; K1-E016
+M or eax, ecx ; K1-E016
+M or eax, 40 ; K1-E016
+M cmp eax, 40 ; K1-E016
+M je $erm_norex ; K1-E016
+M call $emit2 ; K1-E011
+:erm_norex
+M mov rax, [rip+$er_pre] ; K1-E016 префикс 0F (movzx)?
+M test rax, rax ; K1-E016
+M jz $erm_nopre ; K1-E016
+M call $emit2 ; K1-E011
+:erm_nopre
+M mov rax, [rip+$er_opc] ; K1-E016
+M call $emit2 ; K1-E011
+M mov rax, [rip+$mr_modrm] ; K1-E016
+M call $emit2 ; K1-E011
+M mov rax, [rip+$mr_sibf] ; K1-E016
+M test rax, rax ; K1-E016
+M jz $erm_nosib ; K1-E016
+M mov rax, [rip+$mr_sib] ; K1-E016
+M call $emit2 ; K1-E011
+:erm_nosib
+M xor r9d, r9d ; K1-E016
+:erm_tloop
+M cmp r9, [rip+$mr_tlen] ; K1-E016
+M jae $erm_tdone ; K1-E016
+M mov eax, [rip+$mr_tail] ; K1-E016
+M mov ecx, r9d ; K1-E016
+M shl ecx, 3 ; K1-E016
+M shr eax, cl ; K1-E016
+M call $emit2 ; K1-E011
+M inc r9 ; K1-E016
+M jmp $erm_tloop ; K1-E016
+:erm_tdone
+M mov rax, [rip+$er_imm] ; K1-E016 imm после disp (mem,imm)?
+M test rax, rax ; K1-E016
+M jz $erm_noimm ; K1-E016
+M call $emit_immres ; K1-E019
+:erm_noimm
+M mov rax, [rip+$mr_slotf] ; K1-E016 слот — всегда последним
+M test rax, rax ; K1-E016
+M jz $erm_ret ; K1-E016
+M mov rcx, [rip+$mr_sptr] ; K1-E016
+M mov rdx, [rip+$mr_slen] ; K1-E016
+M mov r8, [rip+$mr_ssz] ; K1-E016
+M call $emit_slot ; K1-E013
+:erm_ret
+M ret ; K1-E016
+; ===== E017 emit_rr: RAX=опк, RCX=код src, RDX=код dst, R8=размер =====
+:emit_rr
+M mov [rip+$rr_opc], rax ; K1-E017
+M mov [rip+$rr_src], rcx ; K1-E017
+M mov [rip+$rr_dst], rdx ; K1-E017
+M mov [rip+$rr_size], r8 ; K1-E017
+M xor eax, eax ; K1-E017 REX
+M cmp r8, 40 ; K1-E017 W: размер 64?
+M jne $rr_now ; K1-E017
+M or eax, 8 ; K1-E017
+:rr_now
+M cmp rcx, 8 ; K1-E017 R: src >= r8?
+M jl $rr_nor ; K1-E017
+M or eax, 4 ; K1-E017
+:rr_nor
+M cmp rdx, 8 ; K1-E017 B: dst >= r8?
+M jl $rr_nob ; K1-E017
+M or eax, 1 ; K1-E017
+:rr_nob
+M or eax, 40 ; K1-E017
+M cmp eax, 40 ; K1-E017
+M je $rr_norex ; K1-E017
+M call $emit2 ; K1-E011
+:rr_norex
+M mov rax, [rip+$rr_opc] ; K1-E017
+M call $emit2 ; K1-E011
+M mov rax, [rip+$rr_src] ; K1-E017 reg-поле = источник
+M and eax, 7 ; K1-E017
+M shl eax, 3 ; K1-E017
+M mov rcx, [rip+$rr_dst] ; K1-E017
+M and ecx, 7 ; K1-E017
+M or eax, ecx ; K1-E017
+M or eax, C0 ; K1-E017 mod 11
+M call $emit2 ; K1-E011
+M ret ; K1-E017

@@ -1,0 +1,137 @@
+; UNIVERSAL / BRICK v2 / слой L1 / модуль M1-SPLICE (склейка SPLICE v1, SPEC/10)
+; Само-исходник splice.exe: сборка корня с директивами !include в плоский текст.
+; Сборка: enc.exe splice.b2 splice.brick; brick.exe splice.brick body.bin; pegen.exe body.bin splice.peg splice.exe
+; Контракт: splice.exe <корень.b2> <выход.плоско>; не-директивные строки проходят без изменений.
+; Регистры: RBX=база образа, R10=база outbuf, R12=курсор вывода, R13=уровень (0..7),
+; RSI=курсор текста, R14/R15=начало/конец строки. Подпрограммы сохраняют
+; RBX,RSI,R10,R12,R13,R14,R15,RBP; меняют RAX,RCX,RDX,RDI,R8,R9,R11.
+; Исключение: handle_line/process_loop меняют RSI и R13 (спуск по уровням).
+:entry
+M sub rsp, 38 ; K1-X021 кадр: тень + выравнивание вызовов
+M lea rbx, [rip+$base] ; K1-X021 RBX = RVA 0 (база образа)
+M mov rcx, -B ; K1-X021 STD_OUTPUT_HANDLE (-11)
+M call [rip+$iat_gsh] ; K1-X021 GetStdHandle -> RAX
+M mov [rip+$hstdout], rax ; K1-X021 сохранить хэндл stdout
+:get_cmdline
+M call [rip+$iat_gcl] ; K1-C021 GetCommandLineA -> RAX
+M mov rdi, rax ; K1-C021 RDI = курсор командной строки
+:skip_argv0
+M movzx eax, byte [rdi] ; K1-C022 очередной символ argv0
+M cmp al, 22 ; K1-C022 кавычка?
+M jnz $sa_unq ; K1-C022 путь без кавычек
+M inc rdi ; K1-C022 пропуск открывающей кавычки
+:sa_qloop
+M movzx eax, byte [rdi] ; K1-C022
+M test al, al ; K1-C022
+M jz $noargs ; K1-C022 конец строки — аргументов нет
+M cmp al, 22 ; K1-C022 закрывающая кавычка?
+M jz $sa_adv ; K1-C022
+M inc rdi ; K1-C022
+M jmp $sa_qloop ; K1-C022
+:sa_unq
+M test al, al ; K1-C022
+M jz $noargs ; K1-C022
+M cmp al, 20 ; K1-C022 пробел?
+M jz $sa_delims ; K1-C022
+M cmp al, 09 ; K1-C022 табуляция?
+M jz $sa_delims ; K1-C022
+M inc rdi ; K1-C022
+M jmp $skip_argv0 ; K1-C022
+:sa_adv
+M inc rdi ; K1-C022
+M jmp $sa_delims ; K1-C022
+:sa_delims
+M movzx eax, byte [rdi] ; K1-C022
+M test al, al ; K1-C022
+M jz $noargs ; K1-C022
+M cmp al, 20 ; K1-C022
+M jz $sa_adv ; K1-C022
+M cmp al, 09 ; K1-C022
+M jz $sa_adv ; K1-C022
+M jmp $word1 ; K1-C022 слово 1 начинается
+:noargs
+M mov ecx, 0 ; K1-G021 индекс справки errtab
+M call $print_error ; K1-G022 печать + ExitProcess(2)
+:word1
+M lea r8, [rip+$fname_in] ; K1-G021 буфер имени корня
+M call $next_arg ; K1-C023 аргумент 1
+M lea r8, [rip+$fname_out] ; K1-G021 буфер имени выхода
+M call $next_arg ; K1-C023 аргумент 2
+M lea rcx, [rip+$fname_in] ; K1-G021
+M call $open_file_read ; K1-F021
+M cmp rax, -1 ; K1-G021
+M jnz $ok1 ; K1-G021
+M mov ecx, 2 ; K1-G021 ERR=OPEN SRC
+M call $print_error ; K1-G022
+:ok1
+M mov r11, rax ; K1-G021 R11 = хэндл корня
+M mov rcx, r11 ; K1-G021
+M lea rdx, [rip+$filebufs] ; K1-G021 буфер уровня 0
+M mov r8d, 20000 ; K1-G021 вместимость 0x20000
+M lea r9, [rip+$srclen] ; K1-G021 счётчик прочитанного
+M call $read_whole_dst ; K1-F024
+M cmp rax, -1 ; K1-G021
+M jnz $ok2 ; K1-G021
+M mov ecx, 3 ; K1-G021 ERR=READ SRC
+M call $print_error ; K1-G022
+:ok2
+M cmp rax, 20000 ; K1-G021 предел 128 КиБ (сентинелу нужен запас)
+M jb $ok3 ; K1-G021
+M mov ecx, 4 ; K1-G021 ERR=BIG SRC
+M call $print_error ; K1-G022
+:ok3
+M mov rcx, r11 ; K1-G021
+M call $close_file ; K1-F023
+M lea rcx, [rip+$filebufs] ; K1-G021
+M mov edx, [rip+$srclen] ; K1-G021 длина корня
+M add rcx, rdx ; K1-G021
+M mov byte [rcx], 0 ; K1-G021 NUL-сентинел
+M lea rsi, [rip+$fname_in] ; K1-G021 имя корня (NUL-terminated)
+M lea rdi, [rip+$lv_name] ; K1-G021 lv_name[0]
+:sp_cp
+M movzx eax, byte [rsi] ; K1-G021
+M test al, al ; K1-G021
+M jz $sp_cpd ; K1-G021
+M mov [rdi], al ; K1-G021
+M inc rsi ; K1-G021
+M inc rdi ; K1-G021
+M jmp $sp_cp ; K1-G021
+:sp_cpd
+M mov byte [rdi], 0 ; K1-G021
+M lea rcx, [rip+$lv_name] ; K1-G021
+M call $name_prefix ; K1-N011 RAX = длина префикса
+M mov [rip+$lv_pref], al ; K1-G021 lv_pref[0]
+M xor eax, eax ; K1-G021 счётчик строк = 0 (инкремент ПЕРЕД обработкой)
+M mov [rip+$curline], eax ; K1-G021 сквозная нумерация в порядке чтения
+M lea r10, [rip+$outbuf] ; K1-G021 R10 = база выходного буфера
+M mov r12, r10 ; K1-G021 R12 = курсор вывода
+M xor r13d, r13d ; K1-G021 R13 = уровень 0
+M lea rsi, [rip+$filebufs] ; K1-G021 RSI = курсор текста
+M call $process_loop ; K1-S011 склейка всех уровней
+M lea rcx, [rip+$fname_out] ; K1-G021
+M call $create_file_write ; K1-F022
+M cmp rax, -1 ; K1-G021
+M jnz $ok6 ; K1-G021
+M mov ecx, 5 ; K1-G021 ERR=OPEN OUT
+M call $print_error ; K1-G022
+:ok6
+M mov r15, rax ; K1-G021 R15 = хэндл выхода
+M mov rcx, r15 ; K1-G021
+M mov rdx, r10 ; K1-G021 буфер вывода
+M mov r8, r12 ; K1-G021
+M sub r8, r10 ; K1-G021 длина вывода
+M call $write_all ; K1-F025
+M test rax, rax ; K1-G021
+M jz $ok7 ; K1-G021
+M mov ecx, 6 ; K1-G021 ERR=WRITE OUT
+M call $print_error ; K1-G022
+:ok7
+M mov rcx, r15 ; K1-G021
+M call $close_file ; K1-F023
+:exit_ok
+M xor ecx, ecx ; K1-X022 код возврата 0
+M call [rip+$iat_ep] ; K1-X022 ExitProcess
+M int3 ; K1-X022 страховка
+!include splice_s.b2
+!include splice_svc.b2
+!include splice_data.b2

@@ -30,6 +30,7 @@
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
 | `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 247 |
+| `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice | 147 |
 
 ## MAP/ — навигация
 
@@ -46,6 +47,7 @@
 | `MAP/M1-ENC.md` | карточки кирпичей M1-ENC (поток и разбор) | 411 |
 | `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 22) | 297 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
+| `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 32 |
 
 ## KERNEL/ — ядро
@@ -84,18 +86,42 @@
 | `KERNEL/L0-PEGEN/VERIFY.md` | проверка, журнал, пойманные ошибки | 95 |
 | `KERNEL/L1-BRICK/CARD.md` | карточка модуля M1-BRICK (ассемблер BRICK) | 140 |
 | `KERNEL/L1-BRICK/brick.hex` | тело секции brick, ATOM v1 (истина E5a) | 671 |
-| `KERNEL/L1-BRICK/brick.brick` | тот же источник в BRICK v1 (канонический) | 850 |
+| `KERNEL/L1-BRICK/brick.brick` | корень модуля M1-BRICK: шапка + !include трёх частей (разрез E6.3) | 7 |
+| `KERNEL/L1-BRICK/brick_p1.brick` | часть 1: поток X/C/G, пассажи N, разбор директив A (5-483 строки тела) | 479 |
+| `KERNEL/L1-BRICK/brick_p2.brick` | часть 2: лексика, метки, сервис H/G/U/C/F (484-744) | 261 |
+| `KERNEL/L1-BRICK/brick_p3.brick` | часть 3: данные D — таблицы, импорты, bss (745-850) | 106 |
 | `KERNEL/L1-BRICK/brick.peg` | обёртка brick (PEG v1, SPEC/07) | 11 |
 | `KERNEL/L1-BRICK/brick.exe` | материализация: hexgen + pegen, 3584 байта, PE32+ | — |
 | `KERNEL/L1-BRICK/BYTECODE.md` | сводка, карта кирпичей, данные, импорты, история | 112 |
 | `KERNEL/L1-BRICK/VERIFY.md` | SHA-256, 4 уровня проверки, журнал | 95 |
 | `KERNEL/L1-ENC/CARD.md` | карточка модуля M1-ENC (кодировщик BRICK v2) | 143 |
-| `KERNEL/L1-ENC/enc.b2` | само-исходник enc в BRICK v2 (канонический; 2651 строка — известное отклонение, разрез в E6.3) | 2651 |
-| `KERNEL/L1-ENC/enc.brick` | тот же источник в BRICK v1 = enc(enc.b2) байт-в-байт | 2651 |
+| `KERNEL/L1-ENC/enc.b2` | корень модуля M1-ENC: шапка + поток X/C/G + !include 10 частей (разрез E6.3) | 133 |
+| `KERNEL/L1-ENC/enc_n.b2` | часть: ветвь N — нормализация строк (124-224) | 101 |
+| `KERNEL/L1-ENC/enc_p1.b2` | часть: P011-P013 — разбор M-строки (225-494) | 270 |
+| `KERNEL/L1-ENC/enc_p2.b2` | часть: P014-P015 — память/ссылки (495-731) | 237 |
+| `KERNEL/L1-ENC/enc_tr.b2` | часть: T+R — лексика и таблицы (732-984) | 253 |
+| `KERNEL/L1-ENC/enc_e1.b2` | часть: E011-E017 — эмиттеры/память (985-1365) | 381 |
+| `KERNEL/L1-ENC/enc_e2.b2` | часть: E021-E023 — ALU/сдвиги/переходы (1366-1642) | 277 |
+| `KERNEL/L1-ENC/enc_e3.b2` | часть: E024-E025 — mov/movzx/lea (1643-1940) | 298 |
+| `KERNEL/L1-ENC/enc_e4.b2` | часть: E026-E032 — test..int3 (1941-2117) | 177 |
+| `KERNEL/L1-ENC/enc_svc.b2` | часть: H/G/U/C/F — сервис (2118-2306) | 189 |
+| `KERNEL/L1-ENC/enc_data.b2` | часть: D — данные/импорты/bss (2307-2651) | 345 |
+| `KERNEL/L1-ENC/enc.brick` | плоская форма в BRICK v1 = enc(splice(enc.b2)) байт-в-байт (генерируемый артефакт) | 2651 |
 | `KERNEL/L1-ENC/enc.peg` | обёртка enc (PEG v1, SPEC/07) | 10 |
 | `KERNEL/L1-ENC/enc.exe` | материализация: brick+pegen, 11776 байт, PE32+ | — |
 | `KERNEL/L1-ENC/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 141 |
 | `KERNEL/L1-ENC/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.2 | 104 |
+
+| `KERNEL/L1-SPLICE/CARD.md` | карточка модуля M1-SPLICE (склейка !include) | 129 |
+| `KERNEL/L1-SPLICE/splice.b2` | корень модуля M1-SPLICE: шапка + поток X/C/G + !include 3 частей | 137 |
+| `KERNEL/L1-SPLICE/splice_s.b2` | часть: ветви S/N — цикл уровней, директива, вывод строки | 248 |
+| `KERNEL/L1-SPLICE/splice_svc.b2` | часть: H/G/U/C/F — печать, ошибки, командная строка, файлы | 189 |
+| `KERNEL/L1-SPLICE/splice_data.b2` | часть: D — таблицы, строки, импорты, bss | 120 |
+| `KERNEL/L1-SPLICE/splice.brick` | плоская форма в BRICK v1 = enc(splice(splice.b2)) байт-в-байт (генерируемый артефакт) | 691 |
+| `KERNEL/L1-SPLICE/splice.peg` | обёртка splice (PEG v1, SPEC/07) | 10 |
+| `KERNEL/L1-SPLICE/splice.exe` | материализация: brick+pegen, 3584 байта, PE32+ | — |
+| `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты | 114 |
+| `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3 | 96 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -115,6 +141,7 @@
 | `TESTS/T-L0-PEGEN.md` | тест-план pegen T-M5-01..T-M5-17 | 131 |
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17 | 137 |
 | `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11 (E6.2 выполнен) | 93 |
+| `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18 (E6.3 выполнен) | 82 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
@@ -126,15 +153,19 @@
 | `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08) | 312 |
 | `LAB/py/lab_pegen.py` | оракул PEG v1 (SPEC/07) | 125 |
 | `LAB/py/lab_enc.py` | оракул ENC v1 (SPEC/09): M-строка -> H-строка | 498 |
+| `LAB/py/lab_splice.py` | оракул SPLICE v1 (SPEC/10): склейка по !include | 106 |
+| `LAB/py/lab_splice_cases.py` | эталоны SPLICE: 14 якорей, 13 ошибок, большой случай | 135 |
 | `LAB/py/lab_enc_cases.py` | эталоны ENC: 109 якорей, 21 ошибка, демо-круг | 248 |
 | `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05) | 319 |
 | `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток | 357 |
 | `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС | 223 |
 | `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
 | `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
-| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 492 |
+| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 401 |
+| `LAB/py/lab_t_exe.py` | секции 7-8 батареи: инструменты enc/splice | 218 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 217 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
+| `LAB/ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты | 228 |
 | `LAB/ai/enc_part1..3.txt` | (частное) кодовые части enc.b2 для правок по секциям | — |
 
 LAB — измерительный прибор (Python только здесь); подробности —
@@ -151,13 +182,13 @@ LAB — измерительный прибор (Python только здесь)
 
 ## Счётчики состояния (обновлять при каждом изменении)
 
-- Кирпичей в реестре: **221** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
+- Кирпичей в реестре: **248** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
   23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK,
-  63 в M1-ENC).
-- Модулей: **7** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
-  M1-BRICK, M1-ENC).
-- Тестов: **89** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17, T-M6-01..17, T-E6-01..11; автоматических в батарее — 80).
-- Этап: **E6.2 завершён** (enc.exe: самохостинг BRICK v2, батарея 80/80);
-  следующий — E6.3: миграция и разрез исходников (include; см.
-  `DOCS/03-ROADMAP.md`).
+  63 в M1-ENC, 27 в M1-SPLICE).
+- Модулей: **8** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
+  M1-BRICK, M1-ENC, M1-SPLICE).
+- Тестов: **96** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17, T-E6-01..18; автоматических в батарее — 90).
+- Этап: **E6.3 завершён** (splice.exe: !include-механизм, разрезы
+  enc.b2/brick.brick/splice.b2, все исходники ≤ 500 строк; батарея 90/90);
+  следующий — E6.4: язык L2 (см. `DOCS/03-ROADMAP.md`).

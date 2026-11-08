@@ -1,0 +1,101 @@
+; ===== N011 normalize_pass: цикл строк (LF/CRLF/CR как у splitlines) =====
+:normalize_pass
+M mov r14, rsi ; K1-N011 R14 = начало строки
+:np_scan
+M movzx eax, byte [rsi] ; K1-N011
+M test al, al ; K1-N011
+M jz $np_eof ; K1-N011 конец текста
+M cmp al, 0A ; K1-N011 LF?
+M jz $np_endlf ; K1-N011
+M cmp al, 0D ; K1-N011 CR?
+M jz $np_endcr ; K1-N011
+M inc rsi ; K1-N011
+M jmp $np_scan ; K1-N011
+:np_endlf
+M mov r15, rsi ; K1-N011 R15 = конец строки (на LF)
+M call $emit_line ; K1-N012 обработка [R14, R15)
+M inc rsi ; K1-N011 пропуск LF
+M mov eax, [rip+$curline] ; K1-N011 номер строки +1
+M inc eax ; K1-N011
+M mov [rip+$curline], eax ; K1-N011
+M jmp $normalize_pass ; K1-N011
+:np_endcr
+M mov r15, rsi ; K1-N011 конец строки (на CR)
+M call $emit_line ; K1-N012
+M inc rsi ; K1-N011 пропуск CR
+M movzx eax, byte [rsi] ; K1-N011
+M cmp al, 0A ; K1-N011 CRLF — один терминатор?
+M jne $np_nolf ; K1-N011
+M inc rsi ; K1-N011 пропуск LF тоже
+:np_nolf
+M mov eax, [rip+$curline] ; K1-N011 номер строки +1
+M inc eax ; K1-N011
+M mov [rip+$curline], eax ; K1-N011
+M jmp $normalize_pass ; K1-N011
+:np_eof
+M cmp rsi, r14 ; K1-N011 пустой хвост без LF?
+M je $np_done ; K1-N011
+M mov r15, rsi ; K1-N011 последняя строка без терминатора
+M call $emit_line ; K1-N012
+:np_done
+M ret ; K1-N011
+; ===== N012 emit_line: классификация (M-строка / проход) + вывод =====
+:emit_line
+M mov rcx, r14 ; K1-N012
+M mov rdx, r15 ; K1-N012
+M call $first_nws ; K1-T011 RAX = первый непустой
+M cmp rax, r15 ; K1-N012
+M je $el_pass ; K1-N012 пустая/пробельная строка
+M mov [rip+$el_p1], rax ; K1-N012 P1
+M mov rcx, r14 ; K1-N012
+M mov rdx, r15 ; K1-N012
+M call $last_nws_end ; K1-T012 RAX = конец последнего непустого
+M mov [rip+$el_p2], rax ; K1-N012 P2
+M mov rcx, [rip+$el_p1] ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M cmp al, 4D ; K1-N012 'M'?
+M jne $el_pass ; K1-N012
+M inc rcx ; K1-N012 P1+1
+M cmp rcx, [rip+$el_p2] ; K1-N012 P1+1 == P2 (голое M)?
+M je $el_m ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M cmp al, 20 ; K1-N012 пробел после M?
+M je $el_m ; K1-N012
+M jmp $el_pass ; K1-N012 табуляция и пр. — не M-строка
+:el_pass
+M mov rcx, r14 ; K1-N012 проход строки без изменений
+:el_ploop
+M cmp rcx, r15 ; K1-N012
+M jae $el_pdone ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M mov [r12], al ; K1-N012
+M inc r12 ; K1-N012
+M inc rcx ; K1-N012
+M jmp $el_ploop ; K1-N012
+:el_pdone
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012
+:el_m
+M call $parse_m ; K1-P011 разбор и кодирование M-строки
+M mov rcx, [rip+$el_cpos] ; K1-N012 комментарий есть?
+M cmp rcx, [rip+$el_b1] ; K1-N012
+M jb $el_havecom ; K1-N012
+M dec r12 ; K1-N012 убрать хвостовой пробел последнего токена
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012
+:el_havecom
+M mov rdx, [rip+$el_p2] ; K1-N012 комментарий = [cpos, P2)
+:el_cloop
+M cmp rcx, rdx ; K1-N012
+M jae $el_cdone ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M mov [r12], al ; K1-N012
+M inc r12 ; K1-N012
+M inc rcx ; K1-N012
+M jmp $el_cloop ; K1-N012
+:el_cdone
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012

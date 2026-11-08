@@ -37,6 +37,10 @@
 | Изменить кирпич enc | карточка в `MAP/M1-ENC*.md`, строка в `MAP/METHODS.md`, смещения в `KERNEL/L1-ENC/BYTECODE.md` §3, тесты T-E6-05..11 |
 | Написать/понять M-строку (BRICK v2) | `SPEC/09-ENC-FORMAT.md` (грамматика + канонические кодировки), примеры — `LAB/py/lab_enc_cases.py` и `KERNEL/L1-ENC/enc.b2` |
 | Понять отклонение канонических кодировок от исторических листингов | `SPEC/09-ENC-FORMAT.md`, раздел «Отклонения»; `SPEC/05` примечание к E5 |
+| Собрать модуль с разрезом (include) | `KERNEL/L1-SPLICE/CARD.md` (конвейер: splice + enc + brick + pegen), `SPEC/10-SPLICE-FORMAT.md`, `TESTS/T-L1-SPLICE.md` |
+| Разрезать исходник на части / добавить часть | `SPEC/10-SPLICE-FORMAT.md` (директива, каталог включающего, пределы), `KERNEL/L1-ENC/enc.b2` (корень-образец), `MAP/INDEX.md` (строки частей) |
+| Изменить код splice | `KERNEL/L1-SPLICE/CARD.md`, части `splice_s.b2`/`splice_svc.b2`/`splice_data.b2`, `SPEC/10-SPLICE-FORMAT.md`, `MAP/M1-SPLICE.md` |
+| Понять уровни склейки (lv_*) | `KERNEL/L1-SPLICE/CARD.md` (регистровые соглашения), `MAP/M1-SPLICE.md` (K1-S011/S012), `KERNEL/L1-SPLICE/BYTECODE.md` §4 |
 | Реализовать enc.exe (E6.2) | ВЫПОЛНЕНО: `KERNEL/L1-ENC/` (CARD/BYTECODE/VERIFY), `MAP/M1-ENC*.md` |
 | Добавить директиву BRICK | `SPEC/08-BRICK-FORMAT.md`, `MAP/M1-BRICK.md` (K1-A008 parse_data — диспетчер), `KERNEL/L1-BRICK/BYTECODE.md` §3 |
 | Собрать модуль из BRICK | `KERNEL/L1-BRICK/CARD.md` (конвейер: brick + pegen), `TESTS/T-L1-BRICK.md` (T-M6-16) |
@@ -50,7 +54,7 @@
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
-| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (80 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC, круги, самохостинг E5/E6.2; ~22 с; CI GitHub делает это на каждый пуш) |
+| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (90 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC/SPLICE, круги, самохостинг E5/E6.2/E6.3; ~32 с; CI GitHub делает это на каждый пуш) |
 | Узнать, что делал ИИ-разработчик и что дальше | `LAB/ai/JOURNAL.md` (журнал сессий, планы этапов) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
 | Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |

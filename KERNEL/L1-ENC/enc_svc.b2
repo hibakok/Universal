@@ -1,0 +1,189 @@
+; ===== H011 hex16_to_4: 4 hex-цифры в [RDI] =====
+:hex16_to_4
+M mov ecx, 4 ; K1-H011
+M shl eax, 10 ; K1-H011 число в старшие 16 бит
+:h4_loop
+M rol eax, 4 ; K1-H011
+M mov edx, eax ; K1-H011
+M and edx, 0F ; K1-H011
+M lea r8, [rip+$digits] ; K1-H011
+M movzx edx, byte [r8+rdx] ; K1-H011
+M mov [rdi], dl ; K1-H011
+M inc rdi ; K1-H011
+M dec ecx ; K1-H011
+M jnz $h4_loop:1 ; K1-H011
+M ret ; K1-H011
+; ===== G013 fail_format: ERR=FORMAT AT=XXXX + выход 6 =====
+:fail_format
+M and rsp, -10 ; K1-G013 выравнивание стека (не возвращаемся)
+M lea rdi, [rip+$linebuf] ; K1-G013
+M lea rsi, [rip+$fmt_pfx] ; K1-G013
+M mov ecx, 17 ; K1-G013 23 байта префикса
+:ff_loop
+M movzx eax, byte [rsi] ; K1-G013
+M mov [rdi], al ; K1-G013
+M inc rsi ; K1-G013
+M inc rdi ; K1-G013
+M dec ecx ; K1-G013
+M jnz $ff_loop:1 ; K1-G013
+M mov eax, [rip+$curline] ; K1-G013
+M and eax, 0FFFF ; K1-G013 4 цифры номера строки
+M call $hex16_to_4 ; K1-H011
+M mov byte [rdi], 0D ; K1-G013
+M inc rdi ; K1-G013
+M mov byte [rdi], 0A ; K1-G013
+M inc rdi ; K1-G013
+M lea rdx, [rip+$linebuf] ; K1-G013
+M mov r8d, 1D ; K1-G013 29 байт
+M call $print_line ; K1-U011
+M mov ecx, 6 ; K1-G013 код FORMAT
+M call [rip+$iat_ep] ; K1-G013 ExitProcess
+M int3 ; K1-G013 страховка
+; ===== G012 print_error: errtab[ECX] + выход =====
+:print_error
+M and rsp, -10 ; K1-G012 выравнивание стека (не возвращаемся)
+M sub rsp, 30 ; K1-G012 тень + ячейка кода
+M mov eax, ecx ; K1-G012
+M shl eax, 4 ; K1-G012 x 16
+M cdqe ; K1-G012
+M lea rdx, [rip+$errtab] ; K1-G012
+M add rdx, rax ; K1-G012 адрес записи
+M mov r8d, [rdx+4] ; K1-G012 длина
+M mov r9d, [rdx+8] ; K1-G012 код возврата
+M mov [rsp+10], r9d ; K1-G012
+M mov edx, [rdx] ; K1-G012 RVA строки
+M add rdx, rbx ; K1-G012 адрес строки
+M call $print_line ; K1-U011
+M mov ecx, [rsp+10] ; K1-G012
+M call [rip+$iat_ep] ; K1-G012 ExitProcess
+M int3 ; K1-G012 страховка
+; ===== U011 print_line: RDX = строка, R8D = длина =====
+:print_line
+M sub rsp, 28 ; K1-U011
+M mov rcx, [rip+$hstdout] ; K1-U011
+M lea r9, [rip+$written] ; K1-U011
+M mov qword [rsp+20], 0 ; K1-U011 без перекрытия
+M call [rip+$iat_wf] ; K1-U011 WriteFile
+M add rsp, 28 ; K1-U011
+M ret ; K1-U011
+; ===== C013 next_arg / C014 read_word / C015 copy_word_dst / C016 skip_seps =====
+:next_arg
+M call $skip_seps ; K1-C016 разделители перед аргументом
+M movzx eax, byte [rdi] ; K1-C013
+M test al, al ; K1-C013
+M jz $na_miss ; K1-C013 аргумента нет
+M call $read_word ; K1-C014 RSI/RDI = границы слова
+M call $copy_word_dst ; K1-C015 копирование в буфер R8
+M test eax, eax ; K1-C013 флаг длинного имени
+M jz $na_ok ; K1-C013 уложились
+M mov ecx, 1 ; K1-C013 ERR=LONG NAME
+M call $print_error ; K1-G012
+:na_ok
+M ret ; K1-C013
+:na_miss
+M mov ecx, 0 ; K1-C013 справка
+M call $print_error ; K1-G012
+:read_word
+M mov rsi, rdi ; K1-C014 начало слова
+:rw_loop
+M movzx eax, byte [rdi] ; K1-C014
+M test al, al ; K1-C014
+M jz $rw_end ; K1-C014
+M cmp al, 20 ; K1-C014
+M jz $rw_end ; K1-C014
+M cmp al, 09 ; K1-C014
+M jz $rw_end ; K1-C014
+M inc rdi ; K1-C014
+M jmp $rw_loop ; K1-C014
+:rw_end
+M ret ; K1-C014
+:copy_word_dst
+M mov r11, r8 ; K1-C015 курсор записи
+:cwd_loop
+M cmp rsi, rdi ; K1-C015 слово исчерпано?
+M jz $cwd_done ; K1-C015
+M mov rdx, r11 ; K1-C015
+M sub rdx, r8 ; K1-C015 записано байт
+M cmp rdx, 7F ; K1-C015 предел буфера
+M jae $cwd_long ; K1-C015
+M movzx edx, byte [rsi] ; K1-C015
+M mov [r11], dl ; K1-C015
+M inc rsi ; K1-C015
+M inc r11 ; K1-C015
+M jmp $cwd_loop ; K1-C015
+:cwd_done
+M xor eax, eax ; K1-C015 флаг: уложились
+M mov [r11], al ; K1-C015 NUL
+M ret ; K1-C015
+:cwd_long
+M mov byte [r11], 0 ; K1-C015 NUL на границе
+M mov eax, 1 ; K1-C015 флаг: длиннее 127
+M ret ; K1-C015
+:skip_seps
+M movzx eax, byte [rdi] ; K1-C016
+M cmp al, 20 ; K1-C016
+M jz $ss_adv ; K1-C016
+M cmp al, 09 ; K1-C016
+M jz $ss_adv ; K1-C016
+M ret ; K1-C016
+:ss_adv
+M inc rdi ; K1-C016
+M jmp $skip_seps ; K1-C016
+; ===== F011..F015: файловые операции (реинкарнации K1-F001..F005) =====
+:open_file_read
+M sub rsp, 38 ; K1-F011
+M mov edx, 80000000 ; K1-F011 GENERIC_READ
+M mov r8d, 1 ; K1-F011 FILE_SHARE_READ
+M xor r9d, r9d ; K1-F011 SA=NULL
+M mov qword [rsp+20], 3 ; K1-F011 OPEN_EXISTING
+M mov qword [rsp+28], 80 ; K1-F011 NORMAL
+M mov qword [rsp+30], 0 ; K1-F011 шаблон
+M call [rip+$iat_cf] ; K1-F011 CreateFileA
+M add rsp, 38 ; K1-F011
+M ret ; K1-F011
+:create_file_write
+M sub rsp, 38 ; K1-F012
+M mov edx, 40000000 ; K1-F012 GENERIC_WRITE
+M xor r8d, r8d ; K1-F012
+M xor r9d, r9d ; K1-F012
+M mov qword [rsp+20], 2 ; K1-F012 CREATE_ALWAYS
+M mov qword [rsp+28], 80 ; K1-F012
+M mov qword [rsp+30], 0 ; K1-F012
+M call [rip+$iat_cf] ; K1-F012
+M add rsp, 38 ; K1-F012
+M ret ; K1-F012
+:close_file
+M sub rsp, 28 ; K1-F013
+M call [rip+$iat_ch] ; K1-F013 CloseHandle
+M add rsp, 28 ; K1-F013
+M ret ; K1-F013
+:read_whole_dst
+M sub rsp, 28 ; K1-F014
+M mov qword [rsp+20], 0 ; K1-F014 без перекрытия
+M call [rip+$iat_rf] ; K1-F014 ReadFile
+M add rsp, 28 ; K1-F014
+M test rax, rax ; K1-F014
+M jnz $rwf_ok ; K1-F014
+M mov rax, -1 ; K1-F014
+M ret ; K1-F014
+:rwf_ok
+M mov eax, [r9] ; K1-F014 счётчик
+M ret ; K1-F014
+:write_all
+M sub rsp, 28 ; K1-F015
+M mov [rip+$wa_len], r8 ; K1-F015 длина
+M lea r9, [rip+$written] ; K1-F015
+M mov qword [rsp+20], 0 ; K1-F015 без перекрытия
+M call [rip+$iat_wf] ; K1-F015 WriteFile
+M add rsp, 28 ; K1-F015
+M test rax, rax ; K1-F015
+M jz $wa_err ; K1-F015
+M mov rax, [rip+$written] ; K1-F015 записано
+M cmp rax, [rip+$wa_len] ; K1-F015 равно длине?
+M jne $wa_err ; K1-F015
+M xor eax, eax ; K1-F015 успех
+M ret ; K1-F015
+:wa_err
+M mov eax, 1 ; K1-F015
+M ret ; K1-F015
+

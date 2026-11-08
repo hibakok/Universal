@@ -1,0 +1,120 @@
+; ===== K1-D021 таблица цифр =====
+:digits
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
+
+; ===== K1-D022 errtab: 9 записей {RVA, длина, код, 0} =====
+:errtab
+DD $usage_str 30 2 0 ; код 2
+DD $err_long 1B 3 0 ; код 3
+DD $err_opensrc 1A 4 0 ; код 4
+DD $err_readsrc 1A 5 0 ; код 5
+DD $err_bigsrc 19 7 0 ; код 7
+DD $err_openout 1A 8 0 ; код 8
+DD $err_writeout 1B 9 0 ; код 9
+DD $err_bigout 19 A 0 ; код 10
+DD $err_depth 17 B 0 ; код 11
+
+; ===== K1-D023 строки вывода =====
+:usage_str ; справка
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 43 4D 44 53 ; справка
+DB 3A 20 53 50 4C 49 43 45 20 3C 52 4F 4F 54 2E 53
+DB 52 43 3E 20 3C 4F 55 54 2E 46 4C 41 54 3E 0D 0A
+:err_long ; long
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; long
+DB 4C 4F 4E 47 20 4E 41 4D 45 0D 0A
+:err_opensrc ; opensrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; opensrc
+DB 4F 50 45 4E 20 53 52 43 0D 0A
+:err_readsrc ; readsrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; readsrc
+DB 52 45 41 44 20 53 52 43 0D 0A
+:err_bigsrc ; bigsrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; bigsrc
+DB 42 49 47 20 53 52 43 0D 0A
+:err_openout ; openout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; openout
+DB 4F 50 45 4E 20 4F 55 54 0D 0A
+:err_writeout ; writeout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; writeout
+DB 57 52 49 54 45 20 4F 55 54 0D 0A
+:err_bigout ; bigout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; bigout
+DB 42 49 47 20 4F 55 54 0D 0A
+:err_depth ; depth
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; depth
+DB 44 45 50 54 48 0D 0A
+:fmt_pfx ; префикс FORMAT (26 Б, без CRLF)
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; префикс FORMAT (26 Б)
+DB 46 4F 52 4D 41 54 20 41 54 3D
+
+; ===== K1-D024 таблица импортов kernel32.dll =====
+:idt
+DD $intt 0 0 $dll_name $iat ; описатель импорта
+DZ 14 ; терминатор IDT (нулевая запись)
+:iat
+:iat_gsh
+DQ $hint_gsh ; IAT: GetStdHandle
+:iat_wf
+DQ $hint_wf ; IAT: WriteFile
+:iat_ep
+DQ $hint_ep ; IAT: ExitProcess
+:iat_gcl
+DQ $hint_gcl ; IAT: GetCommandLineA
+:iat_cf
+DQ $hint_cf ; IAT: CreateFileA
+:iat_rf
+DQ $hint_rf ; IAT: ReadFile
+:iat_ch
+DQ $hint_ch ; IAT: CloseHandle
+DQ 0 ; IAT: терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
+:dll_name
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll (13 Б; след. hint — чётный)
+:hint_gsh
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
+DZ 1 ; выравнивание
+:hint_wf
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; WriteFile
+:hint_ep
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; ExitProcess
+:hint_gcl
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; GetCommandLineA
+DB 41 00 ; GetCommandLineA (конец; запись 18 Б — уже чётно)
+:hint_cf
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; CreateFileA
+:hint_rf
+DB 00 00 52 65 61 64 46 69 6C 65 00 ; ReadFile
+DZ 1 ; выравнивание (запись 11 Б: +1 — hint_ch чётный)
+:hint_ch
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
+
+; ===== K1-D025 виртуальные нули (bss; загрузчик обнуляет) =====
+:hstdout
+DBZ 8
+:written
+DBZ 8
+:wa_len
+DBZ 8
+:srclen
+DBZ 8
+:curline
+DBZ 8
+:fname_in
+DBZ 80
+:fname_out
+DBZ 80
+:namebuild
+DBZ 80
+:lv_name
+DBZ 400
+:lv_cur
+DBZ 40
+:lv_pref
+DBZ 8
+:linebuf
+DBZ 40
+:filebufs
+DBZ 100000 ; 8 уровней x 0x20000 (адресация уровня shl 17)
+:outbuf
+DBZ 20000

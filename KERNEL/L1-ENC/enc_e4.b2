@@ -1,0 +1,177 @@
+; ===== E026 enc_lea (семейство 6) =====
+:enc_lea
+M cmp qword [r13], 0 ; K1-E026 приёмник — регистр
+M jne $fail_format ; K1-E026
+M cmp qword [r13+10], 40 ; K1-E026 32/64
+M je $le_sz ; K1-E026
+M cmp qword [r13+10], 20 ; K1-E026
+M jne $fail_format ; K1-E026
+:le_sz
+M cmp qword [r13+40], 3 ; K1-E026 источник — память
+M jne $fail_format ; K1-E026
+M cmp qword [r13+50], 0 ; K1-E026 без ключа размера
+M jne $fail_format ; K1-E026
+M mov eax, 8D ; K1-E026 опк 8D
+M mov [rip+$t_opc], rax ; K1-E026
+M mov r8, r13 ; K1-E026
+M add r8, 40 ; K1-E026 источник
+M mov ecx, [r13+8] ; K1-E026 regv = dst
+M and ecx, 7 ; K1-E026
+M xor edx, edx ; K1-E026
+M cmp qword [r13+10], 40 ; K1-E026
+M jne $le_now ; K1-E026
+M mov edx, 1 ; K1-E026 w
+:le_now
+M cmp qword [r13+8], 8 ; K1-E026
+M jl $le_nor ; K1-E026
+M or edx, 2 ; K1-E026
+:le_nor
+M mov rax, [rip+$t_opc] ; K1-E026
+M call $emit_rm ; K1-E016
+M ret ; K1-E026
+; ===== E027 enc_test (семейство 7) =====
+:enc_test
+M cmp qword [r13], 0 ; K1-E027 оба регистры
+M jne $fail_format ; K1-E027
+M cmp qword [r13+40], 0 ; K1-E027
+M jne $fail_format ; K1-E027
+M mov rax, [r13+10] ; K1-E027 размеры равны
+M cmp rax, [r13+50] ; K1-E027
+M jne $fail_format ; K1-E027
+M mov eax, 85 ; K1-E027 опк 84 (8) / 85
+M cmp qword [r13+10], 8 ; K1-E027
+M jne $et_have ; K1-E027
+M mov eax, 84 ; K1-E027
+M jmp $et_go ; K1-E027
+:et_have
+M mov eax, 85 ; K1-E027
+:et_go
+M mov [rip+$t_opc], rax ; K1-E027
+M mov rcx, [r13+48] ; K1-E027 src
+M mov rdx, [r13+8] ; K1-E027 dst
+M mov r8, [r13+10] ; K1-E027 размер
+M mov rax, [rip+$t_opc] ; K1-E027
+M call $emit_rr ; K1-E017
+M ret ; K1-E027
+; ===== E028 enc_call (семейство 8) =====
+:enc_call
+M cmp qword [r13], 2 ; K1-E028 ссылка?
+M je $ca_ref ; K1-E028
+M cmp qword [r13], 3 ; K1-E028 память [rip+..]?
+M jne $fail_format ; K1-E028
+M cmp qword [r13+30], 0 ; K1-E028 только rip
+M je $fail_format ; K1-E028
+M cmp qword [r13+10], 0 ; K1-E028 без ключа размера
+M jne $fail_format ; K1-E028
+M mov eax, 0FF ; K1-E028 FF 15 слот4
+M call $emit2 ; K1-E011
+M mov eax, 15 ; K1-E028
+M call $emit2 ; K1-E011
+M mov rcx, [r13+30] ; K1-E028
+M mov rdx, [r13+38] ; K1-E028
+M mov r8, 4 ; K1-E028
+M call $emit_slot ; K1-E013
+M ret ; K1-E028
+:ca_ref
+M cmp qword [r13+28], 4 ; K1-E028 только слот 4
+M jne $fail_format ; K1-E028
+M mov eax, 0E8 ; K1-E028 E8 слот4
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E028
+M mov rdx, [r13+20] ; K1-E028
+M mov r8, 4 ; K1-E028
+M call $emit_slot ; K1-E013
+M ret ; K1-E028
+; ===== E029 enc_unary: neg/inc/dec (семейство 9) =====
+:enc_unary
+M cmp qword [r13], 0 ; K1-E029 регистр 32/64
+M jne $fail_format ; K1-E029
+M cmp qword [r13+10], 40 ; K1-E029
+M je $un_sz ; K1-E029
+M cmp qword [r13+10], 20 ; K1-E029
+M jne $fail_format ; K1-E029
+:un_sz
+M xor eax, eax ; K1-E029 REX
+M cmp qword [r13+10], 40 ; K1-E029
+M jne $un_now ; K1-E029
+M or eax, 8 ; K1-E029
+:un_now
+M cmp qword [r13+8], 8 ; K1-E029
+M jl $un_nob ; K1-E029
+M or eax, 1 ; K1-E029
+:un_nob
+M or eax, 40 ; K1-E029
+M cmp eax, 40 ; K1-E029
+M je $un_norex ; K1-E029
+M call $emit2 ; K1-E011
+:un_norex
+M mov eax, [rip+$m_param] ; K1-E029 опк (младший байт)
+M movzx eax, al ; K1-E029
+M call $emit2 ; K1-E011
+M mov eax, [rip+$m_param] ; K1-E029 modrm = C0|ext<<3|код&7
+M shr eax, 8 ; K1-E029
+M and eax, 7 ; K1-E029
+M shl eax, 3 ; K1-E029
+M mov rcx, [r13+8] ; K1-E029
+M and ecx, 7 ; K1-E029
+M or eax, ecx ; K1-E029
+M or eax, C0 ; K1-E029
+M call $emit2 ; K1-E011
+M ret ; K1-E029
+; ===== E030 enc_pushpop: push/pop r64 (семейства A/B) =====
+:enc_pushpop
+M cmp qword [r13], 0 ; K1-E030 регистр 64
+M jne $fail_format ; K1-E030
+M cmp qword [r13+10], 40 ; K1-E030
+M jne $fail_format ; K1-E030
+M xor eax, eax ; K1-E030 REX (только B)
+M cmp qword [r13+8], 8 ; K1-E030
+M jl $pp_nob ; K1-E030
+M or eax, 1 ; K1-E030
+:pp_nob
+M or eax, 40 ; K1-E030
+M cmp eax, 40 ; K1-E030
+M je $pp_norex ; K1-E030
+M call $emit2 ; K1-E011
+:pp_norex
+M mov eax, [rip+$m_param] ; K1-E030 база 50/58 | код&7
+M mov ecx, [r13+8] ; K1-E030
+M and ecx, 7 ; K1-E030
+M or eax, ecx ; K1-E030
+M call $emit2 ; K1-E011
+M ret ; K1-E030
+; ===== E031 enc_jmp (семейство C) =====
+:enc_jmp
+M cmp qword [r13], 2 ; K1-E031 только ссылка
+M jne $fail_format ; K1-E031
+M cmp qword [r13+28], 1 ; K1-E031 rel8?
+M je $jm_short ; K1-E031
+M cmp qword [r13+28], 4 ; K1-E031 rel32?
+M jne $fail_format ; K1-E031
+M mov eax, 0E9 ; K1-E031 E9 слот4
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E031
+M mov rdx, [r13+20] ; K1-E031
+M mov r8, 4 ; K1-E031
+M call $emit_slot ; K1-E013
+M ret ; K1-E031
+:jm_short
+M mov eax, 0EB ; K1-E031 EB слот1
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E031
+M mov rdx, [r13+20] ; K1-E031
+M mov r8, 1 ; K1-E031
+M call $emit_slot ; K1-E013
+M ret ; K1-E031
+; ===== E032 enc_simple: cdqe/ret/int3 (семейство D) =====
+:enc_simple
+M mov eax, [rip+$m_param] ; K1-E032 байт 1 (младший)
+M movzx eax, al ; K1-E032
+M call $emit2 ; K1-E011
+M mov rax, [rip+$m_param] ; K1-E032 байт 2 (старший)
+M shr eax, 8 ; K1-E032
+M test eax, eax ; K1-E032
+M jz $sm_done ; K1-E032 однобайтовая
+M call $emit2 ; K1-E011
+:sm_done
+M ret ; K1-E032

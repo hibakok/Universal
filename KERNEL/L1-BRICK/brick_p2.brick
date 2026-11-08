@@ -1,0 +1,261 @@
+:read_hex_byte
+H 0F B6 06 ; K1-A007 movzx eax,byte [rsi] (старшая тетрада)
+H E8 $hex_digit ; K1-A007 call hex_digit
+H 48 83 F8 FF ; K1-A007 cmp rax,-1
+H 74 $rhb_bad:1 ; K1-A007 je rhb_bad
+H C1 E0 04 41 89 C3 ; K1-A007 shl eax,4 + mov r11d,eax
+H 48 FF C6 ; K1-A007 inc rsi
+H 0F B6 06 ; K1-A007 movzx eax,byte [rsi] (младшая тетрада)
+H E8 $hex_digit ; K1-A007 call hex_digit
+H 48 83 F8 FF ; K1-A007 cmp rax,-1
+H 74 $rhb_bad:1 ; K1-A007 je rhb_bad
+H 44 01 D8 48 FF C6 ; K1-A007 add eax,r11d + inc rsi
+H C3 ; K1-A007 ret (RAX = байт)
+:rhb_bad
+H 48 C7 C0 FF FF FF FF ; K1-A007 mov rax,-1
+H C3 ; K1-A007 ret
+:expect_eol
+H E8 $ssr ; K1-A009 call skip_seps_rsi
+H 0F B6 06 84 C0 ; K1-A009 movzx eax,byte [rsi] + test al,al
+H 74 $ee_ok:1 ; K1-A009 jz ee_ok
+H 3C 0D ; K1-A009 cmp al,0D
+H 74 $ee_ok:1 ; K1-A009 jz ee_ok
+H 3C 0A ; K1-A009 cmp al,0A
+H 74 $ee_ok:1 ; K1-A009 jz ee_ok
+H 3C 3B ; K1-A009 cmp al,';'
+H 74 $ee_ok:1 ; K1-A009 jz ee_ok
+H E8 $fail_format ; K1-A009 call fail_format (мусор в хвосте)
+:ee_ok
+H C3 ; K1-A009 ret
+:ssr
+H 0F B6 06 3C 20 ; K1-T001 movzx eax,byte [rsi] + cmp al,' '
+H 74 $ssr_adv:1 ; K1-T001 jz ssr_adv
+H 3C 09 ; K1-T001 cmp al,9
+H 74 $ssr_adv:1 ; K1-T001 jz ssr_adv
+H C3 ; K1-T001 ret
+:ssr_adv
+H 48 FF C6 ; K1-T001 inc rsi
+H EB $ssr:1 ; K1-T001 jmp ssr
+:hex_digit
+H 3C 30 ; K1-T002 cmp al,'0'
+H 72 $hd_bad:1 ; K1-T002 jb hd_bad
+H 3C 39 ; K1-T002 cmp al,'9'
+H 77 $hd_letter:1 ; K1-T002 ja hd_letter
+H 83 E8 30 ; K1-T002 sub eax,0x30 ('0'..'9' -> 0..9)
+H C3 ; K1-T002 ret
+:hd_letter
+H 3C 41 ; K1-T002 cmp al,'A'
+H 72 $hd_bad:1 ; K1-T002 jb hd_bad
+H 3C 46 ; K1-T002 cmp al,'F'
+H 77 $hd_bad:1 ; K1-T002 ja hd_bad
+H 83 E8 37 ; K1-T002 sub eax,0x37 ('A'..'F' -> 10..15)
+H C3 ; K1-T002 ret
+:hd_bad
+H 48 C7 C0 FF FF FF FF ; K1-T002 mov rax,-1 (не hex-цифра)
+H C3 ; K1-T002 ret
+:read_hexval
+H 45 31 C0 45 31 C9 ; K1-T003 xor r8d,r8d (накопитель) + xor r9d,r9d (счётчик)
+:rhv_loop
+H 0F B6 06 ; K1-T003 movzx eax,byte [rsi]
+H E8 $hex_digit ; K1-T003 call hex_digit
+H 48 83 F8 FF ; K1-T003 cmp rax,-1
+H 74 $rhv_end:1 ; K1-T003 jz rhv_end
+H 41 83 F9 08 ; K1-T003 cmp r9d,8 (не больше 8 цифр)
+H 73 $rhv_bad:1 ; K1-T003 jae rhv_bad
+H 41 C1 E0 04 41 01 C0 ; K1-T003 shl r8d,4 + add r8d,eax
+H 48 FF C6 41 FF C1 ; K1-T003 inc rsi + inc r9d
+H EB $rhv_loop:1 ; K1-T003 jmp rhv_loop
+:rhv_end
+H 45 85 C9 ; K1-T003 test r9d,r9d (ни одной цифры?)
+H 74 $rhv_bad:1 ; K1-T003 jz rhv_bad
+H 44 89 C0 ; K1-T003 mov eax,r8d
+H C3 ; K1-T003 ret
+:rhv_bad
+H 48 C7 C0 FF FF FF FF ; K1-T003 mov rax,-1
+H C3 ; K1-T003 ret
+:read_name
+H 48 89 F0 31 D2 ; K1-T004 mov rax,rsi (старт) + xor edx,edx
+:rn_loop
+H 44 0F B6 0E ; K1-T004 movzx r9d,byte [rsi]
+H 41 80 F9 61 ; K1-T004 cmp r9b,'a'
+H 72 $rn_notlc:1 ; K1-T004 jb rn_notlc
+H 41 80 F9 7A ; K1-T004 cmp r9b,'z'
+H 76 $rn_cont:1 ; K1-T004 jbe rn_cont
+:rn_notlc
+H 41 80 F9 30 ; K1-T004 cmp r9b,'0'
+H 72 $rn_notdig:1 ; K1-T004 jb rn_notdig
+H 41 80 F9 39 ; K1-T004 cmp r9b,'9'
+H 76 $rn_cont:1 ; K1-T004 jbe rn_cont
+:rn_notdig
+H 41 80 F9 5F ; K1-T004 cmp r9b,'_'
+H 75 $rn_out:1 ; K1-T004 jne rn_out
+:rn_cont
+H 48 FF C6 ; K1-T004 inc rsi
+H EB $rn_loop:1 ; K1-T004 jmp rn_loop
+:rn_out
+H 48 89 F2 48 29 C2 ; K1-T004 mov rdx,rsi + sub rdx,rax (длина)
+H 48 85 D2 ; K1-T004 test rdx,rdx
+H 75 $rn_len:1 ; K1-T004 jnz rn_len
+H E8 $fail_format ; K1-T004 call fail_format (пустое имя)
+:rn_len
+H 48 83 FA 3F ; K1-T004 cmp rdx,0x3F (предел 63)
+H 76 $rn_ok:1 ; K1-T004 jbe rn_ok
+H E8 $fail_format ; K1-T004 call fail_format (имя длиннее 63)
+:rn_ok
+H C3 ; K1-T004 ret
+:define_label
+H 41 50 52 50 ; K1-N001 push r8 + push rdx + push rax (сохранить аргументы)
+H E8 $find_label ; K1-N001 call find_label (поиск дубликата)
+H 49 89 C3 ; K1-N001 mov r11,rax (результат поиска — до восстановления!)
+H 58 5A 41 58 ; K1-N001 pop rax + pop rdx + pop r8 (восстановить аргументы)
+H 49 83 FB FF ; K1-N001 cmp r11,-1
+H 75 $dl_dup:1 ; K1-N001 jne dl_dup (дубликат)
+H 44 8B 1D $labcnt ; K1-N001 mov r11d,[rip+labcnt]
+H 41 81 FB 00 02 00 00 ; K1-N001 cmp r11d,0x200 (предел 512)
+H 73 $dl_full:1 ; K1-N001 jae dl_full
+H 49 C1 E3 04 ; K1-N001 shl r11,4 (запись x 16 байт)
+H 4C 8D 0D $labtab ; K1-N001 lea r9,[rip+labtab]
+H 4D 01 D9 ; K1-N001 add r9,r11 (адрес записи)
+H 49 89 01 ; K1-N001 mov [r9],rax (адрес имени)
+H 41 89 51 08 ; K1-N001 mov [r9+8],edx (длина)
+H 45 89 41 0C ; K1-N001 mov [r9+12],r8d (значение)
+H FF 05 $labcnt ; K1-N001 inc dword [rip+labcnt]
+H C3 ; K1-N001 ret
+:dl_dup
+H E8 $fail_format ; K1-N001 call fail_format (дубликат метки)
+:dl_full
+H E8 $fail_format ; K1-N001 call fail_format (таблица меток полна)
+H CC ; K1-N001 int3 (страховка)
+:find_label
+H 41 53 ; K1-N002 push r11 (сохранить: r11 занят у вызывающих)
+H 4C 8D 35 $labtab ; K1-N002 lea r14,[rip+labtab]
+H 44 8B 0D $labcnt ; K1-N002 mov r9d,[rip+labcnt]
+H 31 C9 ; K1-N002 xor ecx,ecx (индекс)
+:fl_loop
+H 44 39 C9 ; K1-N002 cmp ecx,r9d
+H 73 $fl_notfound:1 ; K1-N002 jae fl_notfound
+H 45 8B 46 08 ; K1-N002 mov r8d,[r14+8] (длина записи)
+H 44 39 C2 ; K1-N002 cmp r8d,edx
+H 75 $fl_next:1 ; K1-N002 jne fl_next
+H 51 50 ; K1-N002 push rcx + push rax
+H 48 89 D1 ; K1-N002 mov rcx,rdx (счётчик сравнения)
+H 4D 8B 1E ; K1-N002 mov r11,[r14] (адрес имени в записи)
+:fcm_loop
+H 48 85 C9 ; K1-N002 test rcx,rcx
+H 74 $fcm_eq:1 ; K1-N002 jz fcm_eq
+H 44 0F B6 00 ; K1-N002 movzx r8d,byte [rax]
+H 45 38 03 ; K1-N002 cmp r8b,byte [r11]
+H 75 $fcm_ne:1 ; K1-N002 jne fcm_ne
+H 48 FF C0 49 FF C3 48 FF C9 ; K1-N002 inc rax + inc r11 + dec rcx
+H EB $fcm_loop:1 ; K1-N002 jmp fcm_loop
+:fcm_eq
+H 58 59 ; K1-N002 pop rax + pop rcx
+H 41 8B 46 0C ; K1-N002 mov eax,[r14+12] (значение метки)
+H 41 5B C3 ; K1-N002 pop r11 + ret
+:fcm_ne
+H 58 59 ; K1-N002 pop rax + pop rcx
+:fl_next
+H 49 83 C6 10 ; K1-N002 add r14,16 (следующая запись)
+H FF C1 ; K1-N002 inc ecx
+H EB $fl_loop:1 ; K1-N002 jmp fl_loop
+:fl_notfound
+H 48 C7 C0 FF FF FF FF ; K1-N002 mov rax,-1 (не найдена)
+H 41 5B C3 ; K1-N002 pop r11 + ret
+:hex16_to_4
+H B9 04 00 00 00 ; K1-H001 mov ecx,4 (4 цифры)
+H C1 E0 10 ; K1-H001 shl eax,16 (число ≤ 0xFFFF — в старшие 16 бит: 4 ротации по 4 бита прочитают его)
+:h4_loop
+H C1 C0 04 ; K1-H001 rol eax,4 (старшая тетрада -> младшие биты)
+H 89 C2 83 E2 0F ; K1-H001 mov edx,eax + and edx,0xF
+H 4C 8D 05 $digits ; K1-H001 lea r8,[rip+digits]
+H 41 0F B6 14 10 ; K1-H001 movzx edx,byte [r8+rdx] (символ цифры)
+H 88 17 48 FF C7 ; K1-H001 mov [rdi],dl + inc rdi
+H FF C9 ; K1-H001 dec ecx
+H 75 $h4_loop:1 ; K1-H001 jnz h4_loop
+H C3 ; K1-H001 ret
+:fail_format
+H 48 8D 3D $linebuf ; K1-G003 lea rdi,[rip+linebuf]
+H 48 8D 35 $fmt_pfx ; K1-G003 lea rsi,[rip+fmt_pfx]
+H B9 19 00 00 00 ; K1-G003 mov ecx,25 (длина префикса)
+:ff_loop
+H 8A 06 88 07 ; K1-G003 mov al,[rsi] + mov [rdi],al
+H 48 FF C6 48 FF C7 FF C9 ; K1-G003 inc rsi + inc rdi + dec ecx
+H 75 $ff_loop:1 ; K1-G003 jnz ff_loop
+H 8B 05 $curline ; K1-G003 mov eax,[rip+curline]
+H 25 FF FF 00 00 ; K1-G003 and eax,0xFFFF (4 цифры номера строки)
+H E8 $hex16_to_4 ; K1-G003 call hex16_to_4 (запись номера строки)
+H C6 07 0D 48 FF C7 ; K1-G003 mov byte [rdi],0D + inc rdi
+H C6 07 0A 48 FF C7 ; K1-G003 mov byte [rdi],0A + inc rdi
+H 48 8D 15 $linebuf ; K1-G003 lea rdx,[rip+linebuf]
+H 41 B8 1F 00 00 00 ; K1-G003 mov r8d,31 (длина строки ошибки)
+H E8 $print_line ; K1-G003 call print_line
+H B9 06 00 00 00 ; K1-G003 mov ecx,6 (код возврата FORMAT)
+H FF 15 $iat_ep ; K1-G003 call [rip+iat_ep] -> ExitProcess
+H CC ; K1-G003 int3 (страховка)
+:print_error
+H 48 83 EC 28 89 C8 ; K1-G002 sub rsp,0x28 + mov eax,ecx (индекс)
+H C1 E0 04 48 98 ; K1-G002 shl eax,4 (x 16) + cdqe
+H 48 8D 15 $errtab ; K1-G002 lea rdx,[rip+errtab]
+H 48 01 C2 ; K1-G002 add rdx,rax (адрес записи)
+H 44 8B 42 04 44 8B 4A 08 ; K1-G002 mov r8d,[rdx+4] (длина) + mov r9d,[rdx+8] (код)
+H 44 89 4C 24 10 ; K1-G002 mov [rsp+0x10],r9d (сохранить код)
+H 8B 12 ; K1-G002 mov edx,[rdx] (RVA строки)
+H 48 01 DA ; K1-G002 add rdx,rbx (адрес строки)
+H E8 $print_line ; K1-G002 call print_line
+H 8B 4C 24 10 ; K1-G002 mov ecx,[rsp+0x10] (код возврата)
+H FF 15 $iat_ep ; K1-G002 call [rip+iat_ep] -> ExitProcess
+H CC ; K1-G002 int3 (страховка)
+:print_line
+H 48 83 EC 28 ; K1-P001 sub rsp,0x28
+H 48 8B 0D $hstdout ; K1-P001 mov rcx,[rip+hstdout]
+H 4C 8D 0D $written ; K1-P001 lea r9,[rip+written]
+H 48 C7 44 24 20 00 00 00 00 ; K1-P001 mov qword [rsp+0x20],0 (ovl=NULL)
+H FF 15 $iat_wf ; K1-P001 call [rip+iat_wf] -> WriteFile
+H 48 83 C4 28 C3 ; K1-P001 add rsp,0x28 + ret
+:open_file_read
+H 48 83 EC 38 ; K1-F001 sub rsp,0x38
+H BA 00 00 00 80 ; K1-F001 mov edx,0x80000000 (GENERIC_READ)
+H 41 B8 01 00 00 00 ; K1-F001 mov r8d,1 (FILE_SHARE_READ)
+H 45 31 C9 ; K1-F001 xor r9d,r9d (SA=NULL)
+H 48 C7 44 24 20 03 00 00 00 ; K1-F001 mov qword [rsp+0x20],3 (OPEN_EXISTING)
+H 48 C7 44 24 28 80 00 00 00 ; K1-F001 mov qword [rsp+0x28],0x80 (NORMAL)
+H 48 C7 44 24 30 00 00 00 00 ; K1-F001 mov qword [rsp+0x30],0 (шаблон=NULL)
+H FF 15 $iat_cf ; K1-F001 call [rip+iat_cf] -> CreateFileA
+H 48 83 C4 38 C3 ; K1-F001 add rsp,0x38 + ret
+:create_file_write
+H 48 83 EC 38 ; K1-F002 sub rsp,0x38
+H BA 00 00 00 40 ; K1-F002 mov edx,0x40000000 (GENERIC_WRITE)
+H 45 31 C0 45 31 C9 ; K1-F002 xor r8d,r8d + xor r9d,r9d
+H 48 C7 44 24 20 02 00 00 00 ; K1-F002 mov qword [rsp+0x20],2 (CREATE_ALWAYS)
+H 48 C7 44 24 28 80 00 00 00 ; K1-F002 mov qword [rsp+0x28],0x80 (NORMAL)
+H 48 C7 44 24 30 00 00 00 00 ; K1-F002 mov qword [rsp+0x30],0 (шаблон=NULL)
+H FF 15 $iat_cf ; K1-F002 call [rip+iat_cf] -> CreateFileA
+H 48 83 C4 38 C3 ; K1-F002 add rsp,0x38 + ret
+:close_file
+H 48 83 EC 28 ; K1-F003 sub rsp,0x28
+H FF 15 $iat_ch ; K1-F003 call [rip+iat_ch] -> CloseHandle
+H 48 83 C4 28 C3 ; K1-F003 add rsp,0x28 + ret
+:read_whole_dst
+H 48 83 EC 28 ; K1-F004 sub rsp,0x28
+H 48 C7 44 24 20 00 00 00 00 ; K1-F004 mov qword [rsp+0x20],0 (ovl=NULL)
+H FF 15 $iat_rf ; K1-F004 call [rip+iat_rf] -> ReadFile
+H 48 83 C4 28 ; K1-F004 add rsp,0x28
+H 48 85 C0 ; K1-F004 test rax,rax
+H 75 $rw_ok:1 ; K1-F004 jnz rw_ok
+H 48 C7 C0 FF FF FF FF C3 ; K1-F004 mov rax,-1 + ret
+:rw_ok
+H 41 8B 01 C3 ; K1-F004 mov eax,[r9] (счётчик) + ret
+:write_all
+H 48 83 EC 28 4D 89 C5 ; K1-F005 sub rsp,0x28 + mov r13,r8 (сохранить длину)
+H 4C 8D 0D $written ; K1-F005 lea r9,[rip+written]
+H 48 C7 44 24 20 00 00 00 00 ; K1-F005 mov qword [rsp+0x20],0 (ovl=NULL)
+H FF 15 $iat_wf ; K1-F005 call [rip+iat_wf] -> WriteFile
+H 48 83 C4 28 ; K1-F005 add rsp,0x28
+H 48 85 C0 ; K1-F005 test rax,rax
+H 74 $wa_err:1 ; K1-F005 jz wa_err
+H 48 8B 05 $written ; K1-F005 mov rax,[rip+written] (записано)
+H 4C 39 E8 ; K1-F005 cmp rax,r13 (равно длине?)
+H 75 $wa_err:1 ; K1-F005 jne wa_err (короткая запись)
+H 31 C0 C3 ; K1-F005 xor eax,eax (успех) + ret
+:wa_err
+H B8 01 00 00 00 C3 ; K1-F005 mov eax,1 (ошибка) + ret

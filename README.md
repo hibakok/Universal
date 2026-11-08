@@ -6,7 +6,7 @@
 > машина, библиотеки и проекты — построенные вручную из мельчайших кирпичей,
 > без использования чужих языков, компиляторов, ассемблеров и библиотек.
 
-**Статус: этапы E0–E6.2 выполнены.** Артефакты ядра:
+**Статус: этапы E0–E6.3 выполнены.** Артефакты ядра:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 Б, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
 (3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
@@ -15,11 +15,16 @@
 готовый EXE), `KERNEL/L1-BRICK/brick.exe` (3584 Б, **ассемблер
 BRICK v1**: метки, имена, rip-смещения) и `KERNEL/L1-ENC/enc.exe`
 (11776 Б, **кодировщик BRICK v2**: M-строки — мнемоники вместо ручных
-байтов — канонические кодировки SPEC/09; собирает сам себя из enc.b2,
-2651 строка целиком на M-строках). **E6.2 завершён:** ручное
-назначение байтов кодировок прекращено; конвейер
-`enc → brick → pegen` ведёт от мнемоник до EXE.
-**Следующий этап E6.3** — миграция и разрез исходников (include).
+байтов — канонические кодировки SPEC/09) и
+`KERNEL/L1-SPLICE/splice.exe` (3584 Б, **склейщик include**: директива
+`!include`, SPEC/10 — собирает разрезанные исходники в плоский текст).
+**E6.2 завершён:** ручное назначение байтов кодировок прекращено.
+**E6.3 завершён:** все исходники L1 разрезаны на части ≤ 500 строк
+(enc.b2 — корень + 10 частей, brick.brick — корень + 3, splice.b2 —
+корень + 3); конвейер `splice → enc → brick → pegen` ведёт от
+разрезанных мнемоник до EXE, сборка байт-в-байт, все круги самохостинга
+(E5, E6.2, E6.3) зелёные.
+**Следующий этап E6.4** — язык L2 (транслятор → BRICK v2, SPEC/11).
 
 ## С чего начать (обязательно прочитать по порядку)
 
@@ -36,7 +41,7 @@ BRICK v1**: метки, имена, rip-смещения) и `KERNEL/L1-ENC/enc.
 | `DOCS/`  | манифест, методология, навигация, дорожная карта, правила изменений |
 | `SPEC/`  | формальные спецификации: карточки методов, слои, форматы, PE, x86 |
 | `MAP/`   | карта репозитория, указатель кирпичей, реестры модулей, слои |
-| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE); слой L1: brick (ассемблер BRICK) |
+| `KERNEL/`| ядро системы; слой L0: семя, семя-2, hxdump, hexgen (компилятор), pegen (обёртка EXE); слой L1: brick (ассемблер BRICK), enc (кодировщик v2), splice (склейка include) |
 | `PROJECTS/` | внешние проекты — программы, исполняемые ядром          |
 | `LAB/` | внешняя лаборатория ИИ (Python): эмулятор, оракулы, батарея |
 | `TESTS/` | политика тестирования и тест-планы                        |
@@ -107,31 +112,55 @@ cmd -> KERNEL\L1-ENC\enc.exe
 SHA-256:          93AD8E21FADE2D1EC173F8723CE6165D3C9681C18251486FD27789D0E7A54A45
 Команды:          enc.exe <src.b2> <out.brick> (см. CARD.md)
 
-Самохостинг ENC (DoD этапа E6.2, из папки KERNEL):
-L1-ENC\enc.exe L1-ENC\enc.b2 t_v1.brick
+cmd -> KERNEL\L1-SPLICE\splice.exe
+Ожидаемый вывод:  U-L1-SPLICE CMDS: SPLICE <ROOT.SRC> <OUT.FLAT>
+Код возврата:     2
+SHA-256:          387B5B63650205E4B16D270CD91FE0EADCAD644E67087C61E11D22D32D27AF92
+Команды:          splice.exe <корень.b2> <выход.плоско> (см. CARD.md)
+
+Самохостинг ENC на разрезе (DoD E6.2+E6.3, из папки KERNEL):
+L1-SPLICE\splice.exe L1-ENC\enc.b2 t_flat.b2
+L1-ENC\enc.exe t_flat.b2 t_v1.brick
 L1-BRICK\brick.exe t_v1.brick t_body.bin
 L0-PEGEN\pegen.exe t_body.bin L1-ENC\enc.peg t_enc.exe
 Ожидаемо:         fc /b t_v1.brick L1-ENC\enc.brick -> различий нет
                   fc /b t_enc.exe L1-ENC\enc.exe -> различий нет
-                  (круг v2 -> v1 -> тело -> EXE воспроизводит себя)
 
-Полный конвейер слоя L1 (любой модуль на BRICK v2):
-L1-ENC\enc.exe <модуль>.b2 <модуль>.brick
+Самохостинг SPLICE через собственный include (DoD E6.3):
+L1-SPLICE\splice.exe L1-SPLICE\splice.b2 t.b2
+L1-ENC\enc.exe t.b2 t.brick
+L1-BRICK\brick.exe t.brick t_body.bin
+L0-PEGEN\pegen.exe t_body.bin L1-SPLICE\splice.peg t.exe
+Ожидаемо:         fc /b t.brick L1-SPLICE\splice.brick -> различий нет
+                  fc /b t.exe L1-SPLICE\splice.exe -> различий нет
+
+Разрез brick воспроизводит тело (DoD E6.3):
+L1-SPLICE\splice.exe L1-BRICK\brick.brick t_flat.brick
+L1-BRICK\brick.exe t_flat.brick t_self.bin
+L0-HEXGEN\hexgen.exe L1-BRICK\brick.hex t_body.bin
+Ожидаемо:         fc /b t_self.bin t_body.bin -> различий нет (2968 байт)
+
+Полный конвейер слоя L1 (модуль на BRICK v2 с разрезом):
+L1-SPLICE\splice.exe <модуль>.b2 <модуль>-flat.b2
+L1-ENC\enc.exe <модуль>-flat.b2 <модуль>.brick
 L1-BRICK\brick.exe <модуль>.brick <модуль>-body.bin
 L0-PEGEN\pegen.exe <модуль>-body.bin <модуль>.peg <модуль>.exe
 ```
 
 Автоматическая батарея (без Windows, нужен Python 3.8+):
 python3 LAB/py/lab_verify.py
-Ожидаемо:         ИТОГ: 80/80 OK (~22 секунды) — SHA, PE-инварианты,
-                  эмуляция сценариев TESTS/, оракулы ATOM/BRICK/PEG/ENC,
-                  круги E4, самохостинг E5, равенство enc.exe оракулу
-                  (109 якорей + 21 ошибка), самохостинг E6.2 (оба круга),
-                  большие исходники, концы строк. Та же батарея
+Ожидаемо:         ИТОГ: 90/90 OK (~32 секунды) — SHA, PE-инварианты,
+                  эмуляция сценариев TESTS/, оракулы ATOM/BRICK/PEG/ENC/
+                  SPLICE, круги E4, самохостинг E5 (на разрезе),
+                  равенство enc.exe оракулу (109 якорей + 21 ошибка),
+                  самохостинг E6.2 (на разрезе), оракул и инструмент
+                  SPLICE (14 якорей + 13 ошибок + большие исходники +
+                  корни репозитория), самохостинг E6.3 (splice собирает
+                  себя из собственного разреза). Та же батарея
                   запускается автоматически при каждом пуше (вкладка
                   Actions; файл .github/workflows/verify.yml).
 
 Подробности: `KERNEL/L0-SEED/VERIFY.md`, `KERNEL/L0-SEED2/VERIFY.md`,
 `KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`,
 `KERNEL/L0-PEGEN/VERIFY.md`, `KERNEL/L1-BRICK/VERIFY.md`,
-`KERNEL/L1-ENC/VERIFY.md`.
+`KERNEL/L1-ENC/VERIFY.md`, `KERNEL/L1-SPLICE/VERIFY.md`.

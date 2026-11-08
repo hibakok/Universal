@@ -1,0 +1,345 @@
+; ===== K1-D011 таблица цифр =====
+:digits
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
+
+; ===== K1-D012 regtab: 48 записей {имя(8Б), длина, код|размер<<8, 0} =====
+:regtab
+DD 20786172 0 3 4000 ; rax
+DD 20786165 0 3 2000 ; eax
+DD 20786372 0 3 4001 ; rcx
+DD 20786365 0 3 2001 ; ecx
+DD 20786472 0 3 4002 ; rdx
+DD 20786465 0 3 2002 ; edx
+DD 20786272 0 3 4003 ; rbx
+DD 20786265 0 3 2003 ; ebx
+DD 20707372 0 3 4004 ; rsp
+DD 20707365 0 3 2004 ; esp
+DD 20706272 0 3 4005 ; rbp
+DD 20706265 0 3 2005 ; ebp
+DD 20697372 0 3 4006 ; rsi
+DD 20697365 0 3 2006 ; esi
+DD 20696472 0 3 4007 ; rdi
+DD 20696465 0 3 2007 ; edi
+DD 203872 0 2 4008 ; r8
+DD 20643872 0 3 2008 ; r8d
+DD 203972 0 2 4009 ; r9
+DD 20643972 0 3 2009 ; r9d
+DD 20303172 0 3 400A ; r10
+DD 64303172 20 4 200A ; r10d
+DD 20313172 0 3 400B ; r11
+DD 64313172 20 4 200B ; r11d
+DD 20323172 0 3 400C ; r12
+DD 64323172 20 4 200C ; r12d
+DD 20333172 0 3 400D ; r13
+DD 64333172 20 4 200D ; r13d
+DD 20343172 0 3 400E ; r14
+DD 64343172 20 4 200E ; r14d
+DD 20353172 0 3 400F ; r15
+DD 64353172 20 4 200F ; r15d
+DD 206C61 0 2 800 ; al
+DD 206C63 0 2 801 ; cl
+DD 206C64 0 2 802 ; dl
+DD 206C62 0 2 803 ; bl
+DD 206C6973 0 3 806 ; sil
+DD 206C6964 0 3 807 ; dil
+DD 206C7073 0 3 804 ; spl
+DD 206C7062 0 3 805 ; bpl
+DD 20623872 0 3 808 ; r8b
+DD 20623972 0 3 809 ; r9b
+DD 62303172 20 4 80A ; r10b
+DD 62313172 20 4 80B ; r11b
+DD 62323172 20 4 80C ; r12b
+DD 62333172 20 4 80D ; r13b
+DD 62343172 20 4 80E ; r14b
+DD 62353172 20 4 80F ; r15b
+
+; ===== K1-D013 mnemtab: 41 запись {имя(8Б), длина, семейство|параметр<<8, 0} =====
+:mnemtab
+DD 646461 0 3 1 ; add
+DD 726F 0 2 10801 ; or
+DD 646E61 0 3 42001 ; and
+DD 627573 0 3 52801 ; sub
+DD 726F78 0 3 63001 ; xor
+DD 706D63 0 3 73801 ; cmp
+DD 6C6F72 0 3 2 ; rol
+DD 726F72 0 3 102 ; ror
+DD 6C6873 0 3 402 ; shl
+DD 726873 0 3 502 ; shr
+DD 726173 0 3 702 ; sar
+DD 6F6A 0 2 3 ; jo
+DD 6F6E6A 0 3 103 ; jno
+DD 626A 0 2 203 ; jb
+DD 65616A 0 3 303 ; jae
+DD 7A6A 0 2 403 ; jz
+DD 7A6E6A 0 3 503 ; jnz
+DD 65626A 0 3 603 ; jbe
+DD 616A 0 2 703 ; ja
+DD 736A 0 2 803 ; js
+DD 736E6A 0 3 903 ; jns
+DD 6C6A 0 2 C03 ; jl
+DD 65676A 0 3 D03 ; jge
+DD 656C6A 0 3 E03 ; jle
+DD 676A 0 2 F03 ; jg
+DD 656A 0 2 403 ; je
+DD 656E6A 0 3 503 ; jne
+DD 766F6D 0 3 4 ; mov
+DD 7A766F6D 78 5 5 ; movzx
+DD 61656C 0 3 6 ; lea
+DD 74736574 0 4 7 ; test
+DD 6C6C6163 0 4 8 ; call
+DD 67656E 0 3 3F709 ; neg
+DD 636E69 0 3 FF09 ; inc
+DD 636564 0 3 1FF09 ; dec
+DD 68737570 0 4 500A ; push
+DD 706F70 0 3 580B ; pop
+DD 706D6A 0 3 C ; jmp
+DD 65716463 0 4 98480D ; cdqe
+DD 746572 0 3 C30D ; ret
+DD 33746E69 0 4 CC0D ; int3
+
+; ===== K1-D014 sizetab: 4 записи {ключ с пробелом(8Б), длина, размер, 0} =====
+:sizetab
+DD 65747962 20 5 8 ; byte
+DD 64726F77 20 5 10 ; word
+DD 726F7764 2064 6 20 ; dword
+DD 726F7771 2064 6 40 ; qword
+
+; ===== K1-D015 errtab: 7 записей {RVA, длина, код, 0} =====
+:errtab
+DD $usage_str 29 2 0 ; код 2
+DD $err_long 18 3 0 ; код 3
+DD $err_opensrc 17 4 0 ; код 4
+DD $err_readsrc 17 5 0 ; код 5
+DD $err_bigsrc 16 7 0 ; код 7
+DD $err_openout 17 8 0 ; код 8
+DD $err_writeout 18 9 0 ; код 9
+
+; ===== K1-D016 строки вывода =====
+:usage_str ; справка
+DB 55 2D 4C 31 2D 45 4E 43 20 43 4D 44 53 3A 20 45 ; справка
+DB 4E 43 20 3C 53 52 43 2E 42 32 3E 20 3C 4F 55 54
+DB 2E 42 52 49 43 4B 3E 0D 0A
+:err_long ; long
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4C 4F 4E ; long
+DB 47 20 4E 41 4D 45 0D 0A
+:err_opensrc ; opensrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4F 50 45 ; opensrc
+DB 4E 20 53 52 43 0D 0A
+:err_readsrc ; readsrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 52 45 41 ; readsrc
+DB 44 20 53 52 43 0D 0A
+:err_bigsrc ; bigsrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 42 49 47 ; bigsrc
+DB 20 53 52 43 0D 0A
+:err_openout ; openout
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4F 50 45 ; openout
+DB 4E 20 4F 55 54 0D 0A
+:err_writeout ; writeout
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 57 52 49 ; writeout
+DB 54 45 20 4F 55 54 0D 0A
+:fmt_pfx ; префикс FORMAT (23 Б)
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 46 4F 52 ; префикс FORMAT (23 Б)
+DB 4D 41 54 20 41 54 3D
+
+; ===== K1-D017 таблица импортов kernel32.dll =====
+:idt
+DD $intt 0 0 $dll_name $iat ; описатель импорта
+DZ 14 ; терминатор IDT (нулевая запись)
+:iat
+:iat_gsh
+DQ $hint_gsh ; IAT: GetStdHandle
+:iat_wf
+DQ $hint_wf ; IAT: WriteFile
+:iat_ep
+DQ $hint_ep ; IAT: ExitProcess
+:iat_gcl
+DQ $hint_gcl ; IAT: GetCommandLineA
+:iat_cf
+DQ $hint_cf ; IAT: CreateFileA
+:iat_rf
+DQ $hint_rf ; IAT: ReadFile
+:iat_ch
+DQ $hint_ch ; IAT: CloseHandle
+DQ 0 ; IAT: терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
+:dll_name
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
+DZ 1 ; чётность RVA hint-записей
+:hint_gsh
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
+DZ 1 ; выравнивание
+:hint_wf
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; WriteFile
+:hint_ep
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; ExitProcess
+:hint_gcl
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; GetCommandLineA
+DB 41 00 ; GetCommandLineA (конец)
+:hint_cf
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; CreateFileA
+:hint_rf
+DB 00 00 52 65 61 64 46 69 6C 65 00 ; ReadFile
+DZ 1 ; выравнивание
+:hint_ch
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
+
+; ===== K1-D018 виртуальные нули (bss; загрузчик обнуляет) =====
+:hstdout
+DBZ 8
+:written
+DBZ 8
+:srclen
+DBZ 8
+:curline
+DBZ 8
+:wa_len
+DBZ 8
+:fname_in
+DBZ 80
+:fname_out
+DBZ 80
+:opbuf
+DBZ 80
+:linebuf
+DBZ 40
+:el_p1
+DBZ 8
+:el_p2
+DBZ 8
+:el_b0
+DBZ 8
+:el_b1
+DBZ 8
+:el_cpos
+DBZ 8
+:el_m1
+DBZ 8
+:el_o0
+DBZ 8
+:el_o1
+DBZ 8
+:el_ps
+DBZ 8
+:el_pe
+DBZ 8
+:el_s
+DBZ 8
+:el_e
+DBZ 8
+:el_oi
+DBZ 8
+:opcnt
+DBZ 8
+:m_family
+DBZ 8
+:m_param
+DBZ 8
+:po_s
+DBZ 8
+:po_e
+DBZ 8
+:po_dst
+DBZ 8
+:po_size
+DBZ 8
+:po_q
+DBZ 8
+:pm_s
+DBZ 8
+:pm_e
+DBZ 8
+:pm_dst
+DBZ 8
+:pm_cs
+DBZ 8
+:pm_cur
+DBZ 8
+:pm_n
+DBZ 8
+:pr_s
+DBZ 8
+:pr_e
+DBZ 8
+:pr_dst
+DBZ 8
+:pr_p
+DBZ 8
+:pr_len
+DBZ 8
+:pr_slot
+DBZ 8
+:pn_s
+DBZ 8
+:pn_e
+DBZ 8
+:mr_regv
+DBZ 8
+:mr_mod
+DBZ 8
+:mr_rm
+DBZ 8
+:mr_sib
+DBZ 8
+:mr_sibf
+DBZ 8
+:mr_tlen
+DBZ 8
+:mr_tail
+DBZ 8
+:mr_x
+DBZ 8
+:mr_b
+DBZ 8
+:mr_modrm
+DBZ 8
+:mr_slotf
+DBZ 8
+:mr_sptr
+DBZ 8
+:mr_slen
+DBZ 8
+:mr_ssz
+DBZ 8
+:er_opc
+DBZ 8
+:er_flags
+DBZ 8
+:er_imm
+DBZ 8
+:er_pre
+DBZ 8
+:rr_opc
+DBZ 8
+:rr_src
+DBZ 8
+:rr_dst
+DBZ 8
+:rr_size
+DBZ 8
+:si_size
+DBZ 8
+:si_val
+DBZ 8
+:im_opc
+DBZ 8
+:im_len
+DBZ 8
+:im_b0
+DBZ 8
+:t_opc
+DBZ 8
+:t_sub
+DBZ 8
+:ei_val
+DBZ 8
+:sh_immf
+DBZ 8
+:seg_a
+DBZ 20
+:seg_b
+DBZ 20
+:filebuf
+DBZ 20100 ; текст входа (128 КиБ + сентинел)
+:outbuf
+DBZ 44010 ; вывод (<= вход x 23/11 + 1)

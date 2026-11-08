@@ -1,0 +1,106 @@
+:digits
+H 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 ; K1-D001 таблица 16 hex-цифр ASCII
+:errtab
+DD $usage_str 2E 2 0 ; K1-D002 errtab[0]: справка {RVA, длина, код 2}
+DD $err_long 1A 3 0 ; K1-D002 errtab[1]: ERR=LONG NAME {RVA, длина, код 3}
+DD $err_opensrc 19 4 0 ; K1-D002 errtab[2]: ERR=OPEN SRC {RVA, длина, код 4}
+DD $err_readsrc 19 5 0 ; K1-D002 errtab[3]: ERR=READ SRC {RVA, длина, код 5}
+DD $err_bigsrc 18 7 0 ; K1-D002 errtab[4]: ERR=BIG SRC {RVA, длина, код 7}
+DD $err_openout 19 8 0 ; K1-D002 errtab[5]: ERR=OPEN OUT {RVA, длина, код 8}
+DD $err_writeout 1A 9 0 ; K1-D002 errtab[6]: ERR=WRITE OUT {RVA, длина, код 9}
+DD $err_bigout 18 A 0 ; K1-D002 errtab[7]: ERR=BIG OUT {RVA, длина, код 10}
+:usage_str
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 43 4D 44 53 3A ; K1-D003 строка справки
+H 20 42 52 49 43 4B 20 3C 53 52 43 2E 42 52 49 43 ; K1-D003 строка справки (продолжение)
+H 4B 3E 20 3C 4F 55 54 2E 42 49 4E 3E 0D 0A ; K1-D003 строка справки
+:err_long
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 4C ; K1-D003 имя длиннее 127
+H 4F 4E 47 20 4E 41 4D 45 0D 0A ; K1-D003 имя длиннее 127
+:err_opensrc
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 4F ; K1-D003 исходник не открыт
+H 50 45 4E 20 53 52 43 0D 0A ; K1-D003 исходник не открыт
+:err_readsrc
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 52 ; K1-D003 ошибка чтения исходника
+H 45 41 44 20 53 52 43 0D 0A ; K1-D003 ошибка чтения исходника
+:err_bigsrc
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 42 ; K1-D003 исходник больше 128 КиБ
+H 49 47 20 53 52 43 0D 0A ; K1-D003 исходник больше 128 КиБ
+:err_openout
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 4F ; K1-D003 выход не создан
+H 50 45 4E 20 4F 55 54 0D 0A ; K1-D003 выход не создан
+:err_writeout
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 57 ; K1-D003 ошибка записи выхода
+H 52 49 54 45 20 4F 55 54 0D 0A ; K1-D003 ошибка записи выхода
+:err_bigout
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 42 ; K1-D003 тело больше 64 КиБ
+H 49 47 20 4F 55 54 0D 0A ; K1-D003 тело больше 64 КиБ
+:fmt_pfx
+H 55 2D 4C 31 2D 42 52 49 43 4B 20 45 52 52 3D 46 ; K1-D003 префикс ошибки формата (25 байт)
+H 4F 52 4D 41 54 20 41 54 3D ; K1-D003 префикс ошибки формата (25 байт)
+:base_name
+H 62 61 73 65 00 ; K1-D003 имя предопределённой метки base
+:idt
+DD $intt 0 0 $dll_name $iat ; K1-D004 IDT: описатель {INT, время, цепочка, имя, IAT}
+DZ 14 ; K1-D004 IDT: терминатор (нулевая запись 20 байт)
+:iat
+:iat_gsh
+DQ $hint_gsh ; K1-D004 iat_gsh -> hint GetStdHandle
+:iat_wf
+DQ $hint_wf ; K1-D004 iat_wf -> hint WriteFile
+:iat_ep
+DQ $hint_ep ; K1-D004 iat_ep -> hint ExitProcess
+:iat_gcl
+DQ $hint_gcl ; K1-D004 iat_gcl -> hint GetCommandLineA
+:iat_cf
+DQ $hint_cf ; K1-D004 iat_cf -> hint CreateFileA
+:iat_rf
+DQ $hint_rf ; K1-D004 iat_rf -> hint ReadFile
+:iat_ch
+DQ $hint_ch ; K1-D004 iat_ch -> hint CloseHandle
+DQ 0 ; K1-D004 IAT: терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; K1-D004 INT: копия IAT до заполнения
+:dll_name
+H 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; K1-D004 имя DLL
+DZ 1 ; K1-D004 выравнивание записей hint на чётные RVA
+:hint_gsh
+H 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; K1-D005 hint=0 + имя GetStdHandle
+DZ 1 ; K1-D005 выравнивание hint-записи на чётное RVA
+:hint_wf
+H 00 00 57 72 69 74 65 46 69 6C 65 00 ; K1-D005 hint=0 + имя WriteFile
+:hint_ep
+H 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; K1-D005 hint=0 + имя ExitProcess
+:hint_gcl
+H 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; K1-D005 hint=0 + имя GetCommandLineA
+H 41 00 ; K1-D005 hint=0 + имя GetCommandLineA
+:hint_cf
+H 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; K1-D005 hint=0 + имя CreateFileA
+:hint_rf
+H 00 00 52 65 61 64 46 69 6C 65 00 ; K1-D005 hint=0 + имя ReadFile
+DZ 1 ; K1-D005 выравнивание hint-записи на чётное RVA
+:hint_ch
+H 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; K1-D005 hint=0 + имя CloseHandle
+:hstdout
+DBZ 8 ; виртуальные нули (bss)
+:written
+DBZ 8 ; виртуальные нули (bss)
+:srclen
+DBZ 4 ; виртуальные нули (bss)
+:outlen
+DBZ 4 ; виртуальные нули (bss)
+:curline
+DBZ 4 ; виртуальные нули (bss)
+:labcnt
+DBZ 4 ; виртуальные нули (bss)
+:fname_in
+DBZ 80 ; виртуальные нули (bss)
+:fname_out
+DBZ 80 ; виртуальные нули (bss)
+:linebuf
+DBZ 40 ; виртуальные нули (bss)
+:labtab
+DBZ 2000 ; виртуальные нули (bss)
+:filebuf
+DBZ 20008 ; виртуальные нули (bss)
+:imagebuf
+DBZ 20010 ; виртуальные нули (bss)

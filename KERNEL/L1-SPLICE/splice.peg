@@ -1,0 +1,9 @@
+; UNIVERSAL / PEG v1 / слой L1 / модуль M1-SPLICE
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module splice
+!entry 1000
+!idata 19B9 28
+!iat 19E1 40
+!bss 120630
+!stackcom 4000
+!heapcom 4000

@@ -250,3 +250,31 @@
   E (кодирование), N (нормализация), P (разбор), R (поиск в таблицах),
   U (печать) — новые в M1-ENC.
 - Модули: M0-* (слой L0), M1-BRICK и M1-ENC (слой L1).
+
+| K1-X021 | prepare_stack | X | готов | `MAP/M1-SPLICE.md` |
+| K1-X022 | exit_code | X | готов | `MAP/M1-SPLICE.md` |
+| K1-C021 | get_cmdline | C | готов | `MAP/M1-SPLICE.md` |
+| K1-C022 | skip_argv0 | C | готов | `MAP/M1-SPLICE.md` |
+| K1-C023 | next_arg | C | готов | `MAP/M1-SPLICE.md` |
+| K1-C024 | read_word | C | готов | `MAP/M1-SPLICE.md` |
+| K1-C025 | copy_word_dst | C | готов | `MAP/M1-SPLICE.md` |
+| K1-C026 | skip_seps | C | готов | `MAP/M1-SPLICE.md` |
+| K1-G021 | dispatch | G | готов | `MAP/M1-SPLICE.md` |
+| K1-G022 | print_error | G | готов | `MAP/M1-SPLICE.md` |
+| K1-G023 | fail_format | G | готов | `MAP/M1-SPLICE.md` |
+| K1-S011 | process_loop | S | готов | `MAP/M1-SPLICE.md` |
+| K1-S012 | handle_line | S | готов | `MAP/M1-SPLICE.md` |
+| K1-S013 | emit_line | S | готов | `MAP/M1-SPLICE.md` |
+| K1-N011 | name_prefix | N | готов | `MAP/M1-SPLICE.md` |
+| K1-H021 | hex16_to_4 | H | готов | `MAP/M1-SPLICE.md` |
+| K1-U021 | print_line | U | готов | `MAP/M1-SPLICE.md` |
+| K1-F021 | open_file_read | F | готов | `MAP/M1-SPLICE.md` |
+| K1-F022 | create_file_write | F | готов | `MAP/M1-SPLICE.md` |
+| K1-F023 | close_file | F | готов | `MAP/M1-SPLICE.md` |
+| K1-F024 | read_whole_dst | F | готов | `MAP/M1-SPLICE.md` |
+| K1-F025 | write_all | F | готов | `MAP/M1-SPLICE.md` |
+| K1-D021 | таблица цифр | D | готов | `MAP/M1-SPLICE.md` |
+| K1-D022 | errtab (9 записей) | D | готов | `MAP/M1-SPLICE.md` |
+| K1-D023 | строки вывода | D | готов | `MAP/M1-SPLICE.md` |
+| K1-D024 | таблица импортов | D | готов | `MAP/M1-SPLICE.md` |
+| K1-D025 | виртуальные нули | D | готов | `MAP/M1-SPLICE.md` |

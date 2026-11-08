@@ -1,0 +1,691 @@
+; UNIVERSAL / BRICK v2 / слой L1 / модуль M1-SPLICE (склейка SPLICE v1, SPEC/10)
+; Само-исходник splice.exe: сборка корня с директивами !include в плоский текст.
+; Сборка: enc.exe splice.b2 splice.brick; brick.exe splice.brick body.bin; pegen.exe body.bin splice.peg splice.exe
+; Контракт: splice.exe <корень.b2> <выход.плоско>; не-директивные строки проходят без изменений.
+; Регистры: RBX=база образа, R10=база outbuf, R12=курсор вывода, R13=уровень (0..7),
+; RSI=курсор текста, R14/R15=начало/конец строки. Подпрограммы сохраняют
+; RBX,RSI,R10,R12,R13,R14,R15,RBP; меняют RAX,RCX,RDX,RDI,R8,R9,R11.
+; Исключение: handle_line/process_loop меняют RSI и R13 (спуск по уровням).
+:entry
+H 48 83 EC 38 ; K1-X021 кадр: тень + выравнивание вызовов
+H 48 8D 1D $base ; K1-X021 RBX = RVA 0 (база образа)
+H 48 C7 C1 F5 FF FF FF ; K1-X021 STD_OUTPUT_HANDLE (-11)
+H FF 15 $iat_gsh ; K1-X021 GetStdHandle -> RAX
+H 48 89 05 $hstdout ; K1-X021 сохранить хэндл stdout
+:get_cmdline
+H FF 15 $iat_gcl ; K1-C021 GetCommandLineA -> RAX
+H 48 89 C7 ; K1-C021 RDI = курсор командной строки
+:skip_argv0
+H 0F B6 07 ; K1-C022 очередной символ argv0
+H 80 F8 22 ; K1-C022 кавычка?
+H 0F 85 $sa_unq ; K1-C022 путь без кавычек
+H 48 FF C7 ; K1-C022 пропуск открывающей кавычки
+:sa_qloop
+H 0F B6 07 ; K1-C022
+H 84 C0 ; K1-C022
+H 0F 84 $noargs ; K1-C022 конец строки — аргументов нет
+H 80 F8 22 ; K1-C022 закрывающая кавычка?
+H 0F 84 $sa_adv ; K1-C022
+H 48 FF C7 ; K1-C022
+H E9 $sa_qloop ; K1-C022
+:sa_unq
+H 84 C0 ; K1-C022
+H 0F 84 $noargs ; K1-C022
+H 80 F8 20 ; K1-C022 пробел?
+H 0F 84 $sa_delims ; K1-C022
+H 80 F8 09 ; K1-C022 табуляция?
+H 0F 84 $sa_delims ; K1-C022
+H 48 FF C7 ; K1-C022
+H E9 $skip_argv0 ; K1-C022
+:sa_adv
+H 48 FF C7 ; K1-C022
+H E9 $sa_delims ; K1-C022
+:sa_delims
+H 0F B6 07 ; K1-C022
+H 84 C0 ; K1-C022
+H 0F 84 $noargs ; K1-C022
+H 80 F8 20 ; K1-C022
+H 0F 84 $sa_adv ; K1-C022
+H 80 F8 09 ; K1-C022
+H 0F 84 $sa_adv ; K1-C022
+H E9 $word1 ; K1-C022 слово 1 начинается
+:noargs
+H B9 00 00 00 00 ; K1-G021 индекс справки errtab
+H E8 $print_error ; K1-G022 печать + ExitProcess(2)
+:word1
+H 4C 8D 05 $fname_in ; K1-G021 буфер имени корня
+H E8 $next_arg ; K1-C023 аргумент 1
+H 4C 8D 05 $fname_out ; K1-G021 буфер имени выхода
+H E8 $next_arg ; K1-C023 аргумент 2
+H 48 8D 0D $fname_in ; K1-G021
+H E8 $open_file_read ; K1-F021
+H 48 83 F8 FF ; K1-G021
+H 0F 85 $ok1 ; K1-G021
+H B9 02 00 00 00 ; K1-G021 ERR=OPEN SRC
+H E8 $print_error ; K1-G022
+:ok1
+H 49 89 C3 ; K1-G021 R11 = хэндл корня
+H 4C 89 D9 ; K1-G021
+H 48 8D 15 $filebufs ; K1-G021 буфер уровня 0
+H 41 B8 00 00 02 00 ; K1-G021 вместимость 0x20000
+H 4C 8D 0D $srclen ; K1-G021 счётчик прочитанного
+H E8 $read_whole_dst ; K1-F024
+H 48 83 F8 FF ; K1-G021
+H 0F 85 $ok2 ; K1-G021
+H B9 03 00 00 00 ; K1-G021 ERR=READ SRC
+H E8 $print_error ; K1-G022
+:ok2
+H 48 81 F8 00 00 02 00 ; K1-G021 предел 128 КиБ (сентинелу нужен запас)
+H 0F 82 $ok3 ; K1-G021
+H B9 04 00 00 00 ; K1-G021 ERR=BIG SRC
+H E8 $print_error ; K1-G022
+:ok3
+H 4C 89 D9 ; K1-G021
+H E8 $close_file ; K1-F023
+H 48 8D 0D $filebufs ; K1-G021
+H 8B 15 $srclen ; K1-G021 длина корня
+H 48 01 D1 ; K1-G021
+H C6 01 00 ; K1-G021 NUL-сентинел
+H 48 8D 35 $fname_in ; K1-G021 имя корня (NUL-terminated)
+H 48 8D 3D $lv_name ; K1-G021 lv_name[0]
+:sp_cp
+H 0F B6 06 ; K1-G021
+H 84 C0 ; K1-G021
+H 0F 84 $sp_cpd ; K1-G021
+H 88 07 ; K1-G021
+H 48 FF C6 ; K1-G021
+H 48 FF C7 ; K1-G021
+H E9 $sp_cp ; K1-G021
+:sp_cpd
+H C6 07 00 ; K1-G021
+H 48 8D 0D $lv_name ; K1-G021
+H E8 $name_prefix ; K1-N011 RAX = длина префикса
+H 88 05 $lv_pref ; K1-G021 lv_pref[0]
+H 31 C0 ; K1-G021 счётчик строк = 0 (инкремент ПЕРЕД обработкой)
+H 89 05 $curline ; K1-G021 сквозная нумерация в порядке чтения
+H 4C 8D 15 $outbuf ; K1-G021 R10 = база выходного буфера
+H 4D 89 D4 ; K1-G021 R12 = курсор вывода
+H 45 31 ED ; K1-G021 R13 = уровень 0
+H 48 8D 35 $filebufs ; K1-G021 RSI = курсор текста
+H E8 $process_loop ; K1-S011 склейка всех уровней
+H 48 8D 0D $fname_out ; K1-G021
+H E8 $create_file_write ; K1-F022
+H 48 83 F8 FF ; K1-G021
+H 0F 85 $ok6 ; K1-G021
+H B9 05 00 00 00 ; K1-G021 ERR=OPEN OUT
+H E8 $print_error ; K1-G022
+:ok6
+H 49 89 C7 ; K1-G021 R15 = хэндл выхода
+H 4C 89 F9 ; K1-G021
+H 4C 89 D2 ; K1-G021 буфер вывода
+H 4D 89 E0 ; K1-G021
+H 4D 29 D0 ; K1-G021 длина вывода
+H E8 $write_all ; K1-F025
+H 48 85 C0 ; K1-G021
+H 0F 84 $ok7 ; K1-G021
+H B9 06 00 00 00 ; K1-G021 ERR=WRITE OUT
+H E8 $print_error ; K1-G022
+:ok7
+H 4C 89 F9 ; K1-G021
+H E8 $close_file ; K1-F023
+:exit_ok
+H 31 C9 ; K1-X022 код возврата 0
+H FF 15 $iat_ep ; K1-X022 ExitProcess
+H CC ; K1-X022 страховка
+; ===== S011 process_loop: цикл строк текущего уровня (LF/CRLF/CR) =====
+:process_loop
+H 49 89 F6 ; K1-S011 R14 = начало строки
+:pl_scan
+H 0F B6 06 ; K1-S011
+H 84 C0 ; K1-S011
+H 0F 84 $pl_eof ; K1-S011 конец файла (сентинел NUL)
+H 80 F8 0A ; K1-S011 LF?
+H 0F 84 $pl_endlf ; K1-S011
+H 80 F8 0D ; K1-S011 CR?
+H 0F 84 $pl_endcr ; K1-S011
+H 48 FF C6 ; K1-S011
+H E9 $pl_scan ; K1-S011
+:pl_endlf
+H 49 89 F7 ; K1-S011 R15 = конец строки (на LF)
+H 48 FF C6 ; K1-S011 пропуск LF
+H 8B 05 $curline ; K1-S011 номер строки +1
+H FF C0 ; K1-S011
+H 89 05 $curline ; K1-S011
+H E8 $handle_line ; K1-S012 директива или вывод (может спуститься)
+H E9 $process_loop ; K1-S011
+:pl_endcr
+H 49 89 F7 ; K1-S011 конец строки (на CR)
+H 48 FF C6 ; K1-S011 пропуск CR
+H 0F B6 06 ; K1-S011
+H 80 F8 0A ; K1-S011 CRLF — один терминатор?
+H 0F 85 $pl_nolf ; K1-S011
+H 48 FF C6 ; K1-S011 пропуск LF тоже
+:pl_nolf
+H 8B 05 $curline ; K1-S011 номер строки +1
+H FF C0 ; K1-S011
+H 89 05 $curline ; K1-S011
+H E8 $handle_line ; K1-S012
+H E9 $process_loop ; K1-S011
+:pl_eof
+H 4C 39 F6 ; K1-S011 пустой хвост без терминатора?
+H 0F 84 $pl_filedone ; K1-S011
+H 49 89 F7 ; K1-S011 последняя строка
+H 8B 05 $curline ; K1-S011 номер строки +1
+H FF C0 ; K1-S011
+H 89 05 $curline ; K1-S011
+H E8 $handle_line ; K1-S012 директива на последней строке?
+H 4D 85 ED ; K1-S011 спуск произошёл (уровень вырос)?
+H 0F 84 $pl_filedone ; K1-S011 нет — файл исчерпан
+H E9 $process_loop ; K1-S011 да — цикл продолжится с нового уровня
+:pl_filedone
+H 4D 85 ED ; K1-S011 уровень 0 — конец склейки?
+H 0F 84 $pl_done ; K1-S011
+H 49 FF CD ; K1-S011 возврат к родителю
+H 4C 89 EA ; K1-S011
+H 48 C1 E2 03 ; K1-S011 x 8
+H 48 8D 0D $lv_cur ; K1-S011
+H 48 01 D1 ; K1-S011 lv_cur[level]
+H 48 8B 31 ; K1-S011 сохранённый курсор родителя
+H E9 $process_loop ; K1-S011
+:pl_done
+H C3 ; K1-S011
+; ===== S012 handle_line: '!include'-директива (спуск) или проход строки =====
+:handle_line
+H 41 0F B6 06 ; K1-S012
+H 80 F8 21 ; K1-S012 '!' — директива?
+H 0F 85 $hl_emit ; K1-S012 обычная строка
+H 4C 89 F8 ; K1-S012 длина строки
+H 4C 29 F0 ; K1-S012
+H 48 83 F8 0A ; K1-S012 минимум "!include x" (10 байт)
+H 0F 82 $hl_bad ; K1-S012
+H 41 8B 06 ; K1-S012 байты 0..3
+H 81 F8 21 69 6E 63 ; K1-S012 "!inc" (LE dword)
+H 0F 85 $hl_bad ; K1-S012
+H 41 8B 46 04 ; K1-S012 байты 4..7
+H 81 F8 6C 75 64 65 ; K1-S012 "lude" (LE dword)
+H 0F 85 $hl_bad ; K1-S012
+H 41 0F B6 46 08 ; K1-S012 байт 8
+H 80 F8 20 ; K1-S012 ' ' после "!include"
+H 0F 85 $hl_bad ; K1-S012
+H E9 $hl_inc ; K1-S012 корректная директива
+:hl_bad
+H E8 $fail_format ; K1-G023 ERR=FORMAT AT=XXXX (не возвращается)
+:hl_inc
+H 4C 89 E8 ; K1-S012 следующий уровень
+H 48 FF C0 ; K1-S012
+H 48 83 F8 08 ; K1-S012 предел глубины (уровни 0..7)
+H 0F 83 $hl_depth ; K1-S012 ERR=DEPTH
+H 4C 89 EA ; K1-S012 сохранить курсор родителя
+H 48 C1 E2 03 ; K1-S012 x 8
+H 48 8D 0D $lv_cur ; K1-S012
+H 48 01 D1 ; K1-S012
+H 48 89 31 ; K1-S012 lv_cur[level] = RSI
+H 4C 89 EA ; K1-S012 имя родителя
+H 48 C1 E2 07 ; K1-S012 x 0x80
+H 48 8D 35 $lv_name ; K1-S012
+H 48 01 D6 ; K1-S012 RSI = lv_name[level]
+H 48 8D 05 $lv_pref ; K1-S012
+H 4C 01 E8 ; K1-S012 lv_pref[level]
+H 0F B6 08 ; K1-S012 ECX = длина префикса (0..127)
+H 48 8D 3D $namebuild ; K1-S012 RDI = сборка полного имени
+:hl_cp1
+H 48 85 C9 ; K1-S012
+H 0F 84 $hl_cp1d ; K1-S012
+H 0F B6 06 ; K1-S012
+H 88 07 ; K1-S012
+H 48 FF C6 ; K1-S012
+H 48 FF C7 ; K1-S012
+H 48 FF C9 ; K1-S012
+H E9 $hl_cp1 ; K1-S012
+:hl_cp1d
+H 49 8D 76 09 ; K1-S012 путь директивы
+H 4C 89 F9 ; K1-S012
+H 4C 29 F1 ; K1-S012
+H 48 83 E9 09 ; K1-S012 длина пути (>= 1)
+:hl_cp2
+H 48 85 C9 ; K1-S012
+H 0F 84 $hl_cp2d ; K1-S012
+H 0F B6 06 ; K1-S012
+H 88 07 ; K1-S012
+H 48 FF C6 ; K1-S012
+H 48 FF C7 ; K1-S012
+H 48 FF C9 ; K1-S012
+H E9 $hl_cp2 ; K1-S012
+:hl_cp2d
+H 48 8D 05 $namebuild ; K1-S012
+H 48 89 FA ; K1-S012
+H 48 29 C2 ; K1-S012 полная длина имени
+H 48 83 FA 7F ; K1-S012 предел 127 байт
+H 0F 87 $hl_long ; K1-S012 ERR=LONG NAME
+H C6 07 00 ; K1-S012 NUL
+H 4C 89 EA ; K1-S012 имя -> lv_name[level+1]
+H 48 FF C2 ; K1-S012
+H 48 C1 E2 07 ; K1-S012 x 0x80
+H 48 8D 3D $lv_name ; K1-S012
+H 48 01 D7 ; K1-S012
+H 48 8D 35 $namebuild ; K1-S012
+:hl_cp3
+H 0F B6 06 ; K1-S012
+H 84 C0 ; K1-S012
+H 0F 84 $hl_cp3d ; K1-S012
+H 88 07 ; K1-S012
+H 48 FF C6 ; K1-S012
+H 48 FF C7 ; K1-S012
+H E9 $hl_cp3 ; K1-S012
+:hl_cp3d
+H C6 07 00 ; K1-S012
+H 4C 89 EA ; K1-S012 префикс нового уровня
+H 48 FF C2 ; K1-S012
+H 48 C1 E2 07 ; K1-S012 x 0x80
+H 48 8D 0D $lv_name ; K1-S012
+H 48 01 D1 ; K1-S012 lv_name[level+1]
+H E8 $name_prefix ; K1-N011 RAX = длина префикса
+H 4C 89 EA ; K1-S012
+H 48 FF C2 ; K1-S012
+H 48 8D 0D $lv_pref ; K1-S012
+H 48 01 D1 ; K1-S012 lv_pref[level+1]
+H 88 01 ; K1-S012
+H 48 8D 0D $namebuild ; K1-S012 загрузка файла нового уровня
+H E8 $open_file_read ; K1-F021
+H 48 83 F8 FF ; K1-S012
+H 0F 85 $hl_opened ; K1-S012
+H B9 02 00 00 00 ; K1-S012 ERR=OPEN SRC
+H E8 $print_error ; K1-G022
+:hl_opened
+H 49 89 C3 ; K1-S012 R11 = хэндл (живёт через read)
+H 4C 89 D9 ; K1-S012
+H 4C 89 EA ; K1-S012
+H 48 FF C2 ; K1-S012
+H 48 C1 E2 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 8D 05 $filebufs ; K1-S012
+H 48 01 C2 ; K1-S012 RDX = буфер нового уровня
+H 41 B8 00 00 02 00 ; K1-S012 вместимость 0x20000
+H 4C 8D 0D $srclen ; K1-S012
+H E8 $read_whole_dst ; K1-F024
+H 48 83 F8 FF ; K1-S012
+H 0F 85 $hl_read2 ; K1-S012
+H B9 03 00 00 00 ; K1-S012 ERR=READ SRC
+H E8 $print_error ; K1-G022
+:hl_read2
+H 48 81 F8 00 00 02 00 ; K1-S012 предел 128 КиБ
+H 0F 82 $hl_size2 ; K1-S012
+H B9 04 00 00 00 ; K1-S012 ERR=BIG SRC
+H E8 $print_error ; K1-G022
+:hl_size2
+H 4C 89 D9 ; K1-S012
+H E8 $close_file ; K1-F023
+H 4C 89 EA ; K1-S012 сентинел нового уровня
+H 48 FF C2 ; K1-S012
+H 48 C1 E2 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 8D 0D $filebufs ; K1-S012
+H 48 01 D1 ; K1-S012
+H 8B 15 $srclen ; K1-S012 длина прочитанного
+H 48 01 D1 ; K1-S012
+H C6 01 00 ; K1-S012 NUL-сентинел
+H 49 FF C5 ; K1-S012 спуск на уровень ниже
+H 4C 89 E8 ; K1-S012
+H 48 C1 E0 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 8D 35 $filebufs ; K1-S012
+H 48 01 C6 ; K1-S012 RSI = начало файла
+H C3 ; K1-S012 цикл продолжится с нового уровня
+:hl_depth
+H B9 08 00 00 00 ; K1-S012 errtab: DEPTH
+H E8 $print_error ; K1-G022
+:hl_long
+H B9 01 00 00 00 ; K1-S012 errtab: LONG NAME
+H E8 $print_error ; K1-G022
+; ===== S013 emit_line: строка -> outbuf + LF (предел 128 КиБ) =====
+:hl_emit
+H 4C 89 E0 ; K1-S013 занято в outbuf
+H 4C 29 D0 ; K1-S013
+H 4C 89 F9 ; K1-S013 длина строки
+H 4C 29 F1 ; K1-S013
+H 48 8D 14 08 ; K1-S013 занято + длина
+H 48 FF C2 ; K1-S013 + LF
+H 48 81 FA 00 00 02 00 ; K1-S013 предел вывода 128 КиБ
+H 0F 86 $hl_room ; K1-S013
+H B9 07 00 00 00 ; K1-S013 errtab: BIG OUT
+H E8 $print_error ; K1-G022
+:hl_room
+H 4C 89 F1 ; K1-S013
+:hl_e1
+H 4C 39 F9 ; K1-S013
+H 0F 83 $hl_e2 ; K1-S013
+H 0F B6 01 ; K1-S013
+H 41 88 04 24 ; K1-S013
+H 49 FF C4 ; K1-S013
+H 48 FF C1 ; K1-S013
+H E9 $hl_e1 ; K1-S013
+:hl_e2
+H 41 C6 04 24 0A ; K1-S013 LF
+H 49 FF C4 ; K1-S013
+H C3 ; K1-S013
+; ===== N011 name_prefix: RCX = имя (NUL) -> RAX = длина префикса каталога =====
+:name_prefix
+H 31 C0 ; K1-N011 результат (0 = нет каталога)
+H 31 D2 ; K1-N011 позиция
+:npf_loop
+H 44 0F B6 01 ; K1-N011
+H 45 85 C0 ; K1-N011
+H 0F 84 $npf_done ; K1-N011
+H 41 83 F8 2F ; K1-N011 '/'?
+H 0F 84 $npf_sep ; K1-N011
+H 41 83 F8 5C ; K1-N011 '\'?
+H 0F 85 $npf_adv ; K1-N011
+:npf_sep
+H 48 8D 42 01 ; K1-N011 позиция ПОСЛЕ последнего разделителя
+:npf_adv
+H 48 FF C1 ; K1-N011
+H 48 FF C2 ; K1-N011
+H E9 $npf_loop ; K1-N011
+:npf_done
+H C3 ; K1-N011
+; ===== H021 hex16_to_4: 4 hex-цифры в [RDI] =====
+:hex16_to_4
+H B9 04 00 00 00 ; K1-H021
+H C1 E0 10 ; K1-H021 число в старшие 16 бит
+:h4_loop
+H C1 C0 04 ; K1-H021
+H 89 C2 ; K1-H021
+H 83 E2 0F ; K1-H021
+H 4C 8D 05 $digits ; K1-H021
+H 41 0F B6 14 10 ; K1-H021
+H 88 17 ; K1-H021
+H 48 FF C7 ; K1-H021
+H FF C9 ; K1-H021
+H 75 $h4_loop:1 ; K1-H021
+H C3 ; K1-H021
+; ===== G023 fail_format: ERR=FORMAT AT=XXXX + выход 6 =====
+:fail_format
+H 48 83 E4 F0 ; K1-G023 выравнивание стека (не возвращаемся)
+H 48 8D 3D $linebuf ; K1-G023
+H 48 8D 35 $fmt_pfx ; K1-G023
+H B9 1A 00 00 00 ; K1-G023 26 байт префикса
+:ff_loop
+H 0F B6 06 ; K1-G023
+H 88 07 ; K1-G023
+H 48 FF C6 ; K1-G023
+H 48 FF C7 ; K1-G023
+H FF C9 ; K1-G023
+H 75 $ff_loop:1 ; K1-G023
+H 8B 05 $curline ; K1-G023
+H 81 E0 FF FF 00 00 ; K1-G023 4 цифры номера строки
+H E8 $hex16_to_4 ; K1-H021
+H C6 07 0D ; K1-G023
+H 48 FF C7 ; K1-G023
+H C6 07 0A ; K1-G023
+H 48 FF C7 ; K1-G023
+H 48 8D 15 $linebuf ; K1-G023
+H 41 B8 20 00 00 00 ; K1-G023 32 байта
+H E8 $print_line ; K1-U021
+H B9 06 00 00 00 ; K1-G023 код FORMAT
+H FF 15 $iat_ep ; K1-G023 ExitProcess
+H CC ; K1-G023 страховка
+; ===== G022 print_error: errtab[ECX] + выход =====
+:print_error
+H 48 83 E4 F0 ; K1-G022 выравнивание стека (не возвращаемся)
+H 48 83 EC 30 ; K1-G022 тень + ячейка кода
+H 89 C8 ; K1-G022
+H C1 E0 04 ; K1-G022 x 16
+H 48 98 ; K1-G022
+H 48 8D 15 $errtab ; K1-G022
+H 48 01 C2 ; K1-G022 адрес записи
+H 44 8B 42 04 ; K1-G022 длина
+H 44 8B 4A 08 ; K1-G022 код возврата
+H 44 89 4C 24 10 ; K1-G022
+H 8B 12 ; K1-G022 RVA строки
+H 48 01 DA ; K1-G022 адрес строки
+H E8 $print_line ; K1-U021
+H 8B 4C 24 10 ; K1-G022
+H FF 15 $iat_ep ; K1-G022 ExitProcess
+H CC ; K1-G022 страховка
+; ===== U021 print_line: RDX = строка, R8D = длина =====
+:print_line
+H 48 83 EC 28 ; K1-U021
+H 48 8B 0D $hstdout ; K1-U021
+H 4C 8D 0D $written ; K1-U021
+H 48 C7 44 24 20 00 00 00 00 ; K1-U021 без перекрытия
+H FF 15 $iat_wf ; K1-U021 WriteFile
+H 48 83 C4 28 ; K1-U021
+H C3 ; K1-U021
+; ===== C023 next_arg / C024 read_word / C025 copy_word_dst / C026 skip_seps =====
+:next_arg
+H E8 $skip_seps ; K1-C026 разделители перед аргументом
+H 0F B6 07 ; K1-C023
+H 84 C0 ; K1-C023
+H 0F 84 $na_miss ; K1-C023 аргумента нет
+H E8 $read_word ; K1-C024 RSI/RDI = границы слова
+H E8 $copy_word_dst ; K1-C025 копирование в буфер R8
+H 85 C0 ; K1-C023 флаг длинного имени
+H 0F 84 $na_ok ; K1-C023 уложились
+H B9 01 00 00 00 ; K1-C023 ERR=LONG NAME
+H E8 $print_error ; K1-G022
+:na_ok
+H C3 ; K1-C023
+:na_miss
+H B9 00 00 00 00 ; K1-C023 справка
+H E8 $print_error ; K1-G022
+:read_word
+H 48 89 FE ; K1-C024 начало слова
+:rw_loop
+H 0F B6 07 ; K1-C024
+H 84 C0 ; K1-C024
+H 0F 84 $rw_end ; K1-C024
+H 80 F8 20 ; K1-C024
+H 0F 84 $rw_end ; K1-C024
+H 80 F8 09 ; K1-C024
+H 0F 84 $rw_end ; K1-C024
+H 48 FF C7 ; K1-C024
+H E9 $rw_loop ; K1-C024
+:rw_end
+H C3 ; K1-C024
+:copy_word_dst
+H 4D 89 C3 ; K1-C025 курсор записи
+:cwd_loop
+H 48 39 FE ; K1-C025 слово исчерпано?
+H 0F 84 $cwd_done ; K1-C025
+H 4C 89 DA ; K1-C025
+H 4C 29 C2 ; K1-C025 записано байт
+H 48 83 FA 7F ; K1-C025 предел буфера
+H 0F 83 $cwd_long ; K1-C025
+H 0F B6 16 ; K1-C025
+H 41 88 13 ; K1-C025
+H 48 FF C6 ; K1-C025
+H 49 FF C3 ; K1-C025
+H E9 $cwd_loop ; K1-C025
+:cwd_done
+H 31 C0 ; K1-C025 флаг: уложились
+H 41 88 03 ; K1-C025 NUL
+H C3 ; K1-C025
+:cwd_long
+H 41 C6 03 00 ; K1-C025 NUL на границе
+H B8 01 00 00 00 ; K1-C025 флаг: длиннее 127
+H C3 ; K1-C025
+:skip_seps
+H 0F B6 07 ; K1-C026
+H 80 F8 20 ; K1-C026
+H 0F 84 $ss_adv ; K1-C026
+H 80 F8 09 ; K1-C026
+H 0F 84 $ss_adv ; K1-C026
+H C3 ; K1-C026
+:ss_adv
+H 48 FF C7 ; K1-C026
+H E9 $skip_seps ; K1-C026
+; ===== F021..F025: файловые операции (реинкарнации K1-F001..F005) =====
+:open_file_read
+H 48 83 EC 38 ; K1-F021
+H BA 00 00 00 80 ; K1-F021 GENERIC_READ
+H 41 B8 01 00 00 00 ; K1-F021 FILE_SHARE_READ
+H 45 31 C9 ; K1-F021 SA=NULL
+H 48 C7 44 24 20 03 00 00 00 ; K1-F021 OPEN_EXISTING
+H 48 C7 44 24 28 80 00 00 00 ; K1-F021 NORMAL
+H 48 C7 44 24 30 00 00 00 00 ; K1-F021 шаблон
+H FF 15 $iat_cf ; K1-F021 CreateFileA
+H 48 83 C4 38 ; K1-F021
+H C3 ; K1-F021
+:create_file_write
+H 48 83 EC 38 ; K1-F022
+H BA 00 00 00 40 ; K1-F022 GENERIC_WRITE
+H 45 31 C0 ; K1-F022
+H 45 31 C9 ; K1-F022
+H 48 C7 44 24 20 02 00 00 00 ; K1-F022 CREATE_ALWAYS
+H 48 C7 44 24 28 80 00 00 00 ; K1-F022
+H 48 C7 44 24 30 00 00 00 00 ; K1-F022
+H FF 15 $iat_cf ; K1-F022 CreateFileA
+H 48 83 C4 38 ; K1-F022
+H C3 ; K1-F022
+:close_file
+H 48 83 EC 28 ; K1-F023
+H FF 15 $iat_ch ; K1-F023 CloseHandle
+H 48 83 C4 28 ; K1-F023
+H C3 ; K1-F023
+:read_whole_dst
+H 48 83 EC 28 ; K1-F024
+H 48 C7 44 24 20 00 00 00 00 ; K1-F024 без перекрытия
+H FF 15 $iat_rf ; K1-F024 ReadFile
+H 48 83 C4 28 ; K1-F024
+H 48 85 C0 ; K1-F024
+H 0F 85 $rwf_ok ; K1-F024
+H 48 C7 C0 FF FF FF FF ; K1-F024
+H C3 ; K1-F024
+:rwf_ok
+H 41 8B 01 ; K1-F024 счётчик
+H C3 ; K1-F024
+:write_all
+H 48 83 EC 28 ; K1-F025
+H 4C 89 05 $wa_len ; K1-F025 длина
+H 4C 8D 0D $written ; K1-F025
+H 48 C7 44 24 20 00 00 00 00 ; K1-F025 без перекрытия
+H FF 15 $iat_wf ; K1-F025 WriteFile
+H 48 83 C4 28 ; K1-F025
+H 48 85 C0 ; K1-F025
+H 0F 84 $wa_err ; K1-F025
+H 48 8B 05 $written ; K1-F025 записано
+H 48 3B 05 $wa_len ; K1-F025 равно длине?
+H 0F 85 $wa_err ; K1-F025
+H 31 C0 ; K1-F025 успех
+H C3 ; K1-F025
+:wa_err
+H B8 01 00 00 00 ; K1-F025
+H C3 ; K1-F025
+
+; ===== K1-D021 таблица цифр =====
+:digits
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
+
+; ===== K1-D022 errtab: 9 записей {RVA, длина, код, 0} =====
+:errtab
+DD $usage_str 30 2 0 ; код 2
+DD $err_long 1B 3 0 ; код 3
+DD $err_opensrc 1A 4 0 ; код 4
+DD $err_readsrc 1A 5 0 ; код 5
+DD $err_bigsrc 19 7 0 ; код 7
+DD $err_openout 1A 8 0 ; код 8
+DD $err_writeout 1B 9 0 ; код 9
+DD $err_bigout 19 A 0 ; код 10
+DD $err_depth 17 B 0 ; код 11
+
+; ===== K1-D023 строки вывода =====
+:usage_str ; справка
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 43 4D 44 53 ; справка
+DB 3A 20 53 50 4C 49 43 45 20 3C 52 4F 4F 54 2E 53
+DB 52 43 3E 20 3C 4F 55 54 2E 46 4C 41 54 3E 0D 0A
+:err_long ; long
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; long
+DB 4C 4F 4E 47 20 4E 41 4D 45 0D 0A
+:err_opensrc ; opensrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; opensrc
+DB 4F 50 45 4E 20 53 52 43 0D 0A
+:err_readsrc ; readsrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; readsrc
+DB 52 45 41 44 20 53 52 43 0D 0A
+:err_bigsrc ; bigsrc
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; bigsrc
+DB 42 49 47 20 53 52 43 0D 0A
+:err_openout ; openout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; openout
+DB 4F 50 45 4E 20 4F 55 54 0D 0A
+:err_writeout ; writeout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; writeout
+DB 57 52 49 54 45 20 4F 55 54 0D 0A
+:err_bigout ; bigout
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; bigout
+DB 42 49 47 20 4F 55 54 0D 0A
+:err_depth ; depth
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; depth
+DB 44 45 50 54 48 0D 0A
+:fmt_pfx ; префикс FORMAT (26 Б, без CRLF)
+DB 55 2D 4C 31 2D 53 50 4C 49 43 45 20 45 52 52 3D ; префикс FORMAT (26 Б)
+DB 46 4F 52 4D 41 54 20 41 54 3D
+
+; ===== K1-D024 таблица импортов kernel32.dll =====
+:idt
+DD $intt 0 0 $dll_name $iat ; описатель импорта
+DZ 14 ; терминатор IDT (нулевая запись)
+:iat
+:iat_gsh
+DQ $hint_gsh ; IAT: GetStdHandle
+:iat_wf
+DQ $hint_wf ; IAT: WriteFile
+:iat_ep
+DQ $hint_ep ; IAT: ExitProcess
+:iat_gcl
+DQ $hint_gcl ; IAT: GetCommandLineA
+:iat_cf
+DQ $hint_cf ; IAT: CreateFileA
+:iat_rf
+DQ $hint_rf ; IAT: ReadFile
+:iat_ch
+DQ $hint_ch ; IAT: CloseHandle
+DQ 0 ; IAT: терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
+:dll_name
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll (13 Б; след. hint — чётный)
+:hint_gsh
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
+DZ 1 ; выравнивание
+:hint_wf
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; WriteFile
+:hint_ep
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; ExitProcess
+:hint_gcl
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; GetCommandLineA
+DB 41 00 ; GetCommandLineA (конец; запись 18 Б — уже чётно)
+:hint_cf
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; CreateFileA
+:hint_rf
+DB 00 00 52 65 61 64 46 69 6C 65 00 ; ReadFile
+DZ 1 ; выравнивание (запись 11 Б: +1 — hint_ch чётный)
+:hint_ch
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
+
+; ===== K1-D025 виртуальные нули (bss; загрузчик обнуляет) =====
+:hstdout
+DBZ 8
+:written
+DBZ 8
+:wa_len
+DBZ 8
+:srclen
+DBZ 8
+:curline
+DBZ 8
+:fname_in
+DBZ 80
+:fname_out
+DBZ 80
+:namebuild
+DBZ 80
+:lv_name
+DBZ 400
+:lv_cur
+DBZ 40
+:lv_pref
+DBZ 8
+:linebuf
+DBZ 40
+:filebufs
+DBZ 100000 ; 8 уровней x 0x20000 (адресация уровня shl 17)
+:outbuf
+DBZ 20000
