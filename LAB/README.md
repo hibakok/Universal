@@ -44,7 +44,7 @@ python3 LAB/py/lab_verify.py            # из корня репозитория
 | `py/lab_brick.py` | оракул BRICK v1 (SPEC/08): исходник -> тело |
 | `py/lab_pegen.py` | оракул PEG v1 (SPEC/07): тело + PEG -> EXE |
 | `py/lab_enc.py` | оракул ENC v1 (SPEC/09): M-строка -> H-строка |
-| `py/lab_enc_cases.py` | эталоны ENC: 102 якоря + 21 ошибка + демо-круг |
+| `py/lab_enc_cases.py` | эталоны ENC: 109 якорей + 21 ошибка + демо-круг + big_source |
 | `py/lab_x86.py` | декодер используемого подмножества x86-64 (SPEC/05) |
 | `py/lab_cpu.py` | исполнитель: регистры, флаги, поток управления |
 | `py/lab_win.py` | загрузчик образа + заглушки kernel32 + виртуальная ФС |

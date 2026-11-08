@@ -1,0 +1,760 @@
+; ===== P011 parse_m: тело M-строки -> мнемоника + операнды + диспетчер =====
+:parse_m
+M mov rcx, [rip+$el_p1] ; K1-P011
+M inc rcx ; K1-P011
+M mov rdx, r15 ; K1-P011
+M call $first_nws ; K1-T011 RAX = начало тела (B0)
+M mov [rip+$el_b0], rax ; K1-P011
+M mov rcx, [rip+$el_p2] ; K1-P011
+M mov [rip+$el_b1], rcx ; K1-P011 B1 = P2 (конец непустого)
+M mov rcx, [rip+$el_b0] ; K1-P011 поиск ';' в [B0, B1)
+:pm_semi
+M cmp rcx, [rip+$el_b1] ; K1-P011
+M jae $pm_nosemi ; K1-P011
+M movzx eax, byte [rcx] ; K1-P011
+M cmp al, 3B ; K1-P011 ';'
+M je $pm_semi_found ; K1-P011
+M inc rcx ; K1-P011
+M jmp $pm_semi ; K1-P011
+:pm_semi_found
+M mov [rip+$el_cpos], rcx ; K1-P011 CPOS = позиция ';'
+M jmp $pm_mnem ; K1-P011
+:pm_nosemi
+M mov rax, [rip+$el_b1] ; K1-P011
+M mov [rip+$el_cpos], rax ; K1-P011 CPOS = B1 (комментария нет)
+:pm_mnem
+M mov rcx, [rip+$el_b0] ; K1-P011 мнемоника: [B0, M1)
+:pm_mscan
+M cmp rcx, [rip+$el_cpos] ; K1-P011
+M jae $pm_mend ; K1-P011
+M movzx eax, byte [rcx] ; K1-P011
+M cmp al, 20 ; K1-P011
+M je $pm_mend ; K1-P011
+M cmp al, 09 ; K1-P011
+M je $pm_mend ; K1-P011
+M inc rcx ; K1-P011
+M jmp $pm_mscan ; K1-P011
+:pm_mend
+M mov [rip+$el_m1], rcx ; K1-P011 M1
+M mov rcx, [rip+$el_b0] ; K1-P011
+M mov rdx, [rip+$el_m1] ; K1-P011
+M call $lookup_mnem ; K1-R012 RAX = семейство, RDX = параметр
+M mov [rip+$m_family], rax ; K1-P011
+M mov [rip+$m_param], rdx ; K1-P011
+M mov byte [r12], 48 ; K1-P011 префикс вывода 'H'
+M inc r12 ; K1-P011
+M mov byte [r12], 20 ; K1-P011 ' '
+M inc r12 ; K1-P011
+M call $split_operands ; K1-P012 разбор операндов
+M mov rax, [rip+$m_family] ; K1-P011 диспетчер семейств
+M mov rcx, [rip+$opcnt] ; K1-P011
+M cmp rax, 0D ; K1-P011 SIMPLE (без операндов)?
+M jne $pd_ns ; K1-P011
+M test rcx, rcx ; K1-P011
+M jnz $fail_format ; K1-P011 у простых нет операндов
+M call $enc_simple ; K1-E032
+M ret ; K1-P011
+:pd_ns
+M cmp rax, 3 ; K1-P011 JCC — один операнд
+M je $pd_chk1 ; K1-P011
+M cmp rax, 2 ; K1-P011 1..2 (ALU, SHIFT) — два операнда
+M jbe $pd_need2 ; K1-P011
+M cmp rax, 7 ; K1-P011 4..7 (MOV/MOVZX/LEA/TEST) — два
+M jbe $pd_need2 ; K1-P011
+M jmp $pd_chk1 ; K1-P011 8..C — один операнд
+:pd_need2
+M cmp rcx, 2 ; K1-P011
+M jne $fail_format ; K1-P011
+M jmp $pd_dispatch ; K1-P011
+:pd_chk1
+M cmp rcx, 1 ; K1-P011
+M jne $fail_format ; K1-P011
+:pd_dispatch
+M cmp rax, 1 ; K1-P011 хвостовые вызовы кодировщиков
+M je $enc_alu ; K1-E021
+M cmp rax, 2 ; K1-P011
+M je $enc_shift ; K1-E022
+M cmp rax, 3 ; K1-P011
+M je $enc_jcc ; K1-E023
+M cmp rax, 4 ; K1-P011
+M je $enc_mov ; K1-E024
+M cmp rax, 5 ; K1-P011
+M je $enc_movzx ; K1-E025
+M cmp rax, 6 ; K1-P011
+M je $enc_lea ; K1-E026
+M cmp rax, 7 ; K1-P011
+M je $enc_test ; K1-E027
+M cmp rax, 8 ; K1-P011
+M je $enc_call ; K1-E028
+M cmp rax, 9 ; K1-P011
+M je $enc_unary ; K1-E029
+M cmp rax, 0A ; K1-P011
+M je $enc_pushpop ; K1-E030
+M cmp rax, 0B ; K1-P011
+M je $enc_pushpop ; K1-E030
+M cmp rax, 0C ; K1-P011
+M je $enc_jmp ; K1-E031
+M int3 ; K1-P011 непригодная ветвь (13 обработан выше)
+; ===== P012 split_operands: области, запятые, разбор каждого операнда =====
+:split_operands
+M mov rcx, [rip+$el_m1] ; K1-P012
+M mov rdx, [rip+$el_cpos] ; K1-P012
+M call $first_nws ; K1-T011 RAX = O0
+M mov [rip+$el_o0], rax ; K1-P012
+M mov rcx, [rip+$el_m1] ; K1-P012
+M mov rdx, [rip+$el_cpos] ; K1-P012
+M call $last_nws_end ; K1-T012 RAX = O1
+M mov [rip+$el_o1], rax ; K1-P012
+M mov rax, [rip+$el_o0] ; K1-P012
+M cmp rax, [rip+$el_o1] ; K1-P012 область пуста?
+M jae $so_none ; K1-P012
+M mov rcx, [rip+$el_o0] ; K1-P012 подсчёт запятых
+M mov rax, 1 ; K1-P012 opcnt = 1
+:so_count
+M cmp rcx, [rip+$el_o1] ; K1-P012
+M jae $so_counted ; K1-P012
+M movzx edx, byte [rcx] ; K1-P012
+M cmp dl, 2C ; K1-P012 ','
+M jne $so_nc ; K1-P012
+M inc rax ; K1-P012
+:so_nc
+M inc rcx ; K1-P012
+M jmp $so_count ; K1-P012
+:so_counted
+M mov [rip+$opcnt], rax ; K1-P012
+M cmp rax, 2 ; K1-P012 больше двух операндов?
+M ja $fail_format ; K1-P012
+M xor eax, eax ; K1-P012
+M mov [rip+$el_oi], rax ; K1-P012 индекс операнда = 0
+M mov rcx, [rip+$el_o0] ; K1-P012 курсор частей
+:so_parts
+M cmp rcx, [rip+$el_o1] ; K1-P012
+M jae $so_done ; K1-P012
+M mov r9, rcx ; K1-P012 конец части: ',' или O1
+:so_pscan
+M cmp r9, [rip+$el_o1] ; K1-P012
+M jae $so_pend ; K1-P012
+M movzx eax, byte [r9] ; K1-P012
+M cmp al, 2C ; K1-P012
+M je $so_pend ; K1-P012
+M inc r9 ; K1-P012
+M jmp $so_pscan ; K1-P012
+:so_pend
+M mov [rip+$el_ps], rcx ; K1-P012 [PS, PE) — часть
+M mov [rip+$el_pe], r9 ; K1-P012
+M mov rcx, [rip+$el_ps] ; K1-P012
+M mov rdx, r9 ; K1-P012
+M call $first_nws ; K1-T011
+M mov [rip+$el_s], rax ; K1-P012 S (без пробелов)
+M mov rcx, [rip+$el_ps] ; K1-P012
+M mov rdx, [rip+$el_pe] ; K1-P012
+M call $last_nws_end ; K1-T012
+M mov [rip+$el_e], rax ; K1-P012 E
+M mov rcx, [rip+$el_s] ; K1-P012
+M cmp rcx, [rip+$el_e] ; K1-P012 пустая часть ("a,,b")?
+M jae $fail_format ; K1-P012
+M mov rcx, [rip+$el_s] ; K1-P012
+M mov rdx, [rip+$el_e] ; K1-P012
+M mov r8, [rip+$el_oi] ; K1-P012 индекс
+M shl r8, 6 ; K1-P012 x 0x40
+M add r8, r13 ; K1-P012 адрес структуры
+M call $parse_operand ; K1-P013
+M mov rax, [rip+$el_oi] ; K1-P012
+M inc rax ; K1-P012
+M mov [rip+$el_oi], rax ; K1-P012
+M mov rcx, [rip+$el_pe] ; K1-P012
+M inc rcx ; K1-P012 пропуск запятой
+M jmp $so_parts ; K1-P012
+:so_none
+M xor eax, eax ; K1-P012
+M mov [rip+$opcnt], rax ; K1-P012 операндов нет
+M ret ; K1-P012
+:so_done
+M ret ; K1-P012
+; ===== P013 parse_operand: классификация (рег/ссылка/память/число) =====
+:parse_operand
+M mov [rip+$po_s], rcx ; K1-P013
+M mov [rip+$po_e], rdx ; K1-P013
+M mov [rip+$po_dst], r8 ; K1-P013
+M mov rcx, 8 ; K1-P013 обнулить структуру (8 квадрослова)
+M mov rdx, [rip+$po_dst] ; K1-P013
+:po_zero
+M test rcx, rcx ; K1-P013
+M jz $po_zdone ; K1-P013
+M mov qword [rdx], 0 ; K1-P013
+M add rdx, 8 ; K1-P013
+M dec rcx ; K1-P013
+M jmp $po_zero ; K1-P013
+:po_zdone
+M mov rcx, [rip+$po_s] ; K1-P013 1) регистр?
+M mov rdx, [rip+$po_e] ; K1-P013
+M call $lookup_reg ; K1-R011 RAX = 0 | 10000|размер<<8|код
+M test rax, rax ; K1-P013
+M jz $po_notreg ; K1-P013
+M mov rdx, [rip+$po_dst] ; K1-P013
+M mov qword [rdx], 0 ; K1-P013 kind = 0 (рег)
+M mov rcx, rax ; K1-P013
+M and ecx, 0FF ; K1-P013 код
+M mov [rdx+8], rcx ; K1-P013
+M shr rax, 8 ; K1-P013 размер
+M and eax, 0FF ; K1-P013
+M mov [rdx+10], rax ; K1-P013
+M ret ; K1-P013
+:po_notreg
+M mov rcx, [rip+$po_s] ; K1-P013 2) ссылка $имя?
+M movzx eax, byte [rcx] ; K1-P013
+M cmp al, 24 ; K1-P013 '$'
+M jne $po_notref ; K1-P013
+M mov rcx, [rip+$po_s] ; K1-P013
+M mov rdx, [rip+$po_e] ; K1-P013
+M mov r8, [rip+$po_dst] ; K1-P013
+M call $parse_ref ; K1-P015
+M ret ; K1-P013
+:po_notref
+M mov rcx, [rip+$po_s] ; K1-P013 3) ключ размера?
+M mov rdx, [rip+$po_e] ; K1-P013
+M call $lookup_sizekw ; K1-R013 RAX = размер, RDX = потреблено
+M test rax, rax ; K1-P013
+M jz $po_notkw ; K1-P013
+M mov [rip+$po_size], rax ; K1-P013
+M mov rcx, [rip+$po_s] ; K1-P013
+M add rcx, rdx ; K1-P013 после ключа (с пробелом)
+M mov rdx, [rip+$po_e] ; K1-P013
+M call $first_nws ; K1-T011 RAX = Q
+M cmp rax, rdx ; K1-P013
+M jae $fail_format ; K1-P013 после ключа пусто
+M mov [rip+$po_q], rax ; K1-P013 Q
+M mov rcx, rax ; K1-P013
+M movzx eax, byte [rcx] ; K1-P013
+M cmp al, 5B ; K1-P013 '['
+M jne $fail_format ; K1-P013
+M mov rcx, [rip+$po_e] ; K1-P013
+M cmp byte [rcx-1], 5D ; K1-P013 ']' в конце
+M jne $fail_format ; K1-P013
+M mov rcx, [rip+$po_q] ; K1-P013 внутренность [Q+1, E-1)
+M inc rcx ; K1-P013
+M mov rdx, [rip+$po_e] ; K1-P013
+M dec rdx ; K1-P013
+M mov r8, [rip+$po_dst] ; K1-P013
+M call $parse_mem ; K1-P014
+M mov rcx, [rip+$po_dst] ; K1-P013
+M mov rax, [rip+$po_size] ; K1-P013
+M mov [rcx+10], rax ; K1-P013 размер из ключа
+M ret ; K1-P013
+:po_notkw
+M mov rcx, [rip+$po_s] ; K1-P013 4) память без ключа?
+M movzx eax, byte [rcx] ; K1-P013
+M cmp al, 5B ; K1-P013 '['
+M jne $po_notmem ; K1-P013
+M mov rcx, [rip+$po_e] ; K1-P013
+M cmp byte [rcx-1], 5D ; K1-P013 ']'
+M jne $po_notmem ; K1-P013
+M mov rcx, [rip+$po_s] ; K1-P013
+M inc rcx ; K1-P013
+M mov rdx, [rip+$po_e] ; K1-P013
+M dec rdx ; K1-P013
+M mov r8, [rip+$po_dst] ; K1-P013
+M call $parse_mem ; K1-P014
+M mov rcx, [rip+$po_dst] ; K1-P013
+M mov qword [rcx+10], 0 ; K1-P013 размер не задан (None)
+M ret ; K1-P013
+:po_notmem
+M mov rcx, [rip+$po_s] ; K1-P013 5) число
+M mov rdx, [rip+$po_e] ; K1-P013
+M call $parse_num ; K1-T014 RDX = 1/0, RAX = значение
+M test rdx, rdx ; K1-P013
+M jz $fail_format ; K1-P013 не число
+M mov rcx, [rip+$po_dst] ; K1-P013
+M mov qword [rcx], 1 ; K1-P013 kind = 1 (imm)
+M mov [rcx+8], rax ; K1-P013 значение
+M ret ; K1-P013
+; ===== P014 parse_mem: содержимое скобок -> база/индекс/смещение | rip =====
+:parse_mem
+M mov [rip+$pm_s], rcx ; K1-P014
+M mov [rip+$pm_e], rdx ; K1-P014
+M mov [rip+$pm_dst], r8 ; K1-P014
+M xor eax, eax ; K1-P014
+M mov [rip+$pm_n], rax ; K1-P014 счётчик сегментов = 0
+M mov rax, rcx ; K1-P014
+M mov [rip+$pm_cs], rax ; K1-P014 старт сегмента
+M mov [rip+$pm_cur], rax ; K1-P014 курсор
+:pm_scan
+M mov rcx, [rip+$pm_cur] ; K1-P014
+M cmp rcx, [rip+$pm_e] ; K1-P014
+M jae $pm_flush ; K1-P014 конец — закрыть сегмент
+M movzx eax, byte [rcx] ; K1-P014
+M cmp al, 2B ; K1-P014 '+'
+M je $pm_plus ; K1-P014
+M cmp al, 2D ; K1-P014 '-'
+M je $pm_minus ; K1-P014
+M inc rcx ; K1-P014
+M mov [rip+$pm_cur], rcx ; K1-P014
+M jmp $pm_scan ; K1-P014
+:pm_plus
+M mov rdx, [rip+$pm_cur] ; K1-P014 закрыть [cs, cur)
+M mov rcx, [rip+$pm_cs] ; K1-P014
+M call $pm_push_seg ; K1-P014
+M mov rcx, [rip+$pm_cur] ; K1-P014 сегмент после '+'
+M inc rcx ; K1-P014
+M mov [rip+$pm_cs], rcx ; K1-P014
+M mov [rip+$pm_cur], rcx ; K1-P014
+M jmp $pm_scan ; K1-P014
+:pm_minus
+M mov rdx, [rip+$pm_cur] ; K1-P014 закрыть [cs, cur)
+M mov rcx, [rip+$pm_cs] ; K1-P014
+M call $pm_push_seg ; K1-P014
+M mov rcx, [rip+$pm_cur] ; K1-P014 '-' начинает следующий сегмент
+M mov [rip+$pm_cs], rcx ; K1-P014
+M inc rcx ; K1-P014
+M mov [rip+$pm_cur], rcx ; K1-P014
+M jmp $pm_scan ; K1-P014
+:pm_push_seg
+M cmp rcx, rdx ; K1-P014 пустой сегмент — пропустить
+M jae $pm_ps_ret ; K1-P014
+M mov rax, [rip+$pm_n] ; K1-P014
+M cmp rax, 4 ; K1-P014 больше 4 не хранить (всегда ошибка)
+M jae $fail_format ; K1-P014
+M shl rax, 3 ; K1-P014 x 8
+M mov r8, rax ; K1-P014
+M lea r9, [rip+$seg_a] ; K1-P014
+M add r9, r8 ; K1-P014
+M mov [r9], rcx ; K1-P014
+M lea r9, [rip+$seg_b] ; K1-P014
+M add r9, r8 ; K1-P014
+M mov [r9], rdx ; K1-P014
+M mov rax, [rip+$pm_n] ; K1-P014
+M inc rax ; K1-P014
+M mov [rip+$pm_n], rax ; K1-P014
+:pm_ps_ret
+M ret ; K1-P014
+:pm_flush
+M mov rdx, [rip+$pm_e] ; K1-P014 закрыть последний сегмент
+M mov rcx, [rip+$pm_cs] ; K1-P014
+M call $pm_push_seg ; K1-P014
+M mov rax, [rip+$pm_n] ; K1-P014
+M cmp rax, 1 ; K1-P014 1..3 сегмента
+M jb $fail_format ; K1-P014 0 ("[]")
+M cmp rax, 3 ; K1-P014
+M ja $fail_format ; K1-P014 4+
+M mov rcx, [rip+$seg_a] ; K1-P014 seg0 == "rip"?
+M mov rdx, [rip+$seg_b] ; K1-P014
+M mov rax, rdx ; K1-P014
+M sub rax, rcx ; K1-P014 длина seg0
+M cmp rax, 3 ; K1-P014
+M jne $pm_base ; K1-P014 не rip по длине
+M cmp byte [rcx], 72 ; K1-P014 'r'
+M jne $pm_base ; K1-P014
+M cmp byte [rcx+1], 69 ; K1-P014 'i'
+M jne $pm_base ; K1-P014
+M cmp byte [rcx+2], 70 ; K1-P014 'p'
+M jne $pm_base ; K1-P014
+M mov rax, [rip+$pm_n] ; K1-P014 rip: ровно 2 сегмента
+M cmp rax, 2 ; K1-P014
+M jne $fail_format ; K1-P014
+M lea rax, [rip+$seg_a] ; K1-P014 seg1
+M add rax, 8 ; K1-P014
+M mov rcx, [rax] ; K1-P014 начало seg1
+M movzx eax, byte [rcx] ; K1-P014
+M cmp al, 24 ; K1-P014 '$'
+M jne $fail_format ; K1-P014
+M lea rax, [rip+$seg_b] ; K1-P014
+M add rax, 8 ; K1-P014
+M mov rdx, [rax] ; K1-P014 конец seg1
+M lea rax, [rip+$seg_a] ; K1-P014
+M add rax, 8 ; K1-P014
+M mov rcx, [rax] ; K1-P014
+M mov r8, [rip+$pm_dst] ; K1-P014
+M call $parse_ref ; K1-P015
+M mov rcx, [rip+$pm_dst] ; K1-P014
+M cmp qword [rcx+28], 1 ; K1-P014 суффикс :1 у rip запрещён
+M je $fail_format ; K1-P014
+M mov rax, [rcx+18] ; K1-P014 имя -> rip-поля
+M mov [rcx+30], rax ; K1-P014
+M mov rax, [rcx+20] ; K1-P014
+M mov [rcx+38], rax ; K1-P014
+M mov qword [rcx], 3 ; K1-P014 kind = 3 (mem)
+M ret ; K1-P014
+:pm_base
+M mov rcx, [rip+$seg_a] ; K1-P014 seg0 — 64-битный регистр
+M mov rdx, [rip+$seg_b] ; K1-P014
+M call $lookup_reg ; K1-R011
+M test rax, rax ; K1-P014
+M jz $fail_format ; K1-P014 не регистр
+M mov rcx, rax ; K1-P014
+M and ecx, 0FF ; K1-P014 код базы
+M shr rax, 8 ; K1-P014
+M and eax, 0FF ; K1-P014 размер
+M cmp eax, 40 ; K1-P014 64-бит?
+M jne $fail_format ; K1-P014
+M mov rdx, [rip+$pm_dst] ; K1-P014
+M mov qword [rdx], 3 ; K1-P014 kind = 3 (mem)
+M mov [rdx+18], rcx ; K1-P014 база
+M mov qword [rdx+20], -1 ; K1-P014 индекс: нет
+M mov qword [rdx+28], 0 ; K1-P014 смещение: 0
+M mov rax, [rip+$pm_n] ; K1-P014 один сегмент — готово
+M cmp rax, 1 ; K1-P014
+M je $pm_ret ; K1-P014
+M lea rax, [rip+$seg_a] ; K1-P014 seg1: индекс или смещение
+M add rax, 8 ; K1-P014
+M mov rcx, [rax] ; K1-P014
+M lea rax, [rip+$seg_b] ; K1-P014
+M add rax, 8 ; K1-P014
+M mov rdx, [rax] ; K1-P014
+M call $lookup_reg ; K1-R011
+M test rax, rax ; K1-P014
+M jz $pm_disp1 ; K1-P014 не регистр — смещение
+M mov rcx, rax ; K1-P014
+M shr rax, 8 ; K1-P014
+M and eax, 0FF ; K1-P014 размер
+M cmp eax, 40 ; K1-P014 64-бит?
+M jne $pm_disp1 ; K1-P014 не 64 — путь смещения
+M mov rax, rcx ; K1-P014 код индекса
+M and eax, 0FF ; K1-P014
+M cmp eax, 4 ; K1-P014 rsp — «нет индекса» (r12 допустим: REX.X)
+M je $fail_format ; K1-P014
+M mov rdx, [rip+$pm_dst] ; K1-P014
+M mov [rdx+20], rax ; K1-P014 индекс
+M mov rax, [rip+$pm_n] ; K1-P014 n == 2 — без смещения
+M cmp rax, 2 ; K1-P014
+M je $pm_ret ; K1-P014
+M lea rax, [rip+$seg_a] ; K1-P014 n == 3: seg2 — смещение
+M add rax, 10 ; K1-P014
+M mov rcx, [rax] ; K1-P014
+M lea rax, [rip+$seg_b] ; K1-P014
+M add rax, 10 ; K1-P014
+M mov rdx, [rax] ; K1-P014
+M call $parse_num ; K1-T014
+M test rdx, rdx ; K1-P014
+M jz $fail_format ; K1-P014
+M mov rcx, [rip+$pm_dst] ; K1-P014
+M mov [rcx+28], rax ; K1-P014 смещение
+M ret ; K1-P014
+:pm_disp1
+M mov rax, [rip+$pm_n] ; K1-P014 n обязан быть 2
+M cmp rax, 2 ; K1-P014
+M jne $fail_format ; K1-P014
+M lea rax, [rip+$seg_a] ; K1-P014 seg1 — число-смещение
+M add rax, 8 ; K1-P014
+M mov rcx, [rax] ; K1-P014
+M lea rax, [rip+$seg_b] ; K1-P014
+M add rax, 8 ; K1-P014
+M mov rdx, [rax] ; K1-P014
+M call $parse_num ; K1-T014
+M test rdx, rdx ; K1-P014
+M jz $fail_format ; K1-P014
+M mov rcx, [rip+$pm_dst] ; K1-P014
+M mov [rcx+28], rax ; K1-P014
+:pm_ret
+M ret ; K1-P014
+; ===== P015 parse_ref: $имя[:1] -> имя/слот =====
+:parse_ref
+M mov [rip+$pr_s], rcx ; K1-P015
+M mov [rip+$pr_e], rdx ; K1-P015
+M mov [rip+$pr_dst], r8 ; K1-P015
+M inc rcx ; K1-P015 пропуск '$'
+M mov [rip+$pr_p], rcx ; K1-P015 курсор имени
+:pr_loop
+M mov rcx, [rip+$pr_p] ; K1-P015
+M cmp rcx, [rip+$pr_e] ; K1-P015
+M jae $pr_done ; K1-P015
+M movzx eax, byte [rcx] ; K1-P015
+M call $is_name_char ; K1-T015 RAX = 1/0
+M test rax, rax ; K1-P015
+M jz $pr_done ; K1-P015
+M inc rcx ; K1-P015
+M mov [rip+$pr_p], rcx ; K1-P015
+M jmp $pr_loop ; K1-P015
+:pr_done
+M mov rax, [rip+$pr_p] ; K1-P015 длина имени
+M mov rcx, [rip+$pr_s] ; K1-P015
+M inc rcx ; K1-P015
+M sub rax, rcx ; K1-P015
+M mov [rip+$pr_len], rax ; K1-P015
+M test rax, rax ; K1-P015
+M jz $fail_format ; K1-P015 пустое имя
+M cmp rax, 3F ; K1-P015 предел 63
+M ja $fail_format ; K1-P015
+M mov rcx, [rip+$pr_p] ; K1-P015 конец, или суффикс ":1"
+M cmp rcx, [rip+$pr_e] ; K1-P015
+M jne $pr_suffix ; K1-P015
+M mov eax, 4 ; K1-P015 слот 4 байта
+M jmp $pr_fill ; K1-P015
+:pr_suffix
+M movzx eax, byte [rcx] ; K1-P015
+M cmp al, 3A ; K1-P015 ':'
+M jne $fail_format ; K1-P015
+M inc rcx ; K1-P015
+M cmp rcx, [rip+$pr_e] ; K1-P015
+M jae $fail_format ; K1-P015 "$x:"
+M movzx eax, byte [rcx] ; K1-P015
+M cmp al, 31 ; K1-P015 '1'
+M jne $fail_format ; K1-P015
+M inc rcx ; K1-P015
+M cmp rcx, [rip+$pr_e] ; K1-P015
+M jne $fail_format ; K1-P015 "$x:1..." мусор
+M mov eax, 1 ; K1-P015 слот 1 байт
+:pr_fill
+M mov [rip+$pr_slot], rax ; K1-P015
+M mov rdx, [rip+$pr_dst] ; K1-P015
+M mov qword [rdx], 2 ; K1-P015 kind = 2 (ref)
+M mov rax, [rip+$pr_s] ; K1-P015
+M inc rax ; K1-P015 адрес имени
+M mov [rdx+18], rax ; K1-P015 name_ptr
+M mov rax, [rip+$pr_len] ; K1-P015
+M mov [rdx+20], rax ; K1-P015 name_len
+M mov rax, [rip+$pr_slot] ; K1-P015
+M mov [rdx+28], rax ; K1-P015 slot
+M ret ; K1-P015
+; ===== T011 first_nws: первый непустой в [RCX, RDX) =====
+:first_nws
+:fn_loop
+M cmp rcx, rdx ; K1-T011
+M jae $fn_end ; K1-T011
+M movzx eax, byte [rcx] ; K1-T011
+M cmp al, 20 ; K1-T011
+M je $fn_adv ; K1-T011
+M cmp al, 09 ; K1-T011
+M je $fn_adv ; K1-T011
+M mov rax, rcx ; K1-T011
+M ret ; K1-T011
+:fn_adv
+M inc rcx ; K1-T011
+M jmp $fn_loop ; K1-T011
+:fn_end
+M mov rax, rdx ; K1-T011
+M ret ; K1-T011
+; ===== T012 last_nws_end: (последний непустой)+1 в [RCX, RDX) =====
+:last_nws_end
+M mov rax, rdx ; K1-T012
+:ln_loop
+M cmp rax, rcx ; K1-T012
+M jbe $ln_none ; K1-T012
+M movzx r8d, byte [rax-1] ; K1-T012
+M cmp r8b, 20 ; K1-T012
+M je $ln_dec ; K1-T012
+M cmp r8b, 09 ; K1-T012
+M je $ln_dec ; K1-T012
+M ret ; K1-T012
+:ln_dec
+M dec rax ; K1-T012
+M jmp $ln_loop ; K1-T012
+:ln_none
+M mov rax, rcx ; K1-T012
+M ret ; K1-T012
+; ===== T013 hex_digit: AL -> 0..15 | -1 (строго ЗАГЛАВНЫЕ) =====
+:hex_digit
+M movzx eax, al ; K1-T013
+M cmp al, 30 ; K1-T013 '0'
+M jb $hd_bad ; K1-T013
+M cmp al, 39 ; K1-T013 '9'
+M ja $hd_letter ; K1-T013
+M sub eax, 30 ; K1-T013
+M ret ; K1-T013
+:hd_letter
+M cmp al, 41 ; K1-T013 'A'
+M jb $hd_bad ; K1-T013
+M cmp al, 46 ; K1-T013 'F'
+M ja $hd_bad ; K1-T013
+M sub eax, 37 ; K1-T013
+M ret ; K1-T013
+:hd_bad
+M mov rax, -1 ; K1-T013
+M ret ; K1-T013
+; ===== T014 parse_num: ['-']hex{1,8} -> значение =====
+:parse_num
+M mov [rip+$pn_s], rcx ; K1-T014
+M mov [rip+$pn_e], rdx ; K1-T014
+M xor r8d, r8d ; K1-T014 накопитель
+M xor r9d, r9d ; K1-T014 счётчик цифр
+M xor r11d, r11d ; K1-T014 знак
+M cmp rcx, rdx ; K1-T014
+M jae $pn_bad ; K1-T014 пусто
+M movzx eax, byte [rcx] ; K1-T014
+M cmp al, 2D ; K1-T014 '-'
+M jne $pn_digits ; K1-T014
+M mov r11d, 1 ; K1-T014
+M inc rcx ; K1-T014
+:pn_digits
+M cmp rcx, [rip+$pn_e] ; K1-T014
+M jae $pn_end ; K1-T014
+M movzx eax, byte [rcx] ; K1-T014
+M call $hex_digit ; K1-T013
+M cmp rax, -1 ; K1-T014
+M je $pn_end ; K1-T014 не цифра — стоп
+M cmp r9d, 8 ; K1-T014 больше 8 цифр
+M jae $pn_bad ; K1-T014
+M shl r8d, 4 ; K1-T014
+M add r8d, eax ; K1-T014
+M inc rcx ; K1-T014
+M inc r9d ; K1-T014
+M jmp $pn_digits ; K1-T014
+:pn_end
+M test r9d, r9d ; K1-T014
+M jz $pn_bad ; K1-T014 ни одной цифры
+M test r11d, r11d ; K1-T014
+M jz $pn_pos ; K1-T014
+M neg r8 ; K1-T014
+:pn_pos
+M mov rax, r8 ; K1-T014
+M mov edx, 1 ; K1-T014
+M ret ; K1-T014
+:pn_bad
+M xor edx, edx ; K1-T014
+M ret ; K1-T014
+; ===== T015 is_name_char: [a-z0-9_] ? =====
+:is_name_char
+M movzx eax, al ; K1-T015
+M cmp al, 61 ; K1-T015 'a'
+M jb $nc_digit ; K1-T015
+M cmp al, 7A ; K1-T015 'z'
+M jbe $nc_yes ; K1-T015
+:nc_digit
+M cmp al, 30 ; K1-T015 '0'
+M jb $nc_us ; K1-T015
+M cmp al, 39 ; K1-T015 '9'
+M jbe $nc_yes ; K1-T015
+:nc_us
+M cmp al, 5F ; K1-T015 '_'
+M jne $nc_no ; K1-T015
+:nc_yes
+M mov eax, 1 ; K1-T015
+M ret ; K1-T015
+:nc_no
+M xor eax, eax ; K1-T015
+M ret ; K1-T015
+; ===== R011 lookup_reg: span -> 0 | 10000|размер<<8|код =====
+:lookup_reg
+M mov r8, rdx ; K1-R011
+M sub r8, rcx ; K1-R011 длина span
+M mov r9, rcx ; K1-R011 начало span
+M lea r11, [rip+$regtab] ; K1-R011 запись 0 (48 записей)
+M mov rcx, 30 ; K1-R011
+:lr_loop
+M test rcx, rcx ; K1-R011
+M jz $lr_notfound ; K1-R011
+M mov eax, [r11+8] ; K1-R011 длина имени записи
+M cmp eax, r8d ; K1-R011
+M jne $lr_next ; K1-R011
+M push rcx ; K1-R011
+M push r8 ; K1-R011
+M mov rcx, r8 ; K1-R011 счётчик сравнения
+M mov rax, r9 ; K1-R011
+M mov rdx, r11 ; K1-R011
+:lr_cmp
+M test rcx, rcx ; K1-R011
+M jz $lr_eq ; K1-R011
+M movzx r8d, byte [rax] ; K1-R011
+M cmp r8b, byte [rdx] ; K1-R011
+M jne $lr_ne ; K1-R011
+M inc rax ; K1-R011
+M inc rdx ; K1-R011
+M dec rcx ; K1-R011
+M jmp $lr_cmp ; K1-R011
+:lr_eq
+M pop r8 ; K1-R011
+M pop rcx ; K1-R011
+M mov eax, [r11+0C] ; K1-R011 код|размер<<8
+M or eax, 10000 ; K1-R011 флаг «найден»
+M ret ; K1-R011
+:lr_ne
+M pop r8 ; K1-R011
+M pop rcx ; K1-R011
+M jmp $lr_next ; K1-R011
+:lr_next
+M add r11, 10 ; K1-R011 следующая запись
+M dec rcx ; K1-R011
+M jmp $lr_loop ; K1-R011
+:lr_notfound
+M xor eax, eax ; K1-R011
+M ret ; K1-R011
+; ===== R012 lookup_mnem: span -> семейство/параметр (или ошибка) =====
+:lookup_mnem
+M mov r8, rdx ; K1-R012
+M sub r8, rcx ; K1-R012 длина
+M mov r9, rcx ; K1-R012
+M lea r11, [rip+$mnemtab] ; K1-R012 запись 0 (41 запись)
+M mov rcx, 29 ; K1-R012
+:lm_loop
+M test rcx, rcx ; K1-R012
+M jz $fail_format ; K1-R012 неизвестная мнемоника
+M mov eax, [r11+8] ; K1-R012 длина
+M cmp eax, r8d ; K1-R012
+M jne $lm_next ; K1-R012
+M push rcx ; K1-R012
+M push r8 ; K1-R012
+M mov rcx, r8 ; K1-R012
+M mov rax, r9 ; K1-R012
+M mov rdx, r11 ; K1-R012
+:lm_cmp
+M test rcx, rcx ; K1-R012
+M jz $lm_eq ; K1-R012
+M movzx r8d, byte [rax] ; K1-R012
+M cmp r8b, byte [rdx] ; K1-R012
+M jne $lm_ne ; K1-R012
+M inc rax ; K1-R012
+M inc rdx ; K1-R012
+M dec rcx ; K1-R012
+M jmp $lm_cmp ; K1-R012
+:lm_eq
+M pop r8 ; K1-R012
+M pop rcx ; K1-R012
+M mov eax, [r11+0C] ; K1-R012 семейство|параметр<<8
+M mov edx, eax ; K1-R012
+M shr edx, 8 ; K1-R012 параметр
+M and eax, 0FF ; K1-R012 семейство
+M ret ; K1-R012
+:lm_ne
+M pop r8 ; K1-R012
+M pop rcx ; K1-R012
+M add r11, 10 ; K1-R012
+M dec rcx ; K1-R012
+M jmp $lm_loop ; K1-R012
+:lm_next
+M add r11, 10 ; K1-R012
+M dec rcx ; K1-R012
+M jmp $lm_loop ; K1-R012
+; ===== R013 lookup_sizekw: byte/word/dword/qword + ' ' =====
+:lookup_sizekw
+M mov r8, rdx ; K1-R013
+M sub r8, rcx ; K1-R013 длина операнда
+M mov r9, rcx ; K1-R013
+M lea r11, [rip+$sizetab] ; K1-R013 4 ключа
+M mov rcx, 4 ; K1-R013
+:lk_loop
+M test rcx, rcx ; K1-R013
+M jz $lk_notfound ; K1-R013
+M mov eax, [r11+8] ; K1-R013 длина ключа (с пробелом)
+M cmp eax, r8d ; K1-R013 операнд короче ключа?
+M ja $lk_next ; K1-R013
+M push rcx ; K1-R013
+M push r8 ; K1-R013
+M mov ecx, [r11+8] ; K1-R013 счётчик = длина ключа (dword)
+M mov rax, r9 ; K1-R013
+M mov rdx, r11 ; K1-R013
+:lk_cmp
+M test rcx, rcx ; K1-R013
+M jz $lk_eq ; K1-R013
+M movzx r8d, byte [rax] ; K1-R013
+M cmp r8b, byte [rdx] ; K1-R013
+M jne $lk_ne ; K1-R013
+M inc rax ; K1-R013
+M inc rdx ; K1-R013
+M dec rcx ; K1-R013
+M jmp $lk_cmp ; K1-R013
+:lk_eq
+M pop r8 ; K1-R013
+M pop rcx ; K1-R013
+M mov eax, [r11+0C] ; K1-R013 размер
+M mov edx, [r11+8] ; K1-R013 потреблено
+M ret ; K1-R013
+:lk_ne
+M pop r8 ; K1-R013
+M pop rcx ; K1-R013
+M jmp $lk_next ; K1-R013
+:lk_next
+M add r11, 10 ; K1-R013
+M dec rcx ; K1-R013
+M jmp $lk_loop ; K1-R013
+:lk_notfound
+M xor eax, eax ; K1-R013
+M ret ; K1-R013

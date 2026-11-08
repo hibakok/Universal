@@ -88,8 +88,8 @@ def _mem(inner, ln):
     if rest:
         i = REGS.get(rest[0])
         if i is not None and i[1] == 64:     # [база+индекс(±число)]
-            if i[0] == 4:                    # rsp/r12 — «нет индекса»
-                return None
+            if i[0] == 4:                    # rsp — «нет индекса» (r12
+                return None                  # допустим: REX.X + SIB 100)
             kw["idx"] = i[0]
             if len(rest) == 2:
                 d = _num(rest[1])
@@ -166,7 +166,7 @@ def _enc_mem(m, regv, ln):
     d = m.disp if m.disp is not None else 0
     if not -0x80000000 <= d <= 0x7FFFFFFF:
         _err(ln)
-    if m.idx is not None or m.base == 4:
+    if m.idx is not None or m.base & 7 == 4:
         sib = ((m.idx & 7) if m.idx is not None else 4) << 3 | m.base & 7
         rm = 4
     else:
@@ -322,7 +322,9 @@ def _enc_movzx(ops, ln):
         if src.size != 8:
             _err(ln)                           # word-регистров в v1 нет
         rex = _rex(0, dst.code >= 8, 0, src.code >= 8)
-        modrm = 0xC0 | dst.code & 7 << 3 | src.code & 7
+        # скобки обязательны: & слабее << (дефект E6.2:
+        # 'movzx edx,dl' кодировался как 'movzx eax,dl')
+        modrm = 0xC0 | (dst.code & 7) << 3 | src.code & 7
         return ([rex] if rex else []) + [0x0F, 0xB6, modrm]
     if src.kind != "mem" or src.size not in (8, 16):
         _err(ln)

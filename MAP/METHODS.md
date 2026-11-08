@@ -167,6 +167,69 @@
 | K1-D004 | таблица импортов | D | готов | `MAP/M1-BRICK.md` |
 | K1-D005 | hint-записи | D | готов | `MAP/M1-BRICK.md` |
 | K1-D006 | виртуальные нули | D | готов | `MAP/M1-BRICK.md` |
+| K1-X011 | prepare_stack | X | готов | `MAP/M1-ENC.md` |
+| K1-X012 | exit_code | X | готов | `MAP/M1-ENC.md` |
+| K1-C011 | get_cmdline | C | готов | `MAP/M1-ENC.md` |
+| K1-C012 | skip_argv0 | C | готов | `MAP/M1-ENC.md` |
+| K1-C013 | next_arg | C | готов | `MAP/M1-ENC.md` |
+| K1-C014 | read_word | C | готов | `MAP/M1-ENC.md` |
+| K1-C015 | copy_word_dst | C | готов | `MAP/M1-ENC.md` |
+| K1-C016 | skip_seps | C | готов | `MAP/M1-ENC.md` |
+| K1-G011 | dispatch | G | готов | `MAP/M1-ENC.md` |
+| K1-G012 | print_error | G | готов | `MAP/M1-ENC.md` |
+| K1-G013 | fail_format | G | готов | `MAP/M1-ENC.md` |
+| K1-N011 | normalize_pass | N | готов | `MAP/M1-ENC.md` |
+| K1-N012 | emit_line | N | готов | `MAP/M1-ENC.md` |
+| K1-P011 | parse_m | P | готов | `MAP/M1-ENC.md` |
+| K1-P012 | split_operands | P | готов | `MAP/M1-ENC.md` |
+| K1-P013 | parse_operand | P | готов | `MAP/M1-ENC.md` |
+| K1-P014 | parse_mem | P | готов | `MAP/M1-ENC.md` |
+| K1-P015 | parse_ref | P | готов | `MAP/M1-ENC.md` |
+| K1-T011 | first_nws | T | готов | `MAP/M1-ENC.md` |
+| K1-T012 | last_nws_end | T | готов | `MAP/M1-ENC.md` |
+| K1-T013 | hex_digit | T | готов | `MAP/M1-ENC.md` |
+| K1-T014 | parse_num | T | готов | `MAP/M1-ENC.md` |
+| K1-T015 | is_name_char | T | готов | `MAP/M1-ENC.md` |
+| K1-R011 | lookup_reg | R | готов | `MAP/M1-ENC.md` |
+| K1-R012 | lookup_mnem | R | готов | `MAP/M1-ENC.md` |
+| K1-R013 | lookup_sizekw | R | готов | `MAP/M1-ENC.md` |
+| K1-E011 | emit2 | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E012 | emit_rex | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E013 | emit_slot | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E014 | emit_i32 | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E015 | enc_mem | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E016 | emit_rm | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E017 | emit_rr | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E018 | sel_imm | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E019 | emit_immres | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E020 | check_imm_range | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E021 | enc_alu | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E022 | enc_shift | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E023 | enc_jcc | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E024 | enc_mov | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E025 | enc_movzx | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E026 | enc_lea | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E027 | enc_test | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E028 | enc_call | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E029 | enc_unary | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E030 | enc_pushpop | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E031 | enc_jmp | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E032 | enc_simple | E | готов | `MAP/M1-ENC-E.md` |
+| K1-H011 | hex16_to_4 | H | готов | `MAP/M1-ENC-S.md` |
+| K1-U011 | print_line | U | готов | `MAP/M1-ENC-S.md` |
+| K1-F011 | open_file_read | F | готов | `MAP/M1-ENC-S.md` |
+| K1-F012 | create_file_write | F | готов | `MAP/M1-ENC-S.md` |
+| K1-F013 | close_file | F | готов | `MAP/M1-ENC-S.md` |
+| K1-F014 | read_whole_dst | F | готов | `MAP/M1-ENC-S.md` |
+| K1-F015 | write_all | F | готов | `MAP/M1-ENC-S.md` |
+| K1-D011 | таблица цифр | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D012 | regtab | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D013 | mnemtab | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D014 | sizetab | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D015 | errtab | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D016 | строки вывода | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D017 | таблица импортов | D | готов | `MAP/M1-ENC-S.md` |
+| K1-D018 | виртуальные нули | D | готов | `MAP/M1-ENC-S.md` |
 
 ## Правила реестра
 
@@ -181,8 +244,9 @@
 
 ## Счётчики (обновлять при каждом изменении)
 
-- Кирпичей в реестре: 158 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
-  M0-HEXGEN — 29, M0-PEGEN — 37, M1-BRICK — 42).
-- Ветви кода: X, S, C, H, P, A, U, G, D, F, B, R (E3) + Q, E, M (E4) +
-  T, N (лексика и таблица меток, новые в M1-BRICK; A — сборка).
-- Модули: M0-* (слой L0) и первый модуль слоя L1 — M1-BRICK.
+- Кирпичей в реестре: 221 (M0-SEED — 8, M0-SEED2 — 19, M0-HXDUMP — 23,
+  M0-HEXGEN — 29, M0-PEGEN — 37, M1-BRICK — 42, M1-ENC — 63).
+- Ветви кода: X, S, C, H, P, A, U, G, D, F, B, R + Q, E, M + T, N +
+  E (кодирование), N (нормализация), P (разбор), R (поиск в таблицах),
+  U (печать) — новые в M1-ENC.
+- Модули: M0-* (слой L0), M1-BRICK и M1-ENC (слой L1).

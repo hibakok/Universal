@@ -118,6 +118,17 @@ CASES = [
     ("M mov qword [r11+8], 0", "H 49 C7 43 08 00 00 00 00"),
     ("M cmp rbp, 0", "H 48 83 FD 00"),
     ("M add rbp, 0", "H 48 83 C5 00"),
+    # --- r12/r13 как база (дефект оракула найден и исправлен в E6.2;
+    # --- SPEC/09: база rsp/r12 (&7==4) всегда даёт SIB; objdump-сверка)
+    # --- и r12 как индекс (REX.X + SIB index=100) ---
+    ("M mov rax, [r12]", "H 49 8B 04 24"),
+    ("M mov rax, [r12+8]", "H 49 8B 44 24 08"),
+    ("M mov rax, [r13]", "H 49 8B 45 00"),
+    ("M mov rax, [r13+8]", "H 49 8B 45 08"),
+    ("M mov rax, [r11+r12]", "H 4B 8B 04 23"),
+    # --- приоритет &/<< в movzx reg,reg (дефект оракула E6.2) ---
+    ("M movzx edx, dl", "H 0F B6 D2"),
+    ("M movzx ecx, bl", "H 0F B6 CB"),
 ]
 
 # M-строки, которые обязаны отвергаться (ErrError FORMAT AT=...).
@@ -201,3 +212,37 @@ DEMO_PEG = """\
 !stackcom 4000
 !heapcom 4000
 """
+
+def big_source(min_bytes=24000):
+    """Детерминированный большой исходник (смесь всех семейств) для T-E6-10."""
+    import random
+    rnd = random.Random(20261108)
+    regs64 = "rax rcx rdx rbx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15".split()
+    regs32 = "eax ecx edx ebx esi edi r8d r9d r10d r11d r12d r13d r14d" \
+             " r15d".split()
+    lines = []
+    while sum(len(l) + 1 for l in lines) < min_bytes:
+        k = rnd.randrange(8)
+        if k == 0:
+            lines.append("M mov %s, %X" % (rnd.choice(regs64),
+                                           rnd.randrange(0, 0x7FFFFFFF)))
+        elif k == 1:
+            lines.append("M add %s, %d" % (rnd.choice(regs32),
+                                           rnd.randrange(-0x7F, 0x7F)))
+        elif k == 2:
+            lines.append("M mov %s, [%s+%X]" %
+                         (rnd.choice(regs64), rnd.choice(regs64),
+                          rnd.randrange(0, 0x100)))
+        elif k == 3:
+            lines.append("M movzx eax, byte [%s]" % rnd.choice(regs64))
+        elif k == 4:
+            lines.append("M cmp %s, %X" % (rnd.choice(regs64),
+                                           rnd.randrange(0, 0xFFFF)))
+        elif k == 5:
+            lines.append("M test %s, %s" % (rnd.choice(regs32),
+                                            rnd.choice(regs32)))
+        elif k == 6:
+            lines.append("M jz $lbl_%d" % rnd.randrange(100))
+        else:
+            lines.append("; комментарий %d" % rnd.randrange(1000))
+    return "\n".join(lines) + "\n", lines

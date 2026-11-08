@@ -6,19 +6,20 @@
 > машина, библиотеки и проекты — построенные вручную из мельчайших кирпичей,
 > без использования чужих языков, компиляторов, ассемблеров и библиотек.
 
-**Статус: этапы E0–E5a и E6.1 выполнены.** Артефакты ядра:
+**Статус: этапы E0–E6.2 выполнены.** Артефакты ядра:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 Б, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
 (3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
 **первый компилятор**: ATOM-текст → тело образа байт-в-байт),
 `KERNEL/L0-PEGEN/pegen.exe` (4096 Б, **обёртка**: тело + PEG-файл →
-готовый EXE, заголовки генерируются автоматически) и
-`KERNEL/L1-BRICK/brick.exe` (3584 Б, **ассемблер BRICK v1**: метки,
-имена, rip-смещения; собирает сам себя — самохостинг E5).
-**E6.1: спецификация BRICK v2 (SPEC/09)** — M-строки (мнемоники
-вместо ручных байтов) + оракул-кодировщик в LAB (102 якоря, полный
-круг v2→EXE→эмуляция) + CI-автопроверка. Инструмент `enc.exe`
-(самохостинг кодировщика) — этап E6.2.
+готовый EXE), `KERNEL/L1-BRICK/brick.exe` (3584 Б, **ассемблер
+BRICK v1**: метки, имена, rip-смещения) и `KERNEL/L1-ENC/enc.exe`
+(11776 Б, **кодировщик BRICK v2**: M-строки — мнемоники вместо ручных
+байтов — канонические кодировки SPEC/09; собирает сам себя из enc.b2,
+2651 строка целиком на M-строках). **E6.2 завершён:** ручное
+назначение байтов кодировок прекращено; конвейер
+`enc → brick → pegen` ведёт от мнемоник до EXE.
+**Следующий этап E6.3** — миграция и разрез исходников (include).
 
 ## С чего начать (обязательно прочитать по порядку)
 
@@ -99,17 +100,38 @@ L0-HEXGEN\hexgen.exe L1-BRICK\brick.hex t_body.bin
 Ожидаемо:         fc /b t_self.bin t_body.bin -> различий нет (2968 байт)
 L0-PEGEN\pegen.exe t_self.bin L1-BRICK\brick.peg t_brick.exe
 Ожидаемо:         fc /b t_brick.exe L1-BRICK\brick.exe -> различий нет
+
+cmd -> KERNEL\L1-ENC\enc.exe
+Ожидаемый вывод:  U-L1-ENC CMDS: ENC <SRC.B2> <OUT.BRICK>
+Код возврата:     2
+SHA-256:          93AD8E21FADE2D1EC173F8723CE6165D3C9681C18251486FD27789D0E7A54A45
+Команды:          enc.exe <src.b2> <out.brick> (см. CARD.md)
+
+Самохостинг ENC (DoD этапа E6.2, из папки KERNEL):
+L1-ENC\enc.exe L1-ENC\enc.b2 t_v1.brick
+L1-BRICK\brick.exe t_v1.brick t_body.bin
+L0-PEGEN\pegen.exe t_body.bin L1-ENC\enc.peg t_enc.exe
+Ожидаемо:         fc /b t_v1.brick L1-ENC\enc.brick -> различий нет
+                  fc /b t_enc.exe L1-ENC\enc.exe -> различий нет
+                  (круг v2 -> v1 -> тело -> EXE воспроизводит себя)
+
+Полный конвейер слоя L1 (любой модуль на BRICK v2):
+L1-ENC\enc.exe <модуль>.b2 <модуль>.brick
+L1-BRICK\brick.exe <модуль>.brick <модуль>-body.bin
+L0-PEGEN\pegen.exe <модуль>-body.bin <модуль>.peg <модуль>.exe
 ```
 
 Автоматическая батарея (без Windows, нужен Python 3.8+):
 python3 LAB/py/lab_verify.py
-Ожидаемо:         ИТОГ: 71/71 OK (~7 секунд) — SHA, PE-инварианты,
+Ожидаемо:         ИТОГ: 80/80 OK (~22 секунды) — SHA, PE-инварианты,
                   эмуляция сценариев TESTS/, оракулы ATOM/BRICK/PEG/ENC,
-                  круги E4, самохостинг E5, полный круг ENC (v2→EXE).
-                  Та же батарея запускается автоматически при каждом
-                  пуше (вкладка Actions; файл .github/workflows/
-                  verify.yml).
+                  круги E4, самохостинг E5, равенство enc.exe оракулу
+                  (109 якорей + 21 ошибка), самохостинг E6.2 (оба круга),
+                  большие исходники, концы строк. Та же батарея
+                  запускается автоматически при каждом пуше (вкладка
+                  Actions; файл .github/workflows/verify.yml).
 
 Подробности: `KERNEL/L0-SEED/VERIFY.md`, `KERNEL/L0-SEED2/VERIFY.md`,
 `KERNEL/L0-HXDUMP/VERIFY.md`, `KERNEL/L0-HEXGEN/VERIFY.md`,
-`KERNEL/L0-PEGEN/VERIFY.md`, `KERNEL/L1-BRICK/VERIFY.md`.
+`KERNEL/L0-PEGEN/VERIFY.md`, `KERNEL/L1-BRICK/VERIFY.md`,
+`KERNEL/L1-ENC/VERIFY.md`.

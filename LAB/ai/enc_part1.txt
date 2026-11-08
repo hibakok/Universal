@@ -1,0 +1,224 @@
+; UNIVERSAL / BRICK v2 / слой L1 / модуль M1-ENC (кодировщик ENC v1, SPEC/09)
+; Само-исходник enc.exe: нормализатор BRICK v2 -> BRICK v1.
+; Сборка: enc.exe enc.b2 enc.brick; brick.exe enc.brick body.bin; pegen.exe body.bin enc.peg enc.exe
+; Контракт: enc.exe <вход.b2> <выход.brick>; не-M-строки проходят без изменений.
+; Регистры: RBX=база образа, R10=база outbuf, R12=курсор вывода, R13=база opbuf,
+; RSI=курсор текста, R14/R15=начало/конец строки. Подпрограммы сохраняют
+; RBX,RSI,R10,R12,R13,R14,R15,RBP; меняют RAX,RCX,RDX,RDI,R8,R9,R11.
+:entry
+M sub rsp, 38 ; K1-X011 кадр: тень + выравнивание вызовов
+M lea rbx, [rip+$base] ; K1-X011 RBX = RVA 0 (база образа)
+M mov rcx, -B ; K1-X011 STD_OUTPUT_HANDLE (-11)
+M call [rip+$iat_gsh] ; K1-X011 GetStdHandle -> RAX
+M mov [rip+$hstdout], rax ; K1-X011 сохранить хэндл stdout
+:get_cmdline
+M call [rip+$iat_gcl] ; K1-C011 GetCommandLineA -> RAX
+M mov rdi, rax ; K1-C011 RDI = курсор командной строки
+:skip_argv0
+M movzx eax, byte [rdi] ; K1-C012 очередной символ argv0
+M cmp al, 22 ; K1-C012 кавычка?
+M jnz $sa_unq ; K1-C012 путь без кавычек
+M inc rdi ; K1-C012 пропуск открывающей кавычки
+:sa_qloop
+M movzx eax, byte [rdi] ; K1-C012
+M test al, al ; K1-C012
+M jz $noargs ; K1-C012 конец строки — аргументов нет
+M cmp al, 22 ; K1-C012 закрывающая кавычка?
+M jz $sa_adv ; K1-C012
+M inc rdi ; K1-C012
+M jmp $sa_qloop ; K1-C012
+:sa_unq
+M test al, al ; K1-C012
+M jz $noargs ; K1-C012
+M cmp al, 20 ; K1-C012 пробел?
+M jz $sa_delims ; K1-C012
+M cmp al, 09 ; K1-C012 табуляция?
+M jz $sa_delims ; K1-C012
+M inc rdi ; K1-C012
+M jmp $skip_argv0 ; K1-C012
+:sa_adv
+M inc rdi ; K1-C012
+M jmp $sa_delims ; K1-C012
+:sa_delims
+M movzx eax, byte [rdi] ; K1-C012
+M test al, al ; K1-C012
+M jz $noargs ; K1-C012
+M cmp al, 20 ; K1-C012
+M jz $sa_adv ; K1-C012
+M cmp al, 09 ; K1-C012
+M jz $sa_adv ; K1-C012
+M jmp $word1 ; K1-C012 слово 1 начинается
+:noargs
+M mov ecx, 0 ; K1-G011 индекс справки errtab
+M call $print_error ; K1-G012 печать + ExitProcess(2)
+:word1
+M lea r8, [rip+$fname_in] ; K1-G011 буфер имени входа
+M call $next_arg ; K1-C013 аргумент 1
+M lea r8, [rip+$fname_out] ; K1-G011 буфер имени выхода
+M call $next_arg ; K1-C013 аргумент 2
+M lea rcx, [rip+$fname_in] ; K1-G011
+M call $open_file_read ; K1-F011
+M cmp rax, -1 ; K1-G011
+M jnz $ok1 ; K1-G011
+M mov ecx, 2 ; K1-G011 ERR=OPEN SRC
+M call $print_error ; K1-G012
+:ok1
+M mov r12, rax ; K1-G011 R12 = хэндл входа (временно)
+M mov rcx, r12 ; K1-G011
+M lea rdx, [rip+$filebuf] ; K1-G011 буфер 128 КиБ
+M mov r8d, 20000 ; K1-G011 вместимость 0x20000
+M lea r9, [rip+$srclen] ; K1-G011 счётчик прочитанного
+M call $read_whole_dst ; K1-F014
+M cmp rax, -1 ; K1-G011
+M jnz $ok2 ; K1-G011
+M mov ecx, 3 ; K1-G011 ERR=READ SRC
+M call $print_error ; K1-G012
+:ok2
+M cmp rax, 20000 ; K1-G011 предел 128 КиБ (сентинелу нужен запас)
+M jb $ok3 ; K1-G011
+M mov ecx, 4 ; K1-G011 ERR=BIG SRC
+M call $print_error ; K1-G012
+:ok3
+M mov rcx, r12 ; K1-G011
+M call $close_file ; K1-F013
+M mov eax, [rip+$srclen] ; K1-G011 длина текста
+M lea rcx, [rip+$filebuf] ; K1-G011
+M add rcx, rax ; K1-G011 конец текста
+M mov byte [rcx], 0 ; K1-G011 NUL-сентинел
+M mov eax, 1 ; K1-G011
+M mov [rip+$curline], eax ; K1-G011 текущая строка = 1
+M lea r10, [rip+$outbuf] ; K1-G011 R10 = база выходного буфера
+M mov r12, r10 ; K1-G011 R12 = курсор вывода
+M lea r13, [rip+$opbuf] ; K1-G011 R13 = база структур операндов
+M lea rsi, [rip+$filebuf] ; K1-G011 RSI = курсор текста
+M call $normalize_pass ; K1-N011 нормализация всех строк
+M cmp r12, r10 ; K1-G011 ни одной строки? (пустой вход)
+M jne $np_written ; K1-G011
+M mov byte [r12], 0A ; K1-G011 пустой вход -> один LF (как оракул)
+M inc r12 ; K1-G011
+:np_written
+M lea rcx, [rip+$fname_out] ; K1-G011
+M call $create_file_write ; K1-F012
+M cmp rax, -1 ; K1-G011
+M jnz $ok6 ; K1-G011
+M mov ecx, 5 ; K1-G011 ERR=OPEN OUT
+M call $print_error ; K1-G012
+:ok6
+M mov r15, rax ; K1-G011 R15 = хэндл выхода
+M mov rcx, r15 ; K1-G011
+M mov rdx, r10 ; K1-G011 буфер вывода
+M mov r8, r12 ; K1-G011
+M sub r8, r10 ; K1-G011 длина вывода
+M call $write_all ; K1-F015
+M test rax, rax ; K1-G011
+M jz $ok7 ; K1-G011
+M mov ecx, 6 ; K1-G011 ERR=WRITE OUT
+M call $print_error ; K1-G012
+:ok7
+M mov rcx, r15 ; K1-G011
+M call $close_file ; K1-F013
+:exit_ok
+M xor ecx, ecx ; K1-X012 код возврата 0
+M call [rip+$iat_ep] ; K1-X012 ExitProcess
+M int3 ; K1-X012 страховка
+; ===== N011 normalize_pass: цикл строк (LF/CRLF/CR как у splitlines) =====
+:normalize_pass
+M mov r14, rsi ; K1-N011 R14 = начало строки
+:np_scan
+M movzx eax, byte [rsi] ; K1-N011
+M test al, al ; K1-N011
+M jz $np_eof ; K1-N011 конец текста
+M cmp al, 0A ; K1-N011 LF?
+M jz $np_endlf ; K1-N011
+M cmp al, 0D ; K1-N011 CR?
+M jz $np_endcr ; K1-N011
+M inc rsi ; K1-N011
+M jmp $np_scan ; K1-N011
+:np_endlf
+M mov r15, rsi ; K1-N011 R15 = конец строки (на LF)
+M call $emit_line ; K1-N012 обработка [R14, R15)
+M inc rsi ; K1-N011 пропуск LF
+M mov eax, [rip+$curline] ; K1-N011 номер строки +1
+M inc eax ; K1-N011
+M mov [rip+$curline], eax ; K1-N011
+M jmp $normalize_pass ; K1-N011
+:np_endcr
+M mov r15, rsi ; K1-N011 конец строки (на CR)
+M call $emit_line ; K1-N012
+M inc rsi ; K1-N011 пропуск CR
+M movzx eax, byte [rsi] ; K1-N011
+M cmp al, 0A ; K1-N011 CRLF — один терминатор?
+M jne $np_nolf ; K1-N011
+M inc rsi ; K1-N011 пропуск LF тоже
+:np_nolf
+M mov eax, [rip+$curline] ; K1-N011 номер строки +1
+M inc eax ; K1-N011
+M mov [rip+$curline], eax ; K1-N011
+M jmp $normalize_pass ; K1-N011
+:np_eof
+M cmp rsi, r14 ; K1-N011 пустой хвост без LF?
+M je $np_done ; K1-N011
+M mov r15, rsi ; K1-N011 последняя строка без терминатора
+M call $emit_line ; K1-N012
+:np_done
+M ret ; K1-N011
+; ===== N012 emit_line: классификация (M-строка / проход) + вывод =====
+:emit_line
+M mov rcx, r14 ; K1-N012
+M mov rdx, r15 ; K1-N012
+M call $first_nws ; K1-T011 RAX = первый непустой
+M cmp rax, r15 ; K1-N012
+M je $el_pass ; K1-N012 пустая/пробельная строка
+M mov [rip+$el_p1], rax ; K1-N012 P1
+M mov rcx, r14 ; K1-N012
+M mov rdx, r15 ; K1-N012
+M call $last_nws_end ; K1-T012 RAX = конец последнего непустого
+M mov [rip+$el_p2], rax ; K1-N012 P2
+M mov rcx, [rip+$el_p1] ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M cmp al, 4D ; K1-N012 'M'?
+M jne $el_pass ; K1-N012
+M inc rcx ; K1-N012 P1+1
+M cmp rcx, [rip+$el_p2] ; K1-N012 P1+1 == P2 (голое M)?
+M je $el_m ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M cmp al, 20 ; K1-N012 пробел после M?
+M je $el_m ; K1-N012
+M jmp $el_pass ; K1-N012 табуляция и пр. — не M-строка
+:el_pass
+M mov rcx, r14 ; K1-N012 проход строки без изменений
+:el_ploop
+M cmp rcx, r15 ; K1-N012
+M jae $el_pdone ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M mov [r12], al ; K1-N012
+M inc r12 ; K1-N012
+M inc rcx ; K1-N012
+M jmp $el_ploop ; K1-N012
+:el_pdone
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012
+:el_m
+M call $parse_m ; K1-P011 разбор и кодирование M-строки
+M mov rcx, [rip+$el_cpos] ; K1-N012 комментарий есть?
+M cmp rcx, [rip+$el_b1] ; K1-N012
+M jb $el_havecom ; K1-N012
+M dec r12 ; K1-N012 убрать хвостовой пробел последнего токена
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012
+:el_havecom
+M mov rdx, [rip+$el_p2] ; K1-N012 комментарий = [cpos, P2)
+:el_cloop
+M cmp rcx, rdx ; K1-N012
+M jae $el_cdone ; K1-N012
+M movzx eax, byte [rcx] ; K1-N012
+M mov [r12], al ; K1-N012
+M inc r12 ; K1-N012
+M inc rcx ; K1-N012
+M jmp $el_cloop ; K1-N012
+:el_cdone
+M mov byte [r12], 0A ; K1-N012
+M inc r12 ; K1-N012
+M ret ; K1-N012

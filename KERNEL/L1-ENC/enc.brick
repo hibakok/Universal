@@ -1,0 +1,2651 @@
+; UNIVERSAL / BRICK v2 / слой L1 / модуль M1-ENC (кодировщик ENC v1, SPEC/09)
+; Само-исходник enc.exe: нормализатор BRICK v2 -> BRICK v1.
+; Сборка: enc.exe enc.b2 enc.brick; brick.exe enc.brick body.bin; pegen.exe body.bin enc.peg enc.exe
+; Контракт: enc.exe <вход.b2> <выход.brick>; не-M-строки проходят без изменений.
+; Регистры: RBX=база образа, R10=база outbuf, R12=курсор вывода, R13=база opbuf,
+; RSI=курсор текста, R14/R15=начало/конец строки. Подпрограммы сохраняют
+; RBX,RSI,R10,R12,R13,R14,R15,RBP; меняют RAX,RCX,RDX,RDI,R8,R9,R11.
+:entry
+H 48 83 EC 38 ; K1-X011 кадр: тень + выравнивание вызовов
+H 48 8D 1D $base ; K1-X011 RBX = RVA 0 (база образа)
+H 48 C7 C1 F5 FF FF FF ; K1-X011 STD_OUTPUT_HANDLE (-11)
+H FF 15 $iat_gsh ; K1-X011 GetStdHandle -> RAX
+H 48 89 05 $hstdout ; K1-X011 сохранить хэндл stdout
+:get_cmdline
+H FF 15 $iat_gcl ; K1-C011 GetCommandLineA -> RAX
+H 48 89 C7 ; K1-C011 RDI = курсор командной строки
+:skip_argv0
+H 0F B6 07 ; K1-C012 очередной символ argv0
+H 80 F8 22 ; K1-C012 кавычка?
+H 0F 85 $sa_unq ; K1-C012 путь без кавычек
+H 48 FF C7 ; K1-C012 пропуск открывающей кавычки
+:sa_qloop
+H 0F B6 07 ; K1-C012
+H 84 C0 ; K1-C012
+H 0F 84 $noargs ; K1-C012 конец строки — аргументов нет
+H 80 F8 22 ; K1-C012 закрывающая кавычка?
+H 0F 84 $sa_adv ; K1-C012
+H 48 FF C7 ; K1-C012
+H E9 $sa_qloop ; K1-C012
+:sa_unq
+H 84 C0 ; K1-C012
+H 0F 84 $noargs ; K1-C012
+H 80 F8 20 ; K1-C012 пробел?
+H 0F 84 $sa_delims ; K1-C012
+H 80 F8 09 ; K1-C012 табуляция?
+H 0F 84 $sa_delims ; K1-C012
+H 48 FF C7 ; K1-C012
+H E9 $skip_argv0 ; K1-C012
+:sa_adv
+H 48 FF C7 ; K1-C012
+H E9 $sa_delims ; K1-C012
+:sa_delims
+H 0F B6 07 ; K1-C012
+H 84 C0 ; K1-C012
+H 0F 84 $noargs ; K1-C012
+H 80 F8 20 ; K1-C012
+H 0F 84 $sa_adv ; K1-C012
+H 80 F8 09 ; K1-C012
+H 0F 84 $sa_adv ; K1-C012
+H E9 $word1 ; K1-C012 слово 1 начинается
+:noargs
+H B9 00 00 00 00 ; K1-G011 индекс справки errtab
+H E8 $print_error ; K1-G012 печать + ExitProcess(2)
+:word1
+H 4C 8D 05 $fname_in ; K1-G011 буфер имени входа
+H E8 $next_arg ; K1-C013 аргумент 1
+H 4C 8D 05 $fname_out ; K1-G011 буфер имени выхода
+H E8 $next_arg ; K1-C013 аргумент 2
+H 48 8D 0D $fname_in ; K1-G011
+H E8 $open_file_read ; K1-F011
+H 48 83 F8 FF ; K1-G011
+H 0F 85 $ok1 ; K1-G011
+H B9 02 00 00 00 ; K1-G011 ERR=OPEN SRC
+H E8 $print_error ; K1-G012
+:ok1
+H 49 89 C4 ; K1-G011 R12 = хэндл входа (временно)
+H 4C 89 E1 ; K1-G011
+H 48 8D 15 $filebuf ; K1-G011 буфер 128 КиБ
+H 41 B8 00 00 02 00 ; K1-G011 вместимость 0x20000
+H 4C 8D 0D $srclen ; K1-G011 счётчик прочитанного
+H E8 $read_whole_dst ; K1-F014
+H 48 83 F8 FF ; K1-G011
+H 0F 85 $ok2 ; K1-G011
+H B9 03 00 00 00 ; K1-G011 ERR=READ SRC
+H E8 $print_error ; K1-G012
+:ok2
+H 48 81 F8 00 00 02 00 ; K1-G011 предел 128 КиБ (сентинелу нужен запас)
+H 0F 82 $ok3 ; K1-G011
+H B9 04 00 00 00 ; K1-G011 ERR=BIG SRC
+H E8 $print_error ; K1-G012
+:ok3
+H 4C 89 E1 ; K1-G011
+H E8 $close_file ; K1-F013
+H 8B 05 $srclen ; K1-G011 длина текста
+H 48 8D 0D $filebuf ; K1-G011
+H 48 01 C1 ; K1-G011 конец текста
+H C6 01 00 ; K1-G011 NUL-сентинел
+H B8 01 00 00 00 ; K1-G011
+H 89 05 $curline ; K1-G011 текущая строка = 1
+H 4C 8D 15 $outbuf ; K1-G011 R10 = база выходного буфера
+H 4D 89 D4 ; K1-G011 R12 = курсор вывода
+H 4C 8D 2D $opbuf ; K1-G011 R13 = база структур операндов
+H 48 8D 35 $filebuf ; K1-G011 RSI = курсор текста
+H E8 $normalize_pass ; K1-N011 нормализация всех строк
+H 4D 39 D4 ; K1-G011 ни одной строки? (пустой вход)
+H 0F 85 $np_written ; K1-G011
+H 41 C6 04 24 0A ; K1-G011 пустой вход -> один LF (как оракул)
+H 49 FF C4 ; K1-G011
+:np_written
+H 48 8D 0D $fname_out ; K1-G011
+H E8 $create_file_write ; K1-F012
+H 48 83 F8 FF ; K1-G011
+H 0F 85 $ok6 ; K1-G011
+H B9 05 00 00 00 ; K1-G011 ERR=OPEN OUT
+H E8 $print_error ; K1-G012
+:ok6
+H 49 89 C7 ; K1-G011 R15 = хэндл выхода
+H 4C 89 F9 ; K1-G011
+H 4C 89 D2 ; K1-G011 буфер вывода
+H 4D 89 E0 ; K1-G011
+H 4D 29 D0 ; K1-G011 длина вывода
+H E8 $write_all ; K1-F015
+H 48 85 C0 ; K1-G011
+H 0F 84 $ok7 ; K1-G011
+H B9 06 00 00 00 ; K1-G011 ERR=WRITE OUT
+H E8 $print_error ; K1-G012
+:ok7
+H 4C 89 F9 ; K1-G011
+H E8 $close_file ; K1-F013
+:exit_ok
+H 31 C9 ; K1-X012 код возврата 0
+H FF 15 $iat_ep ; K1-X012 ExitProcess
+H CC ; K1-X012 страховка
+; ===== N011 normalize_pass: цикл строк (LF/CRLF/CR как у splitlines) =====
+:normalize_pass
+H 49 89 F6 ; K1-N011 R14 = начало строки
+:np_scan
+H 0F B6 06 ; K1-N011
+H 84 C0 ; K1-N011
+H 0F 84 $np_eof ; K1-N011 конец текста
+H 80 F8 0A ; K1-N011 LF?
+H 0F 84 $np_endlf ; K1-N011
+H 80 F8 0D ; K1-N011 CR?
+H 0F 84 $np_endcr ; K1-N011
+H 48 FF C6 ; K1-N011
+H E9 $np_scan ; K1-N011
+:np_endlf
+H 49 89 F7 ; K1-N011 R15 = конец строки (на LF)
+H E8 $emit_line ; K1-N012 обработка [R14, R15)
+H 48 FF C6 ; K1-N011 пропуск LF
+H 8B 05 $curline ; K1-N011 номер строки +1
+H FF C0 ; K1-N011
+H 89 05 $curline ; K1-N011
+H E9 $normalize_pass ; K1-N011
+:np_endcr
+H 49 89 F7 ; K1-N011 конец строки (на CR)
+H E8 $emit_line ; K1-N012
+H 48 FF C6 ; K1-N011 пропуск CR
+H 0F B6 06 ; K1-N011
+H 80 F8 0A ; K1-N011 CRLF — один терминатор?
+H 0F 85 $np_nolf ; K1-N011
+H 48 FF C6 ; K1-N011 пропуск LF тоже
+:np_nolf
+H 8B 05 $curline ; K1-N011 номер строки +1
+H FF C0 ; K1-N011
+H 89 05 $curline ; K1-N011
+H E9 $normalize_pass ; K1-N011
+:np_eof
+H 4C 39 F6 ; K1-N011 пустой хвост без LF?
+H 0F 84 $np_done ; K1-N011
+H 49 89 F7 ; K1-N011 последняя строка без терминатора
+H E8 $emit_line ; K1-N012
+:np_done
+H C3 ; K1-N011
+; ===== N012 emit_line: классификация (M-строка / проход) + вывод =====
+:emit_line
+H 4C 89 F1 ; K1-N012
+H 4C 89 FA ; K1-N012
+H E8 $first_nws ; K1-T011 RAX = первый непустой
+H 4C 39 F8 ; K1-N012
+H 0F 84 $el_pass ; K1-N012 пустая/пробельная строка
+H 48 89 05 $el_p1 ; K1-N012 P1
+H 4C 89 F1 ; K1-N012
+H 4C 89 FA ; K1-N012
+H E8 $last_nws_end ; K1-T012 RAX = конец последнего непустого
+H 48 89 05 $el_p2 ; K1-N012 P2
+H 48 8B 0D $el_p1 ; K1-N012
+H 0F B6 01 ; K1-N012
+H 80 F8 4D ; K1-N012 'M'?
+H 0F 85 $el_pass ; K1-N012
+H 48 FF C1 ; K1-N012 P1+1
+H 48 3B 0D $el_p2 ; K1-N012 P1+1 == P2 (голое M)?
+H 0F 84 $el_m ; K1-N012
+H 0F B6 01 ; K1-N012
+H 80 F8 20 ; K1-N012 пробел после M?
+H 0F 84 $el_m ; K1-N012
+H E9 $el_pass ; K1-N012 табуляция и пр. — не M-строка
+:el_pass
+H 4C 89 F1 ; K1-N012 проход строки без изменений
+:el_ploop
+H 4C 39 F9 ; K1-N012
+H 0F 83 $el_pdone ; K1-N012
+H 0F B6 01 ; K1-N012
+H 41 88 04 24 ; K1-N012
+H 49 FF C4 ; K1-N012
+H 48 FF C1 ; K1-N012
+H E9 $el_ploop ; K1-N012
+:el_pdone
+H 41 C6 04 24 0A ; K1-N012
+H 49 FF C4 ; K1-N012
+H C3 ; K1-N012
+:el_m
+H E8 $parse_m ; K1-P011 разбор и кодирование M-строки
+H 48 8B 0D $el_cpos ; K1-N012 комментарий есть?
+H 48 3B 0D $el_b1 ; K1-N012
+H 0F 82 $el_havecom ; K1-N012
+H 49 FF CC ; K1-N012 убрать хвостовой пробел последнего токена
+H 41 C6 04 24 0A ; K1-N012
+H 49 FF C4 ; K1-N012
+H C3 ; K1-N012
+:el_havecom
+H 48 8B 15 $el_p2 ; K1-N012 комментарий = [cpos, P2)
+:el_cloop
+H 48 39 D1 ; K1-N012
+H 0F 83 $el_cdone ; K1-N012
+H 0F B6 01 ; K1-N012
+H 41 88 04 24 ; K1-N012
+H 49 FF C4 ; K1-N012
+H 48 FF C1 ; K1-N012
+H E9 $el_cloop ; K1-N012
+:el_cdone
+H 41 C6 04 24 0A ; K1-N012
+H 49 FF C4 ; K1-N012
+H C3 ; K1-N012
+; ===== P011 parse_m: тело M-строки -> мнемоника + операнды + диспетчер =====
+:parse_m
+H 48 8B 0D $el_p1 ; K1-P011
+H 48 FF C1 ; K1-P011
+H 4C 89 FA ; K1-P011
+H E8 $first_nws ; K1-T011 RAX = начало тела (B0)
+H 48 89 05 $el_b0 ; K1-P011
+H 48 8B 0D $el_p2 ; K1-P011
+H 48 89 0D $el_b1 ; K1-P011 B1 = P2 (конец непустого)
+H 48 8B 0D $el_b0 ; K1-P011 поиск ';' в [B0, B1)
+:pm_semi
+H 48 3B 0D $el_b1 ; K1-P011
+H 0F 83 $pm_nosemi ; K1-P011
+H 0F B6 01 ; K1-P011
+H 80 F8 3B ; K1-P011 ';'
+H 0F 84 $pm_semi_found ; K1-P011
+H 48 FF C1 ; K1-P011
+H E9 $pm_semi ; K1-P011
+:pm_semi_found
+H 48 89 0D $el_cpos ; K1-P011 CPOS = позиция ';'
+H E9 $pm_mnem ; K1-P011
+:pm_nosemi
+H 48 8B 05 $el_b1 ; K1-P011
+H 48 89 05 $el_cpos ; K1-P011 CPOS = B1 (комментария нет)
+:pm_mnem
+H 48 8B 0D $el_b0 ; K1-P011 мнемоника: [B0, M1)
+:pm_mscan
+H 48 3B 0D $el_cpos ; K1-P011
+H 0F 83 $pm_mend ; K1-P011
+H 0F B6 01 ; K1-P011
+H 80 F8 20 ; K1-P011
+H 0F 84 $pm_mend ; K1-P011
+H 80 F8 09 ; K1-P011
+H 0F 84 $pm_mend ; K1-P011
+H 48 FF C1 ; K1-P011
+H E9 $pm_mscan ; K1-P011
+:pm_mend
+H 48 89 0D $el_m1 ; K1-P011 M1
+H 48 8B 0D $el_b0 ; K1-P011
+H 48 8B 15 $el_m1 ; K1-P011
+H E8 $lookup_mnem ; K1-R012 RAX = семейство, RDX = параметр
+H 48 89 05 $m_family ; K1-P011
+H 48 89 15 $m_param ; K1-P011
+H 41 C6 04 24 48 ; K1-P011 префикс вывода 'H'
+H 49 FF C4 ; K1-P011
+H 41 C6 04 24 20 ; K1-P011 ' '
+H 49 FF C4 ; K1-P011
+H E8 $split_operands ; K1-P012 разбор операндов
+H 48 8B 05 $m_family ; K1-P011 диспетчер семейств
+H 48 8B 0D $opcnt ; K1-P011
+H 48 83 F8 0D ; K1-P011 SIMPLE (без операндов)?
+H 0F 85 $pd_ns ; K1-P011
+H 48 85 C9 ; K1-P011
+H 0F 85 $fail_format ; K1-P011 у простых нет операндов
+H E8 $enc_simple ; K1-E032
+H C3 ; K1-P011
+:pd_ns
+H 48 83 F8 03 ; K1-P011 JCC — один операнд
+H 0F 84 $pd_chk1 ; K1-P011
+H 48 83 F8 02 ; K1-P011 1..2 (ALU, SHIFT) — два операнда
+H 0F 86 $pd_need2 ; K1-P011
+H 48 83 F8 07 ; K1-P011 4..7 (MOV/MOVZX/LEA/TEST) — два
+H 0F 86 $pd_need2 ; K1-P011
+H E9 $pd_chk1 ; K1-P011 8..C — один операнд
+:pd_need2
+H 48 83 F9 02 ; K1-P011
+H 0F 85 $fail_format ; K1-P011
+H E9 $pd_dispatch ; K1-P011
+:pd_chk1
+H 48 83 F9 01 ; K1-P011
+H 0F 85 $fail_format ; K1-P011
+:pd_dispatch
+H 48 83 F8 01 ; K1-P011 хвостовые вызовы кодировщиков
+H 0F 84 $enc_alu ; K1-E021
+H 48 83 F8 02 ; K1-P011
+H 0F 84 $enc_shift ; K1-E022
+H 48 83 F8 03 ; K1-P011
+H 0F 84 $enc_jcc ; K1-E023
+H 48 83 F8 04 ; K1-P011
+H 0F 84 $enc_mov ; K1-E024
+H 48 83 F8 05 ; K1-P011
+H 0F 84 $enc_movzx ; K1-E025
+H 48 83 F8 06 ; K1-P011
+H 0F 84 $enc_lea ; K1-E026
+H 48 83 F8 07 ; K1-P011
+H 0F 84 $enc_test ; K1-E027
+H 48 83 F8 08 ; K1-P011
+H 0F 84 $enc_call ; K1-E028
+H 48 83 F8 09 ; K1-P011
+H 0F 84 $enc_unary ; K1-E029
+H 48 83 F8 0A ; K1-P011
+H 0F 84 $enc_pushpop ; K1-E030
+H 48 83 F8 0B ; K1-P011
+H 0F 84 $enc_pushpop ; K1-E030
+H 48 83 F8 0C ; K1-P011
+H 0F 84 $enc_jmp ; K1-E031
+H CC ; K1-P011 непригодная ветвь (13 обработан выше)
+; ===== P012 split_operands: области, запятые, разбор каждого операнда =====
+:split_operands
+H 48 8B 0D $el_m1 ; K1-P012
+H 48 8B 15 $el_cpos ; K1-P012
+H E8 $first_nws ; K1-T011 RAX = O0
+H 48 89 05 $el_o0 ; K1-P012
+H 48 8B 0D $el_m1 ; K1-P012
+H 48 8B 15 $el_cpos ; K1-P012
+H E8 $last_nws_end ; K1-T012 RAX = O1
+H 48 89 05 $el_o1 ; K1-P012
+H 48 8B 05 $el_o0 ; K1-P012
+H 48 3B 05 $el_o1 ; K1-P012 область пуста?
+H 0F 83 $so_none ; K1-P012
+H 48 8B 0D $el_o0 ; K1-P012 подсчёт запятых
+H 48 C7 C0 01 00 00 00 ; K1-P012 opcnt = 1
+:so_count
+H 48 3B 0D $el_o1 ; K1-P012
+H 0F 83 $so_counted ; K1-P012
+H 0F B6 11 ; K1-P012
+H 80 FA 2C ; K1-P012 ','
+H 0F 85 $so_nc ; K1-P012
+H 48 FF C0 ; K1-P012
+:so_nc
+H 48 FF C1 ; K1-P012
+H E9 $so_count ; K1-P012
+:so_counted
+H 48 89 05 $opcnt ; K1-P012
+H 48 83 F8 02 ; K1-P012 больше двух операндов?
+H 0F 87 $fail_format ; K1-P012
+H 31 C0 ; K1-P012
+H 48 89 05 $el_oi ; K1-P012 индекс операнда = 0
+H 48 8B 0D $el_o0 ; K1-P012 курсор частей
+:so_parts
+H 48 3B 0D $el_o1 ; K1-P012
+H 0F 83 $so_done ; K1-P012
+H 49 89 C9 ; K1-P012 конец части: ',' или O1
+:so_pscan
+H 4C 3B 0D $el_o1 ; K1-P012
+H 0F 83 $so_pend ; K1-P012
+H 41 0F B6 01 ; K1-P012
+H 80 F8 2C ; K1-P012
+H 0F 84 $so_pend ; K1-P012
+H 49 FF C1 ; K1-P012
+H E9 $so_pscan ; K1-P012
+:so_pend
+H 48 89 0D $el_ps ; K1-P012 [PS, PE) — часть
+H 4C 89 0D $el_pe ; K1-P012
+H 48 8B 0D $el_ps ; K1-P012
+H 4C 89 CA ; K1-P012
+H E8 $first_nws ; K1-T011
+H 48 89 05 $el_s ; K1-P012 S (без пробелов)
+H 48 8B 0D $el_ps ; K1-P012
+H 48 8B 15 $el_pe ; K1-P012
+H E8 $last_nws_end ; K1-T012
+H 48 89 05 $el_e ; K1-P012 E
+H 48 8B 0D $el_s ; K1-P012
+H 48 3B 0D $el_e ; K1-P012 пустая часть ("a,,b")?
+H 0F 83 $fail_format ; K1-P012
+H 48 8B 0D $el_s ; K1-P012
+H 48 8B 15 $el_e ; K1-P012
+H 4C 8B 05 $el_oi ; K1-P012 индекс
+H 49 C1 E0 06 ; K1-P012 x 0x40
+H 4D 01 E8 ; K1-P012 адрес структуры
+H E8 $parse_operand ; K1-P013
+H 48 8B 05 $el_oi ; K1-P012
+H 48 FF C0 ; K1-P012
+H 48 89 05 $el_oi ; K1-P012
+H 48 8B 0D $el_pe ; K1-P012
+H 48 FF C1 ; K1-P012 пропуск запятой
+H E9 $so_parts ; K1-P012
+:so_none
+H 31 C0 ; K1-P012
+H 48 89 05 $opcnt ; K1-P012 операндов нет
+H C3 ; K1-P012
+:so_done
+H C3 ; K1-P012
+; ===== P013 parse_operand: классификация (рег/ссылка/память/число) =====
+:parse_operand
+H 48 89 0D $po_s ; K1-P013
+H 48 89 15 $po_e ; K1-P013
+H 4C 89 05 $po_dst ; K1-P013
+H 48 C7 C1 08 00 00 00 ; K1-P013 обнулить структуру (8 квадрослова)
+H 48 8B 15 $po_dst ; K1-P013
+:po_zero
+H 48 85 C9 ; K1-P013
+H 0F 84 $po_zdone ; K1-P013
+H 48 C7 02 00 00 00 00 ; K1-P013
+H 48 83 C2 08 ; K1-P013
+H 48 FF C9 ; K1-P013
+H E9 $po_zero ; K1-P013
+:po_zdone
+H 48 8B 0D $po_s ; K1-P013 1) регистр?
+H 48 8B 15 $po_e ; K1-P013
+H E8 $lookup_reg ; K1-R011 RAX = 0 | 10000|размер<<8|код
+H 48 85 C0 ; K1-P013
+H 0F 84 $po_notreg ; K1-P013
+H 48 8B 15 $po_dst ; K1-P013
+H 48 C7 02 00 00 00 00 ; K1-P013 kind = 0 (рег)
+H 48 89 C1 ; K1-P013
+H 81 E1 FF 00 00 00 ; K1-P013 код
+H 48 89 4A 08 ; K1-P013
+H 48 C1 E8 08 ; K1-P013 размер
+H 81 E0 FF 00 00 00 ; K1-P013
+H 48 89 42 10 ; K1-P013
+H C3 ; K1-P013
+:po_notreg
+H 48 8B 0D $po_s ; K1-P013 2) ссылка $имя?
+H 0F B6 01 ; K1-P013
+H 80 F8 24 ; K1-P013 '$'
+H 0F 85 $po_notref ; K1-P013
+H 48 8B 0D $po_s ; K1-P013
+H 48 8B 15 $po_e ; K1-P013
+H 4C 8B 05 $po_dst ; K1-P013
+H E8 $parse_ref ; K1-P015
+H C3 ; K1-P013
+:po_notref
+H 48 8B 0D $po_s ; K1-P013 3) ключ размера?
+H 48 8B 15 $po_e ; K1-P013
+H E8 $lookup_sizekw ; K1-R013 RAX = размер, RDX = потреблено
+H 48 85 C0 ; K1-P013
+H 0F 84 $po_notkw ; K1-P013
+H 48 89 05 $po_size ; K1-P013
+H 48 8B 0D $po_s ; K1-P013
+H 48 01 D1 ; K1-P013 после ключа (с пробелом)
+H 48 8B 15 $po_e ; K1-P013
+H E8 $first_nws ; K1-T011 RAX = Q
+H 48 39 D0 ; K1-P013
+H 0F 83 $fail_format ; K1-P013 после ключа пусто
+H 48 89 05 $po_q ; K1-P013 Q
+H 48 89 C1 ; K1-P013
+H 0F B6 01 ; K1-P013
+H 80 F8 5B ; K1-P013 '['
+H 0F 85 $fail_format ; K1-P013
+H 48 8B 0D $po_e ; K1-P013
+H 80 79 FF 5D ; K1-P013 ']' в конце
+H 0F 85 $fail_format ; K1-P013
+H 48 8B 0D $po_q ; K1-P013 внутренность [Q+1, E-1)
+H 48 FF C1 ; K1-P013
+H 48 8B 15 $po_e ; K1-P013
+H 48 FF CA ; K1-P013
+H 4C 8B 05 $po_dst ; K1-P013
+H E8 $parse_mem ; K1-P014
+H 48 8B 0D $po_dst ; K1-P013
+H 48 8B 05 $po_size ; K1-P013
+H 48 89 41 10 ; K1-P013 размер из ключа
+H C3 ; K1-P013
+:po_notkw
+H 48 8B 0D $po_s ; K1-P013 4) память без ключа?
+H 0F B6 01 ; K1-P013
+H 80 F8 5B ; K1-P013 '['
+H 0F 85 $po_notmem ; K1-P013
+H 48 8B 0D $po_e ; K1-P013
+H 80 79 FF 5D ; K1-P013 ']'
+H 0F 85 $po_notmem ; K1-P013
+H 48 8B 0D $po_s ; K1-P013
+H 48 FF C1 ; K1-P013
+H 48 8B 15 $po_e ; K1-P013
+H 48 FF CA ; K1-P013
+H 4C 8B 05 $po_dst ; K1-P013
+H E8 $parse_mem ; K1-P014
+H 48 8B 0D $po_dst ; K1-P013
+H 48 C7 41 10 00 00 00 00 ; K1-P013 размер не задан (None)
+H C3 ; K1-P013
+:po_notmem
+H 48 8B 0D $po_s ; K1-P013 5) число
+H 48 8B 15 $po_e ; K1-P013
+H E8 $parse_num ; K1-T014 RDX = 1/0, RAX = значение
+H 48 85 D2 ; K1-P013
+H 0F 84 $fail_format ; K1-P013 не число
+H 48 8B 0D $po_dst ; K1-P013
+H 48 C7 01 01 00 00 00 ; K1-P013 kind = 1 (imm)
+H 48 89 41 08 ; K1-P013 значение
+H C3 ; K1-P013
+; ===== P014 parse_mem: содержимое скобок -> база/индекс/смещение | rip =====
+:parse_mem
+H 48 89 0D $pm_s ; K1-P014
+H 48 89 15 $pm_e ; K1-P014
+H 4C 89 05 $pm_dst ; K1-P014
+H 31 C0 ; K1-P014
+H 48 89 05 $pm_n ; K1-P014 счётчик сегментов = 0
+H 48 89 C8 ; K1-P014
+H 48 89 05 $pm_cs ; K1-P014 старт сегмента
+H 48 89 05 $pm_cur ; K1-P014 курсор
+:pm_scan
+H 48 8B 0D $pm_cur ; K1-P014
+H 48 3B 0D $pm_e ; K1-P014
+H 0F 83 $pm_flush ; K1-P014 конец — закрыть сегмент
+H 0F B6 01 ; K1-P014
+H 80 F8 2B ; K1-P014 '+'
+H 0F 84 $pm_plus ; K1-P014
+H 80 F8 2D ; K1-P014 '-'
+H 0F 84 $pm_minus ; K1-P014
+H 48 FF C1 ; K1-P014
+H 48 89 0D $pm_cur ; K1-P014
+H E9 $pm_scan ; K1-P014
+:pm_plus
+H 48 8B 15 $pm_cur ; K1-P014 закрыть [cs, cur)
+H 48 8B 0D $pm_cs ; K1-P014
+H E8 $pm_push_seg ; K1-P014
+H 48 8B 0D $pm_cur ; K1-P014 сегмент после '+'
+H 48 FF C1 ; K1-P014
+H 48 89 0D $pm_cs ; K1-P014
+H 48 89 0D $pm_cur ; K1-P014
+H E9 $pm_scan ; K1-P014
+:pm_minus
+H 48 8B 15 $pm_cur ; K1-P014 закрыть [cs, cur)
+H 48 8B 0D $pm_cs ; K1-P014
+H E8 $pm_push_seg ; K1-P014
+H 48 8B 0D $pm_cur ; K1-P014 '-' начинает следующий сегмент
+H 48 89 0D $pm_cs ; K1-P014
+H 48 FF C1 ; K1-P014
+H 48 89 0D $pm_cur ; K1-P014
+H E9 $pm_scan ; K1-P014
+:pm_push_seg
+H 48 39 D1 ; K1-P014 пустой сегмент — пропустить
+H 0F 83 $pm_ps_ret ; K1-P014
+H 48 8B 05 $pm_n ; K1-P014
+H 48 83 F8 04 ; K1-P014 больше 4 не хранить (всегда ошибка)
+H 0F 83 $fail_format ; K1-P014
+H 48 C1 E0 03 ; K1-P014 x 8
+H 49 89 C0 ; K1-P014
+H 4C 8D 0D $seg_a ; K1-P014
+H 4D 01 C1 ; K1-P014
+H 49 89 09 ; K1-P014
+H 4C 8D 0D $seg_b ; K1-P014
+H 4D 01 C1 ; K1-P014
+H 49 89 11 ; K1-P014
+H 48 8B 05 $pm_n ; K1-P014
+H 48 FF C0 ; K1-P014
+H 48 89 05 $pm_n ; K1-P014
+:pm_ps_ret
+H C3 ; K1-P014
+:pm_flush
+H 48 8B 15 $pm_e ; K1-P014 закрыть последний сегмент
+H 48 8B 0D $pm_cs ; K1-P014
+H E8 $pm_push_seg ; K1-P014
+H 48 8B 05 $pm_n ; K1-P014
+H 48 83 F8 01 ; K1-P014 1..3 сегмента
+H 0F 82 $fail_format ; K1-P014 0 ("[]")
+H 48 83 F8 03 ; K1-P014
+H 0F 87 $fail_format ; K1-P014 4+
+H 48 8B 0D $seg_a ; K1-P014 seg0 == "rip"?
+H 48 8B 15 $seg_b ; K1-P014
+H 48 89 D0 ; K1-P014
+H 48 29 C8 ; K1-P014 длина seg0
+H 48 83 F8 03 ; K1-P014
+H 0F 85 $pm_base ; K1-P014 не rip по длине
+H 80 39 72 ; K1-P014 'r'
+H 0F 85 $pm_base ; K1-P014
+H 80 79 01 69 ; K1-P014 'i'
+H 0F 85 $pm_base ; K1-P014
+H 80 79 02 70 ; K1-P014 'p'
+H 0F 85 $pm_base ; K1-P014
+H 48 8B 05 $pm_n ; K1-P014 rip: ровно 2 сегмента
+H 48 83 F8 02 ; K1-P014
+H 0F 85 $fail_format ; K1-P014
+H 48 8D 05 $seg_a ; K1-P014 seg1
+H 48 83 C0 08 ; K1-P014
+H 48 8B 08 ; K1-P014 начало seg1
+H 0F B6 01 ; K1-P014
+H 80 F8 24 ; K1-P014 '$'
+H 0F 85 $fail_format ; K1-P014
+H 48 8D 05 $seg_b ; K1-P014
+H 48 83 C0 08 ; K1-P014
+H 48 8B 10 ; K1-P014 конец seg1
+H 48 8D 05 $seg_a ; K1-P014
+H 48 83 C0 08 ; K1-P014
+H 48 8B 08 ; K1-P014
+H 4C 8B 05 $pm_dst ; K1-P014
+H E8 $parse_ref ; K1-P015
+H 48 8B 0D $pm_dst ; K1-P014
+H 48 83 79 28 01 ; K1-P014 суффикс :1 у rip запрещён
+H 0F 84 $fail_format ; K1-P014
+H 48 8B 41 18 ; K1-P014 имя -> rip-поля
+H 48 89 41 30 ; K1-P014
+H 48 8B 41 20 ; K1-P014
+H 48 89 41 38 ; K1-P014
+H 48 C7 01 03 00 00 00 ; K1-P014 kind = 3 (mem)
+H C3 ; K1-P014
+:pm_base
+H 48 8B 0D $seg_a ; K1-P014 seg0 — 64-битный регистр
+H 48 8B 15 $seg_b ; K1-P014
+H E8 $lookup_reg ; K1-R011
+H 48 85 C0 ; K1-P014
+H 0F 84 $fail_format ; K1-P014 не регистр
+H 48 89 C1 ; K1-P014
+H 81 E1 FF 00 00 00 ; K1-P014 код базы
+H 48 C1 E8 08 ; K1-P014
+H 81 E0 FF 00 00 00 ; K1-P014 размер
+H 83 F8 40 ; K1-P014 64-бит?
+H 0F 85 $fail_format ; K1-P014
+H 48 8B 15 $pm_dst ; K1-P014
+H 48 C7 02 03 00 00 00 ; K1-P014 kind = 3 (mem)
+H 48 89 4A 18 ; K1-P014 база
+H 48 C7 42 20 FF FF FF FF ; K1-P014 индекс: нет
+H 48 C7 42 28 00 00 00 00 ; K1-P014 смещение: 0
+H 48 8B 05 $pm_n ; K1-P014 один сегмент — готово
+H 48 83 F8 01 ; K1-P014
+H 0F 84 $pm_ret ; K1-P014
+H 48 8D 05 $seg_a ; K1-P014 seg1: индекс или смещение
+H 48 83 C0 08 ; K1-P014
+H 48 8B 08 ; K1-P014
+H 48 8D 05 $seg_b ; K1-P014
+H 48 83 C0 08 ; K1-P014
+H 48 8B 10 ; K1-P014
+H E8 $lookup_reg ; K1-R011
+H 48 85 C0 ; K1-P014
+H 0F 84 $pm_disp1 ; K1-P014 не регистр — смещение
+H 48 89 C1 ; K1-P014
+H 48 C1 E8 08 ; K1-P014
+H 81 E0 FF 00 00 00 ; K1-P014 размер
+H 83 F8 40 ; K1-P014 64-бит?
+H 0F 85 $pm_disp1 ; K1-P014 не 64 — путь смещения
+H 48 89 C8 ; K1-P014 код индекса
+H 81 E0 FF 00 00 00 ; K1-P014
+H 83 F8 04 ; K1-P014 rsp — «нет индекса» (r12 допустим: REX.X)
+H 0F 84 $fail_format ; K1-P014
+H 48 8B 15 $pm_dst ; K1-P014
+H 48 89 42 20 ; K1-P014 индекс
+H 48 8B 05 $pm_n ; K1-P014 n == 2 — без смещения
+H 48 83 F8 02 ; K1-P014
+H 0F 84 $pm_ret ; K1-P014
+H 48 8D 05 $seg_a ; K1-P014 n == 3: seg2 — смещение
+H 48 83 C0 10 ; K1-P014
+H 48 8B 08 ; K1-P014
+H 48 8D 05 $seg_b ; K1-P014
+H 48 83 C0 10 ; K1-P014
+H 48 8B 10 ; K1-P014
+H E8 $parse_num ; K1-T014
+H 48 85 D2 ; K1-P014
+H 0F 84 $fail_format ; K1-P014
+H 48 8B 0D $pm_dst ; K1-P014
+H 48 89 41 28 ; K1-P014 смещение
+H C3 ; K1-P014
+:pm_disp1
+H 48 8B 05 $pm_n ; K1-P014 n обязан быть 2
+H 48 83 F8 02 ; K1-P014
+H 0F 85 $fail_format ; K1-P014
+H 48 8D 05 $seg_a ; K1-P014 seg1 — число-смещение
+H 48 83 C0 08 ; K1-P014
+H 48 8B 08 ; K1-P014
+H 48 8D 05 $seg_b ; K1-P014
+H 48 83 C0 08 ; K1-P014
+H 48 8B 10 ; K1-P014
+H E8 $parse_num ; K1-T014
+H 48 85 D2 ; K1-P014
+H 0F 84 $fail_format ; K1-P014
+H 48 8B 0D $pm_dst ; K1-P014
+H 48 89 41 28 ; K1-P014
+:pm_ret
+H C3 ; K1-P014
+; ===== P015 parse_ref: $имя[:1] -> имя/слот =====
+:parse_ref
+H 48 89 0D $pr_s ; K1-P015
+H 48 89 15 $pr_e ; K1-P015
+H 4C 89 05 $pr_dst ; K1-P015
+H 48 FF C1 ; K1-P015 пропуск '$'
+H 48 89 0D $pr_p ; K1-P015 курсор имени
+:pr_loop
+H 48 8B 0D $pr_p ; K1-P015
+H 48 3B 0D $pr_e ; K1-P015
+H 0F 83 $pr_done ; K1-P015
+H 0F B6 01 ; K1-P015
+H E8 $is_name_char ; K1-T015 RAX = 1/0
+H 48 85 C0 ; K1-P015
+H 0F 84 $pr_done ; K1-P015
+H 48 FF C1 ; K1-P015
+H 48 89 0D $pr_p ; K1-P015
+H E9 $pr_loop ; K1-P015
+:pr_done
+H 48 8B 05 $pr_p ; K1-P015 длина имени
+H 48 8B 0D $pr_s ; K1-P015
+H 48 FF C1 ; K1-P015
+H 48 29 C8 ; K1-P015
+H 48 89 05 $pr_len ; K1-P015
+H 48 85 C0 ; K1-P015
+H 0F 84 $fail_format ; K1-P015 пустое имя
+H 48 83 F8 3F ; K1-P015 предел 63
+H 0F 87 $fail_format ; K1-P015
+H 48 8B 0D $pr_p ; K1-P015 конец, или суффикс ":1"
+H 48 3B 0D $pr_e ; K1-P015
+H 0F 85 $pr_suffix ; K1-P015
+H B8 04 00 00 00 ; K1-P015 слот 4 байта
+H E9 $pr_fill ; K1-P015
+:pr_suffix
+H 0F B6 01 ; K1-P015
+H 80 F8 3A ; K1-P015 ':'
+H 0F 85 $fail_format ; K1-P015
+H 48 FF C1 ; K1-P015
+H 48 3B 0D $pr_e ; K1-P015
+H 0F 83 $fail_format ; K1-P015 "$x:"
+H 0F B6 01 ; K1-P015
+H 80 F8 31 ; K1-P015 '1'
+H 0F 85 $fail_format ; K1-P015
+H 48 FF C1 ; K1-P015
+H 48 3B 0D $pr_e ; K1-P015
+H 0F 85 $fail_format ; K1-P015 "$x:1..." мусор
+H B8 01 00 00 00 ; K1-P015 слот 1 байт
+:pr_fill
+H 48 89 05 $pr_slot ; K1-P015
+H 48 8B 15 $pr_dst ; K1-P015
+H 48 C7 02 02 00 00 00 ; K1-P015 kind = 2 (ref)
+H 48 8B 05 $pr_s ; K1-P015
+H 48 FF C0 ; K1-P015 адрес имени
+H 48 89 42 18 ; K1-P015 name_ptr
+H 48 8B 05 $pr_len ; K1-P015
+H 48 89 42 20 ; K1-P015 name_len
+H 48 8B 05 $pr_slot ; K1-P015
+H 48 89 42 28 ; K1-P015 slot
+H C3 ; K1-P015
+; ===== T011 first_nws: первый непустой в [RCX, RDX) =====
+:first_nws
+:fn_loop
+H 48 39 D1 ; K1-T011
+H 0F 83 $fn_end ; K1-T011
+H 0F B6 01 ; K1-T011
+H 80 F8 20 ; K1-T011
+H 0F 84 $fn_adv ; K1-T011
+H 80 F8 09 ; K1-T011
+H 0F 84 $fn_adv ; K1-T011
+H 48 89 C8 ; K1-T011
+H C3 ; K1-T011
+:fn_adv
+H 48 FF C1 ; K1-T011
+H E9 $fn_loop ; K1-T011
+:fn_end
+H 48 89 D0 ; K1-T011
+H C3 ; K1-T011
+; ===== T012 last_nws_end: (последний непустой)+1 в [RCX, RDX) =====
+:last_nws_end
+H 48 89 D0 ; K1-T012
+:ln_loop
+H 48 39 C8 ; K1-T012
+H 0F 86 $ln_none ; K1-T012
+H 44 0F B6 40 FF ; K1-T012
+H 41 80 F8 20 ; K1-T012
+H 0F 84 $ln_dec ; K1-T012
+H 41 80 F8 09 ; K1-T012
+H 0F 84 $ln_dec ; K1-T012
+H C3 ; K1-T012
+:ln_dec
+H 48 FF C8 ; K1-T012
+H E9 $ln_loop ; K1-T012
+:ln_none
+H 48 89 C8 ; K1-T012
+H C3 ; K1-T012
+; ===== T013 hex_digit: AL -> 0..15 | -1 (строго ЗАГЛАВНЫЕ) =====
+:hex_digit
+H 0F B6 C0 ; K1-T013
+H 80 F8 30 ; K1-T013 '0'
+H 0F 82 $hd_bad ; K1-T013
+H 80 F8 39 ; K1-T013 '9'
+H 0F 87 $hd_letter ; K1-T013
+H 83 E8 30 ; K1-T013
+H C3 ; K1-T013
+:hd_letter
+H 80 F8 41 ; K1-T013 'A'
+H 0F 82 $hd_bad ; K1-T013
+H 80 F8 46 ; K1-T013 'F'
+H 0F 87 $hd_bad ; K1-T013
+H 83 E8 37 ; K1-T013
+H C3 ; K1-T013
+:hd_bad
+H 48 C7 C0 FF FF FF FF ; K1-T013
+H C3 ; K1-T013
+; ===== T014 parse_num: ['-']hex{1,8} -> значение =====
+:parse_num
+H 48 89 0D $pn_s ; K1-T014
+H 48 89 15 $pn_e ; K1-T014
+H 45 31 C0 ; K1-T014 накопитель
+H 45 31 C9 ; K1-T014 счётчик цифр
+H 45 31 DB ; K1-T014 знак
+H 48 39 D1 ; K1-T014
+H 0F 83 $pn_bad ; K1-T014 пусто
+H 0F B6 01 ; K1-T014
+H 80 F8 2D ; K1-T014 '-'
+H 0F 85 $pn_digits ; K1-T014
+H 41 BB 01 00 00 00 ; K1-T014
+H 48 FF C1 ; K1-T014
+:pn_digits
+H 48 3B 0D $pn_e ; K1-T014
+H 0F 83 $pn_end ; K1-T014
+H 0F B6 01 ; K1-T014
+H E8 $hex_digit ; K1-T013
+H 48 83 F8 FF ; K1-T014
+H 0F 84 $pn_end ; K1-T014 не цифра — стоп
+H 41 83 F9 08 ; K1-T014 больше 8 цифр
+H 0F 83 $pn_bad ; K1-T014
+H 41 C1 E0 04 ; K1-T014
+H 41 01 C0 ; K1-T014
+H 48 FF C1 ; K1-T014
+H 41 FF C1 ; K1-T014
+H E9 $pn_digits ; K1-T014
+:pn_end
+H 45 85 C9 ; K1-T014
+H 0F 84 $pn_bad ; K1-T014 ни одной цифры
+H 45 85 DB ; K1-T014
+H 0F 84 $pn_pos ; K1-T014
+H 49 F7 D8 ; K1-T014
+:pn_pos
+H 4C 89 C0 ; K1-T014
+H BA 01 00 00 00 ; K1-T014
+H C3 ; K1-T014
+:pn_bad
+H 31 D2 ; K1-T014
+H C3 ; K1-T014
+; ===== T015 is_name_char: [a-z0-9_] ? =====
+:is_name_char
+H 0F B6 C0 ; K1-T015
+H 80 F8 61 ; K1-T015 'a'
+H 0F 82 $nc_digit ; K1-T015
+H 80 F8 7A ; K1-T015 'z'
+H 0F 86 $nc_yes ; K1-T015
+:nc_digit
+H 80 F8 30 ; K1-T015 '0'
+H 0F 82 $nc_us ; K1-T015
+H 80 F8 39 ; K1-T015 '9'
+H 0F 86 $nc_yes ; K1-T015
+:nc_us
+H 80 F8 5F ; K1-T015 '_'
+H 0F 85 $nc_no ; K1-T015
+:nc_yes
+H B8 01 00 00 00 ; K1-T015
+H C3 ; K1-T015
+:nc_no
+H 31 C0 ; K1-T015
+H C3 ; K1-T015
+; ===== R011 lookup_reg: span -> 0 | 10000|размер<<8|код =====
+:lookup_reg
+H 49 89 D0 ; K1-R011
+H 49 29 C8 ; K1-R011 длина span
+H 49 89 C9 ; K1-R011 начало span
+H 4C 8D 1D $regtab ; K1-R011 запись 0 (48 записей)
+H 48 C7 C1 30 00 00 00 ; K1-R011
+:lr_loop
+H 48 85 C9 ; K1-R011
+H 0F 84 $lr_notfound ; K1-R011
+H 41 8B 43 08 ; K1-R011 длина имени записи
+H 44 39 C0 ; K1-R011
+H 0F 85 $lr_next ; K1-R011
+H 51 ; K1-R011
+H 41 50 ; K1-R011
+H 4C 89 C1 ; K1-R011 счётчик сравнения
+H 4C 89 C8 ; K1-R011
+H 4C 89 DA ; K1-R011
+:lr_cmp
+H 48 85 C9 ; K1-R011
+H 0F 84 $lr_eq ; K1-R011
+H 44 0F B6 00 ; K1-R011
+H 44 3A 02 ; K1-R011
+H 0F 85 $lr_ne ; K1-R011
+H 48 FF C0 ; K1-R011
+H 48 FF C2 ; K1-R011
+H 48 FF C9 ; K1-R011
+H E9 $lr_cmp ; K1-R011
+:lr_eq
+H 41 58 ; K1-R011
+H 59 ; K1-R011
+H 41 8B 43 0C ; K1-R011 код|размер<<8
+H 81 C8 00 00 01 00 ; K1-R011 флаг «найден»
+H C3 ; K1-R011
+:lr_ne
+H 41 58 ; K1-R011
+H 59 ; K1-R011
+H E9 $lr_next ; K1-R011
+:lr_next
+H 49 83 C3 10 ; K1-R011 следующая запись
+H 48 FF C9 ; K1-R011
+H E9 $lr_loop ; K1-R011
+:lr_notfound
+H 31 C0 ; K1-R011
+H C3 ; K1-R011
+; ===== R012 lookup_mnem: span -> семейство/параметр (или ошибка) =====
+:lookup_mnem
+H 49 89 D0 ; K1-R012
+H 49 29 C8 ; K1-R012 длина
+H 49 89 C9 ; K1-R012
+H 4C 8D 1D $mnemtab ; K1-R012 запись 0 (41 запись)
+H 48 C7 C1 29 00 00 00 ; K1-R012
+:lm_loop
+H 48 85 C9 ; K1-R012
+H 0F 84 $fail_format ; K1-R012 неизвестная мнемоника
+H 41 8B 43 08 ; K1-R012 длина
+H 44 39 C0 ; K1-R012
+H 0F 85 $lm_next ; K1-R012
+H 51 ; K1-R012
+H 41 50 ; K1-R012
+H 4C 89 C1 ; K1-R012
+H 4C 89 C8 ; K1-R012
+H 4C 89 DA ; K1-R012
+:lm_cmp
+H 48 85 C9 ; K1-R012
+H 0F 84 $lm_eq ; K1-R012
+H 44 0F B6 00 ; K1-R012
+H 44 3A 02 ; K1-R012
+H 0F 85 $lm_ne ; K1-R012
+H 48 FF C0 ; K1-R012
+H 48 FF C2 ; K1-R012
+H 48 FF C9 ; K1-R012
+H E9 $lm_cmp ; K1-R012
+:lm_eq
+H 41 58 ; K1-R012
+H 59 ; K1-R012
+H 41 8B 43 0C ; K1-R012 семейство|параметр<<8
+H 89 C2 ; K1-R012
+H C1 EA 08 ; K1-R012 параметр
+H 81 E0 FF 00 00 00 ; K1-R012 семейство
+H C3 ; K1-R012
+:lm_ne
+H 41 58 ; K1-R012
+H 59 ; K1-R012
+H 49 83 C3 10 ; K1-R012
+H 48 FF C9 ; K1-R012
+H E9 $lm_loop ; K1-R012
+:lm_next
+H 49 83 C3 10 ; K1-R012
+H 48 FF C9 ; K1-R012
+H E9 $lm_loop ; K1-R012
+; ===== R013 lookup_sizekw: byte/word/dword/qword + ' ' =====
+:lookup_sizekw
+H 49 89 D0 ; K1-R013
+H 49 29 C8 ; K1-R013 длина операнда
+H 49 89 C9 ; K1-R013
+H 4C 8D 1D $sizetab ; K1-R013 4 ключа
+H 48 C7 C1 04 00 00 00 ; K1-R013
+:lk_loop
+H 48 85 C9 ; K1-R013
+H 0F 84 $lk_notfound ; K1-R013
+H 41 8B 43 08 ; K1-R013 длина ключа (с пробелом)
+H 44 39 C0 ; K1-R013 операнд короче ключа?
+H 0F 87 $lk_next ; K1-R013
+H 51 ; K1-R013
+H 41 50 ; K1-R013
+H 41 8B 4B 08 ; K1-R013 счётчик = длина ключа (dword)
+H 4C 89 C8 ; K1-R013
+H 4C 89 DA ; K1-R013
+:lk_cmp
+H 48 85 C9 ; K1-R013
+H 0F 84 $lk_eq ; K1-R013
+H 44 0F B6 00 ; K1-R013
+H 44 3A 02 ; K1-R013
+H 0F 85 $lk_ne ; K1-R013
+H 48 FF C0 ; K1-R013
+H 48 FF C2 ; K1-R013
+H 48 FF C9 ; K1-R013
+H E9 $lk_cmp ; K1-R013
+:lk_eq
+H 41 58 ; K1-R013
+H 59 ; K1-R013
+H 41 8B 43 0C ; K1-R013 размер
+H 41 8B 53 08 ; K1-R013 потреблено
+H C3 ; K1-R013
+:lk_ne
+H 41 58 ; K1-R013
+H 59 ; K1-R013
+H E9 $lk_next ; K1-R013
+:lk_next
+H 49 83 C3 10 ; K1-R013
+H 48 FF C9 ; K1-R013
+H E9 $lk_loop ; K1-R013
+:lk_notfound
+H 31 C0 ; K1-R013
+H C3 ; K1-R013
+; ===== E011 emit2: байт AL -> "XX " в [R12] =====
+:emit2
+H 0F B6 C0 ; K1-E011 только AL (старшие биты мусор)
+H 41 89 C3 ; K1-E011 сохранить байт
+H 89 C2 ; K1-E011
+H C1 E8 04 ; K1-E011 старшая тетрада
+H 48 8D 3D $digits ; K1-E011
+H 0F B6 04 07 ; K1-E011 цифра
+H 41 88 04 24 ; K1-E011
+H 49 FF C4 ; K1-E011
+H 44 89 D8 ; K1-E011
+H 83 E0 0F ; K1-E011 младшая тетрада
+H 0F B6 04 07 ; K1-E011
+H 41 88 04 24 ; K1-E011
+H 49 FF C4 ; K1-E011
+H 41 C6 04 24 20 ; K1-E011 пробел-разделитель
+H 49 FF C4 ; K1-E011
+H C3 ; K1-E011
+; ===== E012 emit_rex: AL = REX; 0 — не выдавать =====
+:emit_rex
+H 84 C0 ; K1-E012
+H 0F 84 $erx_done ; K1-E012
+H E8 $emit2 ; K1-E011
+:erx_done
+H C3 ; K1-E012
+; ===== E013 emit_slot: "$имя" / "$имя:1" =====
+:emit_slot
+H 41 C6 04 24 24 ; K1-E013 '$'
+H 49 FF C4 ; K1-E013
+H 4D 89 C3 ; K1-E013 размер слота
+:es_loop
+H 48 85 D2 ; K1-E013
+H 0F 84 $es_name ; K1-E013
+H 0F B6 01 ; K1-E013
+H 41 88 04 24 ; K1-E013
+H 49 FF C4 ; K1-E013
+H 48 FF C1 ; K1-E013
+H 48 FF CA ; K1-E013
+H E9 $es_loop ; K1-E013
+:es_name
+H 41 83 FB 01 ; K1-E013 суффикс ":1"?
+H 0F 85 $es_sp ; K1-E013
+H 41 C6 04 24 3A ; K1-E013 ':'
+H 49 FF C4 ; K1-E013
+H 41 C6 04 24 31 ; K1-E013 '1'
+H 49 FF C4 ; K1-E013
+:es_sp
+H 41 C6 04 24 20 ; K1-E013 хвостовой пробел (как у байтов)
+H 49 FF C4 ; K1-E013
+H C3 ; K1-E013
+; ===== E014 emit_i32: EAX -> 4 байта "XX XX XX XX " =====
+:emit_i32
+H 89 05 $ei_val ; K1-E014
+H 45 31 C9 ; K1-E014
+:ei_loop
+H 41 83 F9 04 ; K1-E014
+H 0F 83 $ei_done ; K1-E014
+H 44 89 C9 ; K1-E014
+H C1 E1 03 ; K1-E014 x 8
+H 8B 05 $ei_val ; K1-E014
+H D3 E8 ; K1-E014
+H E8 $emit2 ; K1-E011
+H 41 FF C1 ; K1-E014
+H E9 $ei_loop ; K1-E014
+:ei_done
+H C3 ; K1-E014
+; ===== E020 check_imm_range: RAX = значение, ECX = 0 строгий / 1 полный =====
+:check_imm_range
+H 49 89 C3 ; K1-E020
+H 4D 85 DB ; K1-E020
+H 0F 88 $cir_neg ; K1-E020 отрицательное
+H 85 C9 ; K1-E020
+H 0F 85 $cir_full ; K1-E020 полный: старшие 32 бита нулевые
+H 49 81 FB FF FF FF 7F ; K1-E020 строгий: <= 0x7FFFFFFF
+H 0F 8F $fail_format ; K1-E020
+H C3 ; K1-E020
+:cir_full
+H 4C 89 D8 ; K1-E020
+H 48 C1 E8 20 ; K1-E020 старшие 32 бита
+H 48 85 C0 ; K1-E020
+H 0F 85 $fail_format ; K1-E020
+H C3 ; K1-E020
+:cir_neg
+H 49 81 FB 00 00 00 80 ; K1-E020 >= -0x80000000
+H 0F 8C $fail_format ; K1-E020
+H C3 ; K1-E020
+; ===== E018 sel_imm: RCX = размер, RAX = значение -> 80/83/81 + imm =====
+:sel_imm
+H 48 89 0D $si_size ; K1-E018
+H 48 89 05 $si_val ; K1-E018
+H 48 83 F9 08 ; K1-E018 8-бит: -0x80..0xFF -> 80 /x ib
+H 0F 85 $si_wide ; K1-E018
+H 48 83 F8 7F ; K1-E018
+H 0F 8F $fail_format ; K1-E018
+H 48 83 F8 80 ; K1-E018
+H 0F 8C $fail_format ; K1-E018
+H B8 80 00 00 00 ; K1-E018
+H 48 89 05 $im_opc ; K1-E018
+H B8 01 00 00 00 ; K1-E018
+H 48 89 05 $im_len ; K1-E018
+H 48 8B 05 $si_val ; K1-E018
+H 48 89 05 $im_b0 ; K1-E018
+H C3 ; K1-E018
+:si_wide
+H 48 83 F8 7F ; K1-E018 знаковый байт? -> 83 /x ib
+H 0F 8F $si_81 ; K1-E018
+H 48 83 F8 80 ; K1-E018
+H 0F 8C $si_81 ; K1-E018
+H B8 83 00 00 00 ; K1-E018
+H 48 89 05 $im_opc ; K1-E018
+H B8 01 00 00 00 ; K1-E018
+H 48 89 05 $im_len ; K1-E018
+H 48 8B 05 $si_val ; K1-E018
+H 48 89 05 $im_b0 ; K1-E018
+H C3 ; K1-E018
+:si_81
+H 48 8B 05 $si_size ; K1-E018 64-бит: строгий диапазон
+H 48 83 F8 40 ; K1-E018
+H 0F 85 $si_32 ; K1-E018
+H 48 C7 C1 00 00 00 00 ; K1-E018
+H 48 8B 05 $si_val ; K1-E018
+H E8 $check_imm_range ; K1-E020
+H E9 $si_emit81 ; K1-E018
+:si_32
+H 48 C7 C1 01 00 00 00 ; K1-E018 32-бит: полный диапазон i32
+H 48 8B 05 $si_val ; K1-E018
+H E8 $check_imm_range ; K1-E020
+:si_emit81
+H B8 81 00 00 00 ; K1-E018
+H 48 89 05 $im_opc ; K1-E018
+H B8 04 00 00 00 ; K1-E018
+H 48 89 05 $im_len ; K1-E018
+H 8B 05 $si_val ; K1-E018 младшие 32 бита
+H 89 05 $im_b0 ; K1-E018
+H C3 ; K1-E018
+; ===== E019 emit_immres: выдать im_len байт из im_b0 =====
+:emit_immres
+H 45 31 C9 ; K1-E019
+:ei2_loop
+H 4C 3B 0D $im_len ; K1-E019
+H 0F 83 $ei2_done ; K1-E019
+H 8B 05 $im_b0 ; K1-E019
+H 44 89 C9 ; K1-E019
+H C1 E1 03 ; K1-E019
+H D3 E8 ; K1-E019
+H E8 $emit2 ; K1-E011
+H 49 FF C1 ; K1-E019
+H E9 $ei2_loop ; K1-E019
+:ei2_done
+H C3 ; K1-E019
+; ===== E015 enc_mem: память -> memres (modrm/SIB/disp/слот) =====
+:enc_mem
+H 48 89 0D $mr_regv ; K1-E015 regv (0..7)
+H 49 8B 40 30 ; K1-E015 rip-ссылка?
+H 48 85 C0 ; K1-E015
+H 0F 84 $em_land ; K1-E015 обычная память
+H 89 C8 ; K1-E015 rip: modrm = 05|regv<<3, слот 4
+H C1 E0 03 ; K1-E015
+H 83 C8 05 ; K1-E015
+H 48 89 05 $mr_modrm ; K1-E015
+H 31 C0 ; K1-E015
+H 48 89 05 $mr_x ; K1-E015
+H 48 89 05 $mr_b ; K1-E015
+H 48 89 05 $mr_sibf ; K1-E015
+H 48 89 05 $mr_tlen ; K1-E015
+H 48 89 05 $mr_tail ; K1-E015
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_slotf ; K1-E015
+H B8 04 00 00 00 ; K1-E015
+H 48 89 05 $mr_ssz ; K1-E015
+H 49 8B 40 30 ; K1-E015
+H 48 89 05 $mr_sptr ; K1-E015
+H 49 8B 40 38 ; K1-E015
+H 48 89 05 $mr_slen ; K1-E015
+H C3 ; K1-E015
+:em_land
+H 4D 8B 58 28 ; K1-E015 D = смещение (int64)
+H 49 81 FB FF FF FF 7F ; K1-E015 диапазон disp32
+H 0F 8F $fail_format ; K1-E015
+H 49 81 FB 00 00 00 80 ; K1-E015
+H 0F 8C $fail_format ; K1-E015
+H 4D 8B 48 18 ; K1-E015 база
+H 49 8B 50 20 ; K1-E015 индекс (-1 = нет)
+H 31 C0 ; K1-E015
+H 48 89 05 $mr_slotf ; K1-E015
+H 48 89 05 $mr_sibf ; K1-E015
+H 48 83 FA FF ; K1-E015 есть индекс?
+H 0F 85 $em_sib ; K1-E015
+H 4C 89 C8 ; K1-E015 база rsp/r12 (&7 == 4) -> SIB
+H 83 E0 07 ; K1-E015
+H 83 F8 04 ; K1-E015
+H 0F 84 $em_sib ; K1-E015
+H 4C 89 C9 ; K1-E015 rm = база&7
+H 83 E1 07 ; K1-E015
+H 48 89 0D $mr_rm ; K1-E015
+H E9 $em_mod ; K1-E015
+:em_sib
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_sibf ; K1-E015
+H B9 04 00 00 00 ; K1-E015 «нет индекса» (поле 100)
+H 48 83 FA FF ; K1-E015
+H 0F 84 $em_sidx ; K1-E015
+H 48 89 D1 ; K1-E015
+H 83 E1 07 ; K1-E015 индекс&7
+:em_sidx
+H C1 E1 03 ; K1-E015
+H 4C 89 C8 ; K1-E015
+H 83 E0 07 ; K1-E015 база&7
+H 09 C1 ; K1-E015 SIB
+H 48 89 0D $mr_sib ; K1-E015
+H B8 04 00 00 00 ; K1-E015
+H 48 89 05 $mr_rm ; K1-E015 rm = 100
+:em_mod
+H 31 C0 ; K1-E015
+H 48 89 05 $mr_mod ; K1-E015
+H 48 89 05 $mr_tlen ; K1-E015
+H 48 89 05 $mr_tail ; K1-E015
+H 4D 85 DB ; K1-E015 D == 0?
+H 0F 85 $em_disp ; K1-E015
+H 48 8B 05 $mr_rm ; K1-E015
+H 48 83 F8 04 ; K1-E015
+H 0F 85 $em_rm5 ; K1-E015
+H 48 8B 05 $mr_sibf ; K1-E015
+H 48 85 C0 ; K1-E015
+H 0F 84 $em_rex ; K1-E015 [rsp]: mod 00, без disp
+H 4C 89 C8 ; K1-E015 SIB-база rbp/r13 (&7 == 5)?
+H 83 E0 07 ; K1-E015
+H 83 F8 05 ; K1-E015
+H 0F 85 $em_rex ; K1-E015 mod 00
+H E9 $em_m1z ; K1-E015 -> mod 01, disp8 = 0
+:em_rm5
+H 48 83 F8 05 ; K1-E015 rbp/r13 без disp = rip!
+H 0F 85 $em_rex ; K1-E015 mod 00
+:em_m1z
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_mod ; K1-E015
+H 48 89 05 $mr_tlen ; K1-E015
+H 31 C0 ; K1-E015
+H 48 89 05 $mr_tail ; K1-E015 disp8 = 0
+H E9 $em_rex ; K1-E015
+:em_disp
+H 49 83 FB 7F ; K1-E015 disp8?
+H 0F 8F $em_d32 ; K1-E015
+H 49 83 FB 80 ; K1-E015
+H 0F 8C $em_d32 ; K1-E015
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_mod ; K1-E015
+H 48 89 05 $mr_tlen ; K1-E015
+H 44 89 D8 ; K1-E015
+H 48 89 05 $mr_tail ; K1-E015 младший байт
+H E9 $em_rex ; K1-E015
+:em_d32
+H B8 02 00 00 00 ; K1-E015
+H 48 89 05 $mr_mod ; K1-E015
+H B8 04 00 00 00 ; K1-E015
+H 48 89 05 $mr_tlen ; K1-E015
+H 44 89 D8 ; K1-E015
+H 89 05 $mr_tail ; K1-E015 4 байта LE
+:em_rex
+H 31 C0 ; K1-E015
+H 48 89 05 $mr_x ; K1-E015
+H 48 89 05 $mr_b ; K1-E015
+H 48 83 FA FF ; K1-E015 X: индекс >= r8
+H 0F 84 $em_nox ; K1-E015
+H 48 83 FA 08 ; K1-E015
+H 0F 8C $em_nox ; K1-E015
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_x ; K1-E015
+:em_nox
+H 49 83 F9 08 ; K1-E015 B: база >= r8
+H 0F 8C $em_nob ; K1-E015
+H B8 01 00 00 00 ; K1-E015
+H 48 89 05 $mr_b ; K1-E015
+:em_nob
+H 48 8B 05 $mr_mod ; K1-E015 modrm = mod<<6|regv<<3|rm
+H C1 E0 06 ; K1-E015
+H 48 8B 0D $mr_regv ; K1-E015
+H C1 E1 03 ; K1-E015
+H 09 C8 ; K1-E015
+H 48 8B 0D $mr_rm ; K1-E015
+H 09 C8 ; K1-E015
+H 48 89 05 $mr_modrm ; K1-E015
+H C3 ; K1-E015
+; ===== E016 emit_rm: RAX=опк, R8=mem, ECX=regv, EDX=флаги(w1|r2) =====
+:emit_rm
+H 48 89 05 $er_opc ; K1-E016
+H 48 89 15 $er_flags ; K1-E016
+H E8 $enc_mem ; K1-E015 (R8/ECX на месте)
+H 8B 05 $er_flags ; K1-E016
+H 83 E0 01 ; K1-E016 w (бит 0)
+H C1 E0 03 ; K1-E016 W<<3
+H 48 8B 0D $er_flags ; K1-E016
+H 83 E1 02 ; K1-E016 r-флаг (бит 1)
+H C1 E1 01 ; K1-E016 R<<2
+H 09 C8 ; K1-E016
+H 48 8B 0D $mr_x ; K1-E016
+H C1 E1 01 ; K1-E016 X<<1
+H 09 C8 ; K1-E016
+H 48 8B 0D $mr_b ; K1-E016
+H 09 C8 ; K1-E016
+H 83 C8 40 ; K1-E016
+H 83 F8 40 ; K1-E016
+H 0F 84 $erm_norex ; K1-E016
+H E8 $emit2 ; K1-E011
+:erm_norex
+H 48 8B 05 $er_pre ; K1-E016 префикс 0F (movzx)?
+H 48 85 C0 ; K1-E016
+H 0F 84 $erm_nopre ; K1-E016
+H E8 $emit2 ; K1-E011
+:erm_nopre
+H 48 8B 05 $er_opc ; K1-E016
+H E8 $emit2 ; K1-E011
+H 48 8B 05 $mr_modrm ; K1-E016
+H E8 $emit2 ; K1-E011
+H 48 8B 05 $mr_sibf ; K1-E016
+H 48 85 C0 ; K1-E016
+H 0F 84 $erm_nosib ; K1-E016
+H 48 8B 05 $mr_sib ; K1-E016
+H E8 $emit2 ; K1-E011
+:erm_nosib
+H 45 31 C9 ; K1-E016
+:erm_tloop
+H 4C 3B 0D $mr_tlen ; K1-E016
+H 0F 83 $erm_tdone ; K1-E016
+H 8B 05 $mr_tail ; K1-E016
+H 44 89 C9 ; K1-E016
+H C1 E1 03 ; K1-E016
+H D3 E8 ; K1-E016
+H E8 $emit2 ; K1-E011
+H 49 FF C1 ; K1-E016
+H E9 $erm_tloop ; K1-E016
+:erm_tdone
+H 48 8B 05 $er_imm ; K1-E016 imm после disp (mem,imm)?
+H 48 85 C0 ; K1-E016
+H 0F 84 $erm_noimm ; K1-E016
+H E8 $emit_immres ; K1-E019
+:erm_noimm
+H 48 8B 05 $mr_slotf ; K1-E016 слот — всегда последним
+H 48 85 C0 ; K1-E016
+H 0F 84 $erm_ret ; K1-E016
+H 48 8B 0D $mr_sptr ; K1-E016
+H 48 8B 15 $mr_slen ; K1-E016
+H 4C 8B 05 $mr_ssz ; K1-E016
+H E8 $emit_slot ; K1-E013
+:erm_ret
+H C3 ; K1-E016
+; ===== E017 emit_rr: RAX=опк, RCX=код src, RDX=код dst, R8=размер =====
+:emit_rr
+H 48 89 05 $rr_opc ; K1-E017
+H 48 89 0D $rr_src ; K1-E017
+H 48 89 15 $rr_dst ; K1-E017
+H 4C 89 05 $rr_size ; K1-E017
+H 31 C0 ; K1-E017 REX
+H 49 83 F8 40 ; K1-E017 W: размер 64?
+H 0F 85 $rr_now ; K1-E017
+H 83 C8 08 ; K1-E017
+:rr_now
+H 48 83 F9 08 ; K1-E017 R: src >= r8?
+H 0F 8C $rr_nor ; K1-E017
+H 83 C8 04 ; K1-E017
+:rr_nor
+H 48 83 FA 08 ; K1-E017 B: dst >= r8?
+H 0F 8C $rr_nob ; K1-E017
+H 83 C8 01 ; K1-E017
+:rr_nob
+H 83 C8 40 ; K1-E017
+H 83 F8 40 ; K1-E017
+H 0F 84 $rr_norex ; K1-E017
+H E8 $emit2 ; K1-E011
+:rr_norex
+H 48 8B 05 $rr_opc ; K1-E017
+H E8 $emit2 ; K1-E011
+H 48 8B 05 $rr_src ; K1-E017 reg-поле = источник
+H 83 E0 07 ; K1-E017
+H C1 E0 03 ; K1-E017
+H 48 8B 0D $rr_dst ; K1-E017
+H 83 E1 07 ; K1-E017
+H 09 C8 ; K1-E017
+H 81 C8 C0 00 00 00 ; K1-E017 mod 11
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E017
+; ===== E021 enc_alu: add/or/and/sub/xor/cmp (семейство 1) =====
+:enc_alu
+H 49 8B 45 00 ; K1-E021 вид приёмника
+H 48 83 F8 00 ; K1-E021 регистр?
+H 0F 84 $ea_dreg ; K1-E021
+H 48 83 F8 03 ; K1-E021 память?
+H 0F 85 $fail_format ; K1-E021 imm/ref приёмник — ошибка
+H 49 8B 45 40 ; K1-E021 вид источника
+H 48 83 F8 00 ; K1-E021
+H 0F 84 $ea_mr ; K1-E021 mem,reg
+H 48 83 F8 01 ; K1-E021
+H 0F 84 $ea_mi ; K1-E021 mem,imm
+H E9 $fail_format ; K1-E021
+:ea_dreg
+H 49 8B 45 40 ; K1-E021
+H 48 83 F8 00 ; K1-E021
+H 0F 84 $ea_rr ; K1-E021 reg,reg
+H 48 83 F8 01 ; K1-E021
+H 0F 84 $ea_ri ; K1-E021 reg,imm
+H 48 83 F8 03 ; K1-E021
+H 0F 84 $ea_rm ; K1-E021 reg,mem
+H E9 $fail_format ; K1-E021
+:ea_rr
+H 49 8B 45 10 ; K1-E021 размеры равны?
+H 49 3B 45 50 ; K1-E021
+H 0F 85 $fail_format ; K1-E021
+H 8B 15 $m_param ; K1-E021 опк = база (8 бит) | база+1
+H 0F B6 D2 ; K1-E021
+H 48 83 F8 08 ; K1-E021
+H 0F 85 $ea_rr32 ; K1-E021
+H 89 D0 ; K1-E021
+H E9 $ea_rrop ; K1-E021
+:ea_rr32
+H 8D 42 01 ; K1-E021
+:ea_rrop
+H 48 89 05 $t_opc ; K1-E021
+H 49 8B 4D 48 ; K1-E021 src
+H 49 8B 55 08 ; K1-E021 dst
+H 4D 8B 45 10 ; K1-E021 размер
+H 48 8B 05 $t_opc ; K1-E021
+H E8 $emit_rr ; K1-E017
+H C3 ; K1-E021
+:ea_ri
+H 49 8B 4D 10 ; K1-E021 размер
+H 49 8B 45 48 ; K1-E021 значение
+H E8 $sel_imm ; K1-E018 80/83/81 + imm
+H 31 C0 ; K1-E021 REX
+H 49 83 7D 10 40 ; K1-E021
+H 0F 85 $ea_ri_now ; K1-E021
+H 83 C8 08 ; K1-E021
+:ea_ri_now
+H 49 83 7D 08 08 ; K1-E021
+H 0F 8C $ea_ri_nob ; K1-E021
+H 83 C8 01 ; K1-E021
+:ea_ri_nob
+H 83 C8 40 ; K1-E021
+H 83 F8 40 ; K1-E021
+H 0F 84 $ea_ri_norex ; K1-E021
+H E8 $emit2 ; K1-E011
+:ea_ri_norex
+H 48 8B 05 $im_opc ; K1-E021
+H E8 $emit2 ; K1-E011
+H 8B 05 $m_param ; K1-E021 modrm = C0|ext<<3|dst&7
+H C1 E8 08 ; K1-E021
+H 83 E0 07 ; K1-E021
+H C1 E0 03 ; K1-E021
+H 49 8B 4D 08 ; K1-E021
+H 83 E1 07 ; K1-E021
+H 09 C8 ; K1-E021
+H 81 C8 C0 00 00 00 ; K1-E021
+H E8 $emit2 ; K1-E011
+H E8 $emit_immres ; K1-E019
+H C3 ; K1-E021
+:ea_rm
+H 49 8B 45 50 ; K1-E021 размер источника не задан/равен
+H 48 85 C0 ; K1-E021
+H 0F 84 $ea_rm_ok ; K1-E021
+H 49 3B 45 10 ; K1-E021
+H 0F 85 $fail_format ; K1-E021
+:ea_rm_ok
+H 8B 15 $m_param ; K1-E021 опк = база+2 (8) | база+3
+H 0F B6 D2 ; K1-E021
+H 49 83 7D 10 08 ; K1-E021
+H 0F 85 $ea_rm32 ; K1-E021
+H 8D 42 02 ; K1-E021
+H E9 $ea_rmop ; K1-E021
+:ea_rm32
+H 8D 42 03 ; K1-E021
+:ea_rmop
+H 48 89 05 $t_opc ; K1-E021
+H 4D 89 E8 ; K1-E021 источник (mem)
+H 49 83 C0 40 ; K1-E021
+H 41 8B 4D 08 ; K1-E021 regv = dst&7
+H 83 E1 07 ; K1-E021
+H 31 D2 ; K1-E021 флаги
+H 49 83 7D 10 40 ; K1-E021
+H 0F 85 $ea_rm_now ; K1-E021
+H 83 CA 01 ; K1-E021 w
+:ea_rm_now
+H 49 83 7D 08 08 ; K1-E021
+H 0F 8C $ea_rm_nor ; K1-E021
+H 83 CA 02 ; K1-E021 r
+:ea_rm_nor
+H 48 8B 05 $t_opc ; K1-E021
+H E8 $emit_rm ; K1-E016
+H C3 ; K1-E021
+:ea_mr
+H 49 8B 45 10 ; K1-E021 размер приёмника не задан/равен
+H 48 85 C0 ; K1-E021
+H 0F 84 $ea_mr_ok ; K1-E021
+H 49 3B 45 50 ; K1-E021
+H 0F 85 $fail_format ; K1-E021
+:ea_mr_ok
+H 8B 15 $m_param ; K1-E021 опк = база (8) | база+1
+H 0F B6 D2 ; K1-E021
+H 49 83 7D 50 08 ; K1-E021
+H 0F 85 $ea_mr32 ; K1-E021
+H 89 D0 ; K1-E021
+H E9 $ea_mrop ; K1-E021
+:ea_mr32
+H 8D 42 01 ; K1-E021
+:ea_mrop
+H 48 89 05 $t_opc ; K1-E021
+H 4D 89 E8 ; K1-E021 приёмник (mem)
+H 41 8B 4D 48 ; K1-E021 regv = src&7
+H 83 E1 07 ; K1-E021
+H 31 D2 ; K1-E021
+H 49 83 7D 50 40 ; K1-E021
+H 0F 85 $ea_mr_now ; K1-E021
+H 83 CA 01 ; K1-E021
+:ea_mr_now
+H 49 83 7D 48 08 ; K1-E021
+H 0F 8C $ea_mr_nor ; K1-E021
+H 83 CA 02 ; K1-E021
+:ea_mr_nor
+H 48 8B 05 $t_opc ; K1-E021
+H E8 $emit_rm ; K1-E016
+H C3 ; K1-E021
+:ea_mi
+H 49 8B 45 10 ; K1-E021 размер памяти: 8/32/64
+H 48 83 F8 08 ; K1-E021
+H 0F 84 $ea_mi_sz ; K1-E021
+H 48 83 F8 20 ; K1-E021
+H 0F 84 $ea_mi_sz ; K1-E021
+H 48 83 F8 40 ; K1-E021
+H 0F 84 $ea_mi_sz ; K1-E021
+H E9 $fail_format ; K1-E021 (16 бит и None запрещены)
+:ea_mi_sz
+H 49 83 7D 30 00 ; K1-E021 rip+imm: слот не в конце
+H 0F 85 $fail_format ; K1-E021
+H 49 8B 4D 10 ; K1-E021 размер
+H 49 8B 45 48 ; K1-E021 значение
+H E8 $sel_imm ; K1-E018
+H B8 01 00 00 00 ; K1-E021 выдать imm после disp
+H 48 89 05 $er_imm ; K1-E016
+H 31 D2 ; K1-E021 флаги (r = 0)
+H 49 83 7D 10 40 ; K1-E021
+H 0F 85 $ea_mi_now ; K1-E021
+H BA 01 00 00 00 ; K1-E021 w
+:ea_mi_now
+H 48 8B 05 $im_opc ; K1-E021 опк 80/83/81
+H 4D 89 E8 ; K1-E021 mem-приёмник
+H 8B 0D $m_param ; K1-E021 regv = ext
+H C1 E9 08 ; K1-E021
+H 83 E1 07 ; K1-E021
+H E8 $emit_rm ; K1-E016
+H 31 C0 ; K1-E021
+H 48 89 05 $er_imm ; K1-E021 сброс флага
+H C3 ; K1-E021
+; ===== E022 enc_shift: rol/ror/shl/shr/sar (семейство 2) =====
+:enc_shift
+H 49 83 7D 00 00 ; K1-E022 приёмник — регистр?
+H 0F 85 $fail_format ; K1-E022
+H 49 83 7D 10 08 ; K1-E022 8/32/64
+H 0F 84 $sh_sz ; K1-E022
+H 49 83 7D 10 20 ; K1-E022
+H 0F 84 $sh_sz ; K1-E022
+H 49 83 7D 10 40 ; K1-E022
+H 0F 84 $sh_sz ; K1-E022
+H E9 $fail_format ; K1-E022
+:sh_sz
+H 49 8B 45 40 ; K1-E022 источник
+H 48 83 F8 00 ; K1-E022 cl?
+H 0F 84 $sh_cl ; K1-E022
+H 48 83 F8 01 ; K1-E022 imm?
+H 0F 85 $fail_format ; K1-E022
+H 49 8B 45 48 ; K1-E022 значение 0..0xFF
+H 48 83 F8 00 ; K1-E022
+H 0F 8C $fail_format ; K1-E022 отрицательное
+H 48 81 F8 FF 00 00 00 ; K1-E022
+H 0F 8F $fail_format ; K1-E022
+H B8 01 00 00 00 ; K1-E022 imm: 1 байт
+H 48 89 05 $im_len ; K1-E019
+H 49 8B 45 48 ; K1-E022
+H 48 89 05 $im_b0 ; K1-E019
+H B8 C0 00 00 00 ; K1-E022 опк C0/C1
+H 49 83 7D 10 08 ; K1-E022
+H 0F 84 $sh_iopc ; K1-E022
+H B8 C1 00 00 00 ; K1-E022
+:sh_iopc
+H 48 89 05 $t_opc ; K1-E022
+H B8 01 00 00 00 ; K1-E022 imm выдать после modrm
+H 48 89 05 $sh_immf ; K1-E022
+H E9 $sh_common ; K1-E022
+:sh_cl
+H 49 83 7D 50 08 ; K1-E022 только 8-бит
+H 0F 85 $fail_format ; K1-E022
+H 49 83 7D 48 01 ; K1-E022 только cl (код 1)
+H 0F 85 $fail_format ; K1-E022
+H B8 D2 00 00 00 ; K1-E022 опк D2/D3
+H 49 83 7D 10 08 ; K1-E022
+H 0F 84 $sh_copc ; K1-E022
+H B8 D3 00 00 00 ; K1-E022
+:sh_copc
+H 48 89 05 $t_opc ; K1-E022
+H 31 C0 ; K1-E022 без imm
+H 48 89 05 $sh_immf ; K1-E022
+:sh_common
+H 31 C0 ; K1-E022 REX
+H 49 83 7D 10 40 ; K1-E022
+H 0F 85 $sh_now ; K1-E022
+H 83 C8 08 ; K1-E022
+:sh_now
+H 49 83 7D 08 08 ; K1-E022
+H 0F 8C $sh_nob ; K1-E022
+H 83 C8 01 ; K1-E022
+:sh_nob
+H 83 C8 40 ; K1-E022
+H 83 F8 40 ; K1-E022
+H 0F 84 $sh_norex ; K1-E022
+H E8 $emit2 ; K1-E011
+:sh_norex
+H 48 8B 05 $t_opc ; K1-E022
+H E8 $emit2 ; K1-E011
+H 8B 05 $m_param ; K1-E022 modrm = C0|ext<<3|dst&7
+H 83 E0 07 ; K1-E022
+H C1 E0 03 ; K1-E022
+H 49 8B 4D 08 ; K1-E022
+H 83 E1 07 ; K1-E022
+H 09 C8 ; K1-E022
+H 81 C8 C0 00 00 00 ; K1-E022
+H E8 $emit2 ; K1-E011
+H 48 8B 05 $sh_immf ; K1-E022 imm-форма?
+H 48 85 C0 ; K1-E022
+H 0F 84 $sh_done ; K1-E022
+H E8 $emit_immres ; K1-E019
+H 31 C0 ; K1-E022
+H 48 89 05 $sh_immf ; K1-E022 сброс
+:sh_done
+H C3 ; K1-E022
+; ===== E023 enc_jcc: 7x/0F 8x + слот (семейство 3) =====
+:enc_jcc
+H 49 83 7D 00 02 ; K1-E023 только ссылка
+H 0F 85 $fail_format ; K1-E023
+H 49 83 7D 28 01 ; K1-E023 rel8?
+H 0F 84 $jc_short ; K1-E023
+H 49 83 7D 28 04 ; K1-E023 rel32?
+H 0F 85 $fail_format ; K1-E023
+H B8 0F 00 00 00 ; K1-E023 0F 8x слот4
+H E8 $emit2 ; K1-E011
+H 8B 05 $m_param ; K1-E023 cc
+H 81 C8 80 00 00 00 ; K1-E023
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 18 ; K1-E023
+H 49 8B 55 20 ; K1-E023
+H 49 C7 C0 04 00 00 00 ; K1-E023
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E023
+:jc_short
+H 8B 05 $m_param ; K1-E023 7x слот1
+H 83 C8 70 ; K1-E023
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 18 ; K1-E023
+H 49 8B 55 20 ; K1-E023
+H 49 C7 C0 01 00 00 00 ; K1-E023
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E023
+; ===== E024 enc_mov (семейство 4) =====
+:enc_mov
+H 49 8B 45 00 ; K1-E024 приёмник
+H 48 83 F8 00 ; K1-E024
+H 0F 84 $em_dreg ; K1-E024
+H 48 83 F8 03 ; K1-E024
+H 0F 85 $fail_format ; K1-E024
+H 49 8B 45 40 ; K1-E024 источник
+H 48 83 F8 00 ; K1-E024
+H 0F 84 $em_mr ; K1-E024
+H 48 83 F8 01 ; K1-E024
+H 0F 84 $em_mi ; K1-E024
+H E9 $fail_format ; K1-E024
+:em_dreg
+H 49 8B 45 40 ; K1-E024
+H 48 83 F8 00 ; K1-E024
+H 0F 84 $em_rr ; K1-E024
+H 48 83 F8 01 ; K1-E024
+H 0F 84 $em_ri ; K1-E024
+H 48 83 F8 03 ; K1-E024
+H 0F 84 $em_rm ; K1-E024
+H E9 $fail_format ; K1-E024
+:em_rr
+H 49 8B 45 10 ; K1-E024 размеры равны
+H 49 3B 45 50 ; K1-E024
+H 0F 85 $fail_format ; K1-E024
+H B8 89 00 00 00 ; K1-E024 опк 88 (8) / 89
+H 49 83 7D 10 08 ; K1-E024
+H 0F 85 $em_rrop ; K1-E024
+H B8 88 00 00 00 ; K1-E024
+:em_rrop
+H 48 89 05 $t_opc ; K1-E024
+H 49 8B 4D 48 ; K1-E024 src
+H 49 8B 55 08 ; K1-E024 dst
+H 4D 8B 45 10 ; K1-E024 размер
+H 48 8B 05 $t_opc ; K1-E024
+H E8 $emit_rr ; K1-E017
+H C3 ; K1-E024
+:em_ri
+H 49 83 7D 10 08 ; K1-E024 8 бит: -0x80..0xFF
+H 0F 85 $em_ri32 ; K1-E024
+H 49 8B 45 48 ; K1-E024
+H 48 83 F8 7F ; K1-E024
+H 0F 8F $fail_format ; K1-E024
+H 48 83 F8 80 ; K1-E024
+H 0F 8C $fail_format ; K1-E024
+H 31 C0 ; K1-E024 REX (только B)
+H 49 83 7D 08 08 ; K1-E024
+H 0F 8C $em_ri8_nb ; K1-E024
+H 83 C8 01 ; K1-E024
+:em_ri8_nb
+H 83 C8 40 ; K1-E024
+H 83 F8 40 ; K1-E024
+H 0F 84 $em_ri8_nx ; K1-E024
+H E8 $emit2 ; K1-E011
+:em_ri8_nx
+H 49 8B 45 08 ; K1-E024 B0+rd, байт значения
+H 83 E0 07 ; K1-E024
+H 81 C8 B0 00 00 00 ; K1-E024
+H E8 $emit2 ; K1-E011
+H 49 8B 45 48 ; K1-E024
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E024
+:em_ri32
+H 49 83 7D 10 20 ; K1-E024 32 бита
+H 0F 85 $em_ri64 ; K1-E024
+H 48 C7 C1 01 00 00 00 ; K1-E024 полный диапазон i32
+H 49 8B 45 48 ; K1-E024
+H E8 $check_imm_range ; K1-E020
+H 31 C0 ; K1-E024 REX (только B)
+H 49 83 7D 08 08 ; K1-E024
+H 0F 8C $em_ri32_nb ; K1-E024
+H 83 C8 01 ; K1-E024
+:em_ri32_nb
+H 83 C8 40 ; K1-E024
+H 83 F8 40 ; K1-E024
+H 0F 84 $em_ri32_nx ; K1-E024
+H E8 $emit2 ; K1-E011
+:em_ri32_nx
+H 49 8B 45 08 ; K1-E024 B8+rd, i32
+H 83 E0 07 ; K1-E024
+H 81 C8 B8 00 00 00 ; K1-E024
+H E8 $emit2 ; K1-E011
+H 49 8B 45 48 ; K1-E024
+H E8 $emit_i32 ; K1-E014
+H C3 ; K1-E024
+:em_ri64
+H 49 83 7D 10 40 ; K1-E024 64 бита: imm32 знакорасшир.
+H 0F 85 $fail_format ; K1-E024
+H 48 C7 C1 00 00 00 00 ; K1-E024 строгий диапазон
+H 49 8B 45 48 ; K1-E024
+H E8 $check_imm_range ; K1-E020
+H B8 48 00 00 00 ; K1-E024 REX.W|B, C7 C0+rd, i32
+H 49 83 7D 08 08 ; K1-E024
+H 0F 8C $em_ri64_nb ; K1-E024
+H 83 C8 01 ; K1-E024
+:em_ri64_nb
+H E8 $emit2 ; K1-E011
+H B8 C7 00 00 00 ; K1-E024
+H E8 $emit2 ; K1-E011
+H 49 8B 45 08 ; K1-E024
+H 83 E0 07 ; K1-E024
+H 81 C8 C0 00 00 00 ; K1-E024
+H E8 $emit2 ; K1-E011
+H 49 8B 45 48 ; K1-E024
+H E8 $emit_i32 ; K1-E014
+H C3 ; K1-E024
+:em_rm
+H 49 8B 45 50 ; K1-E024 размер источника
+H 48 85 C0 ; K1-E024
+H 0F 84 $em_rm_ok ; K1-E024
+H 49 3B 45 10 ; K1-E024
+H 0F 85 $fail_format ; K1-E024
+:em_rm_ok
+H B8 8B 00 00 00 ; K1-E024 опк 8A (8) / 8B
+H 49 83 7D 10 08 ; K1-E024
+H 0F 85 $em_rm_op ; K1-E024
+H B8 8A 00 00 00 ; K1-E024
+:em_rm_op
+H 48 89 05 $t_opc ; K1-E024
+H 4D 89 E8 ; K1-E024 источник (mem)
+H 49 83 C0 40 ; K1-E024
+H 41 8B 4D 08 ; K1-E024
+H 83 E1 07 ; K1-E024
+H 31 D2 ; K1-E024
+H 49 83 7D 10 40 ; K1-E024
+H 0F 85 $em_rm_now ; K1-E024
+H 83 CA 01 ; K1-E024
+:em_rm_now
+H 49 83 7D 08 08 ; K1-E024
+H 0F 8C $em_rm_nor ; K1-E024
+H 83 CA 02 ; K1-E024
+:em_rm_nor
+H 48 8B 05 $t_opc ; K1-E024
+H E8 $emit_rm ; K1-E016
+H C3 ; K1-E024
+:em_mr
+H 49 8B 45 10 ; K1-E024 размер приёмника
+H 48 85 C0 ; K1-E024
+H 0F 84 $em_mr_ok ; K1-E024
+H 49 3B 45 50 ; K1-E024
+H 0F 85 $fail_format ; K1-E024
+:em_mr_ok
+H B8 89 00 00 00 ; K1-E024 опк 88/89 по размеру ИСТОЧНИКА
+H 49 83 7D 50 08 ; K1-E024
+H 0F 85 $em_mr_op ; K1-E024
+H B8 88 00 00 00 ; K1-E024
+:em_mr_op
+H 48 89 05 $t_opc ; K1-E024
+H 4D 89 E8 ; K1-E024 приёмник (mem)
+H 41 8B 4D 48 ; K1-E024 regv = src
+H 83 E1 07 ; K1-E024
+H 31 D2 ; K1-E024
+H 49 83 7D 50 40 ; K1-E024
+H 0F 85 $em_mr_now ; K1-E024
+H 83 CA 01 ; K1-E024
+:em_mr_now
+H 49 83 7D 48 08 ; K1-E024
+H 0F 8C $em_mr_nor ; K1-E024
+H 83 CA 02 ; K1-E024
+:em_mr_nor
+H 48 8B 05 $t_opc ; K1-E024
+H E8 $emit_rm ; K1-E016
+H C3 ; K1-E024
+:em_mi
+H 49 8B 45 10 ; K1-E024 размер: 8/32/64
+H 48 83 F8 08 ; K1-E024
+H 0F 84 $em_mi_sz ; K1-E024
+H 48 83 F8 20 ; K1-E024
+H 0F 84 $em_mi_sz ; K1-E024
+H 48 83 F8 40 ; K1-E024
+H 0F 84 $em_mi_sz ; K1-E024
+H E9 $fail_format ; K1-E024
+:em_mi_sz
+H 49 83 7D 30 00 ; K1-E024 rip+imm запрещён
+H 0F 85 $fail_format ; K1-E024
+H 49 8B 45 48 ; K1-E024 значение
+H 49 83 7D 10 08 ; K1-E024 байтовая память: 0..0xFF
+H 0F 85 $em_mi_wide ; K1-E024
+H 48 83 F8 00 ; K1-E024
+H 0F 8C $fail_format ; K1-E024 отрицательное
+H 48 81 F8 FF 00 00 00 ; K1-E024
+H 0F 8F $fail_format ; K1-E024
+H B8 01 00 00 00 ; K1-E024
+H 48 89 05 $im_len ; K1-E019
+H 49 8B 45 48 ; K1-E024
+H 48 89 05 $im_b0 ; K1-E019 байт значения
+H B8 C6 00 00 00 ; K1-E024 опк C6 /0
+H 48 89 05 $im_opc ; K1-E024
+H E9 $em_mi_emit ; K1-E024
+:em_mi_wide
+H 49 83 7D 10 40 ; K1-E024 64: строгий диапазон
+H 0F 85 $em_mi_32 ; K1-E024
+H 48 C7 C1 00 00 00 00 ; K1-E024
+H 49 8B 45 48 ; K1-E024
+H E8 $check_imm_range ; K1-E020
+H E9 $em_mi_c7 ; K1-E024
+:em_mi_32
+H 48 C7 C1 01 00 00 00 ; K1-E024
+H 49 8B 45 48 ; K1-E024
+H E8 $check_imm_range ; K1-E020
+:em_mi_c7
+H B8 C7 00 00 00 ; K1-E024 опк C7 /0, imm32
+H 48 89 05 $im_opc ; K1-E024
+H B8 04 00 00 00 ; K1-E024
+H 48 89 05 $im_len ; K1-E019
+H 41 8B 45 48 ; K1-E024 младшие 32 бита
+H 89 05 $im_b0 ; K1-E019
+:em_mi_emit
+H B8 01 00 00 00 ; K1-E024 imm после disp
+H 48 89 05 $er_imm ; K1-E016
+H 31 D2 ; K1-E024 флаги (r = 0)
+H 49 83 7D 10 40 ; K1-E024
+H 0F 85 $em_mi_now ; K1-E024
+H BA 01 00 00 00 ; K1-E024 w
+:em_mi_now
+H 48 8B 05 $im_opc ; K1-E024
+H 4D 89 E8 ; K1-E024 mem-приёмник
+H 31 C9 ; K1-E024 regv = /0
+H E8 $emit_rm ; K1-E016
+H 31 C0 ; K1-E024
+H 48 89 05 $er_imm ; K1-E024 сброс флага
+H C3 ; K1-E024
+; ===== E025 enc_movzx (семейство 5) =====
+:enc_movzx
+H 49 83 7D 00 00 ; K1-E025 приёмник — регистр
+H 0F 85 $fail_format ; K1-E025
+H 49 83 7D 10 40 ; K1-E025 32/64 (не 8)
+H 0F 84 $ez_ok ; K1-E025
+H 49 83 7D 10 20 ; K1-E025
+H 0F 85 $fail_format ; K1-E025
+:ez_ok
+H 49 8B 45 40 ; K1-E025 источник
+H 48 83 F8 00 ; K1-E025
+H 0F 84 $ez_reg ; K1-E025
+H 48 83 F8 03 ; K1-E025
+H 0F 84 $ez_mem ; K1-E025
+H E9 $fail_format ; K1-E025
+:ez_reg
+H 49 83 7D 50 08 ; K1-E025 только 8-бит
+H 0F 85 $fail_format ; K1-E025
+H 31 C0 ; K1-E025 REX без W: R + B
+H 49 83 7D 08 08 ; K1-E025
+H 0F 8C $ez_nor ; K1-E025
+H 83 C8 04 ; K1-E025
+:ez_nor
+H 49 83 7D 48 08 ; K1-E025
+H 0F 8C $ez_nob ; K1-E025
+H 83 C8 01 ; K1-E025
+:ez_nob
+H 83 C8 40 ; K1-E025
+H 83 F8 40 ; K1-E025
+H 0F 84 $ez_norex ; K1-E025
+H E8 $emit2 ; K1-E011
+:ez_norex
+H B8 0F 00 00 00 ; K1-E025 0F B6 /r mod11
+H E8 $emit2 ; K1-E011
+H B8 B6 00 00 00 ; K1-E025
+H E8 $emit2 ; K1-E011
+H 49 8B 45 08 ; K1-E025
+H 83 E0 07 ; K1-E025
+H C1 E0 03 ; K1-E025
+H 49 8B 4D 48 ; K1-E025
+H 83 E1 07 ; K1-E025
+H 09 C8 ; K1-E025
+H 81 C8 C0 00 00 00 ; K1-E025
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E025
+:ez_mem
+H 49 8B 45 50 ; K1-E025 byte/word
+H 48 83 F8 08 ; K1-E025
+H 0F 84 $ez_m8 ; K1-E025
+H 48 83 F8 10 ; K1-E025 16 (word)
+H 0F 84 $ez_m16 ; K1-E025
+H E9 $fail_format ; K1-E025
+:ez_m8
+H B8 B6 00 00 00 ; K1-E025 0F B6
+H E9 $ez_mop ; K1-E025
+:ez_m16
+H B8 B7 00 00 00 ; K1-E025 0F B7
+:ez_mop
+H 48 89 05 $t_sub ; K1-E025
+H B8 0F 00 00 00 ; K1-E025 префикс 0F для emit_rm
+H 48 89 05 $er_pre ; K1-E016
+H 4D 89 E8 ; K1-E025 источник (mem)
+H 49 83 C0 40 ; K1-E025
+H 41 8B 4D 08 ; K1-E025 regv = dst
+H 83 E1 07 ; K1-E025
+H 31 D2 ; K1-E025 НЕТ w (32-бит запись обнуляет)
+H 49 83 7D 08 08 ; K1-E025
+H 0F 8C $ez_mem_nor ; K1-E025
+H BA 02 00 00 00 ; K1-E025 r
+:ez_mem_nor
+H 48 8B 05 $t_sub ; K1-E025
+H E8 $emit_rm ; K1-E016 (выдаст 0F B6/B7 ...)
+H 31 C0 ; K1-E025
+H 48 89 05 $er_pre ; K1-E016 сброс префикса
+H C3 ; K1-E025
+; ===== E026 enc_lea (семейство 6) =====
+:enc_lea
+H 49 83 7D 00 00 ; K1-E026 приёмник — регистр
+H 0F 85 $fail_format ; K1-E026
+H 49 83 7D 10 40 ; K1-E026 32/64
+H 0F 84 $le_sz ; K1-E026
+H 49 83 7D 10 20 ; K1-E026
+H 0F 85 $fail_format ; K1-E026
+:le_sz
+H 49 83 7D 40 03 ; K1-E026 источник — память
+H 0F 85 $fail_format ; K1-E026
+H 49 83 7D 50 00 ; K1-E026 без ключа размера
+H 0F 85 $fail_format ; K1-E026
+H B8 8D 00 00 00 ; K1-E026 опк 8D
+H 48 89 05 $t_opc ; K1-E026
+H 4D 89 E8 ; K1-E026
+H 49 83 C0 40 ; K1-E026 источник
+H 41 8B 4D 08 ; K1-E026 regv = dst
+H 83 E1 07 ; K1-E026
+H 31 D2 ; K1-E026
+H 49 83 7D 10 40 ; K1-E026
+H 0F 85 $le_now ; K1-E026
+H BA 01 00 00 00 ; K1-E026 w
+:le_now
+H 49 83 7D 08 08 ; K1-E026
+H 0F 8C $le_nor ; K1-E026
+H 83 CA 02 ; K1-E026
+:le_nor
+H 48 8B 05 $t_opc ; K1-E026
+H E8 $emit_rm ; K1-E016
+H C3 ; K1-E026
+; ===== E027 enc_test (семейство 7) =====
+:enc_test
+H 49 83 7D 00 00 ; K1-E027 оба регистры
+H 0F 85 $fail_format ; K1-E027
+H 49 83 7D 40 00 ; K1-E027
+H 0F 85 $fail_format ; K1-E027
+H 49 8B 45 10 ; K1-E027 размеры равны
+H 49 3B 45 50 ; K1-E027
+H 0F 85 $fail_format ; K1-E027
+H B8 85 00 00 00 ; K1-E027 опк 84 (8) / 85
+H 49 83 7D 10 08 ; K1-E027
+H 0F 85 $et_have ; K1-E027
+H B8 84 00 00 00 ; K1-E027
+H E9 $et_go ; K1-E027
+:et_have
+H B8 85 00 00 00 ; K1-E027
+:et_go
+H 48 89 05 $t_opc ; K1-E027
+H 49 8B 4D 48 ; K1-E027 src
+H 49 8B 55 08 ; K1-E027 dst
+H 4D 8B 45 10 ; K1-E027 размер
+H 48 8B 05 $t_opc ; K1-E027
+H E8 $emit_rr ; K1-E017
+H C3 ; K1-E027
+; ===== E028 enc_call (семейство 8) =====
+:enc_call
+H 49 83 7D 00 02 ; K1-E028 ссылка?
+H 0F 84 $ca_ref ; K1-E028
+H 49 83 7D 00 03 ; K1-E028 память [rip+..]?
+H 0F 85 $fail_format ; K1-E028
+H 49 83 7D 30 00 ; K1-E028 только rip
+H 0F 84 $fail_format ; K1-E028
+H 49 83 7D 10 00 ; K1-E028 без ключа размера
+H 0F 85 $fail_format ; K1-E028
+H B8 FF 00 00 00 ; K1-E028 FF 15 слот4
+H E8 $emit2 ; K1-E011
+H B8 15 00 00 00 ; K1-E028
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 30 ; K1-E028
+H 49 8B 55 38 ; K1-E028
+H 49 C7 C0 04 00 00 00 ; K1-E028
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E028
+:ca_ref
+H 49 83 7D 28 04 ; K1-E028 только слот 4
+H 0F 85 $fail_format ; K1-E028
+H B8 E8 00 00 00 ; K1-E028 E8 слот4
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 18 ; K1-E028
+H 49 8B 55 20 ; K1-E028
+H 49 C7 C0 04 00 00 00 ; K1-E028
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E028
+; ===== E029 enc_unary: neg/inc/dec (семейство 9) =====
+:enc_unary
+H 49 83 7D 00 00 ; K1-E029 регистр 32/64
+H 0F 85 $fail_format ; K1-E029
+H 49 83 7D 10 40 ; K1-E029
+H 0F 84 $un_sz ; K1-E029
+H 49 83 7D 10 20 ; K1-E029
+H 0F 85 $fail_format ; K1-E029
+:un_sz
+H 31 C0 ; K1-E029 REX
+H 49 83 7D 10 40 ; K1-E029
+H 0F 85 $un_now ; K1-E029
+H 83 C8 08 ; K1-E029
+:un_now
+H 49 83 7D 08 08 ; K1-E029
+H 0F 8C $un_nob ; K1-E029
+H 83 C8 01 ; K1-E029
+:un_nob
+H 83 C8 40 ; K1-E029
+H 83 F8 40 ; K1-E029
+H 0F 84 $un_norex ; K1-E029
+H E8 $emit2 ; K1-E011
+:un_norex
+H 8B 05 $m_param ; K1-E029 опк (младший байт)
+H 0F B6 C0 ; K1-E029
+H E8 $emit2 ; K1-E011
+H 8B 05 $m_param ; K1-E029 modrm = C0|ext<<3|код&7
+H C1 E8 08 ; K1-E029
+H 83 E0 07 ; K1-E029
+H C1 E0 03 ; K1-E029
+H 49 8B 4D 08 ; K1-E029
+H 83 E1 07 ; K1-E029
+H 09 C8 ; K1-E029
+H 81 C8 C0 00 00 00 ; K1-E029
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E029
+; ===== E030 enc_pushpop: push/pop r64 (семейства A/B) =====
+:enc_pushpop
+H 49 83 7D 00 00 ; K1-E030 регистр 64
+H 0F 85 $fail_format ; K1-E030
+H 49 83 7D 10 40 ; K1-E030
+H 0F 85 $fail_format ; K1-E030
+H 31 C0 ; K1-E030 REX (только B)
+H 49 83 7D 08 08 ; K1-E030
+H 0F 8C $pp_nob ; K1-E030
+H 83 C8 01 ; K1-E030
+:pp_nob
+H 83 C8 40 ; K1-E030
+H 83 F8 40 ; K1-E030
+H 0F 84 $pp_norex ; K1-E030
+H E8 $emit2 ; K1-E011
+:pp_norex
+H 8B 05 $m_param ; K1-E030 база 50/58 | код&7
+H 41 8B 4D 08 ; K1-E030
+H 83 E1 07 ; K1-E030
+H 09 C8 ; K1-E030
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E030
+; ===== E031 enc_jmp (семейство C) =====
+:enc_jmp
+H 49 83 7D 00 02 ; K1-E031 только ссылка
+H 0F 85 $fail_format ; K1-E031
+H 49 83 7D 28 01 ; K1-E031 rel8?
+H 0F 84 $jm_short ; K1-E031
+H 49 83 7D 28 04 ; K1-E031 rel32?
+H 0F 85 $fail_format ; K1-E031
+H B8 E9 00 00 00 ; K1-E031 E9 слот4
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 18 ; K1-E031
+H 49 8B 55 20 ; K1-E031
+H 49 C7 C0 04 00 00 00 ; K1-E031
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E031
+:jm_short
+H B8 EB 00 00 00 ; K1-E031 EB слот1
+H E8 $emit2 ; K1-E011
+H 49 8B 4D 18 ; K1-E031
+H 49 8B 55 20 ; K1-E031
+H 49 C7 C0 01 00 00 00 ; K1-E031
+H E8 $emit_slot ; K1-E013
+H C3 ; K1-E031
+; ===== E032 enc_simple: cdqe/ret/int3 (семейство D) =====
+:enc_simple
+H 8B 05 $m_param ; K1-E032 байт 1 (младший)
+H 0F B6 C0 ; K1-E032
+H E8 $emit2 ; K1-E011
+H 48 8B 05 $m_param ; K1-E032 байт 2 (старший)
+H C1 E8 08 ; K1-E032
+H 85 C0 ; K1-E032
+H 0F 84 $sm_done ; K1-E032 однобайтовая
+H E8 $emit2 ; K1-E011
+:sm_done
+H C3 ; K1-E032
+; ===== H011 hex16_to_4: 4 hex-цифры в [RDI] =====
+:hex16_to_4
+H B9 04 00 00 00 ; K1-H011
+H C1 E0 10 ; K1-H011 число в старшие 16 бит
+:h4_loop
+H C1 C0 04 ; K1-H011
+H 89 C2 ; K1-H011
+H 83 E2 0F ; K1-H011
+H 4C 8D 05 $digits ; K1-H011
+H 41 0F B6 14 10 ; K1-H011
+H 88 17 ; K1-H011
+H 48 FF C7 ; K1-H011
+H FF C9 ; K1-H011
+H 75 $h4_loop:1 ; K1-H011
+H C3 ; K1-H011
+; ===== G013 fail_format: ERR=FORMAT AT=XXXX + выход 6 =====
+:fail_format
+H 48 83 E4 F0 ; K1-G013 выравнивание стека (не возвращаемся)
+H 48 8D 3D $linebuf ; K1-G013
+H 48 8D 35 $fmt_pfx ; K1-G013
+H B9 17 00 00 00 ; K1-G013 23 байта префикса
+:ff_loop
+H 0F B6 06 ; K1-G013
+H 88 07 ; K1-G013
+H 48 FF C6 ; K1-G013
+H 48 FF C7 ; K1-G013
+H FF C9 ; K1-G013
+H 75 $ff_loop:1 ; K1-G013
+H 8B 05 $curline ; K1-G013
+H 81 E0 FF FF 00 00 ; K1-G013 4 цифры номера строки
+H E8 $hex16_to_4 ; K1-H011
+H C6 07 0D ; K1-G013
+H 48 FF C7 ; K1-G013
+H C6 07 0A ; K1-G013
+H 48 FF C7 ; K1-G013
+H 48 8D 15 $linebuf ; K1-G013
+H 41 B8 1D 00 00 00 ; K1-G013 29 байт
+H E8 $print_line ; K1-U011
+H B9 06 00 00 00 ; K1-G013 код FORMAT
+H FF 15 $iat_ep ; K1-G013 ExitProcess
+H CC ; K1-G013 страховка
+; ===== G012 print_error: errtab[ECX] + выход =====
+:print_error
+H 48 83 E4 F0 ; K1-G012 выравнивание стека (не возвращаемся)
+H 48 83 EC 30 ; K1-G012 тень + ячейка кода
+H 89 C8 ; K1-G012
+H C1 E0 04 ; K1-G012 x 16
+H 48 98 ; K1-G012
+H 48 8D 15 $errtab ; K1-G012
+H 48 01 C2 ; K1-G012 адрес записи
+H 44 8B 42 04 ; K1-G012 длина
+H 44 8B 4A 08 ; K1-G012 код возврата
+H 44 89 4C 24 10 ; K1-G012
+H 8B 12 ; K1-G012 RVA строки
+H 48 01 DA ; K1-G012 адрес строки
+H E8 $print_line ; K1-U011
+H 8B 4C 24 10 ; K1-G012
+H FF 15 $iat_ep ; K1-G012 ExitProcess
+H CC ; K1-G012 страховка
+; ===== U011 print_line: RDX = строка, R8D = длина =====
+:print_line
+H 48 83 EC 28 ; K1-U011
+H 48 8B 0D $hstdout ; K1-U011
+H 4C 8D 0D $written ; K1-U011
+H 48 C7 44 24 20 00 00 00 00 ; K1-U011 без перекрытия
+H FF 15 $iat_wf ; K1-U011 WriteFile
+H 48 83 C4 28 ; K1-U011
+H C3 ; K1-U011
+; ===== C013 next_arg / C014 read_word / C015 copy_word_dst / C016 skip_seps =====
+:next_arg
+H E8 $skip_seps ; K1-C016 разделители перед аргументом
+H 0F B6 07 ; K1-C013
+H 84 C0 ; K1-C013
+H 0F 84 $na_miss ; K1-C013 аргумента нет
+H E8 $read_word ; K1-C014 RSI/RDI = границы слова
+H E8 $copy_word_dst ; K1-C015 копирование в буфер R8
+H 85 C0 ; K1-C013 флаг длинного имени
+H 0F 84 $na_ok ; K1-C013 уложились
+H B9 01 00 00 00 ; K1-C013 ERR=LONG NAME
+H E8 $print_error ; K1-G012
+:na_ok
+H C3 ; K1-C013
+:na_miss
+H B9 00 00 00 00 ; K1-C013 справка
+H E8 $print_error ; K1-G012
+:read_word
+H 48 89 FE ; K1-C014 начало слова
+:rw_loop
+H 0F B6 07 ; K1-C014
+H 84 C0 ; K1-C014
+H 0F 84 $rw_end ; K1-C014
+H 80 F8 20 ; K1-C014
+H 0F 84 $rw_end ; K1-C014
+H 80 F8 09 ; K1-C014
+H 0F 84 $rw_end ; K1-C014
+H 48 FF C7 ; K1-C014
+H E9 $rw_loop ; K1-C014
+:rw_end
+H C3 ; K1-C014
+:copy_word_dst
+H 4D 89 C3 ; K1-C015 курсор записи
+:cwd_loop
+H 48 39 FE ; K1-C015 слово исчерпано?
+H 0F 84 $cwd_done ; K1-C015
+H 4C 89 DA ; K1-C015
+H 4C 29 C2 ; K1-C015 записано байт
+H 48 83 FA 7F ; K1-C015 предел буфера
+H 0F 83 $cwd_long ; K1-C015
+H 0F B6 16 ; K1-C015
+H 41 88 13 ; K1-C015
+H 48 FF C6 ; K1-C015
+H 49 FF C3 ; K1-C015
+H E9 $cwd_loop ; K1-C015
+:cwd_done
+H 31 C0 ; K1-C015 флаг: уложились
+H 41 88 03 ; K1-C015 NUL
+H C3 ; K1-C015
+:cwd_long
+H 41 C6 03 00 ; K1-C015 NUL на границе
+H B8 01 00 00 00 ; K1-C015 флаг: длиннее 127
+H C3 ; K1-C015
+:skip_seps
+H 0F B6 07 ; K1-C016
+H 80 F8 20 ; K1-C016
+H 0F 84 $ss_adv ; K1-C016
+H 80 F8 09 ; K1-C016
+H 0F 84 $ss_adv ; K1-C016
+H C3 ; K1-C016
+:ss_adv
+H 48 FF C7 ; K1-C016
+H E9 $skip_seps ; K1-C016
+; ===== F011..F015: файловые операции (реинкарнации K1-F001..F005) =====
+:open_file_read
+H 48 83 EC 38 ; K1-F011
+H BA 00 00 00 80 ; K1-F011 GENERIC_READ
+H 41 B8 01 00 00 00 ; K1-F011 FILE_SHARE_READ
+H 45 31 C9 ; K1-F011 SA=NULL
+H 48 C7 44 24 20 03 00 00 00 ; K1-F011 OPEN_EXISTING
+H 48 C7 44 24 28 80 00 00 00 ; K1-F011 NORMAL
+H 48 C7 44 24 30 00 00 00 00 ; K1-F011 шаблон
+H FF 15 $iat_cf ; K1-F011 CreateFileA
+H 48 83 C4 38 ; K1-F011
+H C3 ; K1-F011
+:create_file_write
+H 48 83 EC 38 ; K1-F012
+H BA 00 00 00 40 ; K1-F012 GENERIC_WRITE
+H 45 31 C0 ; K1-F012
+H 45 31 C9 ; K1-F012
+H 48 C7 44 24 20 02 00 00 00 ; K1-F012 CREATE_ALWAYS
+H 48 C7 44 24 28 80 00 00 00 ; K1-F012
+H 48 C7 44 24 30 00 00 00 00 ; K1-F012
+H FF 15 $iat_cf ; K1-F012
+H 48 83 C4 38 ; K1-F012
+H C3 ; K1-F012
+:close_file
+H 48 83 EC 28 ; K1-F013
+H FF 15 $iat_ch ; K1-F013 CloseHandle
+H 48 83 C4 28 ; K1-F013
+H C3 ; K1-F013
+:read_whole_dst
+H 48 83 EC 28 ; K1-F014
+H 48 C7 44 24 20 00 00 00 00 ; K1-F014 без перекрытия
+H FF 15 $iat_rf ; K1-F014 ReadFile
+H 48 83 C4 28 ; K1-F014
+H 48 85 C0 ; K1-F014
+H 0F 85 $rwf_ok ; K1-F014
+H 48 C7 C0 FF FF FF FF ; K1-F014
+H C3 ; K1-F014
+:rwf_ok
+H 41 8B 01 ; K1-F014 счётчик
+H C3 ; K1-F014
+:write_all
+H 48 83 EC 28 ; K1-F015
+H 4C 89 05 $wa_len ; K1-F015 длина
+H 4C 8D 0D $written ; K1-F015
+H 48 C7 44 24 20 00 00 00 00 ; K1-F015 без перекрытия
+H FF 15 $iat_wf ; K1-F015 WriteFile
+H 48 83 C4 28 ; K1-F015
+H 48 85 C0 ; K1-F015
+H 0F 84 $wa_err ; K1-F015
+H 48 8B 05 $written ; K1-F015 записано
+H 48 3B 05 $wa_len ; K1-F015 равно длине?
+H 0F 85 $wa_err ; K1-F015
+H 31 C0 ; K1-F015 успех
+H C3 ; K1-F015
+:wa_err
+H B8 01 00 00 00 ; K1-F015
+H C3 ; K1-F015
+
+; ===== K1-D011 таблица цифр =====
+:digits
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
+
+; ===== K1-D012 regtab: 48 записей {имя(8Б), длина, код|размер<<8, 0} =====
+:regtab
+DD 20786172 0 3 4000 ; rax
+DD 20786165 0 3 2000 ; eax
+DD 20786372 0 3 4001 ; rcx
+DD 20786365 0 3 2001 ; ecx
+DD 20786472 0 3 4002 ; rdx
+DD 20786465 0 3 2002 ; edx
+DD 20786272 0 3 4003 ; rbx
+DD 20786265 0 3 2003 ; ebx
+DD 20707372 0 3 4004 ; rsp
+DD 20707365 0 3 2004 ; esp
+DD 20706272 0 3 4005 ; rbp
+DD 20706265 0 3 2005 ; ebp
+DD 20697372 0 3 4006 ; rsi
+DD 20697365 0 3 2006 ; esi
+DD 20696472 0 3 4007 ; rdi
+DD 20696465 0 3 2007 ; edi
+DD 203872 0 2 4008 ; r8
+DD 20643872 0 3 2008 ; r8d
+DD 203972 0 2 4009 ; r9
+DD 20643972 0 3 2009 ; r9d
+DD 20303172 0 3 400A ; r10
+DD 64303172 20 4 200A ; r10d
+DD 20313172 0 3 400B ; r11
+DD 64313172 20 4 200B ; r11d
+DD 20323172 0 3 400C ; r12
+DD 64323172 20 4 200C ; r12d
+DD 20333172 0 3 400D ; r13
+DD 64333172 20 4 200D ; r13d
+DD 20343172 0 3 400E ; r14
+DD 64343172 20 4 200E ; r14d
+DD 20353172 0 3 400F ; r15
+DD 64353172 20 4 200F ; r15d
+DD 206C61 0 2 800 ; al
+DD 206C63 0 2 801 ; cl
+DD 206C64 0 2 802 ; dl
+DD 206C62 0 2 803 ; bl
+DD 206C6973 0 3 806 ; sil
+DD 206C6964 0 3 807 ; dil
+DD 206C7073 0 3 804 ; spl
+DD 206C7062 0 3 805 ; bpl
+DD 20623872 0 3 808 ; r8b
+DD 20623972 0 3 809 ; r9b
+DD 62303172 20 4 80A ; r10b
+DD 62313172 20 4 80B ; r11b
+DD 62323172 20 4 80C ; r12b
+DD 62333172 20 4 80D ; r13b
+DD 62343172 20 4 80E ; r14b
+DD 62353172 20 4 80F ; r15b
+
+; ===== K1-D013 mnemtab: 41 запись {имя(8Б), длина, семейство|параметр<<8, 0} =====
+:mnemtab
+DD 646461 0 3 1 ; add
+DD 726F 0 2 10801 ; or
+DD 646E61 0 3 42001 ; and
+DD 627573 0 3 52801 ; sub
+DD 726F78 0 3 63001 ; xor
+DD 706D63 0 3 73801 ; cmp
+DD 6C6F72 0 3 2 ; rol
+DD 726F72 0 3 102 ; ror
+DD 6C6873 0 3 402 ; shl
+DD 726873 0 3 502 ; shr
+DD 726173 0 3 702 ; sar
+DD 6F6A 0 2 3 ; jo
+DD 6F6E6A 0 3 103 ; jno
+DD 626A 0 2 203 ; jb
+DD 65616A 0 3 303 ; jae
+DD 7A6A 0 2 403 ; jz
+DD 7A6E6A 0 3 503 ; jnz
+DD 65626A 0 3 603 ; jbe
+DD 616A 0 2 703 ; ja
+DD 736A 0 2 803 ; js
+DD 736E6A 0 3 903 ; jns
+DD 6C6A 0 2 C03 ; jl
+DD 65676A 0 3 D03 ; jge
+DD 656C6A 0 3 E03 ; jle
+DD 676A 0 2 F03 ; jg
+DD 656A 0 2 403 ; je
+DD 656E6A 0 3 503 ; jne
+DD 766F6D 0 3 4 ; mov
+DD 7A766F6D 78 5 5 ; movzx
+DD 61656C 0 3 6 ; lea
+DD 74736574 0 4 7 ; test
+DD 6C6C6163 0 4 8 ; call
+DD 67656E 0 3 3F709 ; neg
+DD 636E69 0 3 FF09 ; inc
+DD 636564 0 3 1FF09 ; dec
+DD 68737570 0 4 500A ; push
+DD 706F70 0 3 580B ; pop
+DD 706D6A 0 3 C ; jmp
+DD 65716463 0 4 98480D ; cdqe
+DD 746572 0 3 C30D ; ret
+DD 33746E69 0 4 CC0D ; int3
+
+; ===== K1-D014 sizetab: 4 записи {ключ с пробелом(8Б), длина, размер, 0} =====
+:sizetab
+DD 65747962 20 5 8 ; byte
+DD 64726F77 20 5 10 ; word
+DD 726F7764 2064 6 20 ; dword
+DD 726F7771 2064 6 40 ; qword
+
+; ===== K1-D015 errtab: 7 записей {RVA, длина, код, 0} =====
+:errtab
+DD $usage_str 29 2 0 ; код 2
+DD $err_long 18 3 0 ; код 3
+DD $err_opensrc 17 4 0 ; код 4
+DD $err_readsrc 17 5 0 ; код 5
+DD $err_bigsrc 16 7 0 ; код 7
+DD $err_openout 17 8 0 ; код 8
+DD $err_writeout 18 9 0 ; код 9
+
+; ===== K1-D016 строки вывода =====
+:usage_str ; справка
+DB 55 2D 4C 31 2D 45 4E 43 20 43 4D 44 53 3A 20 45 ; справка
+DB 4E 43 20 3C 53 52 43 2E 42 32 3E 20 3C 4F 55 54
+DB 2E 42 52 49 43 4B 3E 0D 0A
+:err_long ; long
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4C 4F 4E ; long
+DB 47 20 4E 41 4D 45 0D 0A
+:err_opensrc ; opensrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4F 50 45 ; opensrc
+DB 4E 20 53 52 43 0D 0A
+:err_readsrc ; readsrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 52 45 41 ; readsrc
+DB 44 20 53 52 43 0D 0A
+:err_bigsrc ; bigsrc
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 42 49 47 ; bigsrc
+DB 20 53 52 43 0D 0A
+:err_openout ; openout
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 4F 50 45 ; openout
+DB 4E 20 4F 55 54 0D 0A
+:err_writeout ; writeout
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 57 52 49 ; writeout
+DB 54 45 20 4F 55 54 0D 0A
+:fmt_pfx ; префикс FORMAT (23 Б)
+DB 55 2D 4C 31 2D 45 4E 43 20 45 52 52 3D 46 4F 52 ; префикс FORMAT (23 Б)
+DB 4D 41 54 20 41 54 3D
+
+; ===== K1-D017 таблица импортов kernel32.dll =====
+:idt
+DD $intt 0 0 $dll_name $iat ; описатель импорта
+DZ 14 ; терминатор IDT (нулевая запись)
+:iat
+:iat_gsh
+DQ $hint_gsh ; IAT: GetStdHandle
+:iat_wf
+DQ $hint_wf ; IAT: WriteFile
+:iat_ep
+DQ $hint_ep ; IAT: ExitProcess
+:iat_gcl
+DQ $hint_gcl ; IAT: GetCommandLineA
+:iat_cf
+DQ $hint_cf ; IAT: CreateFileA
+:iat_rf
+DQ $hint_rf ; IAT: ReadFile
+:iat_ch
+DQ $hint_ch ; IAT: CloseHandle
+DQ 0 ; IAT: терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
+:dll_name
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
+DZ 1 ; чётность RVA hint-записей
+:hint_gsh
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
+DZ 1 ; выравнивание
+:hint_wf
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; WriteFile
+:hint_ep
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; ExitProcess
+:hint_gcl
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; GetCommandLineA
+DB 41 00 ; GetCommandLineA (конец)
+:hint_cf
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; CreateFileA
+:hint_rf
+DB 00 00 52 65 61 64 46 69 6C 65 00 ; ReadFile
+DZ 1 ; выравнивание
+:hint_ch
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
+
+; ===== K1-D018 виртуальные нули (bss; загрузчик обнуляет) =====
+:hstdout
+DBZ 8
+:written
+DBZ 8
+:srclen
+DBZ 8
+:curline
+DBZ 8
+:wa_len
+DBZ 8
+:fname_in
+DBZ 80
+:fname_out
+DBZ 80
+:opbuf
+DBZ 80
+:linebuf
+DBZ 40
+:el_p1
+DBZ 8
+:el_p2
+DBZ 8
+:el_b0
+DBZ 8
+:el_b1
+DBZ 8
+:el_cpos
+DBZ 8
+:el_m1
+DBZ 8
+:el_o0
+DBZ 8
+:el_o1
+DBZ 8
+:el_ps
+DBZ 8
+:el_pe
+DBZ 8
+:el_s
+DBZ 8
+:el_e
+DBZ 8
+:el_oi
+DBZ 8
+:opcnt
+DBZ 8
+:m_family
+DBZ 8
+:m_param
+DBZ 8
+:po_s
+DBZ 8
+:po_e
+DBZ 8
+:po_dst
+DBZ 8
+:po_size
+DBZ 8
+:po_q
+DBZ 8
+:pm_s
+DBZ 8
+:pm_e
+DBZ 8
+:pm_dst
+DBZ 8
+:pm_cs
+DBZ 8
+:pm_cur
+DBZ 8
+:pm_n
+DBZ 8
+:pr_s
+DBZ 8
+:pr_e
+DBZ 8
+:pr_dst
+DBZ 8
+:pr_p
+DBZ 8
+:pr_len
+DBZ 8
+:pr_slot
+DBZ 8
+:pn_s
+DBZ 8
+:pn_e
+DBZ 8
+:mr_regv
+DBZ 8
+:mr_mod
+DBZ 8
+:mr_rm
+DBZ 8
+:mr_sib
+DBZ 8
+:mr_sibf
+DBZ 8
+:mr_tlen
+DBZ 8
+:mr_tail
+DBZ 8
+:mr_x
+DBZ 8
+:mr_b
+DBZ 8
+:mr_modrm
+DBZ 8
+:mr_slotf
+DBZ 8
+:mr_sptr
+DBZ 8
+:mr_slen
+DBZ 8
+:mr_ssz
+DBZ 8
+:er_opc
+DBZ 8
+:er_flags
+DBZ 8
+:er_imm
+DBZ 8
+:er_pre
+DBZ 8
+:rr_opc
+DBZ 8
+:rr_src
+DBZ 8
+:rr_dst
+DBZ 8
+:rr_size
+DBZ 8
+:si_size
+DBZ 8
+:si_val
+DBZ 8
+:im_opc
+DBZ 8
+:im_len
+DBZ 8
+:im_b0
+DBZ 8
+:t_opc
+DBZ 8
+:t_sub
+DBZ 8
+:ei_val
+DBZ 8
+:sh_immf
+DBZ 8
+:seg_a
+DBZ 20
+:seg_b
+DBZ 20
+:filebuf
+DBZ 20100 ; текст входа (128 КиБ + сентинел)
+:outbuf
+DBZ 44010 ; вывод (<= вход x 23/11 + 1)

@@ -158,7 +158,10 @@ def decode(fetch, rip):
             raise UnknownOpcode("сдвиг /%d @ %X" % (reg, rip))
         imm = fetch(pos, 1)
         pos += 1
-        return _finish(name, rip, pos, (mem["op"], imm & 0x1F),
+        # счётчик сдвига: 64-бит маскируется 6 битами (REX.W),
+        # прочие — 5 (правило Intel; найдено E6.2: shr rax,32)
+        imm &= 0x3F if opsize == QWORD else 0x1F
+        return _finish(name, rip, pos, (mem["op"], imm),
                        riprel, fetch)
     if b == 0xC3:
         return "ret", pos - rip, ()

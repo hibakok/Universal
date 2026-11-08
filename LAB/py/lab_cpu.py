@@ -237,13 +237,16 @@ class CPU:
         self.put(op, self._flags_sub(self.get(op), 1, size))
         self.cf = cf                    # dec не трогает CF
 
-    def _cl(self, count):
-        """Счётчик сдвига: imm или CL."""
-        return self.r[1] & 0x1F if count == "cl" else count
+    def _cl(self, count, size=64):
+        """Счётчик сдвига: imm или CL. 64-бит — маска 6 бит (REX.W),
+        прочие — 5 (правило Intel; найдено E6.2: shr rax,32)."""
+        if count != "cl":
+            return count
+        return self.r[1] & (0x3F if size == QWORD else 0x1F)
 
     def _op_shl(self, op, count):
         size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count)
+        count = self._cl(count, size)
         if count == 0:
             return
         mask = (1 << size) - 1
@@ -257,7 +260,7 @@ class CPU:
 
     def _op_shr(self, op, count):
         size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count)
+        count = self._cl(count, size)
         if count == 0:
             return
         a = self.get(op)
@@ -269,7 +272,7 @@ class CPU:
 
     def _op_rol(self, op, count):
         size = op[2] if op[0] == "r" else op[5]
-        cnt = self._cl(count)
+        cnt = self._cl(count, size)
         if cnt == 0:
             return
         bits = size
@@ -282,7 +285,7 @@ class CPU:
 
     def _op_sar(self, op, count):
         size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count)
+        count = self._cl(count, size)
         if count == 0:
             return
         a = self.get(op)

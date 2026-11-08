@@ -46,8 +46,10 @@ SHA = {
                       "6E5B8C806F1906C",
     "L1-BRICK/brick": "5F7F9EFD3398B735E762B37610ED1F197C383DA7252A3CD0"
                       "C73DD3EE31A5C857",
+    "L1-ENC/enc": "93AD8E21FADE2D1EC173F8723CE6165D3C9681C18251486FD"
+                "27789D0E7A54A45",
 }
-MODS = list(SHA)
+MODS = [m for m in SHA if m != "L1-ENC/enc"]   # у enc нет .hex (BRICK v2)
 
 PASS, FAIL = [], []
 
@@ -93,7 +95,7 @@ def t_integrity():
 
 # ------------------------------------------------------------------ 2
 def t_pe_invariants():
-    for m in MODS:
+    for m in SHA:                       # включая enc (E6.2)
         pe = lab_pe.load(kpath("%s.exe" % m))
         bad = lab_pe.check_spec04(pe)
         check("PE инварианты SPEC/04 %s" % m.split("/")[-1], not bad,
@@ -366,6 +368,109 @@ def _enc_rejects(m):
         return True
 
 
+# ------------------------------------------------------------------ 7
+def t_enc_exe():
+    """Инструмент enc.exe (E6.2): равенство оракулу и самохостинг."""
+    enc = kpath("L1-ENC/enc.exe")
+    brick_exe = kpath("L1-BRICK/brick.exe")
+    pegen_exe = kpath("L0-PEGEN/pegen.exe")
+
+    # T-E6-05: справка без аргументов
+    r = lab_run.run_kv(enc, [], {})
+    check("T-E6-05 enc справка",
+          r.stdout == b"U-L1-ENC CMDS: ENC <SRC.B2> <OUT.BRICK>\r\n" and
+          r.exit_code == 2, "%r код=%s" % (r.stdout[:44], r.exit_code))
+
+    # T-E6-06: все якоря одним файлом — байт-в-байт с оракулом
+    synth = "\n".join(m for m, _ in lab_enc_cases.CASES) + "\n"
+    want = lab_enc.normalize(synth).encode()
+    r = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": synth.encode()})
+    check("T-E6-06 enc == оракул (%d якорей)" % len(lab_enc_cases.CASES),
+          r.exit_code == 0 and r.files.get("t.brick") == want,
+          "шагов=%d" % r.steps)
+
+    # T-E6-07/T-E6-11: отвержение — та же строка ERR=FORMAT AT=, что у оракула
+    bad = []
+    for e in lab_enc_cases.ERRORS:
+        text = "M ret\nM int3\n" + e + "\n"
+        try:
+            lab_enc.normalize(text)
+            bad.append(e + " (принят оракулом)")
+            continue
+        except lab_enc.EncError as ex:
+            want_out = ("U-L1-ENC ERR=" + str(ex) + "\r\n").encode()
+        r = lab_run.run_kv(enc, ["t.b2", "t.brick"],
+                           {"t.b2": text.encode()})
+        if not (r.exit_code == 6 and r.stdout == want_out):
+            bad.append(e)
+    check("T-E6-07/11 enc отвержение (%d) с номерами строк"
+          % len(lab_enc_cases.ERRORS), not bad, "; ".join(bad[:2]))
+
+    # T-E6-08: круг конвейера на реальных инструментах (DEMO_B2)
+    h = {"d.b2": lab_enc_cases.DEMO_B2.encode(),
+         "d.peg": lab_enc_cases.DEMO_PEG.encode(),
+         "brick.exe": kfile("L1-BRICK/brick.exe"),
+         "pegen.exe": kfile("L0-PEGEN/pegen.exe")}
+    r1 = lab_run.run_kv(enc, ["d.b2", "d.brick"], h)
+    h["d.brick"] = r1.files.get("d.brick", b"")
+    r2 = lab_run.run_kv(brick_exe, ["d.brick", "d.bin"], h)
+    h["d.bin"] = r2.files.get("d.bin", b"")
+    r3 = lab_run.run_kv(pegen_exe, ["d.bin", "d.peg", "d.exe"], h)
+    demo = r3.files.get("d.exe", b"")
+    fd, path = tempfile.mkstemp(suffix=".exe")
+    try:
+        os.write(fd, demo)
+        os.close(fd)
+        r4 = lab_run.run_kv(path, [], {})
+    finally:
+        os.unlink(path)
+    check("T-E6-08 круг enc+brick+pegen (U-ENC-OK)",
+          r1.exit_code == 0 and r2.exit_code == 0 and r3.exit_code == 0 and
+          r4.stdout == b"U-ENC-OK\r\n" and r4.exit_code == 0,
+          "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
+
+    # T-E6-09: самохостинг — enc(enc.b2) == enc.brick; круг -> enc.exe
+    h = {"e.b2": kfile("L1-ENC/enc.b2"),
+         "e.peg": kfile("L1-ENC/enc.peg"),
+         "brick.exe": kfile("L1-BRICK/brick.exe"),
+         "pegen.exe": kfile("L0-PEGEN/pegen.exe")}
+    r1 = lab_run.run_kv(enc, ["e.b2", "e.brick"], h)
+    art = kfile("L1-ENC/enc.brick")
+    check("T-E6-09 самохостинг: enc(enc.b2) == enc.brick",
+          r1.exit_code == 0 and r1.files.get("e.brick") == art,
+          "%d байт, шагов=%d" % (len(art), r1.steps))
+    h["e.brick"] = art
+    r2 = lab_run.run_kv(brick_exe, ["e.brick", "e.bin"], h)
+    h["e.bin"] = r2.files.get("e.bin", b"")
+    r3 = lab_run.run_kv(pegen_exe, ["e.bin", "e.peg", "e2.exe"], h)
+    check("T-E6-09 самохостинг: круг -> enc.exe",
+          r2.exit_code == 0 and r3.exit_code == 0 and
+          r3.files.get("e2.exe") == kfile("L1-ENC/enc.exe"),
+          "шагов=%d+%d" % (r2.steps, r3.steps))
+
+    # T-E6-10: большой исходник (~24 КиБ смеси форм) == оракулу
+    big, lines = lab_enc_cases.big_source(24000)
+    want = lab_enc.normalize(big).encode()
+    r = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": big.encode()})
+    check("T-E6-10 большой исходник (%d КиБ) == оракул" % (len(big) // 1024),
+          r.exit_code == 0 and r.files.get("t.brick") == want,
+          "строк=%d шагов=%d" % (len(lines), r.steps))
+
+    # концы строк: пустой вход, без LF, CRLF, одиночный CR (как splitlines)
+    bad = []
+    for e in [b"", b"M ret", b"M ret\r\nM int3", b"M ret\rM int3", b"\n",
+              b"H 48\r\n", b"  M ret  \n", b"M mov rax, 5 ; c\r\n"]:
+        try:
+            want = lab_enc.normalize(e.decode("latin1")).encode("latin1")
+        except lab_enc.EncError as ex:
+            want = ("U-L1-ENC ERR=" + str(ex) + "\r\n").encode()
+        r = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": e})
+        if r.files.get("t.brick") != want:
+            bad.append(repr(e))
+    check("enc концы строк (8 граничных случаев)", not bad,
+          "; ".join(bad[:2]))
+
+
 def main():
     print("=== UNIVERSAL / LAB: батарея верификации ===")
     t_integrity()
@@ -374,6 +479,7 @@ def main():
     t_oracles()
     t_cycles()
     t_enc()
+    t_enc_exe()
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

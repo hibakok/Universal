@@ -1,0 +1,1321 @@
+; ===== E011 emit2: байт AL -> "XX " в [R12] =====
+:emit2
+M movzx eax, al ; K1-E011 только AL (старшие биты мусор)
+M mov r11d, eax ; K1-E011 сохранить байт
+M mov edx, eax ; K1-E011
+M shr eax, 4 ; K1-E011 старшая тетрада
+M lea rdi, [rip+$digits] ; K1-E011
+M movzx eax, byte [rdi+rax] ; K1-E011 цифра
+M mov [r12], al ; K1-E011
+M inc r12 ; K1-E011
+M mov eax, r11d ; K1-E011
+M and eax, 0F ; K1-E011 младшая тетрада
+M movzx eax, byte [rdi+rax] ; K1-E011
+M mov [r12], al ; K1-E011
+M inc r12 ; K1-E011
+M mov byte [r12], 20 ; K1-E011 пробел-разделитель
+M inc r12 ; K1-E011
+M ret ; K1-E011
+; ===== E012 emit_rex: AL = REX; 0 — не выдавать =====
+:emit_rex
+M test al, al ; K1-E012
+M jz $erx_done ; K1-E012
+M call $emit2 ; K1-E011
+:erx_done
+M ret ; K1-E012
+; ===== E013 emit_slot: "$имя" / "$имя:1" =====
+:emit_slot
+M mov byte [r12], 24 ; K1-E013 '$'
+M inc r12 ; K1-E013
+M mov r11, r8 ; K1-E013 размер слота
+:es_loop
+M test rdx, rdx ; K1-E013
+M jz $es_name ; K1-E013
+M movzx eax, byte [rcx] ; K1-E013
+M mov [r12], al ; K1-E013
+M inc r12 ; K1-E013
+M inc rcx ; K1-E013
+M dec rdx ; K1-E013
+M jmp $es_loop ; K1-E013
+:es_name
+M cmp r11d, 1 ; K1-E013 суффикс ":1"?
+M jne $es_sp ; K1-E013
+M mov byte [r12], 3A ; K1-E013 ':'
+M inc r12 ; K1-E013
+M mov byte [r12], 31 ; K1-E013 '1'
+M inc r12 ; K1-E013
+:es_sp
+M mov byte [r12], 20 ; K1-E013 хвостовой пробел (как у байтов)
+M inc r12 ; K1-E013
+M ret ; K1-E013
+; ===== E014 emit_i32: EAX -> 4 байта "XX XX XX XX " =====
+:emit_i32
+M mov [rip+$ei_val], eax ; K1-E014
+M xor r9d, r9d ; K1-E014
+:ei_loop
+M cmp r9d, 4 ; K1-E014
+M jae $ei_done ; K1-E014
+M mov ecx, r9d ; K1-E014
+M shl ecx, 3 ; K1-E014 x 8
+M mov eax, [rip+$ei_val] ; K1-E014
+M shr eax, cl ; K1-E014
+M call $emit2 ; K1-E011
+M inc r9d ; K1-E014
+M jmp $ei_loop ; K1-E014
+:ei_done
+M ret ; K1-E014
+; ===== E020 check_imm_range: RAX = значение, ECX = 0 строгий / 1 полный =====
+:check_imm_range
+M mov r11, rax ; K1-E020
+M test r11, r11 ; K1-E020
+M js $cir_neg ; K1-E020 отрицательное
+M test ecx, ecx ; K1-E020
+M jnz $cir_full ; K1-E020 полный: старшие 32 бита нулевые
+M cmp r11, 7FFFFFFF ; K1-E020 строгий: <= 0x7FFFFFFF
+M jg $fail_format ; K1-E020
+M ret ; K1-E020
+:cir_full
+M mov rax, r11 ; K1-E020
+M shr rax, 20 ; K1-E020 старшие 32 бита
+M test rax, rax ; K1-E020
+M jnz $fail_format ; K1-E020
+M ret ; K1-E020
+:cir_neg
+M cmp r11, -80000000 ; K1-E020 >= -0x80000000
+M jl $fail_format ; K1-E020
+M ret ; K1-E020
+; ===== E018 sel_imm: RCX = размер, RAX = значение -> 80/83/81 + imm =====
+:sel_imm
+M mov [rip+$si_size], rcx ; K1-E018
+M mov [rip+$si_val], rax ; K1-E018
+M cmp rcx, 8 ; K1-E018 8-бит: -0x80..0xFF -> 80 /x ib
+M jne $si_wide ; K1-E018
+M cmp rax, 7F ; K1-E018
+M jg $fail_format ; K1-E018
+M cmp rax, -80 ; K1-E018
+M jl $fail_format ; K1-E018
+M mov eax, 80 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 1 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M mov [rip+$im_b0], rax ; K1-E018
+M ret ; K1-E018
+:si_wide
+M cmp rax, 7F ; K1-E018 знаковый байт? -> 83 /x ib
+M jg $si_81 ; K1-E018
+M cmp rax, -80 ; K1-E018
+M jl $si_81 ; K1-E018
+M mov eax, 83 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 1 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M mov [rip+$im_b0], rax ; K1-E018
+M ret ; K1-E018
+:si_81
+M mov rax, [rip+$si_size] ; K1-E018 64-бит: строгий диапазон
+M cmp rax, 40 ; K1-E018
+M jne $si_32 ; K1-E018
+M mov rcx, 0 ; K1-E018
+M mov rax, [rip+$si_val] ; K1-E018
+M call $check_imm_range ; K1-E020
+M jmp $si_emit81 ; K1-E018
+:si_32
+M mov rcx, 1 ; K1-E018 32-бит: полный диапазон i32
+M mov rax, [rip+$si_val] ; K1-E018
+M call $check_imm_range ; K1-E020
+:si_emit81
+M mov eax, 81 ; K1-E018
+M mov [rip+$im_opc], rax ; K1-E018
+M mov eax, 4 ; K1-E018
+M mov [rip+$im_len], rax ; K1-E018
+M mov eax, [rip+$si_val] ; K1-E018 младшие 32 бита
+M mov [rip+$im_b0], eax ; K1-E018
+M ret ; K1-E018
+; ===== E019 emit_immres: выдать im_len байт из im_b0 =====
+:emit_immres
+M xor r9d, r9d ; K1-E019
+:ei2_loop
+M cmp r9, [rip+$im_len] ; K1-E019
+M jae $ei2_done ; K1-E019
+M mov eax, [rip+$im_b0] ; K1-E019
+M mov ecx, r9d ; K1-E019
+M shl ecx, 3 ; K1-E019
+M shr eax, cl ; K1-E019
+M call $emit2 ; K1-E011
+M inc r9 ; K1-E019
+M jmp $ei2_loop ; K1-E019
+:ei2_done
+M ret ; K1-E019
+; ===== E015 enc_mem: память -> memres (modrm/SIB/disp/слот) =====
+:enc_mem
+M mov [rip+$mr_regv], rcx ; K1-E015 regv (0..7)
+M mov rax, [r8+30] ; K1-E015 rip-ссылка?
+M test rax, rax ; K1-E015
+M jz $em_land ; K1-E015 обычная память
+M mov eax, ecx ; K1-E015 rip: modrm = 05|regv<<3, слот 4
+M shl eax, 3 ; K1-E015
+M or eax, 5 ; K1-E015
+M mov [rip+$mr_modrm], rax ; K1-E015
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_slotf], rax ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_ssz], rax ; K1-E015
+M mov rax, [r8+30] ; K1-E015
+M mov [rip+$mr_sptr], rax ; K1-E015
+M mov rax, [r8+38] ; K1-E015
+M mov [rip+$mr_slen], rax ; K1-E015
+M ret ; K1-E015
+:em_land
+M mov r11, [r8+28] ; K1-E015 D = смещение (int64)
+M cmp r11, 7FFFFFFF ; K1-E015 диапазон disp32
+M jg $fail_format ; K1-E015
+M cmp r11, -80000000 ; K1-E015
+M jl $fail_format ; K1-E015
+M mov r9, [r8+18] ; K1-E015 база
+M mov rdx, [r8+20] ; K1-E015 индекс (-1 = нет)
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_slotf], rax ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M cmp rdx, -1 ; K1-E015 есть индекс?
+M jne $em_sib ; K1-E015
+M mov rax, r9 ; K1-E015 база rsp/r12 (&7 == 4) -> SIB
+M and eax, 7 ; K1-E015
+M cmp eax, 4 ; K1-E015
+M je $em_sib ; K1-E015
+M mov rcx, r9 ; K1-E015 rm = база&7
+M and ecx, 7 ; K1-E015
+M mov [rip+$mr_rm], rcx ; K1-E015
+M jmp $em_mod ; K1-E015
+:em_sib
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_sibf], rax ; K1-E015
+M mov ecx, 4 ; K1-E015 «нет индекса» (поле 100)
+M cmp rdx, -1 ; K1-E015
+M je $em_sidx ; K1-E015
+M mov rcx, rdx ; K1-E015
+M and ecx, 7 ; K1-E015 индекс&7
+:em_sidx
+M shl ecx, 3 ; K1-E015
+M mov rax, r9 ; K1-E015
+M and eax, 7 ; K1-E015 база&7
+M or ecx, eax ; K1-E015 SIB
+M mov [rip+$mr_sib], rcx ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_rm], rax ; K1-E015 rm = 100
+:em_mod
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015
+M test r11, r11 ; K1-E015 D == 0?
+M jnz $em_disp ; K1-E015
+M mov rax, [rip+$mr_rm] ; K1-E015
+M cmp rax, 4 ; K1-E015
+M jne $em_rm5 ; K1-E015
+M mov rax, [rip+$mr_sibf] ; K1-E015
+M test rax, rax ; K1-E015
+M jz $em_rex ; K1-E015 [rsp]: mod 00, без disp
+M mov rax, r9 ; K1-E015 SIB-база rbp/r13 (&7 == 5)?
+M and eax, 7 ; K1-E015
+M cmp eax, 5 ; K1-E015
+M jne $em_rex ; K1-E015 mod 00
+M jmp $em_m1z ; K1-E015 -> mod 01, disp8 = 0
+:em_rm5
+M cmp rax, 5 ; K1-E015 rbp/r13 без disp = rip!
+M jne $em_rex ; K1-E015 mod 00
+:em_m1z
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015 disp8 = 0
+M jmp $em_rex ; K1-E015
+:em_disp
+M cmp r11, 7F ; K1-E015 disp8?
+M jg $em_d32 ; K1-E015
+M cmp r11, -80 ; K1-E015
+M jl $em_d32 ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov eax, r11d ; K1-E015
+M mov [rip+$mr_tail], rax ; K1-E015 младший байт
+M jmp $em_rex ; K1-E015
+:em_d32
+M mov eax, 2 ; K1-E015
+M mov [rip+$mr_mod], rax ; K1-E015
+M mov eax, 4 ; K1-E015
+M mov [rip+$mr_tlen], rax ; K1-E015
+M mov eax, r11d ; K1-E015
+M mov [rip+$mr_tail], eax ; K1-E015 4 байта LE
+:em_rex
+M xor eax, eax ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+M cmp rdx, -1 ; K1-E015 X: индекс >= r8
+M je $em_nox ; K1-E015
+M cmp rdx, 8 ; K1-E015
+M jl $em_nox ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_x], rax ; K1-E015
+:em_nox
+M cmp r9, 8 ; K1-E015 B: база >= r8
+M jl $em_nob ; K1-E015
+M mov eax, 1 ; K1-E015
+M mov [rip+$mr_b], rax ; K1-E015
+:em_nob
+M mov rax, [rip+$mr_mod] ; K1-E015 modrm = mod<<6|regv<<3|rm
+M shl eax, 6 ; K1-E015
+M mov rcx, [rip+$mr_regv] ; K1-E015
+M shl ecx, 3 ; K1-E015
+M or eax, ecx ; K1-E015
+M mov rcx, [rip+$mr_rm] ; K1-E015
+M or eax, ecx ; K1-E015
+M mov [rip+$mr_modrm], rax ; K1-E015
+M ret ; K1-E015
+; ===== E016 emit_rm: RAX=опк, R8=mem, ECX=regv, EDX=флаги(w1|r2) =====
+:emit_rm
+M mov [rip+$er_opc], rax ; K1-E016
+M mov [rip+$er_flags], rdx ; K1-E016
+M call $enc_mem ; K1-E015 (R8/ECX на месте)
+M mov eax, [rip+$er_flags] ; K1-E016
+M and eax, 1 ; K1-E016 w (бит 0)
+M shl eax, 3 ; K1-E016 W<<3
+M mov rcx, [rip+$er_flags] ; K1-E016
+M and ecx, 2 ; K1-E016 r-флаг (бит 1)
+M shl ecx, 1 ; K1-E016 R<<2
+M or eax, ecx ; K1-E016
+M mov rcx, [rip+$mr_x] ; K1-E016
+M shl ecx, 1 ; K1-E016 X<<1
+M or eax, ecx ; K1-E016
+M mov rcx, [rip+$mr_b] ; K1-E016
+M or eax, ecx ; K1-E016
+M or eax, 40 ; K1-E016
+M cmp eax, 40 ; K1-E016
+M je $erm_norex ; K1-E016
+M call $emit2 ; K1-E011
+:erm_norex
+M mov rax, [rip+$er_pre] ; K1-E016 префикс 0F (movzx)?
+M test rax, rax ; K1-E016
+M jz $erm_nopre ; K1-E016
+M call $emit2 ; K1-E011
+:erm_nopre
+M mov rax, [rip+$er_opc] ; K1-E016
+M call $emit2 ; K1-E011
+M mov rax, [rip+$mr_modrm] ; K1-E016
+M call $emit2 ; K1-E011
+M mov rax, [rip+$mr_sibf] ; K1-E016
+M test rax, rax ; K1-E016
+M jz $erm_nosib ; K1-E016
+M mov rax, [rip+$mr_sib] ; K1-E016
+M call $emit2 ; K1-E011
+:erm_nosib
+M xor r9d, r9d ; K1-E016
+:erm_tloop
+M cmp r9, [rip+$mr_tlen] ; K1-E016
+M jae $erm_tdone ; K1-E016
+M mov eax, [rip+$mr_tail] ; K1-E016
+M mov ecx, r9d ; K1-E016
+M shl ecx, 3 ; K1-E016
+M shr eax, cl ; K1-E016
+M call $emit2 ; K1-E011
+M inc r9 ; K1-E016
+M jmp $erm_tloop ; K1-E016
+:erm_tdone
+M mov rax, [rip+$er_imm] ; K1-E016 imm после disp (mem,imm)?
+M test rax, rax ; K1-E016
+M jz $erm_noimm ; K1-E016
+M call $emit_immres ; K1-E019
+:erm_noimm
+M mov rax, [rip+$mr_slotf] ; K1-E016 слот — всегда последним
+M test rax, rax ; K1-E016
+M jz $erm_ret ; K1-E016
+M mov rcx, [rip+$mr_sptr] ; K1-E016
+M mov rdx, [rip+$mr_slen] ; K1-E016
+M mov r8, [rip+$mr_ssz] ; K1-E016
+M call $emit_slot ; K1-E013
+:erm_ret
+M ret ; K1-E016
+; ===== E017 emit_rr: RAX=опк, RCX=код src, RDX=код dst, R8=размер =====
+:emit_rr
+M mov [rip+$rr_opc], rax ; K1-E017
+M mov [rip+$rr_src], rcx ; K1-E017
+M mov [rip+$rr_dst], rdx ; K1-E017
+M mov [rip+$rr_size], r8 ; K1-E017
+M xor eax, eax ; K1-E017 REX
+M cmp r8, 40 ; K1-E017 W: размер 64?
+M jne $rr_now ; K1-E017
+M or eax, 8 ; K1-E017
+:rr_now
+M cmp rcx, 8 ; K1-E017 R: src >= r8?
+M jl $rr_nor ; K1-E017
+M or eax, 4 ; K1-E017
+:rr_nor
+M cmp rdx, 8 ; K1-E017 B: dst >= r8?
+M jl $rr_nob ; K1-E017
+M or eax, 1 ; K1-E017
+:rr_nob
+M or eax, 40 ; K1-E017
+M cmp eax, 40 ; K1-E017
+M je $rr_norex ; K1-E017
+M call $emit2 ; K1-E011
+:rr_norex
+M mov rax, [rip+$rr_opc] ; K1-E017
+M call $emit2 ; K1-E011
+M mov rax, [rip+$rr_src] ; K1-E017 reg-поле = источник
+M and eax, 7 ; K1-E017
+M shl eax, 3 ; K1-E017
+M mov rcx, [rip+$rr_dst] ; K1-E017
+M and ecx, 7 ; K1-E017
+M or eax, ecx ; K1-E017
+M or eax, C0 ; K1-E017 mod 11
+M call $emit2 ; K1-E011
+M ret ; K1-E017
+; ===== E021 enc_alu: add/or/and/sub/xor/cmp (семейство 1) =====
+:enc_alu
+M mov rax, [r13] ; K1-E021 вид приёмника
+M cmp rax, 0 ; K1-E021 регистр?
+M je $ea_dreg ; K1-E021
+M cmp rax, 3 ; K1-E021 память?
+M jne $fail_format ; K1-E021 imm/ref приёмник — ошибка
+M mov rax, [r13+40] ; K1-E021 вид источника
+M cmp rax, 0 ; K1-E021
+M je $ea_mr ; K1-E021 mem,reg
+M cmp rax, 1 ; K1-E021
+M je $ea_mi ; K1-E021 mem,imm
+M jmp $fail_format ; K1-E021
+:ea_dreg
+M mov rax, [r13+40] ; K1-E021
+M cmp rax, 0 ; K1-E021
+M je $ea_rr ; K1-E021 reg,reg
+M cmp rax, 1 ; K1-E021
+M je $ea_ri ; K1-E021 reg,imm
+M cmp rax, 3 ; K1-E021
+M je $ea_rm ; K1-E021 reg,mem
+M jmp $fail_format ; K1-E021
+:ea_rr
+M mov rax, [r13+10] ; K1-E021 размеры равны?
+M cmp rax, [r13+50] ; K1-E021
+M jne $fail_format ; K1-E021
+M mov edx, [rip+$m_param] ; K1-E021 опк = база (8 бит) | база+1
+M movzx edx, dl ; K1-E021
+M cmp rax, 8 ; K1-E021
+M jne $ea_rr32 ; K1-E021
+M mov eax, edx ; K1-E021
+M jmp $ea_rrop ; K1-E021
+:ea_rr32
+M lea eax, [rdx+1] ; K1-E021
+:ea_rrop
+M mov [rip+$t_opc], rax ; K1-E021
+M mov rcx, [r13+48] ; K1-E021 src
+M mov rdx, [r13+8] ; K1-E021 dst
+M mov r8, [r13+10] ; K1-E021 размер
+M mov rax, [rip+$t_opc] ; K1-E021
+M call $emit_rr ; K1-E017
+M ret ; K1-E021
+:ea_ri
+M mov rcx, [r13+10] ; K1-E021 размер
+M mov rax, [r13+48] ; K1-E021 значение
+M call $sel_imm ; K1-E018 80/83/81 + imm
+M xor eax, eax ; K1-E021 REX
+M cmp qword [r13+10], 40 ; K1-E021
+M jne $ea_ri_now ; K1-E021
+M or eax, 8 ; K1-E021
+:ea_ri_now
+M cmp qword [r13+8], 8 ; K1-E021
+M jl $ea_ri_nob ; K1-E021
+M or eax, 1 ; K1-E021
+:ea_ri_nob
+M or eax, 40 ; K1-E021
+M cmp eax, 40 ; K1-E021
+M je $ea_ri_norex ; K1-E021
+M call $emit2 ; K1-E011
+:ea_ri_norex
+M mov rax, [rip+$im_opc] ; K1-E021
+M call $emit2 ; K1-E011
+M mov eax, [rip+$m_param] ; K1-E021 modrm = C0|ext<<3|dst&7
+M shr eax, 8 ; K1-E021
+M and eax, 7 ; K1-E021
+M shl eax, 3 ; K1-E021
+M mov rcx, [r13+8] ; K1-E021
+M and ecx, 7 ; K1-E021
+M or eax, ecx ; K1-E021
+M or eax, C0 ; K1-E021
+M call $emit2 ; K1-E011
+M call $emit_immres ; K1-E019
+M ret ; K1-E021
+:ea_rm
+M mov rax, [r13+50] ; K1-E021 размер источника не задан/равен
+M test rax, rax ; K1-E021
+M jz $ea_rm_ok ; K1-E021
+M cmp rax, [r13+10] ; K1-E021
+M jne $fail_format ; K1-E021
+:ea_rm_ok
+M mov edx, [rip+$m_param] ; K1-E021 опк = база+2 (8) | база+3
+M movzx edx, dl ; K1-E021
+M cmp qword [r13+10], 8 ; K1-E021
+M jne $ea_rm32 ; K1-E021
+M lea eax, [rdx+2] ; K1-E021
+M jmp $ea_rmop ; K1-E021
+:ea_rm32
+M lea eax, [rdx+3] ; K1-E021
+:ea_rmop
+M mov [rip+$t_opc], rax ; K1-E021
+M mov r8, r13 ; K1-E021 источник (mem)
+M add r8, 40 ; K1-E021
+M mov ecx, [r13+8] ; K1-E021 regv = dst&7
+M and ecx, 7 ; K1-E021
+M xor edx, edx ; K1-E021 флаги
+M cmp qword [r13+10], 40 ; K1-E021
+M jne $ea_rm_now ; K1-E021
+M or edx, 1 ; K1-E021 w
+:ea_rm_now
+M cmp qword [r13+8], 8 ; K1-E021
+M jl $ea_rm_nor ; K1-E021
+M or edx, 2 ; K1-E021 r
+:ea_rm_nor
+M mov rax, [rip+$t_opc] ; K1-E021
+M call $emit_rm ; K1-E016
+M ret ; K1-E021
+:ea_mr
+M mov rax, [r13+10] ; K1-E021 размер приёмника не задан/равен
+M test rax, rax ; K1-E021
+M jz $ea_mr_ok ; K1-E021
+M cmp rax, [r13+50] ; K1-E021
+M jne $fail_format ; K1-E021
+:ea_mr_ok
+M mov edx, [rip+$m_param] ; K1-E021 опк = база (8) | база+1
+M movzx edx, dl ; K1-E021
+M cmp qword [r13+50], 8 ; K1-E021
+M jne $ea_mr32 ; K1-E021
+M mov eax, edx ; K1-E021
+M jmp $ea_mrop ; K1-E021
+:ea_mr32
+M lea eax, [rdx+1] ; K1-E021
+:ea_mrop
+M mov [rip+$t_opc], rax ; K1-E021
+M mov r8, r13 ; K1-E021 приёмник (mem)
+M mov ecx, [r13+48] ; K1-E021 regv = src&7
+M and ecx, 7 ; K1-E021
+M xor edx, edx ; K1-E021
+M cmp qword [r13+50], 40 ; K1-E021
+M jne $ea_mr_now ; K1-E021
+M or edx, 1 ; K1-E021
+:ea_mr_now
+M cmp qword [r13+48], 8 ; K1-E021
+M jl $ea_mr_nor ; K1-E021
+M or edx, 2 ; K1-E021
+:ea_mr_nor
+M mov rax, [rip+$t_opc] ; K1-E021
+M call $emit_rm ; K1-E016
+M ret ; K1-E021
+:ea_mi
+M mov rax, [r13+10] ; K1-E021 размер памяти: 8/32/64
+M cmp rax, 8 ; K1-E021
+M je $ea_mi_sz ; K1-E021
+M cmp rax, 20 ; K1-E021
+M je $ea_mi_sz ; K1-E021
+M cmp rax, 40 ; K1-E021
+M je $ea_mi_sz ; K1-E021
+M jmp $fail_format ; K1-E021 (16 бит и None запрещены)
+:ea_mi_sz
+M cmp qword [r13+30], 0 ; K1-E021 rip+imm: слот не в конце
+M jne $fail_format ; K1-E021
+M mov rcx, [r13+10] ; K1-E021 размер
+M mov rax, [r13+48] ; K1-E021 значение
+M call $sel_imm ; K1-E018
+M mov eax, 1 ; K1-E021 выдать imm после disp
+M mov [rip+$er_imm], rax ; K1-E016
+M xor edx, edx ; K1-E021 флаги (r = 0)
+M cmp qword [r13+10], 40 ; K1-E021
+M jne $ea_mi_now ; K1-E021
+M mov edx, 1 ; K1-E021 w
+:ea_mi_now
+M mov rax, [rip+$im_opc] ; K1-E021 опк 80/83/81
+M mov r8, r13 ; K1-E021 mem-приёмник
+M mov ecx, [rip+$m_param] ; K1-E021 regv = ext
+M shr ecx, 8 ; K1-E021
+M and ecx, 7 ; K1-E021
+M call $emit_rm ; K1-E016
+M xor eax, eax ; K1-E021
+M mov [rip+$er_imm], rax ; K1-E021 сброс флага
+M ret ; K1-E021
+; ===== E022 enc_shift: rol/ror/shl/shr/sar (семейство 2) =====
+:enc_shift
+M cmp qword [r13], 0 ; K1-E022 приёмник — регистр?
+M jne $fail_format ; K1-E022
+M cmp qword [r13+10], 8 ; K1-E022 8/32/64
+M je $sh_sz ; K1-E022
+M cmp qword [r13+10], 20 ; K1-E022
+M je $sh_sz ; K1-E022
+M cmp qword [r13+10], 40 ; K1-E022
+M je $sh_sz ; K1-E022
+M jmp $fail_format ; K1-E022
+:sh_sz
+M mov rax, [r13+40] ; K1-E022 источник
+M cmp rax, 0 ; K1-E022 cl?
+M je $sh_cl ; K1-E022
+M cmp rax, 1 ; K1-E022 imm?
+M jne $fail_format ; K1-E022
+M mov rax, [r13+48] ; K1-E022 значение 0..0xFF
+M cmp rax, 0 ; K1-E022
+M jl $fail_format ; K1-E022 отрицательное
+M cmp rax, 0FF ; K1-E022
+M jg $fail_format ; K1-E022
+M mov eax, 1 ; K1-E022 imm: 1 байт
+M mov [rip+$im_len], rax ; K1-E019
+M mov rax, [r13+48] ; K1-E022
+M mov [rip+$im_b0], rax ; K1-E019
+M mov eax, C0 ; K1-E022 опк C0/C1
+M cmp qword [r13+10], 8 ; K1-E022
+M je $sh_iopc ; K1-E022
+M mov eax, C1 ; K1-E022
+:sh_iopc
+M mov [rip+$t_opc], rax ; K1-E022
+M mov eax, 1 ; K1-E022 imm выдать после modrm
+M mov [rip+$sh_immf], rax ; K1-E022
+M jmp $sh_common ; K1-E022
+:sh_cl
+M cmp qword [r13+50], 8 ; K1-E022 только 8-бит
+M jne $fail_format ; K1-E022
+M cmp qword [r13+48], 1 ; K1-E022 только cl (код 1)
+M jne $fail_format ; K1-E022
+M mov eax, 0D2 ; K1-E022 опк D2/D3
+M cmp qword [r13+10], 8 ; K1-E022
+M je $sh_copc ; K1-E022
+M mov eax, 0D3 ; K1-E022
+:sh_copc
+M mov [rip+$t_opc], rax ; K1-E022
+M xor eax, eax ; K1-E022 без imm
+M mov [rip+$sh_immf], rax ; K1-E022
+:sh_common
+M xor eax, eax ; K1-E022 REX
+M cmp qword [r13+10], 40 ; K1-E022
+M jne $sh_now ; K1-E022
+M or eax, 8 ; K1-E022
+:sh_now
+M cmp qword [r13+8], 8 ; K1-E022
+M jl $sh_nob ; K1-E022
+M or eax, 1 ; K1-E022
+:sh_nob
+M or eax, 40 ; K1-E022
+M cmp eax, 40 ; K1-E022
+M je $sh_norex ; K1-E022
+M call $emit2 ; K1-E011
+:sh_norex
+M mov rax, [rip+$t_opc] ; K1-E022
+M call $emit2 ; K1-E011
+M mov eax, [rip+$m_param] ; K1-E022 modrm = C0|ext<<3|dst&7
+M and eax, 7 ; K1-E022
+M shl eax, 3 ; K1-E022
+M mov rcx, [r13+8] ; K1-E022
+M and ecx, 7 ; K1-E022
+M or eax, ecx ; K1-E022
+M or eax, C0 ; K1-E022
+M call $emit2 ; K1-E011
+M mov rax, [rip+$sh_immf] ; K1-E022 imm-форма?
+M test rax, rax ; K1-E022
+M jz $sh_done ; K1-E022
+M call $emit_immres ; K1-E019
+M xor eax, eax ; K1-E022
+M mov [rip+$sh_immf], rax ; K1-E022 сброс
+:sh_done
+M ret ; K1-E022
+; ===== E023 enc_jcc: 7x/0F 8x + слот (семейство 3) =====
+:enc_jcc
+M cmp qword [r13], 2 ; K1-E023 только ссылка
+M jne $fail_format ; K1-E023
+M cmp qword [r13+28], 1 ; K1-E023 rel8?
+M je $jc_short ; K1-E023
+M cmp qword [r13+28], 4 ; K1-E023 rel32?
+M jne $fail_format ; K1-E023
+M mov eax, 0F ; K1-E023 0F 8x слот4
+M call $emit2 ; K1-E011
+M mov eax, [rip+$m_param] ; K1-E023 cc
+M or eax, 80 ; K1-E023
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E023
+M mov rdx, [r13+20] ; K1-E023
+M mov r8, 4 ; K1-E023
+M call $emit_slot ; K1-E013
+M ret ; K1-E023
+:jc_short
+M mov eax, [rip+$m_param] ; K1-E023 7x слот1
+M or eax, 70 ; K1-E023
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E023
+M mov rdx, [r13+20] ; K1-E023
+M mov r8, 1 ; K1-E023
+M call $emit_slot ; K1-E013
+M ret ; K1-E023
+; ===== E024 enc_mov (семейство 4) =====
+:enc_mov
+M mov rax, [r13] ; K1-E024 приёмник
+M cmp rax, 0 ; K1-E024
+M je $em_dreg ; K1-E024
+M cmp rax, 3 ; K1-E024
+M jne $fail_format ; K1-E024
+M mov rax, [r13+40] ; K1-E024 источник
+M cmp rax, 0 ; K1-E024
+M je $em_mr ; K1-E024
+M cmp rax, 1 ; K1-E024
+M je $em_mi ; K1-E024
+M jmp $fail_format ; K1-E024
+:em_dreg
+M mov rax, [r13+40] ; K1-E024
+M cmp rax, 0 ; K1-E024
+M je $em_rr ; K1-E024
+M cmp rax, 1 ; K1-E024
+M je $em_ri ; K1-E024
+M cmp rax, 3 ; K1-E024
+M je $em_rm ; K1-E024
+M jmp $fail_format ; K1-E024
+:em_rr
+M mov rax, [r13+10] ; K1-E024 размеры равны
+M cmp rax, [r13+50] ; K1-E024
+M jne $fail_format ; K1-E024
+M mov eax, 89 ; K1-E024 опк 88 (8) / 89
+M cmp qword [r13+10], 8 ; K1-E024
+M jne $em_rrop ; K1-E024
+M mov eax, 88 ; K1-E024
+:em_rrop
+M mov [rip+$t_opc], rax ; K1-E024
+M mov rcx, [r13+48] ; K1-E024 src
+M mov rdx, [r13+8] ; K1-E024 dst
+M mov r8, [r13+10] ; K1-E024 размер
+M mov rax, [rip+$t_opc] ; K1-E024
+M call $emit_rr ; K1-E017
+M ret ; K1-E024
+:em_ri
+M cmp qword [r13+10], 8 ; K1-E024 8 бит: -0x80..0xFF
+M jne $em_ri32 ; K1-E024
+M mov rax, [r13+48] ; K1-E024
+M cmp rax, 7F ; K1-E024
+M jg $fail_format ; K1-E024
+M cmp rax, -80 ; K1-E024
+M jl $fail_format ; K1-E024
+M xor eax, eax ; K1-E024 REX (только B)
+M cmp qword [r13+8], 8 ; K1-E024
+M jl $em_ri8_nb ; K1-E024
+M or eax, 1 ; K1-E024
+:em_ri8_nb
+M or eax, 40 ; K1-E024
+M cmp eax, 40 ; K1-E024
+M je $em_ri8_nx ; K1-E024
+M call $emit2 ; K1-E011
+:em_ri8_nx
+M mov rax, [r13+8] ; K1-E024 B0+rd, байт значения
+M and eax, 7 ; K1-E024
+M or eax, B0 ; K1-E024
+M call $emit2 ; K1-E011
+M mov rax, [r13+48] ; K1-E024
+M call $emit2 ; K1-E011
+M ret ; K1-E024
+:em_ri32
+M cmp qword [r13+10], 20 ; K1-E024 32 бита
+M jne $em_ri64 ; K1-E024
+M mov rcx, 1 ; K1-E024 полный диапазон i32
+M mov rax, [r13+48] ; K1-E024
+M call $check_imm_range ; K1-E020
+M xor eax, eax ; K1-E024 REX (только B)
+M cmp qword [r13+8], 8 ; K1-E024
+M jl $em_ri32_nb ; K1-E024
+M or eax, 1 ; K1-E024
+:em_ri32_nb
+M or eax, 40 ; K1-E024
+M cmp eax, 40 ; K1-E024
+M je $em_ri32_nx ; K1-E024
+M call $emit2 ; K1-E011
+:em_ri32_nx
+M mov rax, [r13+8] ; K1-E024 B8+rd, i32
+M and eax, 7 ; K1-E024
+M or eax, B8 ; K1-E024
+M call $emit2 ; K1-E011
+M mov rax, [r13+48] ; K1-E024
+M call $emit_i32 ; K1-E014
+M ret ; K1-E024
+:em_ri64
+M cmp qword [r13+10], 40 ; K1-E024 64 бита: imm32 знакорасшир.
+M jne $fail_format ; K1-E024
+M mov rcx, 0 ; K1-E024 строгий диапазон
+M mov rax, [r13+48] ; K1-E024
+M call $check_imm_range ; K1-E020
+M mov eax, 48 ; K1-E024 REX.W|B, C7 C0+rd, i32
+M cmp qword [r13+8], 8 ; K1-E024
+M jl $em_ri64_nb ; K1-E024
+M or eax, 1 ; K1-E024
+:em_ri64_nb
+M call $emit2 ; K1-E011
+M mov eax, C7 ; K1-E024
+M call $emit2 ; K1-E011
+M mov rax, [r13+8] ; K1-E024
+M and eax, 7 ; K1-E024
+M or eax, C0 ; K1-E024
+M call $emit2 ; K1-E011
+M mov rax, [r13+48] ; K1-E024
+M call $emit_i32 ; K1-E014
+M ret ; K1-E024
+:em_rm
+M mov rax, [r13+50] ; K1-E024 размер источника
+M test rax, rax ; K1-E024
+M jz $em_rm_ok ; K1-E024
+M cmp rax, [r13+10] ; K1-E024
+M jne $fail_format ; K1-E024
+:em_rm_ok
+M mov eax, 8B ; K1-E024 опк 8A (8) / 8B
+M cmp qword [r13+10], 8 ; K1-E024
+M jne $em_rm_op ; K1-E024
+M mov eax, 8A ; K1-E024
+:em_rm_op
+M mov [rip+$t_opc], rax ; K1-E024
+M mov r8, r13 ; K1-E024 источник (mem)
+M add r8, 40 ; K1-E024
+M mov ecx, [r13+8] ; K1-E024
+M and ecx, 7 ; K1-E024
+M xor edx, edx ; K1-E024
+M cmp qword [r13+10], 40 ; K1-E024
+M jne $em_rm_now ; K1-E024
+M or edx, 1 ; K1-E024
+:em_rm_now
+M cmp qword [r13+8], 8 ; K1-E024
+M jl $em_rm_nor ; K1-E024
+M or edx, 2 ; K1-E024
+:em_rm_nor
+M mov rax, [rip+$t_opc] ; K1-E024
+M call $emit_rm ; K1-E016
+M ret ; K1-E024
+:em_mr
+M mov rax, [r13+10] ; K1-E024 размер приёмника
+M test rax, rax ; K1-E024
+M jz $em_mr_ok ; K1-E024
+M cmp rax, [r13+50] ; K1-E024
+M jne $fail_format ; K1-E024
+:em_mr_ok
+M mov eax, 89 ; K1-E024 опк 88/89 по размеру ИСТОЧНИКА
+M cmp qword [r13+50], 8 ; K1-E024
+M jne $em_mr_op ; K1-E024
+M mov eax, 88 ; K1-E024
+:em_mr_op
+M mov [rip+$t_opc], rax ; K1-E024
+M mov r8, r13 ; K1-E024 приёмник (mem)
+M mov ecx, [r13+48] ; K1-E024 regv = src
+M and ecx, 7 ; K1-E024
+M xor edx, edx ; K1-E024
+M cmp qword [r13+50], 40 ; K1-E024
+M jne $em_mr_now ; K1-E024
+M or edx, 1 ; K1-E024
+:em_mr_now
+M cmp qword [r13+48], 8 ; K1-E024
+M jl $em_mr_nor ; K1-E024
+M or edx, 2 ; K1-E024
+:em_mr_nor
+M mov rax, [rip+$t_opc] ; K1-E024
+M call $emit_rm ; K1-E016
+M ret ; K1-E024
+:em_mi
+M mov rax, [r13+10] ; K1-E024 размер: 8/32/64
+M cmp rax, 8 ; K1-E024
+M je $em_mi_sz ; K1-E024
+M cmp rax, 20 ; K1-E024
+M je $em_mi_sz ; K1-E024
+M cmp rax, 40 ; K1-E024
+M je $em_mi_sz ; K1-E024
+M jmp $fail_format ; K1-E024
+:em_mi_sz
+M cmp qword [r13+30], 0 ; K1-E024 rip+imm запрещён
+M jne $fail_format ; K1-E024
+M mov rax, [r13+48] ; K1-E024 значение
+M cmp qword [r13+10], 8 ; K1-E024 байтовая память: 0..0xFF
+M jne $em_mi_wide ; K1-E024
+M cmp rax, 0 ; K1-E024
+M jl $fail_format ; K1-E024 отрицательное
+M cmp rax, 0FF ; K1-E024
+M jg $fail_format ; K1-E024
+M mov eax, 1 ; K1-E024
+M mov [rip+$im_len], rax ; K1-E019
+M mov rax, [r13+48] ; K1-E024
+M mov [rip+$im_b0], rax ; K1-E019 байт значения
+M mov eax, C6 ; K1-E024 опк C6 /0
+M mov [rip+$im_opc], rax ; K1-E024
+M jmp $em_mi_emit ; K1-E024
+:em_mi_wide
+M cmp qword [r13+10], 40 ; K1-E024 64: строгий диапазон
+M jne $em_mi_32 ; K1-E024
+M mov rcx, 0 ; K1-E024
+M mov rax, [r13+48] ; K1-E024
+M call $check_imm_range ; K1-E020
+M jmp $em_mi_c7 ; K1-E024
+:em_mi_32
+M mov rcx, 1 ; K1-E024
+M mov rax, [r13+48] ; K1-E024
+M call $check_imm_range ; K1-E020
+:em_mi_c7
+M mov eax, C7 ; K1-E024 опк C7 /0, imm32
+M mov [rip+$im_opc], rax ; K1-E024
+M mov eax, 4 ; K1-E024
+M mov [rip+$im_len], rax ; K1-E019
+M mov eax, [r13+48] ; K1-E024 младшие 32 бита
+M mov [rip+$im_b0], eax ; K1-E019
+:em_mi_emit
+M mov eax, 1 ; K1-E024 imm после disp
+M mov [rip+$er_imm], rax ; K1-E016
+M xor edx, edx ; K1-E024 флаги (r = 0)
+M cmp qword [r13+10], 40 ; K1-E024
+M jne $em_mi_now ; K1-E024
+M mov edx, 1 ; K1-E024 w
+:em_mi_now
+M mov rax, [rip+$im_opc] ; K1-E024
+M mov r8, r13 ; K1-E024 mem-приёмник
+M xor ecx, ecx ; K1-E024 regv = /0
+M call $emit_rm ; K1-E016
+M xor eax, eax ; K1-E024
+M mov [rip+$er_imm], rax ; K1-E024 сброс флага
+M ret ; K1-E024
+; ===== E025 enc_movzx (семейство 5) =====
+:enc_movzx
+M cmp qword [r13], 0 ; K1-E025 приёмник — регистр
+M jne $fail_format ; K1-E025
+M cmp qword [r13+10], 40 ; K1-E025 32/64 (не 8)
+M je $ez_ok ; K1-E025
+M cmp qword [r13+10], 20 ; K1-E025
+M jne $fail_format ; K1-E025
+:ez_ok
+M mov rax, [r13+40] ; K1-E025 источник
+M cmp rax, 0 ; K1-E025
+M je $ez_reg ; K1-E025
+M cmp rax, 3 ; K1-E025
+M je $ez_mem ; K1-E025
+M jmp $fail_format ; K1-E025
+:ez_reg
+M cmp qword [r13+50], 8 ; K1-E025 только 8-бит
+M jne $fail_format ; K1-E025
+M xor eax, eax ; K1-E025 REX без W: R + B
+M cmp qword [r13+8], 8 ; K1-E025
+M jl $ez_nor ; K1-E025
+M or eax, 4 ; K1-E025
+:ez_nor
+M cmp qword [r13+48], 8 ; K1-E025
+M jl $ez_nob ; K1-E025
+M or eax, 1 ; K1-E025
+:ez_nob
+M or eax, 40 ; K1-E025
+M cmp eax, 40 ; K1-E025
+M je $ez_norex ; K1-E025
+M call $emit2 ; K1-E011
+:ez_norex
+M mov eax, 0F ; K1-E025 0F B6 /r mod11
+M call $emit2 ; K1-E011
+M mov eax, B6 ; K1-E025
+M call $emit2 ; K1-E011
+M mov rax, [r13+8] ; K1-E025
+M and eax, 7 ; K1-E025
+M shl eax, 3 ; K1-E025
+M mov rcx, [r13+48] ; K1-E025
+M and ecx, 7 ; K1-E025
+M or eax, ecx ; K1-E025
+M or eax, C0 ; K1-E025
+M call $emit2 ; K1-E011
+M ret ; K1-E025
+:ez_mem
+M mov rax, [r13+50] ; K1-E025 byte/word
+M cmp rax, 8 ; K1-E025
+M je $ez_m8 ; K1-E025
+M cmp rax, 10 ; K1-E025 16 (word)
+M je $ez_m16 ; K1-E025
+M jmp $fail_format ; K1-E025
+:ez_m8
+M mov eax, B6 ; K1-E025 0F B6
+M jmp $ez_mop ; K1-E025
+:ez_m16
+M mov eax, B7 ; K1-E025 0F B7
+:ez_mop
+M mov [rip+$t_sub], rax ; K1-E025
+M mov eax, 0F ; K1-E025 префикс 0F для emit_rm
+M mov [rip+$er_pre], rax ; K1-E016
+M mov r8, r13 ; K1-E025 источник (mem)
+M add r8, 40 ; K1-E025
+M mov ecx, [r13+8] ; K1-E025 regv = dst
+M and ecx, 7 ; K1-E025
+M xor edx, edx ; K1-E025 НЕТ w (32-бит запись обнуляет)
+M cmp qword [r13+8], 8 ; K1-E025
+M jl $ez_mem_nor ; K1-E025
+M mov edx, 2 ; K1-E025 r
+:ez_mem_nor
+M mov rax, [rip+$t_sub] ; K1-E025
+M call $emit_rm ; K1-E016 (выдаст 0F B6/B7 ...)
+M xor eax, eax ; K1-E025
+M mov [rip+$er_pre], rax ; K1-E016 сброс префикса
+M ret ; K1-E025
+; ===== E026 enc_lea (семейство 6) =====
+:enc_lea
+M cmp qword [r13], 0 ; K1-E026 приёмник — регистр
+M jne $fail_format ; K1-E026
+M cmp qword [r13+10], 40 ; K1-E026 32/64
+M je $le_sz ; K1-E026
+M cmp qword [r13+10], 20 ; K1-E026
+M jne $fail_format ; K1-E026
+:le_sz
+M cmp qword [r13+40], 3 ; K1-E026 источник — память
+M jne $fail_format ; K1-E026
+M cmp qword [r13+50], 0 ; K1-E026 без ключа размера
+M jne $fail_format ; K1-E026
+M mov eax, 8D ; K1-E026 опк 8D
+M mov [rip+$t_opc], rax ; K1-E026
+M mov r8, r13 ; K1-E026
+M add r8, 40 ; K1-E026 источник
+M mov ecx, [r13+8] ; K1-E026 regv = dst
+M and ecx, 7 ; K1-E026
+M xor edx, edx ; K1-E026
+M cmp qword [r13+10], 40 ; K1-E026
+M jne $le_now ; K1-E026
+M mov edx, 1 ; K1-E026 w
+:le_now
+M cmp qword [r13+8], 8 ; K1-E026
+M jl $le_nor ; K1-E026
+M or edx, 2 ; K1-E026
+:le_nor
+M mov rax, [rip+$t_opc] ; K1-E026
+M call $emit_rm ; K1-E016
+M ret ; K1-E026
+; ===== E027 enc_test (семейство 7) =====
+:enc_test
+M cmp qword [r13], 0 ; K1-E027 оба регистры
+M jne $fail_format ; K1-E027
+M cmp qword [r13+40], 0 ; K1-E027
+M jne $fail_format ; K1-E027
+M mov rax, [r13+10] ; K1-E027 размеры равны
+M cmp rax, [r13+50] ; K1-E027
+M jne $fail_format ; K1-E027
+M mov eax, 85 ; K1-E027 опк 84 (8) / 85
+M cmp qword [r13+10], 8 ; K1-E027
+M jne $et_have ; K1-E027
+M mov eax, 84 ; K1-E027
+M jmp $et_go ; K1-E027
+:et_have
+M mov eax, 85 ; K1-E027
+:et_go
+M mov [rip+$t_opc], rax ; K1-E027
+M mov rcx, [r13+48] ; K1-E027 src
+M mov rdx, [r13+8] ; K1-E027 dst
+M mov r8, [r13+10] ; K1-E027 размер
+M mov rax, [rip+$t_opc] ; K1-E027
+M call $emit_rr ; K1-E017
+M ret ; K1-E027
+; ===== E028 enc_call (семейство 8) =====
+:enc_call
+M cmp qword [r13], 2 ; K1-E028 ссылка?
+M je $ca_ref ; K1-E028
+M cmp qword [r13], 3 ; K1-E028 память [rip+..]?
+M jne $fail_format ; K1-E028
+M cmp qword [r13+30], 0 ; K1-E028 только rip
+M je $fail_format ; K1-E028
+M cmp qword [r13+10], 0 ; K1-E028 без ключа размера
+M jne $fail_format ; K1-E028
+M mov eax, 0FF ; K1-E028 FF 15 слот4
+M call $emit2 ; K1-E011
+M mov eax, 15 ; K1-E028
+M call $emit2 ; K1-E011
+M mov rcx, [r13+30] ; K1-E028
+M mov rdx, [r13+38] ; K1-E028
+M mov r8, 4 ; K1-E028
+M call $emit_slot ; K1-E013
+M ret ; K1-E028
+:ca_ref
+M cmp qword [r13+28], 4 ; K1-E028 только слот 4
+M jne $fail_format ; K1-E028
+M mov eax, 0E8 ; K1-E028 E8 слот4
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E028
+M mov rdx, [r13+20] ; K1-E028
+M mov r8, 4 ; K1-E028
+M call $emit_slot ; K1-E013
+M ret ; K1-E028
+; ===== E029 enc_unary: neg/inc/dec (семейство 9) =====
+:enc_unary
+M cmp qword [r13], 0 ; K1-E029 регистр 32/64
+M jne $fail_format ; K1-E029
+M cmp qword [r13+10], 40 ; K1-E029
+M je $un_sz ; K1-E029
+M cmp qword [r13+10], 20 ; K1-E029
+M jne $fail_format ; K1-E029
+:un_sz
+M xor eax, eax ; K1-E029 REX
+M cmp qword [r13+10], 40 ; K1-E029
+M jne $un_now ; K1-E029
+M or eax, 8 ; K1-E029
+:un_now
+M cmp qword [r13+8], 8 ; K1-E029
+M jl $un_nob ; K1-E029
+M or eax, 1 ; K1-E029
+:un_nob
+M or eax, 40 ; K1-E029
+M cmp eax, 40 ; K1-E029
+M je $un_norex ; K1-E029
+M call $emit2 ; K1-E011
+:un_norex
+M mov eax, [rip+$m_param] ; K1-E029 опк (младший байт)
+M movzx eax, al ; K1-E029
+M call $emit2 ; K1-E011
+M mov eax, [rip+$m_param] ; K1-E029 modrm = C0|ext<<3|код&7
+M shr eax, 8 ; K1-E029
+M and eax, 7 ; K1-E029
+M shl eax, 3 ; K1-E029
+M mov rcx, [r13+8] ; K1-E029
+M and ecx, 7 ; K1-E029
+M or eax, ecx ; K1-E029
+M or eax, C0 ; K1-E029
+M call $emit2 ; K1-E011
+M ret ; K1-E029
+; ===== E030 enc_pushpop: push/pop r64 (семейства A/B) =====
+:enc_pushpop
+M cmp qword [r13], 0 ; K1-E030 регистр 64
+M jne $fail_format ; K1-E030
+M cmp qword [r13+10], 40 ; K1-E030
+M jne $fail_format ; K1-E030
+M xor eax, eax ; K1-E030 REX (только B)
+M cmp qword [r13+8], 8 ; K1-E030
+M jl $pp_nob ; K1-E030
+M or eax, 1 ; K1-E030
+:pp_nob
+M or eax, 40 ; K1-E030
+M cmp eax, 40 ; K1-E030
+M je $pp_norex ; K1-E030
+M call $emit2 ; K1-E011
+:pp_norex
+M mov eax, [rip+$m_param] ; K1-E030 база 50/58 | код&7
+M mov ecx, [r13+8] ; K1-E030
+M and ecx, 7 ; K1-E030
+M or eax, ecx ; K1-E030
+M call $emit2 ; K1-E011
+M ret ; K1-E030
+; ===== E031 enc_jmp (семейство C) =====
+:enc_jmp
+M cmp qword [r13], 2 ; K1-E031 только ссылка
+M jne $fail_format ; K1-E031
+M cmp qword [r13+28], 1 ; K1-E031 rel8?
+M je $jm_short ; K1-E031
+M cmp qword [r13+28], 4 ; K1-E031 rel32?
+M jne $fail_format ; K1-E031
+M mov eax, 0E9 ; K1-E031 E9 слот4
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E031
+M mov rdx, [r13+20] ; K1-E031
+M mov r8, 4 ; K1-E031
+M call $emit_slot ; K1-E013
+M ret ; K1-E031
+:jm_short
+M mov eax, 0EB ; K1-E031 EB слот1
+M call $emit2 ; K1-E011
+M mov rcx, [r13+18] ; K1-E031
+M mov rdx, [r13+20] ; K1-E031
+M mov r8, 1 ; K1-E031
+M call $emit_slot ; K1-E013
+M ret ; K1-E031
+; ===== E032 enc_simple: cdqe/ret/int3 (семейство D) =====
+:enc_simple
+M mov eax, [rip+$m_param] ; K1-E032 байт 1 (младший)
+M movzx eax, al ; K1-E032
+M call $emit2 ; K1-E011
+M mov rax, [rip+$m_param] ; K1-E032 байт 2 (старший)
+M shr eax, 8 ; K1-E032
+M test eax, eax ; K1-E032
+M jz $sm_done ; K1-E032 однобайтовая
+M call $emit2 ; K1-E011
+:sm_done
+M ret ; K1-E032
+; ===== H011 hex16_to_4: 4 hex-цифры в [RDI] =====
+:hex16_to_4
+M mov ecx, 4 ; K1-H011
+M shl eax, 10 ; K1-H011 число в старшие 16 бит
+:h4_loop
+M rol eax, 4 ; K1-H011
+M mov edx, eax ; K1-H011
+M and edx, 0F ; K1-H011
+M lea r8, [rip+$digits] ; K1-H011
+M movzx edx, byte [r8+rdx] ; K1-H011
+M mov [rdi], dl ; K1-H011
+M inc rdi ; K1-H011
+M dec ecx ; K1-H011
+M jnz $h4_loop:1 ; K1-H011
+M ret ; K1-H011
+; ===== G013 fail_format: ERR=FORMAT AT=XXXX + выход 6 =====
+:fail_format
+M and rsp, -10 ; K1-G013 выравнивание стека (не возвращаемся)
+M lea rdi, [rip+$linebuf] ; K1-G013
+M lea rsi, [rip+$fmt_pfx] ; K1-G013
+M mov ecx, 17 ; K1-G013 23 байта префикса
+:ff_loop
+M movzx eax, byte [rsi] ; K1-G013
+M mov [rdi], al ; K1-G013
+M inc rsi ; K1-G013
+M inc rdi ; K1-G013
+M dec ecx ; K1-G013
+M jnz $ff_loop:1 ; K1-G013
+M mov eax, [rip+$curline] ; K1-G013
+M and eax, 0FFFF ; K1-G013 4 цифры номера строки
+M call $hex16_to_4 ; K1-H011
+M mov byte [rdi], 0D ; K1-G013
+M inc rdi ; K1-G013
+M mov byte [rdi], 0A ; K1-G013
+M inc rdi ; K1-G013
+M lea rdx, [rip+$linebuf] ; K1-G013
+M mov r8d, 1D ; K1-G013 29 байт
+M call $print_line ; K1-U011
+M mov ecx, 6 ; K1-G013 код FORMAT
+M call [rip+$iat_ep] ; K1-G013 ExitProcess
+M int3 ; K1-G013 страховка
+; ===== G012 print_error: errtab[ECX] + выход =====
+:print_error
+M and rsp, -10 ; K1-G012 выравнивание стека (не возвращаемся)
+M sub rsp, 30 ; K1-G012 тень + ячейка кода
+M mov eax, ecx ; K1-G012
+M shl eax, 4 ; K1-G012 x 16
+M cdqe ; K1-G012
+M lea rdx, [rip+$errtab] ; K1-G012
+M add rdx, rax ; K1-G012 адрес записи
+M mov r8d, [rdx+4] ; K1-G012 длина
+M mov r9d, [rdx+8] ; K1-G012 код возврата
+M mov [rsp+10], r9d ; K1-G012
+M mov edx, [rdx] ; K1-G012 RVA строки
+M add rdx, rbx ; K1-G012 адрес строки
+M call $print_line ; K1-U011
+M mov ecx, [rsp+10] ; K1-G012
+M call [rip+$iat_ep] ; K1-G012 ExitProcess
+M int3 ; K1-G012 страховка
+; ===== U011 print_line: RDX = строка, R8D = длина =====
+:print_line
+M sub rsp, 28 ; K1-U011
+M mov rcx, [rip+$hstdout] ; K1-U011
+M lea r9, [rip+$written] ; K1-U011
+M mov qword [rsp+20], 0 ; K1-U011 без перекрытия
+M call [rip+$iat_wf] ; K1-U011 WriteFile
+M add rsp, 28 ; K1-U011
+M ret ; K1-U011
+; ===== C013 next_arg / C014 read_word / C015 copy_word_dst / C016 skip_seps =====
+:next_arg
+M call $skip_seps ; K1-C016 разделители перед аргументом
+M movzx eax, byte [rdi] ; K1-C013
+M test al, al ; K1-C013
+M jz $na_miss ; K1-C013 аргумента нет
+M call $read_word ; K1-C014 RSI/RDI = границы слова
+M call $copy_word_dst ; K1-C015 копирование в буфер R8
+M test eax, eax ; K1-C013 флаг длинного имени
+M jz $na_ok ; K1-C013 уложились
+M mov ecx, 1 ; K1-C013 ERR=LONG NAME
+M call $print_error ; K1-G012
+:na_ok
+M ret ; K1-C013
+:na_miss
+M mov ecx, 0 ; K1-C013 справка
+M call $print_error ; K1-G012
+:read_word
+M mov rsi, rdi ; K1-C014 начало слова
+:rw_loop
+M movzx eax, byte [rdi] ; K1-C014
+M test al, al ; K1-C014
+M jz $rw_end ; K1-C014
+M cmp al, 20 ; K1-C014
+M jz $rw_end ; K1-C014
+M cmp al, 09 ; K1-C014
+M jz $rw_end ; K1-C014
+M inc rdi ; K1-C014
+M jmp $rw_loop ; K1-C014
+:rw_end
+M ret ; K1-C014
+:copy_word_dst
+M mov r11, r8 ; K1-C015 курсор записи
+:cwd_loop
+M cmp rsi, rdi ; K1-C015 слово исчерпано?
+M jz $cwd_done ; K1-C015
+M mov rdx, r11 ; K1-C015
+M sub rdx, r8 ; K1-C015 записано байт
+M cmp rdx, 7F ; K1-C015 предел буфера
+M jae $cwd_long ; K1-C015
+M movzx edx, byte [rsi] ; K1-C015
+M mov [r11], dl ; K1-C015
+M inc rsi ; K1-C015
+M inc r11 ; K1-C015
+M jmp $cwd_loop ; K1-C015
+:cwd_done
+M xor eax, eax ; K1-C015 флаг: уложились
+M mov [r11], al ; K1-C015 NUL
+M ret ; K1-C015
+:cwd_long
+M mov byte [r11], 0 ; K1-C015 NUL на границе
+M mov eax, 1 ; K1-C015 флаг: длиннее 127
+M ret ; K1-C015
+:skip_seps
+M movzx eax, byte [rdi] ; K1-C016
+M cmp al, 20 ; K1-C016
+M jz $ss_adv ; K1-C016
+M cmp al, 09 ; K1-C016
+M jz $ss_adv ; K1-C016
+M ret ; K1-C016
+:ss_adv
+M inc rdi ; K1-C016
+M jmp $skip_seps ; K1-C016
+; ===== F011..F015: файловые операции (реинкарнации K1-F001..F005) =====
+:open_file_read
+M sub rsp, 38 ; K1-F011
+M mov edx, 80000000 ; K1-F011 GENERIC_READ
+M mov r8d, 1 ; K1-F011 FILE_SHARE_READ
+M xor r9d, r9d ; K1-F011 SA=NULL
+M mov qword [rsp+20], 3 ; K1-F011 OPEN_EXISTING
+M mov qword [rsp+28], 80 ; K1-F011 NORMAL
+M mov qword [rsp+30], 0 ; K1-F011 шаблон
+M call [rip+$iat_cf] ; K1-F011 CreateFileA
+M add rsp, 38 ; K1-F011
+M ret ; K1-F011
+:create_file_write
+M sub rsp, 38 ; K1-F012
+M mov edx, 40000000 ; K1-F012 GENERIC_WRITE
+M xor r8d, r8d ; K1-F012
+M xor r9d, r9d ; K1-F012
+M mov qword [rsp+20], 2 ; K1-F012 CREATE_ALWAYS
+M mov qword [rsp+28], 80 ; K1-F012
+M mov qword [rsp+30], 0 ; K1-F012
+M call [rip+$iat_cf] ; K1-F012
+M add rsp, 38 ; K1-F012
+M ret ; K1-F012
+:close_file
+M sub rsp, 28 ; K1-F013
+M call [rip+$iat_ch] ; K1-F013 CloseHandle
+M add rsp, 28 ; K1-F013
+M ret ; K1-F013
+:read_whole_dst
+M sub rsp, 28 ; K1-F014
+M mov qword [rsp+20], 0 ; K1-F014 без перекрытия
+M call [rip+$iat_rf] ; K1-F014 ReadFile
+M add rsp, 28 ; K1-F014
+M test rax, rax ; K1-F014
+M jnz $rwf_ok ; K1-F014
+M mov rax, -1 ; K1-F014
+M ret ; K1-F014
+:rwf_ok
+M mov eax, [r9] ; K1-F014 счётчик
+M ret ; K1-F014
+:write_all
+M sub rsp, 28 ; K1-F015
+M mov [rip+$wa_len], r8 ; K1-F015 длина
+M lea r9, [rip+$written] ; K1-F015
+M mov qword [rsp+20], 0 ; K1-F015 без перекрытия
+M call [rip+$iat_wf] ; K1-F015 WriteFile
+M add rsp, 28 ; K1-F015
+M test rax, rax ; K1-F015
+M jz $wa_err ; K1-F015
+M mov rax, [rip+$written] ; K1-F015 записано
+M cmp rax, [rip+$wa_len] ; K1-F015 равно длине?
+M jne $wa_err ; K1-F015
+M xor eax, eax ; K1-F015 успех
+M ret ; K1-F015
+:wa_err
+M mov eax, 1 ; K1-F015
+M ret ; K1-F015

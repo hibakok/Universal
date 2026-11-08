@@ -99,6 +99,8 @@ RVA 0x11AC  hint=0 + "ExitProcess\0"
 | hxdump.exe | M0-HXDUMP | 0xE00 (3584 Б) | 0xC00 | 0xA0A | 7 функций | 0x18F0 / 0x1918 |
 | hexgen.exe | M0-HEXGEN | 0xA00 (2560 Б) | 0x800 | 0x20880 (bss) | 7 функций | 0x1660 / 0x1688 |
 | pegen.exe | M0-PEGEN | 0x1000 (4096 Б) | 0xE00 | 0x2117C (bss) | 7 функций | 0x1C60 / 0x1C88 |
+| brick.exe | M1-BRICK | 0xE00 (3584 Б) | 0xC00 | 0x42D10 (bss) | 7 функций | 0x1A7E / 0x1AA6 |
+| enc.exe | M1-ENC | 0x2E00 (11776 Б) | 0x2C00 | 0x67146 (bss) | 7 функций | 0x3AE4 / 0x3B0C |
 
 Карта конкретного образа (смещения всех его полей) — в его BYTECODE.md.
 Инварианты ниже общие для всех образов.

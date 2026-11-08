@@ -31,10 +31,13 @@
 | Изменить код hexgen | `KERNEL/L0-HEXGEN/CARD.md`, `hexgen.hex`, `hexgen.peg`, `SPEC/05-X86-SUBSET.md`, `SPEC/04-PE-MINIMAL.md` |
 | Изменить код pegen | `KERNEL/L0-PEGEN/CARD.md`, `pegen.hex`, `pegen.peg`, `SPEC/05-X86-SUBSET.md`, `SPEC/07-PEG-FORMAT.md` |
 | Изменить код brick | `KERNEL/L1-BRICK/CARD.md`, `brick.brick` (канонический исходник), `brick.peg`, `SPEC/08-BRICK-FORMAT.md`, `SPEC/05-X86-SUBSET.md` |
-| Написать/понять M-строку (BRICK v2) | `SPEC/09-ENC-FORMAT.md` (грамматика + канонические кодировки), примеры — `LAB/py/lab_enc_cases.py` |
-| Добавить мнемонику/форму в enc | `SPEC/09-ENC-FORMAT.md` (таблицы), `LAB/py/lab_enc.py` (оракул), `LAB/py/lab_enc_cases.py` (+ якорь), `TESTS/T-L1-ENC.md` |
+| Изменить код enc | `KERNEL/L1-ENC/CARD.md`, `enc.b2` (канонический исходник BRICK v2), `SPEC/09-ENC-FORMAT.md`, `MAP/M1-ENC.md` + `MAP/M1-ENC-E.md` + `MAP/M1-ENC-S.md` |
+| Собрать модуль на BRICK v2 | `KERNEL/L1-ENC/CARD.md` (конвейер: enc + brick + pegen), `TESTS/T-L1-ENC.md` |
+| Добавить мнемонику/форму в enc | `SPEC/09-ENC-FORMAT.md`, `LAB/py/lab_enc.py` (оракул), `LAB/py/lab_enc_cases.py` (+ якорь), `KERNEL/L1-ENC/enc.b2` (mnemtab + кодировщик), `TESTS/T-L1-ENC.md` |
+| Изменить кирпич enc | карточка в `MAP/M1-ENC*.md`, строка в `MAP/METHODS.md`, смещения в `KERNEL/L1-ENC/BYTECODE.md` §3, тесты T-E6-05..11 |
+| Написать/понять M-строку (BRICK v2) | `SPEC/09-ENC-FORMAT.md` (грамматика + канонические кодировки), примеры — `LAB/py/lab_enc_cases.py` и `KERNEL/L1-ENC/enc.b2` |
 | Понять отклонение канонических кодировок от исторических листингов | `SPEC/09-ENC-FORMAT.md`, раздел «Отклонения»; `SPEC/05` примечание к E5 |
-| Реализовать enc.exe (E6.2) | `SPEC/09-ENC-FORMAT.md`, `LAB/ai/JOURNAL.md` (план ветвей), `KERNEL/L1-BRICK/brick.brick` (образец файловых кирпичей), `TESTS/T-L1-ENC.md` |
+| Реализовать enc.exe (E6.2) | ВЫПОЛНЕНО: `KERNEL/L1-ENC/` (CARD/BYTECODE/VERIFY), `MAP/M1-ENC*.md` |
 | Добавить директиву BRICK | `SPEC/08-BRICK-FORMAT.md`, `MAP/M1-BRICK.md` (K1-A008 parse_data — диспетчер), `KERNEL/L1-BRICK/BYTECODE.md` §3 |
 | Собрать модуль из BRICK | `KERNEL/L1-BRICK/CARD.md` (конвейер: brick + pegen), `TESTS/T-L1-BRICK.md` (T-M6-16) |
 | Мигрировать модуль L0 на BRICK | `SPEC/03-ATOM-FORMAT.md` (соответствие форматов), `SPEC/08-BRICK-FORMAT.md`, `KERNEL/L1-BRICK/brick.brick` (образец) |
@@ -47,7 +50,7 @@
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
-| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (71 проверка: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC, круги; ~7 с; CI GitHub делает это на каждый пуш) |
+| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (80 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC, круги, самохостинг E5/E6.2; ~22 с; CI GitHub делает это на каждый пуш) |
 | Узнать, что делал ИИ-разработчик и что дальше | `LAB/ai/JOURNAL.md` (журнал сессий, планы этапов) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
 | Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |
@@ -60,11 +63,12 @@
 `LAB/` — измерительный прибор, а не часть системы (правила —
 `LAB/README.md`). Python там допустим ТОЛЬКО внутри LAB. Перед любым
 изменением KERNEL/ и после него: `python3 LAB/py/lab_verify.py` —
-должно быть 71/71 (запускается и автоматически: CI на каждый пуш).
+должно быть 80/80 (запускается и автоматически: CI на каждый пуш).
 Эмулятор (lab_cpu/lab_win) исполняет наши EXE с заглушками kernel32;
 оракулы (lab_atom/lab_brick/lab_pegen/lab_enc) — независимые реализации
 SPEC/03/08/07/09; расхождение оракула с инструментом — находка, а не
-повод «подогнать» (см. журнал KERNEL/L1-BRICK/VERIFY.md, дефект № 12).
+повод «подогнать» (см. журнал KERNEL/L1-ENC/VERIFY.md §4: E6.2 нашёл
+2 дефекта оракула и 2 дефекта эмулятора).
 
 ## Правила выживания в репозитории
 
