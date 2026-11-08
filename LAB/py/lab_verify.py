@@ -10,7 +10,9 @@
          5) круги воспроизведения E4 (hexgen+pegen == EXE) и
             самохостинг E5 (brick(brick.brick) == hexgen(brick.hex));
          6) оракул ENC (SPEC/09): якорные кодировки, отвержение
-            ошибок, декодер lab_x86, полный круг v2 -> EXE -> эмуляция.
+            ошибок, декодер lab_x86, полный круг v2 -> EXE -> эмуляция;
+         7-9) инструменты enc/splice (lab_t_exe) и оракул WALL v1
+            (SPEC/11, lab_t_wall): якоря, ошибки, круг до эмуляции.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -29,6 +31,7 @@ import lab_pegen
 import lab_run
 import lab_splice
 import lab_t_exe
+import lab_t_wall
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -378,6 +381,7 @@ def _enc_rejects(m):
 
 # ------------------------------------------------------------------ 7+8
 # Секции 7 (enc.exe) и 8 (splice.exe) — в LAB/py/lab_t_exe.py (лимит 500)
+# Секция 9 (оракул WALL v1, E6.4a) — в LAB/py/lab_t_wall.py (лимит 500)
 
 
 def main():
@@ -389,6 +393,7 @@ def main():
     t_cycles()
     t_enc()
     lab_t_exe.run(check, kpath, kfile, kernel_host)
+    lab_t_wall.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

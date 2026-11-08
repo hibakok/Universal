@@ -41,6 +41,10 @@
 | Разрезать исходник на части / добавить часть | `SPEC/10-SPLICE-FORMAT.md` (директива, каталог включающего, пределы), `KERNEL/L1-ENC/enc.b2` (корень-образец), `MAP/INDEX.md` (строки частей) |
 | Изменить код splice | `KERNEL/L1-SPLICE/CARD.md`, части `splice_s.b2`/`splice_svc.b2`/`splice_data.b2`, `SPEC/10-SPLICE-FORMAT.md`, `MAP/M1-SPLICE.md` |
 | Понять уровни склейки (lv_*) | `KERNEL/L1-SPLICE/CARD.md` (регистровые соглашения), `MAP/M1-SPLICE.md` (K1-S011/S012), `KERNEL/L1-SPLICE/BYTECODE.md` §4 |
+| Написать/понять программу на WALL (L2) | `SPEC/11-WALL-FORMAT.md` (грамматика + канон эмиттера), примеры — `LAB/py/lab_l2_prog.py` (DEMO_WALL) и якоря `LAB/py/lab_l2_cases.py` |
+| Изменить оракул WALL | `SPEC/11-WALL-FORMAT.md`, `LAB/py/lab_l2.py` (фронт: лексер/разбор/семантика) + `LAB/py/lab_l2_gen.py` (бэк: раскладка/эмит), затем прогнать батарею (якоря должны сойтись или быть пересчитаны вручную с фиксацией в журнале) |
+| Добавить конструкцию в WALL | `SPEC/11` (грамматика + канон), якорь в `LAB/py/lab_l2_cases.py` (вручную!), случай в `lab_l2_prog.py` ERRORS, секция 9 батареи — уже покрывает; обновить T-L2-WALL |
+| Собрать программу на WALL (сейчас — оракулом) | `SPEC/11` п.6 (обёртка PEG — константа), DEMO_WALL_PEG в `LAB/py/lab_l2_prog.py`; конвейер: compile_wall -> enc -> brick -> pegen (E6.4b заменит оракул на wall.exe) |
 | Реализовать enc.exe (E6.2) | ВЫПОЛНЕНО: `KERNEL/L1-ENC/` (CARD/BYTECODE/VERIFY), `MAP/M1-ENC*.md` |
 | Добавить директиву BRICK | `SPEC/08-BRICK-FORMAT.md`, `MAP/M1-BRICK.md` (K1-A008 parse_data — диспетчер), `KERNEL/L1-BRICK/BYTECODE.md` §3 |
 | Собрать модуль из BRICK | `KERNEL/L1-BRICK/CARD.md` (конвейер: brick + pegen), `TESTS/T-L1-BRICK.md` (T-M6-16) |
