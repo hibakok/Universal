@@ -1,0 +1,138 @@
+; ===== K2-S001 pass1: разбор + таблицы + статистика кадров =====
+:pass1
+M push rbp ;S001
+M mov rbp, rsp ;S001
+M sub rsp, 20 ;S001
+M xor eax, eax ;S001
+M mov [r13+18028], rax ;S001
+M mov [r13+18128], rax ;S001
+M mov [r13+18130], rax ;S001
+M mov [r13+18138], rax ;S001
+M mov [r13+18140], rax ;S001
+M mov [r13+18148], rax ;S001
+M mov [r13+18150], rax ;S001
+M mov [r13+18158], rax ;S001
+M mov [r13+18118], rax ;S001
+M mov [r13+18160], rax ;S001
+M mov [r13+18170], rax ;S001
+M lea rsi, [rip+$filebuf] ;S001
+:p1_loop
+M call $line_next ;N001
+M mov [r13+181D0], rax ;S001
+M call $p1_line ;S002
+M mov rax, [r13+181D0] ;S001
+M test rax, rax ;S001
+M jnz $p1_loop ;S001
+; ---- пост-проверки: незакрытый блок ----
+M mov rax, [r13+18158] ;S001
+M test rax, rax ;S001
+M jnz $p1_open ;S001
+M mov rax, [r13+18170] ;S001
+M test rax, rax ;S001
+M jnz $p1_open ;S001
+M jmp $p1_mainchk ;S001
+:p1_open
+M call $set_lastline ;N004
+M call $fail_format ;G002
+; ---- пост-проверки: ровно одна main без параметров ----
+:p1_mainchk
+M xor eax, eax ;S001
+M mov [rbp-8], rax ;S001
+M mov [rbp-10], rax ;S001
+M mov [rbp-18], rax ;S001
+M xor r8d, r8d ;S001
+M lea rdi, [rip+$ftab] ;S001
+:p1_mscan
+M cmp r8, [r13+18130] ;S001
+M jae $p1_mdone ;S001
+M mov rax, r8 ;S001
+M shl rax, 6 ;S001
+M mov rcx, r8 ;S001
+M shl rcx, 3 ;S001
+M add rax, rcx ;S001
+M add rax, rdi ;S001
+M mov rcx, [rax+8] ;S001
+M cmp rcx, 4 ;S001
+M jne $p1_mnext ;S001
+M mov rcx, [rax] ;S001
+M mov edx, [rcx] ;S001
+M cmp edx, 6E69616D ;S001
+M jne $p1_mnext ;S001
+M mov rcx, [rax+40] ;S001
+M mov [rbp-10], rcx ;S001
+M mov rcx, [rax+10] ;S001
+M mov [rbp-18], rcx ;S001
+M mov rcx, [rbp-8] ;S001
+M inc rcx ;S001
+M mov [rbp-8], rcx ;S001
+:p1_mnext
+M inc r8 ;S001
+M jmp $p1_mscan ;S001
+:p1_mdone
+M mov rax, [rbp-8] ;S001
+M cmp rax, 1 ;S001
+M jne $p1_mcount ;S001
+M mov rax, [rbp-18] ;S001
+M test rax, rax ;S001
+M jz $p1_ret ;S001
+M mov rax, [rbp-10] ;S001
+M mov [r13+18020], rax ;S001
+M call $fail_format ;G002
+:p1_mcount
+M call $set_lastline ;N004
+M call $fail_format ;G002
+:p1_ret
+M mov rsp, rbp ;S001
+M pop rbp ;S001
+M ret ;S001
+; ===== K2-S002 p1_line: диспетчер строки прохода 1 =====
+:p1_line
+M mov rcx, r14 ;S002
+M mov [r13+18070], rcx ;S002
+M call $lex_tok ;L001
+M cmp eax, 4 ;S002
+M je $p1l_ret ;S002
+M cmp eax, 1 ;S002
+M jne $p1l_notid ;S002
+M mov rcx, [r13+18060] ;S002
+M mov rdx, [r13+18068] ;S002
+M sub rdx, rcx ;S002
+M call $kw_lookup ;P004
+M cmp eax, 3 ;S002
+M je $p1l_func ;S002
+M mov rdx, [r13+18170] ;S002
+M test rdx, rdx ;S002
+M jnz $p1l_kwstmt ;S002
+M mov rdx, [r13+18160] ;S002
+M test rdx, rdx ;S002
+M jnz $p1l_hdrfail ;S002
+M call $p1_decl ;S003
+M ret ;S002
+:p1l_kwstmt
+M cmp eax, 0 ;S002
+M je $p1s_var ;S006
+M cmp eax, 4 ;S002
+M je $p1s_end ;S007
+M cmp eax, 5 ;S002
+M je $p1s_else ;S008
+M cmp eax, 6 ;S002
+M je $p1s_if ;S009
+M cmp eax, 7 ;S002
+M je $p1s_while ; K2-S00A
+M cmp eax, 8 ;S002
+M je $p1s_return ; K2-S00B
+M cmp eax, 9 ;S002
+M je $p1s_setb ; K2-S00C
+M jmp $p1l_name ;S002
+:p1l_func
+M call $p1_funchdr ;S004
+M ret ;S002
+:p1l_name
+M call $p1_namestmt ; K2-S00D
+M ret ;S002
+:p1l_hdrfail
+M call $fail_format ;G002
+:p1l_notid
+M call $fail_format ;G002
+:p1l_ret
+M ret ;S002

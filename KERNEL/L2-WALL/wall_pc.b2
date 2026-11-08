@@ -1,0 +1,321 @@
+; ===== K2-P018 p_cond: условие if/while; операнды на глубине 2 =====
+; статы: _upd(1+max(need_l, need_r)); эмит: 4 строки + cmp.
+; Выход: EAX = индекс jcc-инверсии (0..5: jne je jge jg jle jl).
+:p_cond
+M push rbp ;P018
+M mov rbp, rsp ;P018
+M sub rsp, 30 ;P018
+M mov ecx, 2 ;P018
+M call $p_expr ;P010
+M mov [rbp-8], rax ;P018
+M mov rax, [r13+18080] ;P018
+M test rax, rax ;P018
+M jz $pc_nostore ;P018
+M mov ecx, 43 ;P018
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P018
+M add rax, 1 ;P018
+M shl rax, 3 ;P018
+M call $out_hex ;E005
+M mov ecx, 58 ;P018
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pc_nostore
+M mov rcx, [r13+18070] ;P018
+M call $lex_tok ;L001
+M cmp eax, 2 ;P018
+M jne $pc_fail ;P018
+M mov r11, [r13+18068] ;P018
+M sub r11, [r13+18060] ;P018
+M mov rcx, [r13+18060] ;P018
+M movzx eax, byte [rcx] ;P018
+M mov [rbp-10], rax ;P018
+M mov [rbp-18], r11 ;P018
+M cmp al, 3D ;P018
+M je $pc_eq ;P018
+M cmp al, 21 ;P018
+M je $pc_ne ;P018
+M cmp al, 3C ;P018
+M je $pc_lt ;P018
+M cmp al, 3E ;P018
+M je $pc_gt ;P018
+M jmp $pc_fail ;P018
+:pc_eq
+M cmp r11, 2 ;P018
+M jne $pc_fail ;P018
+M movzx edx, byte [rcx+1] ;P018
+M cmp dl, 3D ;P018
+M jne $pc_fail ;P018
+M jmp $pc_opok ;P018
+:pc_ne
+M cmp r11, 2 ;P018
+M jne $pc_fail ;P018
+M movzx edx, byte [rcx+1] ;P018
+M cmp dl, 3D ;P018
+M jne $pc_fail ;P018
+M jmp $pc_opok ;P018
+:pc_lt
+M cmp r11, 2 ;P018
+M jne $pc_opok ;P018
+M movzx edx, byte [rcx+1] ;P018
+M cmp dl, 3D ;P018
+M je $pc_opok ;P018
+M jmp $pc_fail ;P018
+:pc_gt
+M cmp r11, 2 ;P018
+M jne $pc_opok ;P018
+M movzx edx, byte [rcx+1] ;P018
+M cmp dl, 3D ;P018
+M je $pc_opok ;P018
+M jmp $pc_fail ;P018
+:pc_opok
+M mov rcx, [r13+18068] ;P018
+M mov [r13+18070], rcx ;P018
+M mov ecx, 2 ;P018
+M call $p_expr ;P010
+M mov [rbp-20], rax ;P018
+M mov rax, [r13+18080] ;P018
+M test rax, rax ;P018
+M jnz $pc_emit ;P018
+M mov rdx, [rbp-8] ;P018
+M cmp rdx, [rbp-20] ;P018
+M jge $pc_maxl ;P018
+M mov rdx, [rbp-20] ;P018
+:pc_maxl
+M lea rax, [rdx+1] ;P018
+M cmp rax, [r13+18090] ;P018
+M jbe $pc_ret ;P018
+M mov [r13+18090], rax ;P018
+M jmp $pc_ret ;P018
+:pc_emit
+M mov ecx, 4D ;P018
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P018
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P018
+M add rax, 1 ;P018
+M shl rax, 3 ;P018
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P018
+M inc r12 ;P018
+M call $emit_cmt ;E009
+M mov ecx, 3D ;P018
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pc_ret
+M mov rax, [rbp-10] ;P018
+M cmp al, 3D ;P018
+M je $pc_i0 ;P018
+M cmp al, 21 ;P018
+M je $pc_i1 ;P018
+M cmp al, 3C ;P018
+M je $pc_ilt ;P018
+M mov rax, [rbp-18] ;P018
+M cmp rax, 2 ;P018
+M je $pc_i5 ;P018
+M mov eax, 4 ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_ilt
+M mov rax, [rbp-18] ;P018
+M cmp rax, 2 ;P018
+M je $pc_i3 ;P018
+M mov eax, 2 ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_i0
+M xor eax, eax ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_i1
+M mov eax, 1 ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_i3
+M mov eax, 3 ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_i5
+M mov eax, 5 ;P018
+M mov rsp, rbp ;P018
+M pop rbp ;P018
+M ret ;P018
+:pc_fail
+M call $fail_format ;G002
+; ===== K2-E022 emit_addr: RCX = ptr, RDX = len =====
+:emit_addr
+M push rbp ;E022
+M mov rbp, rsp ;E022
+M sub rsp, 20 ;E022
+M mov [rbp-10], rcx ;E022
+M mov [rbp-18], rdx ;E022
+M call $local_find ;P008
+M cmp rax, -1 ;E022
+M jne $ea_local ;E022
+M mov rcx, [rbp-10] ;E022
+M mov rdx, [rbp-18] ;E022
+M call $names_find ;P006
+M cmp rax, -1 ;E022
+M je $ea_unknown ;E022
+M mov r9, rax ;E022
+M mov rcx, rax ;E022
+M shl rcx, 5 ;E022
+M mov rdx, r9 ;E022
+M shl rdx, 3 ;E022
+M add rcx, rdx ;E022
+M lea rdx, [rip+$ntab] ;E022
+M add rcx, rdx ;E022
+M mov rax, [rcx+10] ;E022
+M cmp rax, 1 ;E022
+M je $ea_rip ;E022
+M cmp rax, 2 ;E022
+M je $ea_rip ;E022
+M jmp $ea_notvar ;E022
+:ea_rip
+M mov ecx, 34 ;E022
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;E022
+M mov r8, [rbp-18] ;E022
+M call $out_copy ;E002
+M mov byte [r12], 5D ;E022
+M inc r12 ;E022
+M call $emit_cmt ;E009
+M jmp $ea_ret ;E022
+:ea_local
+M lea rax, [rax+1] ;E022
+M shl rax, 3 ;E022
+M mov [rbp-8], rax ;E022
+M mov ecx, 33 ;E022
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E022
+M call $out_hex ;E005
+M mov byte [r12], 5D ;E022
+M inc r12 ;E022
+M call $emit_cmt ;E009
+:ea_ret
+M mov rsp, rbp ;E022
+M pop rbp ;E022
+M ret ;E022
+:ea_unknown
+M call $fail_format ;G002
+:ea_notvar
+M call $fail_format ;G002
+; ===== K2-E023 emit_len: RCX = ptr, RDX = len =====
+:emit_len
+M push rbp ;E023
+M mov rbp, rsp ;E023
+M sub rsp, 20 ;E023
+M mov [rbp-10], rcx ;E023
+M mov [rbp-18], rdx ;E023
+M call $names_find ;P006
+M cmp rax, -1 ;E023
+M je $el_unknown ;E023
+M mov r9, rax ;E023
+M mov rcx, rax ;E023
+M shl rcx, 5 ;E023
+M mov rdx, r9 ;E023
+M shl rdx, 3 ;E023
+M add rcx, rdx ;E023
+M lea rdx, [rip+$ntab] ;E023
+M add rcx, rdx ;E023
+M mov rax, [rcx+10] ;E023
+M cmp rax, 2 ;E023
+M jne $el_notstr ;E023
+M mov rax, [rcx+18] ;E023
+M mov rcx, rax ;E023
+M shl rcx, 4 ;E023
+M mov rdx, rax ;E023
+M shl rdx, 3 ;E023
+M add rcx, rdx ;E023
+M lea rdx, [rip+$sarr] ;E023
+M add rdx, rcx ;E023
+M mov r8, [rdx+10] ;E023
+M mov rdx, [rdx+8] ;E023
+M call $str_dlen ;E013
+M mov [rbp-8], rax ;E023
+M mov ecx, 44 ;E023
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E023
+M call $out_hex ;E005
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E023
+M pop rbp ;E023
+M ret ;E023
+:el_unknown
+M call $fail_format ;G002
+:el_notstr
+M call $fail_format ;G002
+; ===== K2-E024 emit_load: RCX = ptr, RDX = len =====
+:emit_load
+M push rbp ;E024
+M mov rbp, rsp ;E024
+M sub rsp, 20 ;E024
+M mov [rbp-10], rcx ;E024
+M mov [rbp-18], rdx ;E024
+M call $local_find ;P008
+M cmp rax, -1 ;E024
+M jne $el_local ;E024
+M mov rcx, [rbp-10] ;E024
+M mov rdx, [rbp-18] ;E024
+M call $names_find ;P006
+M cmp rax, -1 ;E024
+M je $el_unknown2 ;E024
+M mov rcx, rax ;E024
+M shl rcx, 5 ;E024
+M mov rdx, rax ;E024
+M shl rdx, 3 ;E024
+M add rcx, rdx ;E024
+M lea rdx, [rip+$ntab] ;E024
+M add rcx, rdx ;E024
+M mov rax, [rcx+10] ;E024
+M cmp rax, 1 ;E024
+M je $el_var ;E024
+M cmp rax, 2 ;E024
+M je $el_str ;E024
+M jmp $el_notvalue ;E024
+:el_var
+M mov ecx, 46 ;E024
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;E024
+M mov r8, [rbp-18] ;E024
+M call $out_copy ;E002
+M mov byte [r12], 5D ;E024
+M inc r12 ;E024
+M call $emit_cmt ;E009
+M jmp $el_ret ;E024
+:el_str
+M mov ecx, 34 ;E024
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;E024
+M mov r8, [rbp-18] ;E024
+M call $out_copy ;E002
+M mov byte [r12], 5D ;E024
+M inc r12 ;E024
+M call $emit_cmt ;E009
+M jmp $el_ret ;E024
+:el_local
+M lea rax, [rax+1] ;E024
+M shl rax, 3 ;E024
+M mov [rbp-8], rax ;E024
+M mov ecx, 45 ;E024
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E024
+M call $out_hex ;E005
+M mov byte [r12], 5D ;E024
+M inc r12 ;E024
+M call $emit_cmt ;E009
+M jmp $el_ret ;E024
+:el_ret
+M mov rsp, rbp ;E024
+M pop rbp ;E024
+M ret ;E024
+:el_unknown2
+M call $fail_format ;G002
+:el_notvalue
+M call $fail_format ;G002

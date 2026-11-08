@@ -1,0 +1,310 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — аргументы и вызовы
+; ===== K2-P014 p_args: аргументы вызова до ')' включительно; RCX = d =====
+; '(' уже поглощено. tmp5 = число аргументов; tmp6 = max need.
+:p_args
+M push rbp ;P014
+M mov rbp, rsp ;P014
+M sub rsp, 20 ;P014
+M mov [rbp-8], rcx ;P014
+M xor eax, eax ;P014
+M mov [r13+181E8], rax ;P014
+M mov [r13+181F0], rax ;P014
+M mov rcx, [r13+18070] ;P014
+M call $lex_tok ;L001
+M cmp eax, 2 ;P014
+M jne $pa_first ;P014
+M mov rax, [r13+18068] ;P014
+M sub rax, [r13+18060] ;P014
+M cmp rax, 1 ;P014
+M jne $pa_first ;P014
+M mov rcx, [r13+18060] ;P014
+M movzx eax, byte [rcx] ;P014
+M cmp al, 29 ;P014
+M je $pa_close ;P014
+:pa_first
+M mov rcx, [rbp-8] ;P014
+M call $p_expr ;P010
+M call $pa_stage ;P017
+:pa_loop
+M mov rcx, [r13+18070] ;P014
+M call $lex_tok ;L001
+M cmp eax, 2 ;P014
+M jne $pa_close_want ;P014
+M mov rax, [r13+18068] ;P014
+M sub rax, [r13+18060] ;P014
+M cmp rax, 1 ;P014
+M jne $pa_close_want ;P014
+M mov rcx, [r13+18060] ;P014
+M movzx eax, byte [rcx] ;P014
+M cmp al, 2C ;P014
+M jne $pa_close_want ;P014
+M mov rcx, [r13+18068] ;P014
+M mov [r13+18070], rcx ;P014
+M mov rcx, [rbp-8] ;P014
+M call $p_expr ;P010
+M call $pa_stage ;P017
+M jmp $pa_loop ;P014
+:pa_close
+M mov rcx, [r13+18068] ;P014
+M mov [r13+18070], rcx ;P014
+M jmp $pa_ret ;P014
+:pa_close_want
+M mov ecx, 29 ;P014
+M call $want_sym1 ;P001
+:pa_ret
+M mov rsp, rbp ;P014
+M pop rbp ;P014
+M ret ;P014
+; ===== K2-P017 pa_stage: стейджинг одного аргумента (после p_expr) =====
+; RAX = need; значение — в r10 (эмит). i-й аргумент -> C-слот c(i);
+; 5-й аргумент ext-вызова -> S5 (флаг pc_extflg установлен вызывающим).
+:pa_stage
+M mov rdx, [r13+181E8] ;P017
+M inc rdx ;P017
+M mov [r13+181E8], rdx ;P017
+M mov [r13+181F8], rax ;P017
+M mov rax, [r13+18080] ;P017
+M test rax, rax ;P017
+M jz $pas_st ;P017
+M mov ecx, 43 ;P017
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P017
+M add rax, [r13+180C8] ;P017
+M mov rcx, [r13+18088] ;P017
+M test rcx, rcx ;P017
+M jz $pas_cslot ;P017
+M mov rcx, [r13+181E8] ;P017
+M cmp rcx, 5 ;P017
+M jne $pas_cslot ;P017
+; S5 = s(3) = nbase+maxd+maxc+4
+M add rax, [r13+180D0] ;P017
+M add rax, 4 ;P017
+M jmp $pas_emitoff ;P017
+:pas_cslot
+M add rax, [r13+181E8] ;P017
+:pas_emitoff
+M shl rax, 3 ;P017
+M call $out_hex ;E005
+M mov ecx, 58 ;P017
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pas_st
+M mov rax, [r13+181F8] ;P017
+M cmp [r13+181F0], rax ;P017
+M jge $pas_ret ;P017
+M mov [r13+181F0], rax ;P017
+:pas_ret
+M ret ;P017
+; ===== K2-P015 p_call_tail: загрузки + вызов; имя (RDX, R8), RCX = want =====
+:p_call_tail
+M push rbp ;P015
+M mov rbp, rsp ;P015
+M sub rsp, 28 ;P015
+M mov [rbp-8], rcx ;P015
+M mov [rbp-10], rdx ;P015
+M mov [rbp-18], r8 ;P015
+M mov rcx, rdx ;P015
+M mov rdx, r8 ;P015
+M call $names_find ;P006
+M cmp rax, -1 ;P015
+M je $pct_unknown ;P015
+M mov rcx, rax ;P015
+M shl rcx, 5 ;P015
+M mov rdx, rax ;P015
+M shl rdx, 3 ;P015
+M add rcx, rdx ;P015
+M lea rdx, [rip+$ntab] ;P015
+M add rcx, rdx ;P015
+M mov rax, [rcx+10] ;P015
+M cmp rax, 4 ;P015
+M je $pct_func ;P015
+M cmp rax, 3 ;P015
+M je $pct_ext ;P015
+M jmp $pct_notfunc ;P015
+:pct_func
+M mov rdx, [rcx+18] ;P015
+M mov rax, rdx ;P015
+M shl rax, 6 ;P015
+M mov rcx, rdx ;P015
+M shl rcx, 3 ;P015
+M add rax, rcx ;P015
+M lea rcx, [rip+$ftab] ;P015
+M add rcx, rax ;P015
+M mov rax, [rcx+10] ;P015
+M cmp rax, [r13+181E8] ;P015
+M jne $pct_arity ;P015
+M xor eax, eax ;P015
+M mov [rbp-20], rax ;P015 индекс загрузки (r8 затирается вызовами)
+:pct_fload
+M mov rax, [rbp-20] ;P015
+M cmp rax, [r13+181E8] ;P015
+M jae $pct_fcall ;P015
+M mov ecx, 40 ;P015
+M call $out_str ;E003
+M mov rax, [rbp-20] ;P015
+M shl rax, 3 ;P015
+M lea rdx, [rip+$argtab] ;P015
+M add rdx, rax ;P015
+M mov eax, [rdx] ;P015
+M lea rcx, [rip+$strblob] ;P015
+M add rax, rcx ;P015
+M mov r9d, [rdx+4] ;P015
+M mov rdx, rax ;P015
+M mov r8, r9 ;P015
+M call $out_copy ;E002
+M mov ecx, 3 ;P015
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P015
+M add rax, [r13+180C8] ;P015
+M mov rcx, [rbp-20] ;P015
+M lea rax, [rax+rcx+1] ;P015
+M shl rax, 3 ;P015
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P015
+M inc r12 ;P015
+M call $emit_cmt ;E009
+M mov rax, [rbp-20] ;P015
+M inc rax ;P015
+M mov [rbp-20], rax ;P015
+M jmp $pct_fload ;P015
+:pct_fcall
+M mov ecx, 3B ;P015
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;P015
+M mov r8, [rbp-18] ;P015
+M call $out_copy ;E002
+M call $emit_cmt ;E009
+M mov rax, [rbp-8] ;P015
+M test rax, rax ;P015
+M jz $pct_ret ;P015
+M mov ecx, 4C ;P015
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M jmp $pct_ret ;P015
+:pct_ext
+M mov rax, [r13+181E8] ;P015
+M cmp rax, 5 ;P015
+M ja $pct_ext6 ;P015
+M xor eax, eax ;P015
+M mov [rbp-20], rax ;P015 индекс загрузки
+:pct_eload
+M mov rax, [rbp-20] ;P015
+M cmp rax, [r13+181E8] ;P015
+M jae $pct_eload_done ;P015
+M cmp rax, 4 ;P015
+M jae $pct_eload_done ;P015
+M mov ecx, 40 ;P015
+M call $out_str ;E003
+M mov rax, [rbp-20] ;P015
+M shl rax, 3 ;P015
+M lea rdx, [rip+$argtab] ;P015
+M add rdx, rax ;P015
+M mov eax, [rdx] ;P015
+M lea rcx, [rip+$strblob] ;P015
+M add rax, rcx ;P015
+M mov r9d, [rdx+4] ;P015
+M mov rdx, rax ;P015
+M mov r8, r9 ;P015
+M call $out_copy ;E002
+M mov ecx, 3 ;P015
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P015
+M add rax, [r13+180C8] ;P015
+M mov rcx, [rbp-20] ;P015
+M lea rax, [rax+rcx+1] ;P015
+M shl rax, 3 ;P015
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P015
+M inc r12 ;P015
+M call $emit_cmt ;E009
+M mov rax, [rbp-20] ;P015
+M inc rax ;P015
+M mov [rbp-20], rax ;P015
+M jmp $pct_eload ;P015
+:pct_eload_done
+M mov rax, [r13+181E8] ;P015
+M cmp rax, 5 ;P015
+M jne $pct_ecall ;P015
+M mov ecx, 45 ;P015
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P015
+M add rax, [r13+180C8] ;P015
+M add rax, [r13+180D0] ;P015
+M add rax, 4 ;P015
+M shl rax, 3 ;P015
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P015
+M inc r12 ;P015
+M call $emit_cmt ;E009
+M mov ecx, 53 ;P015
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pct_ecall
+M mov ecx, 3C ;P015
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;P015
+M mov r8, [rbp-18] ;P015
+M call $lower_copy ;E012
+M lea rdx, [rip+$scr] ;P015
+M mov r8, rax ;P015
+M call $out_copy ;E002
+M mov byte [r12], 5D ;P015
+M inc r12 ;P015
+M call $emit_cmt ;E009
+M mov rax, [rbp-8] ;P015
+M test rax, rax ;P015
+M jz $pct_ret ;P015
+M mov ecx, 4C ;P015
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M jmp $pct_ret ;P015
+:pct_ext6
+M call $fail_format ;G002
+:pct_arity
+M call $fail_format ;G002
+:pct_notfunc
+M call $fail_format ;G002
+:pct_unknown
+M call $fail_format ;G002
+:pct_ret
+M mov rsp, rbp ;P015
+M pop rbp ;P015
+M ret ;P015
+; ===== K2-P016 call_stats: статы вызова; RCX = ptr, RDX = len =====
+:call_stats
+M call $names_find ;P006
+M cmp rax, -1 ;P016
+M je $cs_funcish ;P016
+M mov rcx, rax ;P016
+M shl rcx, 5 ;P016
+M mov rdx, rax ;P016
+M shl rdx, 3 ;P016
+M add rcx, rdx ;P016
+M lea rdx, [rip+$ntab] ;P016
+M add rcx, rdx ;P016
+M mov rax, [rcx+10] ;P016
+M cmp rax, 3 ;P016
+M je $cs_ext ;P016
+:cs_funcish
+M mov rax, [r13+181E8] ;P016
+M cmp rax, [r13+18098] ;P016
+M jbe $cs_ret ;P016
+M mov [r13+18098], rax ;P016
+M jmp $cs_ret ;P016
+:cs_ext
+M mov rax, [r13+181E8] ;P016
+M cmp rax, 4 ;P016
+M jbe $cs_e4 ;P016
+M mov eax, 4 ;P016
+:cs_e4
+M cmp rax, [r13+18098] ;P016
+M jbe $cs_e_ret ;P016
+M mov [r13+18098], rax ;P016
+:cs_e_ret
+M mov rax, [r13+181E8] ;P016
+M cmp rax, 5 ;P016
+M jne $cs_ret ;P016
+M mov eax, 1 ;P016
+M mov [r13+180A8], rax ;P016
+:cs_ret
+M ret ;P016

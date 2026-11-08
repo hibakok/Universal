@@ -1,0 +1,198 @@
+; ===== K2-H001 hex16_to_4: 4 hex-цифры в [RDI] (реинкарнация K1-H011) =====
+:hex16_to_4
+M mov ecx, 4 ;H001
+M shl eax, 10 ;H001
+:h4_loop
+M rol eax, 4 ;H001
+M mov edx, eax ;H001
+M and edx, 0F ;H001
+M lea r8, [rip+$digits] ;H001
+M movzx edx, byte [r8+rdx] ;H001
+M mov [rdi], dl ;H001
+M inc rdi ;H001
+M dec ecx ;H001
+M jnz $h4_loop:1 ;H001
+M ret ;H001
+; ===== K2-G002 fail_format: ERR=FORMAT AT=XXXX + выход 6 =====
+:fail_format
+M and rsp, -10
+M mov ecx, 1B
+M mov rdx, rcx
+M shl rdx, 3
+M lea rax, [rip+$strtab2]
+M add rax, rdx
+M mov edx, [rax]
+M mov r9d, [rax+4]
+M lea rsi, [rip+$strblob]
+M add rsi, rdx
+M mov ecx, r9d ; длина префикса
+M lea rdi, [rip+$linebuf]
+:ff_loop
+M movzx eax, byte [rsi] ;G002
+M mov [rdi], al ;G002
+M inc rsi ;G002
+M inc rdi ;G002
+M dec rcx ;G002
+M jnz $ff_loop:1 ;G002
+M mov eax, [r13+18020] ;G002
+M and eax, 0FFFF ;G002
+M call $hex16_to_4 ;H001
+M mov byte [rdi], 0D ;G002
+M inc rdi ;G002
+M mov byte [rdi], 0A ;G002
+M inc rdi ;G002
+M mov r8d, r9d ;G002 длина префикса
+M add r8d, 6 ;G002
+M lea rdx, [rip+$linebuf] ;G002
+M call $print_line ;U001
+M mov ecx, 6 ;G002
+M call [rip+$iat_ep] ;G002
+M int3 ;G002
+; ===== K2-G003 print_error: errtab[ECX] + выход =====
+:print_error
+M and rsp, -10 ;G003
+M sub rsp, 30 ;G003
+M mov eax, ecx ;G003
+M shl eax, 4 ;G003
+M cdqe ;G003
+M lea rdx, [rip+$errtab] ;G003
+M add rdx, rax ;G003
+M mov r8d, [rdx+4] ;G003
+M mov r9d, [rdx+8] ;G003
+M mov [rsp+10], r9d ;G003
+M mov edx, [rdx]
+M lea rax, [rip+$strblob]
+M add rdx, rax
+M call $print_line ;U001
+M mov ecx, [rsp+10] ;G003
+M call [rip+$iat_ep] ;G003
+M int3 ;G003
+; ===== K2-U001 print_line: RDX = строка, R8D = длина =====
+:print_line
+M sub rsp, 28 ;U001
+M mov rcx, [r13+18000] ;U001
+M lea r9, [r13+18008] ;U001
+M mov qword [rsp+20], 0 ;U001
+M call [rip+$iat_wf] ;U001
+M add rsp, 28 ;U001
+M ret ;U001
+; ===== K2-C001 next_arg / C002 read_word / C003 copy_word_dst / C004 skip_seps =====
+:next_arg
+M call $skip_seps ;C004
+M movzx eax, byte [rdi] ;C001
+M test al, al ;C001
+M jz $na_miss ;C001
+M call $read_word ;C002
+M call $copy_word_dst ;C003
+M test eax, eax ;C001
+M jz $na_ok ;C001
+M mov ecx, 1 ;C001
+M call $print_error ;G003
+:na_ok
+M ret ;C001
+:na_miss
+M mov ecx, 0 ;C001
+M call $print_error ;G003
+:read_word
+M mov rsi, rdi ;C002
+:rw_loop
+M movzx eax, byte [rdi] ;C002
+M test al, al ;C002
+M jz $rw_end ;C002
+M cmp al, 20 ;C002
+M jz $rw_end ;C002
+M cmp al, 09 ;C002
+M jz $rw_end ;C002
+M inc rdi ;C002
+M jmp $rw_loop ;C002
+:rw_end
+M ret ;C002
+:copy_word_dst
+M mov r11, r8 ;C003
+:cwd_loop
+M cmp rsi, rdi ;C003
+M jz $cwd_done ;C003
+M mov rdx, r11 ;C003
+M sub rdx, r8 ;C003
+M cmp rdx, 7F ;C003
+M jae $cwd_long ;C003
+M movzx edx, byte [rsi] ;C003
+M mov [r11], dl ;C003
+M inc rsi ;C003
+M inc r11 ;C003
+M jmp $cwd_loop ;C003
+:cwd_done
+M xor eax, eax ;C003
+M mov [r11], al ;C003
+M ret ;C003
+:cwd_long
+M mov byte [r11], 0 ;C003
+M mov eax, 1 ;C003
+M ret ;C003
+:skip_seps
+M movzx eax, byte [rdi] ;C004
+M cmp al, 20 ;C004
+M jz $ss_adv ;C004
+M cmp al, 09 ;C004
+M jz $ss_adv ;C004
+M ret ;C004
+:ss_adv
+M inc rdi ;C004
+M jmp $skip_seps ;C004
+; ===== K2-F001..F005: файловые операции (реинкарнации K1-F011..F015) =====
+:open_file_read
+M sub rsp, 38 ;F001
+M mov edx, 80000000 ;F001
+M mov r8d, 1 ;F001
+M xor r9d, r9d ;F001
+M mov qword [rsp+20], 3 ;F001
+M mov qword [rsp+28], 80 ;F001
+M mov qword [rsp+30], 0 ;F001
+M call [rip+$iat_cf] ;F001
+M add rsp, 38 ;F001
+M ret ;F001
+:create_file_write
+M sub rsp, 38 ;F002
+M mov edx, 40000000 ;F002
+M xor r8d, r8d ;F002
+M xor r9d, r9d ;F002
+M mov qword [rsp+20], 2 ;F002
+M mov qword [rsp+28], 80 ;F002
+M mov qword [rsp+30], 0 ;F002
+M call [rip+$iat_cf] ;F002
+M add rsp, 38 ;F002
+M ret ;F002
+:close_file
+M sub rsp, 28 ;F003
+M call [rip+$iat_ch] ;F003
+M add rsp, 28 ;F003
+M ret ;F003
+:read_whole_dst
+M sub rsp, 28 ;F004
+M mov qword [rsp+20], 0 ;F004
+M call [rip+$iat_rf] ;F004
+M add rsp, 28 ;F004
+M test rax, rax ;F004
+M jnz $rwf_ok ;F004
+M mov rax, -1 ;F004
+M ret ;F004
+:rwf_ok
+M mov eax, [r9] ;F004
+M ret ;F004
+:write_all
+M sub rsp, 28 ;F005
+M mov [r13+18018], r8 ;F005
+M lea r9, [r13+18008] ;F005
+M mov qword [rsp+20], 0 ;F005
+M call [rip+$iat_wf] ;F005
+M add rsp, 28 ;F005
+M test rax, rax ;F005
+M jz $wa_err ;F005
+M mov rax, [r13+18008] ;F005
+M cmp rax, [r13+18018] ;F005
+M jne $wa_err ;F005
+M xor eax, eax ;F005
+M ret ;F005
+:wa_err
+M mov eax, 1 ;F005
+M ret ;F005

@@ -1,0 +1,227 @@
+; ===== K2-P013 p_prim: первичное выражение; RCX = d =====
+:p_prim
+M push rbp ;P013
+M mov rbp, rsp ;P013
+M sub rsp, 20 ;P013
+M mov [rbp-8], rcx ;P013
+M mov rcx, [r13+18070] ;P013
+M call $lex_tok ;L001
+M cmp eax, 0 ;P013
+M je $pp_num ;P013
+M cmp eax, 1 ;P013
+M je $pp_id ;P013
+M cmp eax, 2 ;P013
+M je $pp_sym ;P013
+M jmp $pp_fail ;P013
+:pp_num
+M mov rcx, [r13+18068] ;P013
+M mov [r13+18070], rcx ;P013
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_num_st ;P013
+M mov ecx, 44 ;P013
+M call $out_str ;E003
+M mov rax, [r13+18058] ;P013
+M call $out_hex ;E005
+M call $emit_cmt ;E009
+:pp_num_st
+M xor eax, eax ;P013
+M jmp $pp_ret ;P013
+:pp_sym
+M mov rax, [r13+18068] ;P013
+M sub rax, [r13+18060] ;P013
+M cmp rax, 1 ;P013
+M jne $pp_fail ;P013
+M mov rcx, [r13+18060] ;P013
+M movzx eax, byte [rcx] ;P013
+M cmp al, 28 ;P013
+M je $pp_paren ;P013
+M cmp al, 26 ;P013
+M je $pp_addr ;P013
+M jmp $pp_fail ;P013
+:pp_paren
+M mov rcx, [r13+18068] ;P013
+M mov [r13+18070], rcx ;P013
+M mov rcx, [rbp-8] ;P013
+M call $p_expr ;P010
+M mov [rbp-10], rax ;P013
+M mov ecx, 29 ;P013
+M call $want_sym1 ;P001
+M mov rax, [rbp-10] ;P013
+M jmp $pp_ret ;P013
+:pp_addr
+M mov rcx, [r13+18068] ;P013
+M mov [r13+18070], rcx ;P013
+M call $want_id ;P003
+M mov rax, [r13+18060] ;P013
+M mov [rbp-18], rax ;P013
+M mov rax, [r13+18068] ;P013
+M sub rax, [rbp-18] ;P013
+M mov [rbp-10], rax ;P013
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_addr_st ;P013
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $emit_addr ;E022
+:pp_addr_st
+M xor eax, eax ;P013
+M jmp $pp_ret ;P013
+:pp_id
+M mov rax, [r13+18060] ;P013
+M mov [rbp-18], rax ;P013
+M mov rax, [r13+18068] ;P013
+M sub rax, [rbp-18] ;P013
+M mov [rbp-10], rax ;P013
+M mov rcx, [r13+18068] ;P013
+M mov [r13+18070], rcx ;P013
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $kw_lookup ;P004
+M cmp eax, 0A ;P013 getb (индекс 10)
+M je $pp_getb ;P013
+M cmp eax, 0B ;P013 len
+M je $pp_len ;P013
+M mov rcx, [r13+18070] ;P013
+M call $lex_tok ;L001
+M cmp eax, 2 ;P013
+M jne $pp_value ;P013
+M mov rax, [r13+18068] ;P013
+M sub rax, [r13+18060] ;P013
+M cmp rax, 1 ;P013
+M jne $pp_value ;P013
+M mov rcx, [r13+18060] ;P013
+M movzx eax, byte [rcx] ;P013
+M cmp al, 28 ;P013
+M jne $pp_value ;P013
+M mov rcx, [r13+18068] ;P013
+M mov [r13+18070], rcx ;P013
+; вызов в выражении: вид имени (ext?) — для стейджинга 5-го аргумента
+M xor eax, eax ;P013
+M mov [r13+18088], rax ;P013
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $names_find ;P006
+M cmp rax, -1 ;P013
+M je $pp_call_args ;P013
+M mov rcx, rax ;P013
+M shl rcx, 5 ;P013
+M mov rdx, rax ;P013
+M shl rdx, 3 ;P013
+M add rcx, rdx ;P013
+M lea rdx, [rip+$ntab] ;P013
+M add rcx, rdx ;P013
+M mov rax, [rcx+10] ;P013
+M cmp rax, 3 ;P013
+M jne $pp_call_args ;P013
+M mov eax, 1 ;P013
+M mov [r13+18088], rax ;P013
+:pp_call_args
+M mov rcx, [rbp-8] ;P013
+M call $p_args ;P014
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_call_st ;P013
+M mov rcx, 1 ;P013
+M mov rdx, [rbp-18] ;P013
+M mov r8, [rbp-10] ;P013
+M call $p_call_tail ;P015
+M jmp $pp_call_need ;P013
+:pp_call_st
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $call_stats ;P016
+:pp_call_need
+M mov rax, [r13+181F0] ;P013
+M jmp $pp_ret ;P013
+:pp_getb
+M mov ecx, 28 ;P013
+M call $want_sym1 ;P001
+M mov rcx, [rbp-8] ;P013
+M add rcx, 1 ;P013
+M call $p_expr ;P010
+M mov [rbp-10], rax ;P013
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_getb_nostore ;P013
+M mov ecx, 43 ;P013
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P013
+M add rax, [rbp-8] ;P013
+M shl rax, 3 ;P013
+M call $out_hex ;E005
+M mov ecx, 58 ;P013
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pp_getb_nostore
+M mov ecx, 2C ;P013
+M call $want_sym1 ;P001
+M mov rcx, [rbp-8] ;P013
+M add rcx, 1 ;P013
+M call $p_expr ;P010
+M mov rdx, [rbp-10] ;P013
+M cmp rdx, rax ;P013
+M jge $pp_getb_max ;P013
+M mov rdx, rax ;P013
+:pp_getb_max
+M lea rax, [rdx+1] ;P013
+M mov [rbp-10], rax ;P013
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_getb_notail ;P013
+M mov ecx, 4D ;P013
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P013
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P013
+M add rax, [rbp-8] ;P013
+M shl rax, 3 ;P013
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P013
+M inc r12 ;P013
+M call $emit_cmt ;E009
+M mov ecx, 41 ;P013
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pp_getb_notail
+M mov ecx, 29 ;P013
+M call $want_sym1 ;P001
+M mov rax, [rbp-10] ;P013
+M jmp $pp_ret ;P013
+:pp_len
+M mov ecx, 28 ;P013
+M call $want_sym1 ;P001
+M call $want_id ;P003
+M mov rax, [r13+18060] ;P013
+M mov [rbp-18], rax ;P013
+M mov rax, [r13+18068] ;P013
+M sub rax, [rbp-18] ;P013
+M mov [rbp-10], rax ;P013
+M mov ecx, 29 ;P013
+M call $want_sym1 ;P001
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_len_st ;P013
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $emit_len ;E023
+:pp_len_st
+M xor eax, eax ;P013
+M jmp $pp_ret ;P013
+:pp_value
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pp_value_st ;P013
+M mov rcx, [rbp-18] ;P013
+M mov rdx, [rbp-10] ;P013
+M call $emit_load ;E024
+:pp_value_st
+M xor eax, eax ;P013
+M jmp $pp_ret ;P013
+:pp_fail
+M call $fail_format ;G002
+:pp_ret
+M mov rsp, rbp ;P013
+M pop rbp ;P013
+M ret ;P013

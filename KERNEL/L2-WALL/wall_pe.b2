@@ -1,0 +1,337 @@
+; ===== K2-P001 want_sym1: следующий токен = символ RCX (1 байт) =====
+:want_sym1
+M push rbp ;P001
+M mov rbp, rsp ;P001
+M sub rsp, 20 ;P001
+M mov [rbp-8], rcx ;P001
+M mov rcx, [r13+18070] ;P001
+M call $lex_tok ;L001
+M cmp eax, 2 ;P001
+M jne $ws1_fail ;P001
+M mov rax, [r13+18068] ;P001
+M sub rax, [r13+18060] ;P001
+M cmp rax, 1 ;P001
+M jne $ws1_fail ;P001
+M mov rax, [r13+18060] ;P001
+M movzx eax, byte [rax] ;P001
+M mov rdx, [rbp-8] ;P001
+M cmp al, dl ;P001
+M jne $ws1_fail ;P001
+M mov rcx, [r13+18068] ;P001
+M mov [r13+18070], rcx ;P001
+M mov rsp, rbp ;P001
+M pop rbp ;P001
+M ret ;P001
+:ws1_fail
+M call $fail_format ;G002
+; ===== K2-P002 at_end_chk: токенов больше нет =====
+:at_end_chk
+M mov rcx, [r13+18070] ;P002
+M call $lex_tok ;L001
+M cmp eax, 4 ;P002
+M jne $ae_fail ;P002
+M ret ;P002
+:ae_fail
+M call $fail_format ;G002
+; ===== K2-P003 want_id: следующий токен = имя =====
+:want_id
+M mov rcx, [r13+18070] ;P003
+M call $lex_tok ;L001
+M cmp eax, 1 ;P003
+M jne $wi_fail ;P003
+M mov rcx, [r13+18068] ;P003
+M mov [r13+18070], rcx ;P003
+M ret ;P003
+:wi_fail
+M call $fail_format ;G002
+; ===== K2-P004 kw_lookup: RCX = ptr, RDX = len -> EAX = индекс | -1 =====
+:kw_lookup
+M mov r11, rdx ;P004
+M lea r9, [rip+$kwtab] ;P004
+M xor r8d, r8d ;P004
+:kl_loop
+M cmp r8d, 12 ;P004
+M jae $kl_none ;P004
+M mov eax, [r9+8] ;P004
+M cmp r11, rax ;P004
+M jne $kl_next ;P004
+M xor eax, eax ;P004
+:kl_bloop
+M cmp rax, r11 ;P004
+M jae $kl_match ;P004
+M movzx edx, byte [r9+rax] ;P004
+M cmp dl, byte [rcx+rax] ;P004
+M jne $kl_next ;P004
+M inc rax ;P004
+M jmp $kl_bloop ;P004
+:kl_match
+M mov eax, r8d ;P004
+M ret ;P004
+:kl_next
+M add r9, 10 ;P004
+M inc r8d ;P004
+M jmp $kl_loop ;P004
+:kl_none
+M mov eax, -1 ;P004
+M ret ;P004
+; ===== K2-P005 chk_name: текущий токен = имя; EDX = 1 (заглавные ок) =====
+:chk_name
+M push rbp ;P005
+M mov rbp, rsp ;P005
+M sub rsp, 20 ;P005
+M mov [rbp-8], rdx ;P005
+M mov rax, [r13+18068] ;P005
+M sub rax, [r13+18060] ;P005
+M cmp rax, 3F ;P005
+M ja $cn_fail ;P005
+M mov rcx, [r13+18060] ;P005
+M mov [rbp-10], rcx ;P005
+M mov rdx, [r13+18068] ;P005
+M mov [rbp-18], rdx ;P005
+M movzx eax, byte [rcx] ;P005
+M cmp al, 41 ;P005
+M jb $cn_fail ;P005
+M cmp al, 5A ;P005
+M jbe $cn_f1 ;P005
+M cmp al, 61 ;P005
+M jb $cn_fail ;P005
+M cmp al, 7A ;P005
+M ja $cn_fail ;P005
+:cn_f1
+M mov rdx, [rbp-8] ;P005
+M test rdx, rdx ;P005
+M jnz $cn_body ;P005
+M cmp al, 61 ;P005
+M jb $cn_fail ;P005
+:cn_body
+M mov rcx, [rbp-10] ;P005
+M mov rdx, [rbp-18] ;P005
+M sub rdx, 1 ;P005
+:cn_bloop
+M cmp rcx, rdx ;P005
+M jae $cn_ok ;P005
+M movzx eax, byte [rcx] ;P005
+M cmp al, 5F ;P005
+M je $cn_badv ;P005
+M cmp al, 30 ;P005
+M jb $cn_fail ;P005
+M cmp al, 39 ;P005
+M jbe $cn_badv ;P005
+M cmp al, 41 ;P005
+M jb $cn_fail ;P005
+M cmp al, 5A ;P005
+M jbe $cn_badv ;P005
+M cmp al, 61 ;P005
+M jb $cn_fail ;P005
+M cmp al, 7A ;P005
+M jbe $cn_badv ;P005
+M jmp $cn_fail ;P005
+:cn_badv
+M inc rcx ;P005
+M jmp $cn_bloop ;P005
+:cn_ok
+M mov rsp, rbp ;P005
+M pop rbp ;P005
+M ret ;P005
+:cn_fail
+M call $fail_format ;G002
+; ===== K2-P006 names_find: RCX = ptr, RDX = len -> EAX = индекс | -1 =====
+:names_find
+M mov r11, rdx ;P006
+M lea r9, [rip+$ntab] ;P006
+M xor r8d, r8d ;P006
+:nf_loop
+M cmp r8, [r13+18128] ;P006
+M jae $nf_none ;P006
+M mov rax, [r9+8] ;P006
+M cmp r11, rax ;P006
+M jne $nf_next ;P006
+M mov rdi, [r9] ;P006
+M xor eax, eax ;P006
+:nf_bloop
+M cmp rax, r11 ;P006
+M jae $nf_found ;P006
+M movzx edx, byte [rdi+rax] ;P006
+M cmp dl, byte [rcx+rax] ;P006
+M jne $nf_next ;P006
+M inc rax ;P006
+M jmp $nf_bloop ;P006
+:nf_found
+M mov rax, r8 ;P006
+M ret ;P006
+:nf_next
+M add r9, 28 ;P006
+M inc r8 ;P006
+M jmp $nf_loop ;P006
+:nf_none
+M mov rax, -1 ;P006
+M ret ;P006
+; ===== K2-P007 names_add: RCX=ptr, RDX=len, R8=вид, R9=мета =====
+:names_add
+M push rbp ;P007
+M mov rbp, rsp ;P007
+M sub rsp, 30 ;P007
+M mov [rbp-8], rcx ;P007
+M mov [rbp-10], rdx ;P007
+M mov [rbp-18], r8 ;P007
+M mov [rbp-20], r9 ;P007
+M mov rax, [r13+18128] ;P007
+M mov rcx, rax ;P007
+M shl rcx, 5 ;P007
+M mov rdx, rax ;P007
+M shl rdx, 3 ;P007
+M add rcx, rdx ;P007
+M lea rdx, [rip+$ntab] ;P007
+M add rcx, rdx ;P007
+M mov rax, [rbp-8] ;P007
+M mov [rcx], rax ;P007
+M mov rax, [rbp-10] ;P007
+M mov [rcx+8], rax ;P007
+M mov rax, [rbp-18] ;P007
+M mov [rcx+10], rax ;P007
+M mov rax, [rbp-20] ;P007
+M mov [rcx+18], rax ;P007
+M mov rax, [r13+18020] ;P007
+M mov [rcx+20], rax ;P007
+M mov rax, [r13+18128] ;P007
+M inc rax ;P007
+M mov [r13+18128], rax ;P007
+M mov rsp, rbp ;P007
+M pop rbp ;P007
+M ret ;P007
+; ===== K2-P008 local_find: RCX = ptr, RDX = len -> EAX = индекс | -1 =====
+:local_find
+M mov r11, rdx ;P008
+M mov r9, [r13+180F0] ;P008
+M mov r8, [r13+180F8] ;P008
+M add r8, r9 ;P008
+:lf_loop
+M cmp r9, r8 ;P008
+M jae $lf_none ;P008
+M mov rax, r9 ;P008
+M shl rax, 4 ;P008
+M lea rdi, [rip+$larr] ;P008
+M add rdi, rax ;P008
+M mov rax, [rdi+8] ;P008
+M cmp rax, r11 ;P008
+M jne $lf_next ;P008
+M mov rdi, [rdi] ;P008
+M xor edx, edx ;P008
+:lf_bloop
+M cmp rdx, r11 ;P008
+M jae $lf_found ;P008
+M movzx eax, byte [rdi+rdx] ;P008
+M cmp al, byte [rcx+rdx] ;P008
+M jne $lf_next ;P008
+M inc rdx ;P008
+M jmp $lf_bloop ;P008
+:lf_found
+M mov rax, r9 ;P008
+M sub rax, [r13+180F0] ;P008
+M ret ;P008
+:lf_next
+M inc r9 ;P008
+M jmp $lf_loop ;P008
+:lf_none
+M mov rax, -1 ;P008
+M ret ;P008
+; ===== K2-P009 chain_count: число операций уровня в остатке строки =====
+; RCX = 0 (аддитивные + - | ^) / 1 (мультипликативные & << >>);
+; сканирует токены от pc_cur БЕЗ потребления; RAX = число операций.
+; Завершители на глубине 0: ')' , ','; аддитивные на мул-уровне тоже.
+:chain_count
+M push rbp ;P009
+M mov rbp, rsp ;P009
+M sub rsp, 20 ;P009
+M mov [rbp-8], rcx ;P009
+M mov rax, [r13+18070] ;P009
+M mov [rbp-10], rax ;P009
+M xor r8d, r8d ;P009
+M xor r9d, r9d ;P009
+:cc_loop
+M mov rcx, [rbp-10] ;P009
+M call $lex_tok ;L001
+M cmp eax, 4 ;P009
+M je $cc_done ;P009
+M cmp eax, 2 ;P009
+M jne $cc_adv ;P009
+M mov rax, [r13+18068] ;P009
+M sub rax, [r13+18060] ;P009
+M cmp rax, 1 ;P009
+M jne $cc_sym2 ;P009
+M mov rax, [r13+18060] ;P009
+M movzx eax, byte [rax] ;P009
+M cmp al, 28 ;P009
+M je $cc_open ;P009
+M cmp al, 29 ;P009
+M je $cc_close ;P009
+M test r9d, r9d ;P009
+M jnz $cc_adv ;P009
+M mov rdx, [rbp-8] ;P009
+M test rdx, rdx ;P009
+M jnz $cc_mul ;P009
+M cmp al, 2B ;P009
+M je $cc_op ;P009
+M cmp al, 2D ;P009
+M je $cc_op ;P009
+M cmp al, 7C ;P009
+M je $cc_op ;P009
+M cmp al, 5E ;P009
+M je $cc_op ;P009
+M cmp al, 2C ;P009
+M je $cc_done ;P009
+M jmp $cc_adv ;P009
+:cc_mul
+M cmp al, 26 ;P009
+M je $cc_op ;P009
+M cmp al, 2B ;P009
+M je $cc_done ;P009
+M cmp al, 2D ;P009
+M je $cc_done ;P009
+M cmp al, 7C ;P009
+M je $cc_done ;P009
+M cmp al, 5E ;P009
+M je $cc_done ;P009
+M cmp al, 2C ;P009
+M je $cc_done ;P009
+M jmp $cc_adv ;P009
+:cc_sym2
+M test r9d, r9d ;P009
+M jnz $cc_adv ;P009
+M mov rdx, [rbp-8] ;P009
+M test rdx, rdx ;P009
+M jz $cc_adv ;P009
+M mov rdx, [r13+18060] ;P009 tok_ptr (rax затирается байтом)
+M movzx eax, byte [rdx] ;P009
+M movzx edx, byte [rdx+1] ;P009
+M cmp al, 3C ;P009
+M jne $cc_m2b ;P009
+M cmp dl, 3C ;P009
+M je $cc_op ;P009
+M jmp $cc_adv ;P009
+:cc_m2b
+M cmp al, 3E ;P009
+M jne $cc_adv ;P009
+M cmp dl, 3E ;P009
+M je $cc_op ;P009
+M jmp $cc_adv ;P009
+:cc_open
+M inc r9d ;P009
+M jmp $cc_adv ;P009
+:cc_close
+M test r9d, r9d ;P009
+M jz $cc_done ;P009
+M dec r9d ;P009
+M jmp $cc_adv ;P009
+:cc_op
+M inc r8 ;P009
+M jmp $cc_adv ;P009
+:cc_adv
+M mov rax, [r13+18068] ;P009
+M mov [rbp-10], rax ;P009
+M jmp $cc_loop ;P009
+:cc_done
+M mov rax, r8 ;P009
+M mov rsp, rbp ;P009
+M pop rbp ;P009
+M ret ;P009

@@ -12,7 +12,10 @@
          6) оракул ENC (SPEC/09): якорные кодировки, отвержение
             ошибок, декодер lab_x86, полный круг v2 -> EXE -> эмуляция;
          7-9) инструменты enc/splice (lab_t_exe) и оракул WALL v1
-            (SPEC/11, lab_t_wall): якоря, ошибки, круг до эмуляции.
+            (SPEC/11, lab_t_wall): якоря, ошибки, круг до эмуляции;
+         10) инструмент wall.exe (lab_t_wall2, E6.4b): равенство
+            оракулу на якорях/big_source, отвержение, полный круг
+            WALL -> EXE -> эмуляция, SHA и PE-инварианты.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -32,6 +35,7 @@ import lab_run
 import lab_splice
 import lab_t_exe
 import lab_t_wall
+import lab_t_wall2
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -55,10 +59,12 @@ SHA = {
                 "27789D0E7A54A45",
     "L1-SPLICE/splice": "387B5B63650205E4B16D270CD91FE0EADCAD644E67087C61E11D2"
                        "2D32D27AF92",
+    "L2-WALL/wall": "0129BED660F49323E3E8EB7A03E8FF80929F3052FA8D046FBB2224F6E65307C6",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
-MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice")]
+MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice",
+                        "L2-WALL/wall")]
 
 PASS, FAIL = [], []
 
@@ -394,6 +400,7 @@ def main():
     t_enc()
     lab_t_exe.run(check, kpath, kfile, kernel_host)
     lab_t_wall.run(check, kpath, kfile, kernel_host)
+    lab_t_wall2.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

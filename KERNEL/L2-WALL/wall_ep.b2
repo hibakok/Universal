@@ -1,0 +1,154 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — кадры функций
+; ===== K2-E018 emit_prologue: кадр + параметры =====
+:emit_prologue
+M push rbp ;E018
+M mov rbp, rsp ;E018
+M sub rsp, 30 ;E018
+M mov [rbp-10], rcx ;E018
+M mov [rbp-18], rdx ;E018
+M mov r8, rdx ;E018
+M mov rdx, rcx ;E018
+M call $emit_lab ;E011
+M mov rax, [r13+18108] ;E018
+M inc rax ;E018
+M mov [r13+18108], rax ;E018
+M mov ecx, 4A ;E018
+M call $out_str ;E003
+M call $emit_kadr ;E010
+M mov ecx, 4F ;E018
+M call $out_str ;E003
+M call $emit_kadr ;E010
+M mov ecx, 54 ;E018
+M call $out_str ;E003
+M call $calc_framesize ;E017
+M call $out_hex ;E005
+M call $emit_kadr ;E010
+; параметры: mov [rbp-8*(i+1)], ARGREG[i]
+M mov rax, [r13+180E8] ;E018
+M mov rcx, rax ;E018
+M shl rcx, 6 ;E018
+M mov rdx, rax ;E018
+M shl rdx, 3 ;E018
+M add rcx, rdx ;E018
+M lea rdx, [rip+$ftab] ;E018
+M add rdx, rcx ;E018
+M mov rax, [rdx+10] ;E018
+M mov [rbp-8], rax ;E018
+M xor eax, eax ;E018
+M mov [rbp-20], rax ;E018
+:epp_loop
+M mov rax, [rbp-20] ;E018
+M cmp rax, [rbp-8] ;E018
+M jae $epp_ret ;E018
+M mov ecx, 43 ;E018
+M call $out_str ;E003
+M mov rax, [rbp-20] ;E018
+M inc rax ;E018
+M shl rax, 3 ;E018
+M call $out_hex ;E005
+M mov ecx, 4 ;E018
+M call $out_str ;E003
+M mov rax, [rbp-20] ;E018
+M shl rax, 3 ;E018
+M lea rdx, [rip+$argtab] ;E018
+M add rdx, rax ;E018
+M mov eax, [rdx] ;
+M lea rcx, [rip+$strblob] ;
+M add rax, rcx ;
+M mov r9d, [rdx+4] ;E018
+M mov rdx, rax ;E018
+M mov r8d, r9d ;E018
+M call $out_copy ;E002
+M call $emit_kadr ;E010
+M mov rax, [rbp-20] ;E018
+M inc rax ;E018
+M mov [rbp-20], rax ;E018
+M jmp $epp_loop ;E018
+:epp_ret
+M mov rsp, rbp ;E018
+M pop rbp ;E018
+M ret ;E018
+; ===== K2-E019 emit_epilogue: выход функции =====
+:emit_epilogue
+M mov ecx, 52 ;E019
+M call $out_str ;E003
+M call $emit_vyhod ;E010
+M mov ecx, 49 ;E019
+M call $out_str ;E003
+M call $emit_vyhod ;E010
+M mov ecx, 51 ;E019
+M call $out_str ;E003
+M call $emit_vyhod ;E010
+M ret ;E019
+; ===== K2-E020 emit_alu: EAX = байт операции -> "M <mnem> r10, r11" =====
+:emit_alu
+M push rbp ;E020
+M mov rbp, rsp ;E020
+M sub rsp, 20 ;E020
+M mov [rbp-8], rax ;E020
+M xor ecx, ecx ;E020
+M mov rax, [rbp-8] ;E020
+M cmp al, 2B ;E020
+M je $ea2_go ;E020
+M mov ecx, 1 ;E020
+M cmp al, 2D ;E020
+M je $ea2_go ;E020
+M mov ecx, 2 ;E020
+M cmp al, 26 ;E020
+M je $ea2_go ;E020
+M mov ecx, 3 ;E020
+M cmp al, 7C ;E020
+M je $ea2_go ;E020
+M mov ecx, 4 ;E020
+M cmp al, 5E ;E020 '^'
+M je $ea2_go ;E020
+M int3 ;E020
+:ea2_go
+M lea rdx, [rip+$alutab] ;E020
+M mov rax, rcx ;E020
+M shl rax, 3 ;E020
+M add rdx, rax ;E020
+M mov eax, [rdx] ;
+M lea rcx, [rip+$strblob] ;
+M add rax, rcx ;
+M mov r9d, [rdx+4] ;E020
+M mov [rbp-10], rax ;E020
+M mov [rbp-18], r9 ;E020
+M mov ecx, 39 ;E020
+M call $out_str ;E003
+M mov rdx, [rbp-10] ;E020
+M mov r8, [rbp-18] ;E020
+M call $out_copy ;E002
+M mov ecx, 1 ;E020
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E020
+M pop rbp ;E020
+M ret ;E020
+; ===== K2-E021 emit_shift: EAX = 0 '<<' / 1 '>>' =====
+:emit_shift
+M push rbp ;E021
+M mov rbp, rsp ;E021
+M sub rsp, 20 ;E021
+M mov [rbp-8], rax ;E021
+M mov ecx, 50 ;E021
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 39 ;E021
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E021
+M test rax, rax ;E021
+M jz $esh_shl ;E021
+M mov ecx, 64 ;E021
+M call $out_str ;E003
+M jmp $esh_tail ;E021
+:esh_shl
+M mov ecx, 63 ;E021
+M call $out_str ;E003
+:esh_tail
+M mov ecx, 62 ;E021
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E021
+M pop rbp ;E021
+M ret ;E021

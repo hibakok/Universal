@@ -1,0 +1,377 @@
+; ===== K2-E025 get_ext: RCX = индекс earr -> имя (RDX, R8) + scr (RAX = длина) =====
+:get_ext
+M mov rax, rcx ;E025
+M shl rax, 3 ;E025
+M lea rdx, [rip+$earr] ;E025
+M add rdx, rax ;E025
+M mov r9, [rdx] ;E025
+M mov rcx, r9 ;E025
+M shl rcx, 5 ;E025
+M mov rax, r9 ;E025
+M shl rax, 3 ;E025
+M add rcx, rax ;E025
+M lea rax, [rip+$ntab] ;E025
+M add rcx, rax ;E025
+M mov rdx, [rcx] ;E025
+M mov r8, [rcx+8] ;E025
+M call $lower_copy ;E012
+M ret ;E025
+; ===== K2-E026 emit_imports: фиксированная область 0x200 (SPEC/11 п.6) =====
+:emit_imports
+M push rbp ;E026
+M mov rbp, rsp ;E026
+M sub rsp, 30 ;E026
+M mov ecx, 60 ;E026
+M call $out_line ;E004
+M mov ecx, 37 ;E026
+M call $out_line ;E004
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M mov rax, [r13+18150] ;E026
+M test rax, rax ;E026
+M jz $ei_noext ;E026
+M mov ecx, 26 ;E026
+M call $out_line ;E004
+M jmp $ei_term ;E026
+:ei_noext
+M mov ecx, 27 ;E026
+M call $out_line ;E004
+:ei_term
+M mov ecx, 28 ;E026
+M call $out_line ;E004
+M mov ecx, 36 ;E026
+M call $out_line ;E004
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M xor eax, eax ;E026
+M mov [rbp-8], rax ;E026
+:ei_iatloop
+M mov rax, [rbp-8] ;E026
+M cmp rax, [r13+18150] ;E026
+M jae $ei_zeroline ;E026
+M mov rcx, rax ;E026
+M call $get_ext ;E025
+M mov [rbp-10], rax ;E026
+M mov [rbp-18], rdx ;E026
+M mov [rbp-20], r8 ;E026
+M mov ecx, 25 ;E026
+M call $out_str ;E003
+M lea rdx, [rip+$scr] ;E026
+M mov r8, [rbp-10] ;E026
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M mov ecx, A ;E026
+M call $out_str ;E003
+M lea rdx, [rip+$scr] ;E026
+M mov r8, [rbp-10] ;E026
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+M mov rax, [rbp-8] ;E026
+M inc rax ;E026
+M mov [rbp-8], rax ;E026
+M jmp $ei_iatloop ;E026
+:ei_zeroline
+M mov ecx, 9 ;E026
+M call $out_str ;E003
+M mov rax, 9 ;E026
+M sub rax, [r13+18150] ;E026
+M test rax, rax ;E026
+M jz $ei_intt ;E026
+M mov [rbp-8], rax ;E026
+M mov ecx, 6B ;E026
+M call $out_str ;E003
+:ei_zloop
+M mov rax, [rbp-8] ;E026
+M dec rax ;E026
+M mov [rbp-8], rax ;E026
+M test rax, rax ;E026
+M jz $ei_zend ;E026
+M mov byte [r12], 20 ;E026
+M inc r12 ;E026
+M mov ecx, 6B ;E026
+M call $out_str ;E003
+M jmp $ei_zloop ;E026
+:ei_zend
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+:ei_intt
+M mov ecx, 38 ;E026
+M call $out_line ;E004
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M mov ecx, 9 ;E026
+M call $out_str ;E003
+M xor eax, eax ;E026
+M mov [rbp-8], rax ;E026
+:ei_intloop
+M mov rax, [rbp-8] ;E026
+M cmp rax, 9 ;E026
+M jae $ei_after ;E026
+M test rax, rax ;E026
+M jz $ei_nosp ;E026
+M mov byte [r12], 20 ;E026
+M inc r12 ;E026
+:ei_nosp
+M mov rax, [rbp-8] ;E026
+M cmp rax, [r13+18150] ;E026
+M jae $ei_intzero ;E026
+M mov rcx, rax ;E026
+M call $get_ext ;E025
+M mov [rbp-10], rax ;E026 длина scr (rax затирается out_str)
+M mov ecx, 24 ;E026
+M call $out_str ;E003
+M lea rdx, [rip+$scr] ;E026
+M mov r8, [rbp-10] ;E026
+M call $out_copy ;E002
+M jmp $ei_intnext ;E026
+:ei_intzero
+M mov ecx, 6B ;E026
+M call $out_str ;E003
+:ei_intnext
+M mov rax, [rbp-8] ;E026
+M inc rax ;E026
+M mov [rbp-8], rax ;E026
+M jmp $ei_intloop ;E026
+:ei_after
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+M mov rax, [r13+18150] ;E026
+M test rax, rax ;E026
+M jz $ei_noext2 ;E026
+M mov ecx, 32 ;E026
+M call $out_line ;E004
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M mov ecx, 8 ;E026
+M call $out_line ;E004
+M mov ecx, C ;E026
+M call $out_line ;E004
+M xor eax, eax ;E026
+M mov [rbp-8], rax ;E026
+:ei_hintloop
+M mov rax, [rbp-8] ;E026
+M cmp rax, 8 ;E026
+M jae $ei_align ;E026
+M cmp rax, [r13+18150] ;E026
+M jae $ei_free ;E026
+M mov rcx, rax ;E026
+M call $get_ext ;E025
+M mov [rbp-10], rax ;E026
+M mov [rbp-18], rdx ;E026
+M mov [rbp-20], r8 ;E026
+M mov ecx, 23 ;E026
+M call $out_str ;E003
+M lea rdx, [rip+$scr] ;E026
+M mov r8, [rbp-10] ;E026
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+M mov rax, [r13+18108] ;E026
+M inc rax ;E026
+M mov [r13+18108], rax ;E026
+M mov ecx, 7 ;E026
+M call $out_str ;E003
+M xor eax, eax ;E026
+M mov [rbp-28], rax ;E026 счётчик байта (rcx затирается вызовами)
+:ei_hbloop
+M mov rax, [rbp-28] ;E026
+M cmp rax, 22 ;E026
+M jae $ei_hdone ;E026
+M cmp rax, 2 ;E026
+M jb $ei_hzero ;E026
+M mov rdx, [rbp-18] ;E026
+M mov rcx, [rbp-20] ;E026 длина имени
+M mov r8, rax ;E026
+M sub r8, 2 ;E026 индекс в имени
+M cmp r8, rcx ;E026
+M jae $ei_hzero ;E026
+M movzx eax, byte [rdx+r8] ;E026
+M call $out_hex2 ;E006
+M jmp $ei_hspace ;E026
+:ei_hzero
+M xor eax, eax ;E026
+M call $out_hex2 ;E006
+:ei_hspace
+M mov rax, [rbp-28] ;E026
+M inc rax ;E026
+M mov [rbp-28], rax ;E026
+M cmp rax, 22 ;E026
+M jae $ei_hnospace ;E026
+M mov byte [r12], 20 ;E026
+M inc r12 ;E026
+:ei_hnospace
+M jmp $ei_hbloop ;E026
+:ei_hdone
+M mov ecx, 56 ;E026
+M call $out_str ;E003
+M mov rdx, [rbp-18] ;E026
+M mov r8, [rbp-20] ;E026
+M call $out_copy ;E002
+M mov ecx, 57 ;E026
+M call $out_str ;E003
+M mov byte [r12], 0A ;E026
+M inc r12 ;E026
+M jmp $ei_hintnext ;E026
+:ei_free
+M mov ecx, 1C ;E026
+M call $out_line ;E004
+:ei_hintnext
+M mov rax, [rbp-8] ;E026
+M inc rax ;E026
+M mov [rbp-8], rax ;E026
+M jmp $ei_hintloop ;E026
+:ei_align
+M mov ecx, E ;E026
+M call $out_line ;E004
+M mov rsp, rbp ;E026
+M pop rbp ;E026
+M ret ;E026
+:ei_noext2
+M mov ecx, D ;E026
+M call $out_line ;E004
+M mov rsp, rbp ;E026
+M pop rbp ;E026
+M ret ;E026
+; ===== K2-E027 emit_strdata: секция строк =====
+:emit_strdata
+M push rbp ;E027
+M mov rbp, rsp ;E027
+M sub rsp, 20 ;E027
+M xor eax, eax ;E027
+M mov [rbp-8], rax ;E027
+:esd_loop
+M mov rax, [rbp-8] ;E027
+M cmp rax, [r13+18140] ;E027
+M jae $esd_ret ;E027
+M mov rdx, rax ;E027
+M shl rdx, 4 ;E027
+M mov rcx, rax ;E027
+M shl rcx, 3 ;E027
+M add rdx, rcx ;E027
+M lea rcx, [rip+$sarr] ;E027
+M add rdx, rcx ;E027
+M mov rax, [rdx] ;E027
+M mov rcx, rax ;E027
+M shl rcx, 5 ;E027
+M mov r8, rax ;E027
+M shl r8, 3 ;E027
+M add rcx, r8 ;E027
+M lea r8, [rip+$ntab] ;E027
+M add rcx, r8 ;E027
+M mov rax, [rcx] ;E027
+M mov [rbp-10], rax ;E027
+M mov rax, [rcx+8] ;E027
+M mov [rbp-18], rax ;E027
+M mov rax, [rcx+20] ;E027
+M shl rax, 4 ;E027
+M lea rdx, [rip+$sm_arr] ;E027
+M add rdx, rax ;E027
+M mov rax, [rdx] ;E027
+M mov [r13+181A0], rax ;E027
+M mov rax, [rdx+8] ;E027
+M mov [r13+181A8], rax ;E027
+M mov rdx, [rbp-10] ;E027
+M mov r8, [rbp-18] ;E027
+M call $emit_lab ;E011
+M mov rax, [r13+18108] ;E027
+M inc rax ;E027
+M mov [r13+18108], rax ;E027
+M mov rax, [rbp-8] ;E027
+M mov rdx, rax ;E027
+M shl rdx, 4 ;E027
+M mov rcx, rax ;E027
+M shl rcx, 3 ;E027
+M add rdx, rcx ;E027
+M lea rcx, [rip+$sarr] ;E027
+M add rdx, rcx ;E027
+M mov r8, [rdx+10] ;E027
+M mov rdx, [rdx+8] ;E027
+M call $str_dlen ;E013
+M test rax, rax ;E027
+M jnz $esd_rows ;E027
+M mov ecx, B ;E027
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M jmp $esd_next ;E027
+:esd_rows
+M mov rax, [rbp-8] ;E027
+M mov rdx, rax ;E027
+M shl rdx, 4 ;E027
+M mov rcx, rax ;E027
+M shl rcx, 3 ;E027
+M add rdx, rcx ;E027
+M lea rcx, [rip+$sarr] ;E027
+M add rdx, rcx ;E027
+M mov r8, [rdx+10] ;E027
+M mov rdx, [rdx+8] ;E027
+M call $str_emit ;E014
+:esd_next
+M mov rax, [rbp-8] ;E027
+M inc rax ;E027
+M mov [rbp-8], rax ;E027
+M jmp $esd_loop ;E027
+:esd_ret
+M mov rsp, rbp ;E027
+M pop rbp ;E027
+M ret ;E027
+; ===== K2-E028 emit_globdata: секция глобальных var =====
+:emit_globdata
+M push rbp ;E028
+M mov rbp, rsp ;E028
+M sub rsp, 20 ;E028
+M xor eax, eax ;E028
+M mov [rbp-8], rax ;E028
+:egd_loop
+M mov rax, [rbp-8] ;E028
+M cmp rax, [r13+18148] ;E028
+M jae $egd_ret ;E028
+M mov rcx, rax ;E028
+M shl rcx, 3 ;E028
+M lea rdx, [rip+$varr] ;E028
+M add rdx, rcx ;E028
+M mov rax, [rdx] ;E028
+M mov rcx, rax ;E028
+M shl rcx, 5 ;E028
+M mov r8, rax ;E028
+M shl r8, 3 ;E028
+M add rcx, r8 ;E028
+M lea r8, [rip+$ntab] ;E028
+M add rcx, r8 ;E028
+M mov rdx, [rcx] ;E028
+M mov [rbp-10], rdx ;E028
+M mov r8, [rcx+8] ;E028
+M mov [rbp-18], r8 ;E028
+M mov rax, [rcx+20] ;E028
+M shl rax, 4 ;E028
+M lea rdx, [rip+$sm_arr] ;E028
+M add rdx, rax ;E028
+M mov rax, [rdx] ;E028
+M mov [r13+181A0], rax ;E028
+M mov rax, [rdx+8] ;E028
+M mov [r13+181A8], rax ;E028
+M mov rdx, [rbp-10] ;E028
+M mov r8, [rbp-18] ;E028
+M call $emit_lab ;E011
+M mov rax, [r13+18108] ;E028
+M inc rax ;E028
+M mov [r13+18108], rax ;E028
+M mov ecx, F ;E028
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rax, [rbp-8] ;E028
+M inc rax ;E028
+M mov [rbp-8], rax ;E028
+M jmp $egd_loop ;E028
+:egd_ret
+M mov rsp, rbp ;E028
+M pop rbp ;E028
+M ret ;E028

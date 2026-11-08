@@ -31,14 +31,14 @@
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
 | `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 247 |
 | `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice | 147 |
-| `SPEC/11-WALL-FORMAT.md` | WALL v1: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 271 |
+| `SPEC/11-WALL-FORMAT.md` | WALL v1: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 275 |
 
 ## MAP/ — навигация
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `MAP/INDEX.md` | этот файл | 161 |
-| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 252 |
+| `MAP/INDEX.md` | этот файл | 228 |
+| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 361 |
 | `MAP/M0-SEED.md` | карточки кирпичей M0-SEED (8) | 130 |
 | `MAP/M0-SEED2.md` | карточки кирпичей M0-SEED2 (19) | 299 |
 | `MAP/M0-HXDUMP.md` | карточки кирпичей M0-HXDUMP (23) | 360 |
@@ -49,6 +49,7 @@
 | `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 22) | 297 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
 | `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
+| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (66) | 146 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 32 |
 
 ## KERNEL/ — ядро
@@ -123,6 +124,31 @@
 | `KERNEL/L1-SPLICE/splice.exe` | материализация: brick+pegen, 3584 байта, PE32+ | — |
 | `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты | 114 |
 | `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3 | 96 |
+| `KERNEL/L2-WALL/CARD.md` | карточка модуля M2-WALL (компилятор WALL v1) | 118 |
+| `KERNEL/L2-WALL/wall.b2` | корень: поток + 18 !include (19 частей) | 122 |
+| `KERNEL/L2-WALL/wall_svc.b2` | ветви H/G/U/C/F — сервисы (реинкарнации K1) | 192 |
+| `KERNEL/L2-WALL/wall_n.b2` | ветвь N — разбиение строк, проход 0 | 147 |
+| `KERNEL/L2-WALL/wall_l.b2` | ветвь L — лексер WALL | 227 |
+| `KERNEL/L2-WALL/wall_pe.b2` | ветви P: want_*/поиск/chain_count | 338 |
+| `KERNEL/L2-WALL/wall_ph.b2` | p_expr/p_mul/p_unary (глубины T-складов) | 268 |
+| `KERNEL/L2-WALL/wall_pp.b2` | p_prim — первичные выражения | 227 |
+| `KERNEL/L2-WALL/wall_pa.b2` | p_args/p_call_tail/call_stats — вызовы | 300 |
+| `KERNEL/L2-WALL/wall_pc.b2` | p_cond + emit_addr/len/load | 321 |
+| `KERNEL/L2-WALL/wall_p1.b2` | проход 1: цикл, диспетчер, main | 138 |
+| `KERNEL/L2-WALL/wall_pd.b2` | объявления + заголовки func | 434 |
+| `KERNEL/L2-WALL/wall_p1s.b2` | утверждения прохода 1 (статы) | 300 |
+| `KERNEL/L2-WALL/wall_p2.b2` | проход 2: цикл, диспетчер, заголовки | 197 |
+| `KERNEL/L2-WALL/wall_p2s.b2` | утверждения прохода 2: if/while/вызовы | 380 |
+| `KERNEL/L2-WALL/wall_p2t.b2` | эмиттеры переходов и меток | 100 |
+| `KERNEL/L2-WALL/wall_e.b2` | примитивы вывода, div10, out_dec | 363 |
+| `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift | 152 |
+| `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var) | 387 |
+| `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob, bss | 359 |
+| `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
+| `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
+| `KERNEL/L2-WALL/wall.exe` | материализация: 23040 байт, PE32+ | — |
+| `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 124 |
+| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 11 дефектов | 96 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -192,11 +218,12 @@ LAB — измерительный прибор (Python только здесь)
 
 - Кирпичей в реестре: **248** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
   23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK,
-  63 в M1-ENC, 27 в M1-SPLICE).
-- Модулей: **8** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
-  M1-BRICK, M1-ENC, M1-SPLICE).
-- Тестов: **102** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17, T-M6-01..17, T-E6-01..24; автоматических в батарее — 96).
-- Этап: **E6.4a завершён** (SPEC/11 + оракул WALL v1 + батарея 96/96;
-  демо-круг WALL -> EXE -> эмуляция «U-WALL-OK 37»); следующий — E6.4b:
-  wall.exe на BRICK v2 с самохостингом (см. `DOCS/03-ROADMAP.md`).
+  63 в M1-ENC, 27 в M1-SPLICE; слой L2: 66 в M2-WALL).
+- Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
+  M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
+- Тестов: **108** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17, T-E6-01..30; автоматических в батарее — 105).
+- Этап: **E6.4b завершён** (wall.exe == оракулу на якорях и big_source;
+  полный круг WALL -> EXE -> эмуляция «U-WALL-OK 37»; батарея 105/105);
+  следующий — E6.4c: рост языка WALL до v2 (массивы, динамическая
+  память), затем E6.4d — самохостинг wall.wall (см. `DOCS/03-ROADMAP.md`).

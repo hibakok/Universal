@@ -1,0 +1,382 @@
+; ===== K2-E001 out_ch: байт AL -> вывод =====
+:out_ch
+M mov [r12], al ;E001
+M inc r12 ;E001
+M ret ;E001
+; ===== K2-E002 out_copy: RDX = адрес, R8 = длина =====
+:out_copy
+M test r8, r8 ;E002
+M jz $oc_ret ;E002
+M movzx eax, byte [rdx] ;E002
+M mov [r12], al ;E002
+M inc r12 ;E002
+M inc rdx ;E002
+M dec r8 ;E002
+M jmp $out_copy ;E002
+:oc_ret
+M ret ;E002
+; ===== K2-E003 out_str: RCX = запись strtab (DQ длина + байты) =====
+:out_str
+M mov rdx, rcx
+M shl rdx, 3
+M lea rax, [rip+$strtab2]
+M add rax, rdx
+M mov edx, [rax]
+M mov r8d, [rax+4]
+M lea rax, [rip+$strblob]
+M add rdx, rax
+M jmp $out_copy
+; ===== K2-E004 out_line: RCX = запись strtab; + LF =====
+:out_line
+M call $out_str ;E004
+M mov byte [r12], 0A ;E004
+M inc r12 ;E004
+M ret ;E004
+; ===== K2-E005 out_hex: RAX -> ЗАГЛАВНЫЙ hex без ведущих нулей =====
+:out_hex
+M test rax, rax ;E005
+M jnz $oh_nz ;E005
+M mov byte [r12], 30 ;E005
+M inc r12 ;E005
+M ret ;E005
+:oh_nz
+M sub rsp, 10 ;E005
+M mov rdx, rax ;E005
+M lea rcx, [rsp+0F] ;E005
+M xor r8d, r8d ;E005
+:oh_loop
+M mov rax, rdx ;E005
+M and rax, 0F ;E005
+M lea r9, [rip+$digits] ;E005
+M movzx eax, byte [r9+rax] ;E005
+M mov [rcx], al ;E005
+M dec rcx ;E005
+M shr rdx, 4 ;E005
+M inc r8 ;E005
+M test rdx, rdx ;E005
+M jnz $oh_loop ;E005
+M lea rdx, [rcx+1] ;E005
+M call $out_copy ;E005
+M add rsp, 10 ;E005
+M ret ;E005
+; ===== K2-E006 out_hex2: RAX -> 2 hex-цифры =====
+:out_hex2
+M mov rcx, rax ;E006
+M shr rax, 4 ;E006
+M and rax, 0F ;E006
+M lea rdx, [rip+$digits] ;E006
+M movzx eax, byte [rdx+rax] ;E006
+M mov [r12], al ;E006
+M inc r12 ;E006
+M and rcx, 0F ;E006
+M movzx eax, byte [rdx+rcx] ;E006
+M mov [r12], al ;E006
+M inc r12 ;E006
+M ret ;E006
+; ===== K2-E007 div10: RAX/10 -> RAX частное, RDX остаток =====
+:div10
+M mov rcx, rax ;E007
+M xor eax, eax ;E007
+M xor edx, edx ;E007
+M mov r8d, 20 ;E007
+:d1_loop
+M shl rax, 1 ;E007
+M shl rdx, 1 ;E007
+M mov r9, rcx ;E007
+M shr r9, 1F ;E007
+M and r9, 1 ;E007 бит — только младший
+M add rdx, r9 ;E007
+M shl rcx, 1 ;E007
+M cmp rdx, 0A ;E007
+M jb $d1_skip ;E007
+M sub rdx, 0A ;E007
+M inc rax ;E007
+:d1_skip
+M dec r8 ;E007
+M jnz $d1_loop ;E007
+M ret ;E007
+; ===== K2-E008 out_dec: RAX -> десятичное =====
+:out_dec
+M push rbp ;E008
+M mov rbp, rsp ;E008
+M sub rsp, 30 ;E008
+M test rax, rax ;E008
+M jnz $od_nz ;E008
+M mov byte [r12], 30 ;E008
+M inc r12 ;E008
+M mov rsp, rbp ;E008
+M pop rbp ;E008
+M ret ;E008
+:od_nz
+M mov [rbp-8], rax ;E008
+M lea rax, [rbp-28] ;E008
+M mov [rbp-10], rax ;E008
+M xor eax, eax ;E008
+M mov [rbp-18], rax ;E008
+:od_loop
+M mov rax, [rbp-8] ;E008
+M call $div10 ;E007
+M mov [rbp-8], rax ;E008
+M add dl, 30 ;E008
+M mov rcx, [rbp-10] ;E008
+M mov [rcx], dl ;E008
+M dec rcx ;E008
+M mov [rbp-10], rcx ;E008
+M mov rax, [rbp-18] ;E008
+M inc rax ;E008
+M mov [rbp-18], rax ;E008
+M mov rax, [rbp-8] ;E008
+M test rax, rax ;E008
+M jnz $od_loop ;E008
+M mov rdx, [rbp-10] ;E008
+M inc rdx ;E008
+M mov r8, [rbp-18] ;E008
+M call $out_copy ;E002
+M mov rsp, rbp ;E008
+M pop rbp ;E008
+M ret ;E008
+; ===== K2-E009 emit_cmt: " ; " + текст строки + LF =====
+:emit_cmt
+M mov ecx, 5 ;E009
+M call $out_str ;E003
+M mov rdx, [r13+181A0] ;E009
+M mov r8, [r13+181A8] ;E009
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E009
+M inc r12 ;E009
+M ret ;E009
+; ===== K2-E010 emit_kadr / emit_vyhod: комментарий кадра/выхода функции =====
+:emit_kadr
+M mov ecx, 5 ;E010
+M call $out_str ;E003
+M mov ecx, 31 ;E010
+M call $out_str ;E003
+M mov rdx, [r13+181B0] ;E010
+M mov r8, [r13+181B8] ;E010
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E010
+M inc r12 ;E010
+M ret ;E010
+:emit_vyhod
+M mov ecx, 5 ;E010
+M call $out_str ;E003
+M mov ecx, 67 ;E010
+M call $out_str ;E003
+M mov rdx, [r13+181B0] ;E010
+M mov r8, [r13+181B8] ;E010
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E010
+M inc r12 ;E010
+M ret ;E010
+; ===== K2-E011 emit_lab: RDX = адрес, R8 = длина -> ":имя" + LF =====
+:emit_lab
+M mov byte [r12], 3A ;E011
+M inc r12 ;E011
+M call $out_copy ;E002
+M mov byte [r12], 0A ;E011
+M inc r12 ;E011
+M ret ;E011
+; ===== K2-E012 lower_copy: RDX = адрес, R8 = длина -> scr (нижний регистр) =====
+; Выход: RAX = длина; RDX/R8 сохранены.
+:lower_copy
+M lea rcx, [rip+$scr] ;E012
+M xor eax, eax ;E012
+:lc_loop
+M cmp rax, r8 ;E012
+M jae $lc_ret ;E012
+M movzx r9d, byte [rdx+rax] ;E012
+M cmp r9b, 41 ;E012
+M jb $lc_put ;E012
+M cmp r9b, 5A ;E012
+M ja $lc_put ;E012
+M add r9b, 20 ;E012
+:lc_put
+M mov [rcx+rax], r9b ;E012
+M inc rax ;E012
+M jmp $lc_loop ;E012
+:lc_ret
+M ret ;E012
+; ===== K2-E013 str_dlen: RDX = литерал, R8 = длина -> RAX (декодированная) =====
+:str_dlen
+M xor eax, eax ;E013
+M mov rcx, rdx ;E013
+M lea r9, [rdx+r8] ;E013
+:sd_loop
+M cmp rcx, r9 ;E013
+M jae $sd_ret ;E013
+M movzx edx, byte [rcx] ;E013
+M cmp dl, 5C ;E013
+M je $sd_esc ;E013
+M inc rcx ;E013
+M inc rax ;E013
+M jmp $sd_loop ;E013
+:sd_esc
+M add rcx, 2 ;E013
+M inc rax ;E013
+M jmp $sd_loop ;E013
+:sd_ret
+M ret ;E013
+; ===== K2-E014 str_emit: литерал -> строки DB <=16 + комментарий =====
+:str_emit
+M push rbp ;E014
+M mov rbp, rsp ;E014
+M sub rsp, 30 ;E014
+M mov [rbp-10], rdx ;E014
+M lea rax, [rdx+r8] ;E014
+M mov [rbp-18], rax ;E014
+M xor eax, eax ;E014
+M mov [rbp-8], rax ;E014
+:se_loop
+M mov rdx, [rbp-10] ;E014
+M cmp rdx, [rbp-18] ;E014
+M jae $se_flush ;E014
+M movzx eax, byte [rdx] ;E014
+M cmp al, 5C ;E014
+M je $se_esc ;E014
+M inc rdx ;E014
+M mov [rbp-10], rdx ;E014
+M jmp $se_put ;E014
+:se_esc
+M mov rdx, [rbp-10] ;E014
+M movzx eax, byte [rdx+1] ;E014
+M cmp al, 6E ;E014
+M jne $se_e1 ;E014
+M mov eax, 0A ;E014
+M jmp $se_eadv ;E014
+:se_e1
+M cmp al, 72 ;E014
+M jne $se_e2 ;E014
+M mov eax, 0D ;E014
+M jmp $se_eadv ;E014
+:se_e2
+M cmp al, 74 ;E014
+M jne $se_e3 ;E014
+M mov eax, 09 ;E014
+M jmp $se_eadv ;E014
+:se_e3
+M cmp al, 30 ;E014
+M jne $se_e4 ;E014
+M xor eax, eax ;E014
+M jmp $se_eadv ;E014
+:se_e4
+M cmp al, 5C ;E014
+M jne $se_e5 ;E014
+M mov eax, 5C ;E014
+M jmp $se_eadv ;E014
+:se_e5
+M mov eax, 27 ;E014
+:se_eadv
+M mov rdx, [rbp-10] ;E014
+M add rdx, 2 ;E014
+M mov [rbp-10], rdx ;E014
+:se_put
+M mov rcx, [rbp-8] ;E014
+M mov [rbp+rcx-30], al ;E014
+M inc rcx ;E014
+M mov [rbp-8], rcx ;E014
+M cmp rcx, 10 ;E014
+M jb $se_loop ;E014
+M call $se_doline ;E014
+M jmp $se_loop ;E014
+:se_flush
+M mov rax, [rbp-8] ;E014
+M test rax, rax ;E014
+M jz $se_ret ;E014
+M call $se_doline ;E014
+:se_ret
+M mov rsp, rbp ;E014
+M pop rbp ;E014
+M ret ;E014
+:se_doline
+M mov ecx, 7 ;E014
+M call $out_str ;E003
+M xor r8d, r8d ;E014
+:sdl_loop
+M cmp r8, [rbp-8] ;E014
+M jae $sdl_cmt ;E014
+M movzx eax, byte [rbp+r8-30] ;E014
+M call $out_hex2 ;E006
+M lea rax, [r8+1] ;E014
+M cmp rax, [rbp-8] ;E014
+M jae $sdl_nosp ;E014
+M mov byte [r12], 20 ;E014
+M inc r12 ;E014
+:sdl_nosp
+M inc r8 ;E014
+M jmp $sdl_loop ;E014
+:sdl_cmt
+M call $emit_cmt ;E009
+M ret ;E014
+; ===== K2-E015 emit_header: 2 строки заголовка =====
+:emit_header
+M mov ecx, 22 ;E015
+M call $out_line ;E004
+M mov ecx, 1D ;E015
+M call $out_str ;E003
+M mov rax, [r13+18038] ;E015
+M call $out_dec ;E008
+M mov ecx, 1E ;E015
+M call $out_str ;E003
+M mov rax, [r13+18130] ;E015
+M call $out_dec ;E008
+M mov ecx, 1F ;E015
+M call $out_str ;E003
+M mov rax, [r13+18150] ;E015
+M call $out_dec ;E008
+M mov ecx, 20 ;E015
+M call $out_str ;E003
+M mov rax, [r13+18140] ;E015
+M call $out_dec ;E008
+M mov ecx, 21 ;E015
+M call $out_str ;E003
+M mov rax, [r13+18148] ;E015
+M call $out_dec ;E008
+M mov byte [r12], 0A ;E015
+M inc r12 ;E015
+M ret ;E015
+; ===== K2-E016 emit_entry: "; --- код ---" + вход =====
+:emit_entry
+M mov ecx, 5E ;E016
+M call $out_line ;E004
+M mov ecx, 35 ;E016
+M call $out_line ;E004
+M mov ecx, 12 ;E016
+M call $out_line ;E004
+M mov ecx, 13 ;E016
+M call $out_line ;E004
+M mov ecx, 14 ;E016
+M call $out_line ;E004
+M mov rax, [r13+18108] ;E016
+M inc rax ;E016
+M mov [r13+18108], rax ;E016
+M ret ;E016
+; ===== K2-E017 calc_framesize -> RAX =====
+:calc_framesize
+M mov rax, [r13+180E8] ;E017
+M mov rcx, rax ;E017
+M shl rcx, 6 ;E017
+M mov rdx, rax ;E017
+M shl rdx, 3 ;E017
+M add rcx, rdx ;E017
+M lea rdx, [rip+$ftab] ;E017
+M add rdx, rcx ;E017
+M mov rax, [rdx+18] ;E017
+M mov rcx, [rdx+20] ;E017
+M mov r8, [rdx+38] ;E017
+M add rax, rcx ;E017
+M add rax, r8 ;E017
+M mov rcx, [rdx+28] ;E017
+M and rcx, 1 ;E017
+M jz $cf_nosetb ;E017
+M add rax, 3 ;E017
+:cf_nosetb
+M mov rcx, [rdx+28] ;E017
+M and rcx, 2 ;E017
+M jz $cf_noext5 ;E017
+M add rax, 1 ;E017
+:cf_noext5
+M shl rax, 3 ;E017
+M add rax, 0F ;E017
+M and rax, -10 ;E017
+M add rax, 30 ;E017
+M ret ;E017

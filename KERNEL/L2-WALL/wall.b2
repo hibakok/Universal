@@ -1,0 +1,140 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL (компилятор WALL v1, SPEC/11)
+; Само-исходник wall.exe: компилятор WALL v1 -> BRICK v2 (канон SPEC/11 п.8).
+; Сборка: splice.exe wall.b2 wall-flat.b2; enc.exe wall-flat.b2 wall.brick;
+;         brick.exe wall.brick wall-body.bin; pegen.exe wall-body.bin wall.peg wall.exe
+; Контракт: wall.exe <вход.wall> <выход.b2>; выход байт-в-байт равен оракулу
+; LAB/py/lab_l2*.py (правило R8, как enc в E6.2).
+; Регистры: RBX=база образа, R10=база outbuf, R12=курсор вывода, R13=база bstk,
+; RSI=курсор текста, R14/R15=начало/конец строки. Подпрограммы сохраняют
+; RBX,RSI,R10,R12,R13,R14,R15,RBP; меняют RAX,RCX,RDX,RDI,R8,R9,R11.
+:entry
+M sub rsp, 38 ;X001
+M lea rbx, [rip+$base] ;X001
+M lea r13, [rip+$scalars] ;X001
+M mov rcx, -B ;X001
+M call [rip+$iat_gsh] ;X001
+M mov [r13+18000], rax ;X001
+:get_cmdline
+M call [rip+$iat_gcl] ;C001
+M mov rdi, rax ;C001
+:skip_argv0
+M movzx eax, byte [rdi] ;C001
+M cmp al, 22 ;C001
+M jnz $sa_unq ;C001
+M inc rdi ;C001
+:sa_qloop
+M movzx eax, byte [rdi] ;C001
+M test al, al ;C001
+M jz $noargs ;C001
+M cmp al, 22 ;C001
+M jz $sa_adv ;C001
+M inc rdi ;C001
+M jmp $sa_qloop ;C001
+:sa_unq
+M test al, al ;C001
+M jz $noargs ;C001
+M cmp al, 20 ;C001
+M jz $sa_delims ;C001
+M cmp al, 09 ;C001
+M jz $sa_delims ;C001
+M inc rdi ;C001
+M jmp $skip_argv0 ;C001
+:sa_adv
+M inc rdi ;C001
+M jmp $sa_delims ;C001
+:sa_delims
+M movzx eax, byte [rdi] ;C001
+M test al, al ;C001
+M jz $noargs ;C001
+M cmp al, 20 ;C001
+M jz $sa_adv ;C001
+M cmp al, 09 ;C001
+M jz $sa_adv ;C001
+M jmp $word1 ;C001
+:noargs
+M mov ecx, 0 ;G003
+M call $print_error ;G003
+:word1
+M lea r8, [rip+$fname_in] ;G004
+M call $next_arg ;C002
+M lea r8, [rip+$fname_out] ;G004
+M call $next_arg ;C002
+M lea rcx, [rip+$fname_in] ;G004
+M call $open_file_read ;F001
+M cmp rax, -1 ;G004
+M jnz $ok1 ;G004
+M mov ecx, 2 ;G004
+M call $print_error ;G003
+:ok1
+M mov r12, rax ;G004
+M mov rcx, r12 ;G004
+M lea rdx, [rip+$filebuf] ;G004
+M mov r8d, 20001 ;G004
+M lea r9, [r13+18010] ;G004
+M call $read_whole_dst ;F004
+M cmp rax, -1 ;G004
+M jnz $ok2 ;G004
+M mov ecx, 3 ;G004
+M call $print_error ;G003
+:ok2
+M cmp rax, 20001 ;G004
+M jb $ok3 ;G004
+M mov ecx, 4 ;G004
+M call $print_error ;G003
+:ok3
+M mov rcx, r12 ;G004
+M call $close_file ;F003
+M mov rax, [r13+18010] ;G004
+M lea rcx, [rip+$filebuf] ;G004
+M add rcx, rax ;G004
+M mov byte [rcx], 0 ;G004
+M mov [r13+18048], rcx ;G004
+; ---- инициализация регистров ----
+M lea r10, [rip+$outbuf] ;X001
+M mov r12, r10 ;X001
+; ---- три прохода ----
+M call $pass0 ;N002
+M call $pass1 ;S001
+M call $pass2 ;Y001
+; ---- запись выхода ----
+M lea rcx, [rip+$fname_out] ;G004
+M call $create_file_write ;F002
+M cmp rax, -1 ;G004
+M jnz $ok6 ;G004
+M mov ecx, 5 ;G004
+M call $print_error ;G003
+:ok6
+M mov r15, rax ;G004
+M mov rcx, r15 ;G004
+M lea rdx, [rip+$outbuf] ;G004
+M mov r8, r12 ;G004
+M sub r8, r10 ;G004
+M call $write_all ;F005
+M test rax, rax ;G004
+M jz $ok7 ;G004
+M mov ecx, 6 ;G004
+M call $print_error ;G003
+:ok7
+M mov rcx, r15 ;G004
+M call $close_file ;F003
+M xor ecx, ecx ;X002
+M call [rip+$iat_ep] ;X002
+M int3 ;X002
+!include wall_svc.b2
+!include wall_n.b2
+!include wall_l.b2
+!include wall_ph.b2
+!include wall_pe.b2
+!include wall_pa.b2
+!include wall_pp.b2
+!include wall_pc.b2
+!include wall_p1.b2
+!include wall_pd.b2
+!include wall_p1s.b2
+!include wall_p2.b2
+!include wall_p2s.b2
+!include wall_p2t.b2
+!include wall_e.b2
+!include wall_ep.b2
+!include wall_ed.b2
+!include wall_data.b2

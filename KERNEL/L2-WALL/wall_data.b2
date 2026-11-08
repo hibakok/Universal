@@ -1,0 +1,359 @@
+; ===== K2-D001 таблица цифр hex =====
+:digits
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
+
+; ===== K2-D002 kwtab: 12 ключевых слов {имя(8Б), длина, код, 0} =====
+:kwtab
+DD 726176 0 3 0 ; var
+DD 727473 0 3 1 ; str
+DD 747865 0 3 2 ; ext
+DD 636E7566 0 4 3 ; func
+DD 646E65 0 3 4 ; end
+DD 65736C65 0 4 5 ; else
+DD 6669 0 2 6 ; if
+DD 6C696877 65 5 7 ; while
+DD 75746572 6E72 6 8 ; return
+DD 62746573 0 4 9 ; setb
+DD 62746567 0 4 A ; getb
+DD 6E656C 0 3 B ; len
+
+; ===== K2-D003 jcctab: инверсии сравнений {смещ, длина} =====
+:jcctab
+DD 433 3 ; s_jne
+DD 427 2 ; s_je
+DD 42B 3 ; s_jge
+DD 429 2 ; s_jg
+DD 430 3 ; s_jle
+DD 42E 2 ; s_jl
+
+; ===== K2-D004 alutab: АЛУ-операторы {смещ, длина} =====
+:alutab
+DD 0 3 ; s_add
+DD 6FD 3 ; s_sub
+DD C 3 ; s_and
+DD 5E3 2 ; s_or
+DD 73C 3 ; s_xor
+
+; ===== K2-D005 argtab: регистры аргументов {смещ, длина} =====
+:argtab
+DD 5F4 3 ; s_rcx
+DD 5F7 3 ; s_rdx
+DD 5F0 2 ; s_r8
+DD 5F2 2 ; s_r9
+
+; ===== K2-D006 errtab: 7 записей {смещ, длина, код, 0} =====
+:errtab
+DD 700 2A 2 0 ; код 2
+DD 205 19 3 0 ; код 3
+DD 236 18 4 0 ; код 4
+DD 24E 18 5 0 ; код 5
+DD 1EE 17 7 0 ; код 7
+DD 21E 18 8 0 ; код 8
+DD 266 19 9 0 ; код 9
+
+; ===== K2-D007 strblob: единый блоб строк =====
+:strblob
+DB 61 64 64 20 72 31 30 2C 20 72 31 31 61 6E 64 2C
+DB 20 5B 72 62 70 2D 5D 2C 20 20 3B 20 3A 44 42 20
+DB 44 42 20 36 42 20 36 35 20 37 32 20 36 45 20 36
+DB 35 20 36 43 20 33 33 20 33 32 20 32 45 20 36 34
+DB 20 36 43 20 36 43 20 30 30 20 3B 20 22 6B 65 72
+DB 6E 65 6C 33 32 2E 64 6C 6C 5C 30 22 44 51 20 44
+DB 51 20 24 5F 68 69 6E 74 5F 44 5A 20 30 44 5A 20
+DB 31 20 3B 20 D0 B2 D1 8B D1 80 D0 B0 D0 B2 D0 BD
+DB D0 B8 D0 B2 D0 B0 D0 BD D0 B8 D0 B5 44 5A 20 31
+DB 34 38 20 3B 20 D0 B1 D0 B5 D0 B7 20 D0 B8 D0 BC
+DB D0 BF D0 BE D1 80 D1 82 D0 BE D0 B2 3A 20 D0 B2
+DB D1 8B D1 80 D0 B0 D0 B2 D0 BD D0 B8 D0 B2 D0 B0
+DB D0 BD D0 B8 D0 B5 20 D0 BE D0 B1 D0 BB D0 B0 D1
+DB 81 D1 82 D0 B8 20 D0 B4 D0 BE 20 30 78 32 30 30
+DB 44 5A 20 32 41 20 3B 20 D0 B2 D1 8B D1 80 D0 B0
+DB D0 B2 D0 BD D0 B8 D0 B2 D0 B0 D0 BD D0 B8 D0 B5
+DB 20 D0 BE D0 B1 D0 BB D0 B0 D1 81 D1 82 D0 B8 20
+DB D0 B4 D0 BE 20 30 78 32 30 30 44 5A 20 38 65 5D
+DB 4D 20 73 75 62 20 72 73 70 2C 20 38 20 3B 20 D0
+DB B2 D1 85 D0 BE D0 B4 3A 20 D0 B2 D1 8B D1 80 D0
+DB B0 D0 B2 D0 BD D0 B8 D0 B2 D0 B0 D0 BD D0 B8 D0
+DB B5 20 D1 81 D1 82 D0 B5 D0 BA D0 B0 20 D0 B4 D0
+DB BB D1 8F 20 D0 B2 D1 8B D0 B7 D0 BE D0 B2 D0 B0
+DB 20 6D 61 69 6E 4D 20 63 61 6C 6C 20 24 6D 61 69
+DB 6E 20 3B 20 D0 B2 D1 85 D0 BE D0 B4 3A 20 D0 B2
+DB D1 8B D0 B7 D0 BE D0 B2 20 6D 61 69 6E 4D 20 69
+DB 6E 74 33 20 3B 20 D0 B2 D1 85 D0 BE D0 B4 3A 20
+DB D0 B2 D0 BE D0 B7 D0 B2 D1 80 D0 B0 D1 82 20 D0
+DB B8 D0 B7 20 6D 61 69 6E 20 D0 B1 D0 B5 D0 B7 20
+DB 45 78 69 74 50 72 6F 63 65 73 73 20 E2 80 94 20
+DB D0 BB D0 BE D0 B2 D1 83 D1 88 D0 BA D0 B0 55 2D
+DB 4C 32 2D 57 41 4C 4C 20 45 52 52 3D 42 49 47 20
+DB 53 52 43 0D 0A 55 2D 4C 32 2D 57 41 4C 4C 20 45
+DB 52 52 3D 4C 4F 4E 47 20 4E 41 4D 45 0D 0A 55 2D
+DB 4C 32 2D 57 41 4C 4C 20 45 52 52 3D 4F 50 45 4E
+DB 20 4F 55 54 0D 0A 55 2D 4C 32 2D 57 41 4C 4C 20
+DB 45 52 52 3D 4F 50 45 4E 20 53 52 43 0D 0A 55 2D
+DB 4C 32 2D 57 41 4C 4C 20 45 52 52 3D 52 45 41 44
+DB 20 53 52 43 0D 0A 55 2D 4C 32 2D 57 41 4C 4C 20
+DB 45 52 52 3D 57 52 49 54 45 20 4F 55 54 0D 0A 55
+DB 2D 4C 32 2D 57 41 4C 4C 20 45 52 52 3D 46 4F 52
+DB 4D 41 54 20 41 54 3D 44 5A 20 32 32 20 3B 20 D1
+DB 81 D0 B2 D0 BE D0 B1 D0 BE D0 B4 D0 BD D1 8B D0
+DB B9 20 D1 81 D0 BB D0 BE D1 82 20 D0 B8 D0 BC D0
+DB BF D0 BE D1 80 D1 82 D0 B0 3B 20 D0 B8 D1 81 D1
+DB 85 D0 BE D0 B4 D0 BD D0 B8 D0 BA 3A 20 20 D1 81
+DB D1 82 D1 80 D0 BE D0 BA 3B 20 D1 84 D1 83 D0 BD
+DB D0 BA D1 86 D0 B8 D0 B9 3A 20 3B 20 65 78 74 3A
+DB 20 3B 20 73 74 72 3A 20 3B 20 D0 B3 D0 BB D0 BE
+DB D0 B1 D0 B0 D0 BB D1 8C D0 BD D1 8B D1 85 20 76
+DB 61 72 3A 20 3B 20 55 4E 49 56 45 52 53 41 4C 20
+DB 2F 20 57 41 4C 4C 20 76 31 20 2F 20 D1 81 D0 B3
+DB D0 B5 D0 BD D0 B5 D1 80 D0 B8 D1 80 D0 BE D0 B2
+DB D0 B0 D0 BD D0 BE 20 D0 BA D0 BE D0 BC D0 BF D0
+DB B8 D0 BB D1 8F D1 82 D0 BE D1 80 D0 BE D0 BC 20
+DB 57 41 4C 4C 20 28 53 50 45 43 2F 31 31 29 3A 5F
+DB 68 69 6E 74 5F 24 5F 68 69 6E 74 5F 3A 5F 69 61
+DB 74 5F 44 44 20 24 5F 69 6E 74 74 20 30 20 30 20
+DB 24 5F 64 6C 6C 20 24 5F 69 61 74 20 3B 20 D0 BE
+DB D0 BF D0 B8 D1 81 D0 B0 D1 82 D0 B5 D0 BB D1 8C
+DB 20 D0 B8 D0 BC D0 BF D0 BE D1 80 D1 82 D0 B0 20
+DB 6B 65 72 6E 65 6C 33 32 44 44 20 30 20 30 20 30
+DB 20 30 20 30 20 3B 20 D0 B1 D0 B5 D0 B7 20 D0 B8
+DB D0 BC D0 BF D0 BE D1 80 D1 82 D0 BE D0 B2 44 5A
+DB 20 31 34 20 3B 20 D1 82 D0 B5 D1 80 D0 BC D0 B8
+DB D0 BD D0 B0 D1 82 D0 BE D1 80 20 49 44 54 3A 5F
+DB 69 66 20 24 5F 69 66 6A 65 6A 67 6A 67 65 6A 6C
+DB 6A 6C 65 6A 6E 65 D0 BA D0 B0 D0 B4 D1 80 20 3A
+DB 5F 64 6C 6C 4D 20 6C 65 61 20 72 31 30 2C 20 5B
+DB 72 62 70 2D 4D 20 6C 65 61 20 72 31 30 2C 20 5B
+DB 72 69 70 2B 24 3A 5F 65 6E 74 72 79 3A 5F 69 61
+DB 74 3A 5F 69 64 74 3A 5F 69 6E 74 74 4D 20 4D 20
+DB 6D 6F 76 20 61 6C 2C 20 5B 72 62 70 2D 4D 20 63
+DB 61 6C 6C 20 24 4D 20 63 61 6C 6C 20 5B 72 69 70
+DB 2B 24 5F 69 61 74 5F 4D 20 63 6D 70 20 72 31 30
+DB 2C 20 72 31 31 4D 20 6A 6D 70 20 24 5F 69 66 4D
+DB 20 6A 6D 70 20 24 5F 77 4D 20 6D 6F 76 20 4D 20
+DB 6D 6F 76 7A 78 20 72 31 30 64 2C 20 62 79 74 65
+DB 20 5B 72 31 30 2B 72 31 31 5D 4D 20 6E 65 67 20
+DB 72 31 30 4D 20 6D 6F 76 20 5B 72 62 70 2D 4D 20
+DB 6D 6F 76 20 72 31 30 2C 20 4D 20 6D 6F 76 20 72
+DB 31 30 2C 20 5B 72 62 70 2D 4D 20 6D 6F 76 20 72
+DB 31 30 2C 20 5B 72 69 70 2B 24 4D 20 6D 6F 76 20
+DB 72 31 31 2C 20 5B 72 62 70 2D 4D 20 6D 6F 76 20
+DB 5B 72 69 70 2B 24 4D 20 70 6F 70 20 72 62 70 4D
+DB 20 70 75 73 68 20 72 62 70 4D 20 6D 6F 76 20 5B
+DB 72 31 30 2B 72 31 31 5D 2C 20 61 6C 4D 20 6D 6F
+DB 76 20 72 31 30 2C 20 72 61 78 4D 20 6D 6F 76 20
+DB 72 31 31 2C 20 72 31 30 4D 20 6D 6F 76 20 72 61
+DB 78 2C 20 72 31 30 4D 20 6D 6F 76 20 72 62 70 2C
+DB 20 72 73 70 4D 20 6D 6F 76 20 72 63 78 2C 20 72
+DB 31 31 4D 20 72 65 74 4D 20 6D 6F 76 20 72 73 70
+DB 2C 20 72 62 70 4D 20 6D 6F 76 20 5B 72 73 70 2B
+DB 32 30 5D 2C 20 72 31 30 4D 20 73 75 62 20 72 73
+DB 70 2C 20 6F 72 20 3B 20 22 22 5D 2C 20 72 31 30
+DB 72 38 72 39 72 63 78 72 64 78 5D 2C 20 72 31 30
+DB 3B 20 2D 2D 2D 20 D0 BA D0 BE D0 B4 20 2D 2D 2D
+DB 3B 20 2D 2D 2D 20 D0 B4 D0 B0 D0 BD D0 BD D1 8B
+DB D0 B5 3A 20 D0 B3 D0 BB D0 BE D0 B1 D0 B0 D0 BB
+DB D1 8C D0 BD D1 8B D0 B5 20 D0 BF D0 B5 D1 80 D0
+DB B5 D0 BC D0 B5 D0 BD D0 BD D1 8B D0 B5 20 28 D0
+DB BD D1 83 D0 BB D0 B5 D0 B2 D1 8B D0 B5 20 D1 8F
+DB D1 87 D0 B5 D0 B9 D0 BA D0 B8 29 20 2D 2D 2D 3B
+DB 20 2D 2D 2D 20 D0 B8 D0 BC D0 BF D0 BE D1 80 D1
+DB 82 D1 8B 3A 20 D1 84 D0 B8 D0 BA D1 81 D0 B8 D1
+DB 80 D0 BE D0 B2 D0 B0 D0 BD D0 BD D0 B0 D1 8F 20
+DB D0 BE D0 B1 D0 BB D0 B0 D1 81 D1 82 D1 8C 20 30
+DB 78 32 30 30 20 D0 B1 D0 B0 D0 B9 D1 82 20 28 53
+DB 50 45 43 2F 31 31 29 20 2D 2D 2D 3B 20 2D 2D 2D
+DB 20 D0 B4 D0 B0 D0 BD D0 BD D1 8B D0 B5 3A 20 D1
+DB 81 D1 82 D1 80 D0 BE D0 BA D0 B8 20 2D 2D 2D 20
+DB 72 31 30 2C 20 63 6C 73 68 6C 73 68 72 73 75 62
+DB 55 2D 4C 32 2D 57 41 4C 4C 20 43 4D 44 53 3A 20
+DB 57 41 4C 4C 20 3C 53 52 43 2E 57 41 4C 4C 3E 20
+DB 3C 4F 55 54 2E 42 32 3E 0D 0A D0 B2 D1 8B D1 85
+DB D0 BE D0 B4 20 3A 5F 77 20 24 5F 77 78 6F 72 30
+
+; ===== K2-D008 strtab2: смещения/длины (индекс = номер) =====
+:strtab2
+DD 0 3 ; s_add
+DD 3 9 ; s_alutail
+DD C 3 ; s_and
+DD F 7 ; s_argpost
+DD 16 3 ; s_brack
+DD 19 3 ; s_cmt
+DD 1C 1 ; s_colon
+DD 1D 3 ; s_db
+DD 20 3C ; s_dll
+DD 5C 3 ; s_dq
+DD 5F A ; s_dqhint
+DD 69 4 ; s_dz0
+DD 6D 1F ; s_dz1
+DD 8C 54 ; s_dz148
+DD E0 3A ; s_dz2a
+DD 11A 4 ; s_dz8
+DD 11E 1 ; s_e
+DD 11F 1 ; s_endbr
+DD 120 55 ; s_ent1
+DD 175 28 ; s_ent2
+DD 19D 51 ; s_ent3
+DD 1EE 17 ; s_errbigsrc
+DD 205 19 ; s_errlong
+DD 21E 18 ; s_erropenout
+DD 236 18 ; s_erropensrc
+DD 24E 18 ; s_errreadsrc
+DD 266 19 ; s_errwriteout
+DD 27F 18 ; s_fmtpfx
+DD 297 32 ; s_free
+DD 2C9 14 ; s_h2a
+DD 2DD 1D ; s_h2b
+DD 2FA 7 ; s_h2c
+DD 301 7 ; s_h2d
+DD 308 1C ; s_h2e
+DD 324 5A ; s_hdr1
+DD 37E 7 ; s_hintlbl
+DD 385 7 ; s_hintref
+DD 38C 6 ; s_iatlbl
+DD 392 46 ; s_idtf
+DD 3D8 26 ; s_idtn
+DD 3FE 20 ; s_idtterm
+DD 41E 4 ; s_iflbl
+DD 422 5 ; s_ifref
+DD 427 2 ; s_je
+DD 429 2 ; s_jg
+DD 42B 3 ; s_jge
+DD 42E 2 ; s_jl
+DD 430 3 ; s_jle
+DD 433 3 ; s_jne
+DD 436 9 ; s_kadr
+DD 43F 5 ; s_ldll
+DD 444 10 ; s_lear10m
+DD 454 11 ; s_lear10rip
+DD 465 7 ; s_lentry
+DD 46C 5 ; s_liat
+DD 471 5 ; s_lidt
+DD 476 6 ; s_lintt
+DD 47C 2 ; s_m
+DD 47E F ; s_mal
+DD 48D 8 ; s_mcall
+DD 495 12 ; s_mcalliat
+DD 4A7 E ; s_mcmp
+DD 4B5 A ; s_mjmpif
+DD 4BF 9 ; s_mjmpw
+DD 4C8 6 ; s_mmov
+DD 4CE 1C ; s_mmovzx
+DD 4EA 9 ; s_mneg
+DD 4F3 B ; s_movm
+DD 4FE B ; s_movr10
+DD 509 10 ; s_movr10m
+DD 519 11 ; s_movr10rip
+DD 52A 10 ; s_movr11m
+DD 53A C ; s_movrip
+DD 546 9 ; s_mpop
+DD 54F A ; s_mpush
+DD 559 13 ; s_mr10r11al
+DD 56C E ; s_mr10rax
+DD 57A E ; s_mr11
+DD 588 E ; s_mrax
+DD 596 E ; s_mrbp
+DD 5A4 E ; s_mrcxr11
+DD 5B2 5 ; s_mret
+DD 5B7 E ; s_mrsp
+DD 5C5 13 ; s_msp20
+DD 5D8 B ; s_msub
+DD 5E3 2 ; s_or
+DD 5E5 4 ; s_q1
+DD 5E9 1 ; s_q2
+DD 5EA 6 ; s_r10
+DD 5F0 2 ; s_r8
+DD 5F2 2 ; s_r9
+DD 5F4 3 ; s_rcx
+DD 5F7 3 ; s_rdx
+DD 5FA 6 ; s_ripr10
+DD 600 10 ; s_seccode
+DD 610 5F ; s_secglob
+DD 66F 5C ; s_secimp
+DD 6CB 24 ; s_secstr
+DD 6EF 8 ; s_shcl
+DD 6F7 3 ; s_shl
+DD 6FA 3 ; s_shr
+DD 6FD 3 ; s_sub
+DD 700 2A ; s_usage
+DD 72A B ; s_vyhod
+DD 735 3 ; s_wlbl
+DD 738 4 ; s_wref
+DD 73C 3 ; s_xor
+DD 73F 1 ; s_zero
+
+; ===== K2-D010 таблица импортов kernel32.dll =====
+DZ 1 ; выравнивание чётности RVA hint-записей (инвариант 7 SPEC/04)
+:idt
+DD $intt 0 0 $dll_name $iat ; описатель импорта
+DZ 14 ; терминатор IDT
+:iat
+:iat_gsh
+DQ $hint_gsh ; GetStdHandle
+:iat_wf
+DQ $hint_wf ; WriteFile
+:iat_ep
+DQ $hint_ep ; ExitProcess
+:iat_gcl
+DQ $hint_gcl ; GetCommandLineA
+:iat_cf
+DQ $hint_cf ; CreateFileA
+:iat_rf
+DQ $hint_rf ; ReadFile
+:iat_ch
+DQ $hint_ch ; CloseHandle
+DQ 0 ; терминатор
+:intt
+DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0
+:dll_name
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
+DZ 1 ; чётность RVA hint-записей
+:hint_gsh
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
+DZ 1
+:hint_wf
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; WriteFile
+:hint_ep
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; ExitProcess
+:hint_gcl
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; GetCommandLineA
+DB 41 00
+:hint_cf
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 41 00 ; CreateFileA
+:hint_rf
+DB 00 00 52 65 61 64 46 69 6C 65 00 ; ReadFile
+DZ 1
+:hint_ch
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
+
+; ===== K2-D011 виртуальные нули (bss) =====
+:scalars
+DBZ 18208 ; bstk[4096x24] + 65 скаляров (база R13)
+:fname_in
+DBZ 80
+:fname_out
+DBZ 80
+:linebuf
+DBZ 40
+:scr
+DBZ 80
+:sm_arr
+DBZ 100010
+:ntab
+DBZ 140000
+:ftab
+DBZ 120000
+:larr
+DBZ 100000
+:sarr
+DBZ C0000
+:varr
+DBZ 40000
+:earr
+DBZ 40
+:ifarr
+DBZ 8000
+:filebuf
+DBZ 21000
+:outbuf
+DBZ 200000
+

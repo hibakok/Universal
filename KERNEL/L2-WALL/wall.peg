@@ -1,0 +1,9 @@
+; UNIVERSAL / PEG v1 / слой L2 / модуль M2-WALL
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module wall
+!entry 1000
+!idata 65AE 28
+!iat 65D6 40
+!bss 7A1418
+!stackcom 4000
+!heapcom 4000

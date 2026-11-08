@@ -1,0 +1,146 @@
+; ===== K2-N001 line_next: очередная запись разбиения (LF/CRLF/CR) =====
+; R14/R15 = границы строки (без терминатора), RSI = за терминатором;
+; lineidx/curline инкрементируются; EAX = 1 будут ещё записи, 0 последняя.
+; Семантика как re.split: терминаторов+1 записей; пустой текст = 1 запись.
+:line_next
+M mov r14, rsi ;N001
+:ln_scan
+M cmp rsi, [r13+18048] ;N001
+M jae $ln_last ;N001
+M movzx eax, byte [rsi] ;N001
+M cmp al, 0A ;N001
+M je $ln_lf ;N001
+M cmp al, 0D ;N001
+M je $ln_cr ;N001
+M inc rsi ;N001
+M jmp $ln_scan ;N001
+:ln_lf
+M mov r15, rsi ;N001
+M inc rsi ;N001
+M jmp $ln_fin ;N001
+:ln_cr
+M mov r15, rsi ;N001
+M inc rsi ;N001
+M cmp rsi, [r13+18048] ;N001
+M jae $ln_fin ;N001
+M movzx eax, byte [rsi] ;N001
+M cmp al, 0A ;N001
+M jne $ln_fin ;N001
+M inc rsi ;N001
+M jmp $ln_fin ;N001
+:ln_last
+M mov r15, rsi ;N001
+M xor eax, eax ;N001
+M jmp $ln_cnt ;N001
+:ln_fin
+M mov eax, 1 ;N001
+:ln_cnt
+M mov rdx, [r13+18028] ;N001
+M inc rdx ;N001
+M mov [r13+18028], rdx ;N001
+M mov [r13+18020], rdx ;N001
+M ret ;N001
+; ===== K2-N002 pass0: разбиение + полная лексика + карта текстов =====
+; Для каждой записи: лексер до стопа ( ';' или конец), стоп-позиция и
+; обрезанный текст -> sm_arr[lineidx] = {ptr,len}; lastnonempty; nlentries;
+; nlines_v (правило хвостового терминатора); ошибки лексера -> FORMAT.
+:pass0
+M xor eax, eax ;N002
+M mov [r13+18028], rax ;N002
+M mov [r13+18040], rax ;N002
+M lea rsi, [rip+$filebuf] ;N002
+:p0_loop
+M call $line_next ;N002
+M mov [r13+181D0], rax ;N002
+M call $lex_line ;N002
+M mov rax, [r13+181D0] ;N002
+M test rax, rax ;N002
+M jnz $p0_loop ;N002
+:p0_done
+M mov rax, [r13+18028] ;N002
+M mov [r13+18030], rax ;N002
+; nlines: пустой текст -> 0; кончается терминатором -> nlentries-1; иначе nlentries
+M mov rax, [r13+18010] ;N002
+M test rax, rax ;N002
+M jnz $p0_nonempty ;N002
+M xor eax, eax ;N002
+M mov [r13+18038], rax ;N002
+M ret ;N002
+:p0_nonempty
+M mov rcx, [r13+18048] ;N002
+M movzx edx, byte [rcx-1] ;N002
+M mov rax, [r13+18030] ;N002
+M cmp dl, 0A ;N002
+M je $p0_dec ;N002
+M cmp dl, 0D ;N002
+M jne $p0_set ;N002
+:p0_dec
+M dec rax ;N002
+:p0_set
+M mov [r13+18038], rax ;N002
+M ret ;N002
+; ===== K2-N003 lex_line: полная лексика [R14,R15) + карта текста =====
+:lex_line
+M mov rcx, r14 ;N003
+:ll_loop
+M call $lex_tok ;N003
+M cmp eax, 4 ;N003
+M je $ll_stop ;N003
+M mov rcx, [r13+18068] ;N003
+M jmp $ll_loop ;N003
+:ll_stop
+M mov rcx, [r13+18060] ;N003
+M mov [r13+18188], rcx ;N003
+M mov rax, r14 ;N003
+:ll_ltrim
+M cmp rax, [r13+18188] ;N003
+M jae $ll_ldone ;N003
+M movzx edx, byte [rax] ;N003
+M cmp dl, 20 ;N003
+M je $ll_ladv ;N003
+M cmp dl, 09 ;N003
+M je $ll_ladv ;N003
+M jmp $ll_ldone ;N003
+:ll_ladv
+M inc rax ;N003
+M jmp $ll_ltrim ;N003
+:ll_ldone
+M mov [r13+18198], rax ;N003
+M mov rax, [r13+18188] ;N003
+:ll_rtrim
+M cmp rax, [r13+18198] ;N003
+M jbe $ll_rdone ;N003
+M movzx edx, byte [rax-1] ;N003
+M cmp dl, 20 ;N003
+M je $ll_radv ;N003
+M cmp dl, 09 ;N003
+M je $ll_radv ;N003
+M jmp $ll_rdone ;N003
+:ll_radv
+M dec rax ;N003
+M jmp $ll_rtrim ;N003
+:ll_rdone
+M mov rdx, rax ;N003
+M sub rdx, [r13+18198] ;N003
+M mov rax, [r13+18028] ;N003
+M shl rax, 4 ;N003
+M lea rcx, [rip+$sm_arr] ;N003
+M add rcx, rax ;N003
+M mov rax, [r13+18198] ;N003
+M mov [rcx], rax ;N003
+M mov [rcx+8], rdx ;N003
+M test rdx, rdx ;N003
+M jz $ll_ret ;N003
+M mov rax, [r13+18028] ;N003
+M mov [r13+18040], rax ;N003
+:ll_ret
+M ret ;N003
+; ===== K2-N004 set_lastline: curline := lastnonempty | nlentries =====
+:set_lastline
+M mov rax, [r13+18040] ;N004
+M test rax, rax ;N004
+M jnz $sll_set ;N004
+M mov rax, [r13+18030] ;N004
+:sll_set
+M mov [r13+18020], rax ;N004
+M ret ;N004

@@ -1,0 +1,284 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — помощники разбора
+; ===== K2-P010 p_expr: аддитивное выражение; RCX = глубина d =====
+; статы: RAX = need; эмит: код выражения (значение в r10).
+:p_expr
+M push rbp ;P010
+M mov rbp, rsp ;P010
+M sub rsp, 30 ;P010
+M mov [rbp-8], rcx ;P010
+M mov rax, [r13+18080] ;P010
+M test rax, rax ;P010
+M jz $pe_nok ;P010
+; эмит: K = число аддитивных операций уровня; первый операнд на d+K
+M xor ecx, ecx ;P010
+M call $chain_count ;P009
+M mov [rbp-28], rax ;P010
+M mov rcx, [rbp-8] ;P010
+M add rcx, rax ;P010
+M call $p_mul ;P011
+M mov [rbp-10], rax ;P010
+M mov rax, [rbp-8] ;P010
+M add rax, [rbp-28] ;P010
+M dec rax ;P010
+M mov [rbp-18], rax ;P010
+M jmp $pe_loop ;P010
+:pe_nok
+M mov rcx, [rbp-8] ;P010
+M add rcx, 1 ;P010
+M call $p_mul ;P011
+M mov [rbp-10], rax ;P010
+M xor eax, eax ;P010
+M mov [rbp-18], rax ;P010
+:pe_loop
+M mov rcx, [r13+18070] ;P010
+M call $lex_tok ;L001
+M cmp eax, 2 ;P010
+M jne $pe_done ;P010
+M mov rax, [r13+18068] ;P010
+M sub rax, [r13+18060] ;P010
+M cmp rax, 1 ;P010
+M jne $pe_done ;P010
+M mov rcx, [r13+18060] ;P010
+M movzx eax, byte [rcx] ;P010
+M cmp al, 2B ;P010
+M je $pe_op ;P010
+M cmp al, 2D ;P010
+M je $pe_op ;P010
+M cmp al, 7C ;P010
+M je $pe_op ;P010
+M cmp al, 5E ;P010
+M je $pe_op ;P010
+M jmp $pe_done ;P010
+:pe_op
+M mov [rbp-20], rax ;P010
+M mov rcx, [r13+18068] ;P010
+M mov [r13+18070], rcx ;P010
+M mov rax, [r13+18080] ;P010
+M test rax, rax ;P010
+M jnz $pe_emit_t ;P010
+M mov rcx, [rbp-8] ;P010
+M add rcx, 1 ;P010
+M call $p_mul ;P011
+M mov rdx, [rbp-10] ;P010
+M cmp rdx, rax ;P010
+M jge $pe_stmax ;P010
+M mov rdx, rax ;P010
+:pe_stmax
+M lea rax, [rdx+1] ;P010
+M mov [rbp-10], rax ;P010
+M jmp $pe_loop ;P010
+:pe_emit_t
+M mov rax, [r13+180C0] ;P010
+M add rax, [rbp-18] ;P010
+M shl rax, 3 ;P010
+M mov [rbp-28], rax ;P010
+M mov ecx, 43 ;P010
+M call $out_str ;E003
+M mov rax, [rbp-28] ;P010
+M call $out_hex ;E005
+M mov ecx, 58 ;P010
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rcx, [rbp-18] ;P010
+M add rcx, 1 ;P010
+M call $p_mul ;P011
+M mov ecx, 4D ;P010
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P010
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P010
+M add rax, [rbp-18] ;P010
+M shl rax, 3 ;P010
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P010
+M inc r12 ;P010
+M call $emit_cmt ;E009
+M mov rax, [rbp-20] ;P010
+M call $emit_alu ;E020
+M mov rax, [rbp-18] ;P010
+M dec rax ;P010
+M mov [rbp-18], rax ;P010
+M jmp $pe_loop ;P010
+:pe_done
+M mov rax, [rbp-10] ;P010
+M mov rsp, rbp ;P010
+M pop rbp ;P010
+M ret ;P010
+; ===== K2-P011 p_mul: мультипликативное выражение; RCX = глубина d =====
+:p_mul
+M push rbp ;P011
+M mov rbp, rsp ;P011
+M sub rsp, 30 ;P011
+M mov [rbp-8], rcx ;P011
+M mov rax, [r13+18080] ;P011
+M test rax, rax ;P011
+M jz $pm_nok ;P011
+; эмит: K = число мультипликативных операций; первый операнд на d+K
+M mov ecx, 1 ;P011
+M call $chain_count ;P009
+M mov [rbp-28], rax ;P011
+M mov rcx, [rbp-8] ;P011
+M add rcx, rax ;P011
+M call $p_unary ;P012
+M mov [rbp-10], rax ;P011
+M mov rax, [rbp-8] ;P011
+M add rax, [rbp-28] ;P011
+M dec rax ;P011
+M mov [rbp-18], rax ;P011
+M jmp $pm_loop ;P011
+:pm_nok
+M mov rcx, [rbp-8] ;P011
+M add rcx, 1 ;P011
+M call $p_unary ;P012
+M mov [rbp-10], rax ;P011
+M xor eax, eax ;P011
+M mov [rbp-18], rax ;P011
+:pm_loop
+M mov rcx, [r13+18070] ;P011
+M call $lex_tok ;L001
+M cmp eax, 2 ;P011
+M jne $pm_done ;P011
+M mov rax, [r13+18068] ;P011
+M sub rax, [r13+18060] ;P011
+M cmp rax, 1 ;P011
+M je $pm_c1 ;P011
+M cmp rax, 2 ;P011
+M jne $pm_done ;P011
+M mov rcx, [r13+18060] ;P011
+M movzx eax, byte [rcx] ;P011
+M movzx edx, byte [rcx+1] ;P011
+M cmp al, 3C ;P011
+M jne $pm_c2b ;P011
+M cmp dl, 3C ;P011
+M je $pm_shift ;P011
+M jmp $pm_done ;P011
+:pm_c2b
+M cmp al, 3E ;P011
+M jne $pm_done ;P011
+M cmp dl, 3E ;P011
+M jne $pm_done ;P011
+M jmp $pm_shift ;P011
+:pm_c1
+M mov rcx, [r13+18060] ;P011
+M movzx eax, byte [rcx] ;P011
+M cmp al, 26 ;P011
+M jne $pm_done ;P011
+M mov [rbp-20], rax ;P011
+M xor eax, eax ;P011
+M mov [rbp-28], rax ;P011
+M jmp $pm_op ;P011
+:pm_shift
+M mov [rbp-20], rax ;P011
+M mov eax, 1 ;P011
+M mov [rbp-28], rax ;P011
+:pm_op
+M mov rcx, [r13+18068] ;P011
+M mov [r13+18070], rcx ;P011
+M mov rax, [r13+18080] ;P011
+M test rax, rax ;P011
+M jnz $pm_emit_t ;P011
+M mov rcx, [rbp-8] ;P011
+M add rcx, 1 ;P011
+M call $p_unary ;P012
+M mov rdx, [rbp-10] ;P011
+M cmp rdx, rax ;P011
+M jge $pm_stmax ;P011
+M mov rdx, rax ;P011
+:pm_stmax
+M lea rax, [rdx+1] ;P011
+M mov [rbp-10], rax ;P011
+M jmp $pm_loop ;P011
+:pm_emit_t
+M mov rax, [r13+180C0] ;P011
+M add rax, [rbp-18] ;P011
+M shl rax, 3 ;P011
+M mov [rbp-30], rax ;P011
+M mov ecx, 43 ;P011
+M call $out_str ;E003
+M mov rax, [rbp-30] ;P011
+M call $out_hex ;E005
+M mov ecx, 58 ;P011
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rcx, [rbp-18] ;P011
+M add rcx, 1 ;P011
+M call $p_unary ;P012
+M mov ecx, 4D ;P011
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P011
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P011
+M add rax, [rbp-18] ;P011
+M shl rax, 3 ;P011
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P011
+M inc r12 ;P011
+M call $emit_cmt ;E009
+M mov rax, [rbp-28] ;P011
+M test rax, rax ;P011
+M jnz $pm_doshift ;P011
+M mov rax, [rbp-20] ;P011
+M call $emit_alu ;E020
+M jmp $pm_dec ;P011
+:pm_doshift
+M mov rax, [rbp-20] ;P011
+M cmp al, 3C ;P011
+M jne $pm_shr ;P011
+M xor eax, eax ;P011
+M call $emit_shift ;E021
+M jmp $pm_dec ;P011
+:pm_shr
+M mov eax, 1 ;P011
+M call $emit_shift ;E021
+:pm_dec
+M mov rax, [rbp-18] ;P011
+M dec rax ;P011
+M mov [rbp-18], rax ;P011
+M jmp $pm_loop ;P011
+:pm_done
+M mov rax, [rbp-10] ;P011
+M mov rsp, rbp ;P011
+M pop rbp ;P011
+M ret ;P011
+; ===== K2-P012 p_unary: унарный минус / первичное; RCX = d =====
+:p_unary
+M push rbp ;P012
+M mov rbp, rsp ;P012
+M sub rsp, 20 ;P012
+M mov [rbp-8], rcx ;P012
+M mov rcx, [r13+18070] ;P012
+M call $lex_tok ;L001
+M cmp eax, 2 ;P012
+M jne $pu_prim ;P012
+M mov rax, [r13+18068] ;P012
+M sub rax, [r13+18060] ;P012
+M cmp rax, 1 ;P012
+M jne $pu_prim ;P012
+M mov rcx, [r13+18060] ;P012
+M movzx eax, byte [rcx] ;P012
+M cmp al, 2D ;P012
+M jne $pu_prim ;P012
+M mov rcx, [r13+18068] ;P012
+M mov [r13+18070], rcx ;P012
+M mov rcx, [rbp-8] ;P012
+M call $p_unary ;P012
+M mov [rbp-10], rax ;P012
+M mov rax, [r13+18080] ;P012
+M test rax, rax ;P012
+M jz $pu_ret ;P012
+M mov ecx, 42 ;P012
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:pu_ret
+M mov rax, [rbp-10] ;P012
+M mov rsp, rbp ;P012
+M pop rbp ;P012
+M ret ;P012
+:pu_prim
+M mov rcx, [rbp-8] ;P012
+M call $p_prim ;P013
+M mov rsp, rbp ;P012
+M pop rbp ;P012
+M ret ;P012

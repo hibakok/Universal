@@ -1,0 +1,227 @@
+; ===== K2-L001 lex_tok: лексический анализатор одного токена =====
+; RCX = позиция в строке [R14,R15); пробелы/табы пропускает сам.
+; Выход: EAX = kind (0 число, 1 имя, 2 символ, 3 строка, 4 стоп);
+; tok_val = значение числа; tok_ptr/tok_end = спан токена (для kind 4
+; tok_ptr = позиция стопа: ';' или R15). Ошибки -> fail_format (строка).
+:lex_tok
+M cmp rcx, r15 ;L001
+M jae $lt_stop ;L001
+M movzx eax, byte [rcx] ;L001
+M cmp al, 20 ;L001
+M je $lt_wadv ;L001
+M cmp al, 09 ;L001
+M je $lt_wadv ;L001
+M jmp $lt_cls ;L001
+:lt_wadv
+M inc rcx ;L001
+M cmp rcx, r15 ;L001
+M jae $lt_stop ;L001
+M movzx eax, byte [rcx] ;L001
+M cmp al, 20 ;L001
+M je $lt_wadv ;L001
+M cmp al, 09 ;L001
+M je $lt_wadv ;L001
+:lt_cls
+M mov [r13+18060], rcx ;L001
+M movzx eax, byte [rcx] ;L001
+M cmp al, 3B ;L001
+M je $lt_stop ;L001
+M cmp al, 30 ;L001
+M jb $lt_notnum ;L001
+M cmp al, 39 ;L001
+M jbe $lt_num ;L001
+:lt_notnum
+M cmp al, 5F ;L001
+M je $lt_id ;L001
+M cmp al, 41 ;L001
+M jb $lt_notalpha ;L001
+M cmp al, 5A ;L001
+M jbe $lt_id ;L001
+M cmp al, 61 ;L001
+M jb $lt_notalpha ;L001
+M cmp al, 7A ;L001
+M jbe $lt_id ;L001
+:lt_notalpha
+M cmp al, 27 ;L001
+M je $lt_str ;L001
+M cmp al, 3D ;L001
+M je $lt_eq ;L001
+M cmp al, 21 ;L001
+M je $lt_ne ;L001
+M cmp al, 3C ;L001
+M je $lt_lt ;L001
+M cmp al, 3E ;L001
+M je $lt_gt ;L001
+M cmp al, 28 ;L001
+M je $lt_s1 ;L001
+M cmp al, 29 ;L001
+M je $lt_s1 ;L001
+M cmp al, 2C ;L001
+M je $lt_s1 ;L001
+M cmp al, 2D ;L001
+M je $lt_s1 ;L001
+M cmp al, 2B ;L001
+M je $lt_s1 ;L001
+M cmp al, 7C ;L001
+M je $lt_s1 ;L001
+M cmp al, 26 ;L001
+M je $lt_s1 ;L001
+M cmp al, 5E ;L001
+M je $lt_s1 ;L001
+M call $fail_format ;L001
+:lt_stop
+M mov [r13+18060], rcx ;L001
+M mov eax, 4 ;L001
+M ret ;L001
+; ----- число: 0..2147483647, переполнение -> ошибка -----
+:lt_num
+M xor eax, eax ;L001
+:lt_nloop
+M mov rdx, rax ;L001
+M shl rax, 3 ;L001
+M add rdx, rdx ;L001
+M add rax, rdx ;L001
+M movzx edx, byte [rcx] ;L001
+M sub edx, 30 ;L001
+M add rax, rdx ;L001
+M cmp rax, 7FFFFFFF ;L001
+M ja $lt_nbig ;L001
+M inc rcx ;L001
+M cmp rcx, r15 ;L001
+M jae $lt_ndone ;L001
+M movzx edx, byte [rcx] ;L001
+M cmp dl, 30 ;L001
+M jb $lt_ndone ;L001
+M cmp dl, 39 ;L001
+M jbe $lt_nloop ;L001
+:lt_ndone
+M mov [r13+18058], rax ;L001
+M mov [r13+18068], rcx ;L001
+M mov eax, 0 ;L001
+M ret ;L001
+:lt_nbig
+M call $fail_format ;L001
+; ----- имя: [A-Za-z_][A-Za-z0-9_]* -----
+:lt_id
+M inc rcx ;L001
+:lt_idloop
+M cmp rcx, r15 ;L001
+M jae $lt_idend ;L001
+M movzx eax, byte [rcx] ;L001
+M cmp al, 5F ;L001
+M je $lt_idadv ;L001
+M cmp al, 30 ;L001
+M jb $lt_idend ;L001
+M cmp al, 39 ;L001
+M jbe $lt_idadv ;L001
+M cmp al, 41 ;L001
+M jb $lt_idend ;L001
+M cmp al, 5A ;L001
+M jbe $lt_idadv ;L001
+M cmp al, 61 ;L001
+M jb $lt_idend ;L001
+M cmp al, 7A ;L001
+M jbe $lt_idadv ;L001
+M jmp $lt_idend ;L001
+:lt_idadv
+M inc rcx ;L001
+M jmp $lt_idloop ;L001
+:lt_idend
+M mov [r13+18068], rcx ;L001
+M mov eax, 1 ;L001
+M ret ;L001
+; ----- строка: экраны n r t 0 \ ' ; байты 0x20..0x7E -----
+:lt_str
+M inc rcx ;L001
+M mov [r13+18060], rcx ;L001
+:lt_sloop
+M cmp rcx, r15 ;L001
+M jae $lt_serr ;L001
+M movzx eax, byte [rcx] ;L001
+M cmp al, 27 ;L001
+M je $lt_send ;L001
+M cmp al, 5C ;L001
+M je $lt_sesc ;L001
+M cmp al, 20 ;L001
+M jb $lt_serr ;L001
+M cmp al, 7E ;L001
+M ja $lt_serr ;L001
+M inc rcx ;L001
+M jmp $lt_sloop ;L001
+:lt_sesc
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_serr ;L001
+M movzx eax, byte [rdx] ;L001
+M cmp al, 6E ;L001
+M je $lt_sadv2 ;L001
+M cmp al, 72 ;L001
+M je $lt_sadv2 ;L001
+M cmp al, 74 ;L001
+M je $lt_sadv2 ;L001
+M cmp al, 30 ;L001
+M je $lt_sadv2 ;L001
+M cmp al, 5C ;L001
+M je $lt_sadv2 ;L001
+M cmp al, 27 ;L001
+M je $lt_sadv2 ;L001
+M call $fail_format ;L001
+:lt_sadv2
+M add rcx, 2 ;L001
+M jmp $lt_sloop ;L001
+:lt_send
+M inc rcx ;L001 за закрывающей кавычкой
+M mov [r13+18068], rcx ;L001
+M mov eax, 3 ;L001
+M ret ;L001
+:lt_serr
+M call $fail_format ;L001
+; ----- двухсимвольные и односимвольные операции -----
+:lt_eq
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M cmp byte [rdx], 3D ;L001
+M jne $lt_s1 ;L001
+M add rcx, 2 ;L001
+M jmp $lt_s2 ;L001
+:lt_ne
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M cmp byte [rdx], 3D ;L001
+M jne $lt_s1 ;L001
+M add rcx, 2 ;L001
+M jmp $lt_s2 ;L001
+:lt_lt
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M movzx eax, byte [rdx] ;L001
+M cmp al, 3D ;L001
+M je $lt_s2a ;L001
+M cmp al, 3C ;L001
+M je $lt_s2a ;L001
+M jmp $lt_s1 ;L001
+:lt_gt
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M movzx eax, byte [rdx] ;L001
+M cmp al, 3D ;L001
+M je $lt_s2a ;L001
+M cmp al, 3E ;L001
+M je $lt_s2a ;L001
+M jmp $lt_s1 ;L001
+:lt_s2a
+M add rcx, 2 ;L001
+M jmp $lt_s2 ;L001
+:lt_s1
+M inc rcx ;L001
+M mov [r13+18068], rcx ;L001
+M mov eax, 2 ;L001
+M ret ;L001
+:lt_s2
+M mov [r13+18068], rcx ;L001
+M mov eax, 2 ;L001
+M ret ;L001

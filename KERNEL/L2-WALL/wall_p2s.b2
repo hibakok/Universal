@@ -1,0 +1,399 @@
+; ===== K2-E029 emit_jcc_line: условный переход; RCX=jcc|-1, RDX=e, R8=k, R9=while =====
+:emit_jcc_line
+M push rbp ;E029
+M mov rbp, rsp ;E029
+M sub rsp, 30 ;E029
+M mov [rbp-8], rcx ;E029
+M mov [rbp-10], rdx ;E029
+M mov [rbp-18], r8 ;E029
+M mov [rbp-20], r9 ;E029
+M mov ecx, 39 ;E029
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E029
+M lea rdx, [rip+$jcctab] ;E029
+M shl rax, 3 ;E029
+M add rdx, rax ;E029
+M mov eax, [rdx] ;E029 смещение в блобе
+M lea rcx, [rip+$strblob] ;E029
+M add rax, rcx ;E029
+M mov r9d, [rdx+4] ;E029
+M mov rdx, rax ;E029
+M mov r8, r9 ;E029
+M call $out_copy ;E002
+M mov rax, [rbp-20] ;E029
+M test rax, rax ;E029
+M jz $ejl_if ;E029
+M mov ecx, 69 ;E029
+M call $out_str ;E003
+M jmp $ejl_k ;E029
+:ejl_if
+M mov ecx, 2A ;E029
+M call $out_str ;E003
+:ejl_k
+M mov rax, [rbp-18] ;E029
+M call $out_dec ;E008
+M mov rax, [rbp-10] ;E029
+M test rax, rax ;E029
+M jz $ejl_noe ;E029
+M mov ecx, 10 ;E029
+M call $out_str ;E003
+:ejl_noe
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E029
+M pop rbp ;E029
+M ret ;E029
+; ===== K2-E02A emit_jmp_line: безусловный; RCX=while, RDX=e, R8=k =====
+:emit_jmp_line
+M push rbp ; K2-E02A
+M mov rbp, rsp ; K2-E02A
+M sub rsp, 20 ; K2-E02A
+M mov [rbp-8], rcx ; K2-E02A while-флаг
+M mov [rbp-10], rdx ; K2-E02A e-флаг
+M mov [rbp-18], r8 ; K2-E02A k
+M mov rax, [rbp-8] ; K2-E02A
+M test rax, rax ; K2-E02A
+M jz $ejm_if ; K2-E02A
+M mov ecx, 3F ; K2-E02A "M jmp $_w"
+M call $out_str ;E003
+M jmp $ejm_k ; K2-E02A
+:ejm_if
+M mov ecx, 3E ; K2-E02A "M jmp $_if"
+M call $out_str ;E003
+:ejm_k
+M mov rax, [rbp-18] ; K2-E02A
+M call $out_dec ;E008
+M mov rax, [rbp-10] ; K2-E02A
+M test rax, rax ; K2-E02A
+M jz $ejm_noe ; K2-E02A
+M mov ecx, 10 ; K2-E02A
+M call $out_str ;E003
+:ejm_noe
+M call $emit_cmt ;E009
+M mov rsp, rbp ; K2-E02A
+M pop rbp ; K2-E02A
+M ret ; K2-E02A
+; ===== K2-E02B emit_iflab: метка :_if<k>[e]; RCX=k, RDX=e =====
+:emit_iflab
+M push rbp ; K2-E02B
+M mov rbp, rsp ; K2-E02B
+M sub rsp, 20 ; K2-E02B
+M mov [rbp-8], rcx ; K2-E02B
+M mov [rbp-10], rdx ; K2-E02B
+M mov ecx, 29 ; K2-E02B ":_if"
+M call $out_str ;E003
+M mov rax, [rbp-8] ; K2-E02B
+M call $out_dec ;E008
+M mov rax, [rbp-10] ; K2-E02B
+M test rax, rax ; K2-E02B
+M jz $eil_noe ; K2-E02B
+M mov ecx, 10 ; K2-E02B
+M call $out_str ;E003
+:eil_noe
+M mov byte [r12], 0A ; K2-E02B
+M inc r12 ; K2-E02B
+M mov rax, [r13+18108] ; K2-E02B
+M inc rax ; K2-E02B
+M mov [r13+18108], rax ; K2-E02B
+M mov rsp, rbp ; K2-E02B
+M pop rbp ; K2-E02B
+M ret ; K2-E02B
+; ===== K2-E02C emit_wlab: метка :_w<k>[e]; RCX=k, RDX=e =====
+:emit_wlab
+M push rbp ; K2-E02C
+M mov rbp, rsp ; K2-E02C
+M sub rsp, 20 ; K2-E02C
+M mov [rbp-8], rcx ; K2-E02C
+M mov [rbp-10], rdx ; K2-E02C
+M mov ecx, 68 ; K2-E02C ":_w"
+M call $out_str ;E003
+M mov rax, [rbp-8] ; K2-E02C
+M call $out_dec ;E008
+M mov rax, [rbp-10] ; K2-E02C
+M test rax, rax ; K2-E02C
+M jz $ewl_noe ; K2-E02C
+M mov ecx, 10 ; K2-E02C
+M call $out_str ;E003
+:ewl_noe
+M mov byte [r12], 0A ; K2-E02C
+M inc r12 ; K2-E02C
+M mov rax, [r13+18108] ; K2-E02C
+M inc rax ; K2-E02C
+M mov [r13+18108], rax ; K2-E02C
+M mov rsp, rbp ; K2-E02C
+M pop rbp ; K2-E02C
+M ret ; K2-E02C
+; ===== K2-E02D emit_sstore: стейджинг S-слота; RCX = i =====
+:emit_sstore
+M push rbp ; K2-E02D
+M mov rbp, rsp ; K2-E02D
+M sub rsp, 20 ; K2-E02D
+M mov [rbp-8], rcx ; K2-E02D
+M mov ecx, 43 ; K2-E02D
+M call $out_str ;E003
+M mov rax, [r13+180C0] ; K2-E02D
+M add rax, [r13+180C8] ; K2-E02D
+M add rax, [r13+180D0] ; K2-E02D
+M mov rcx, [rbp-8] ; K2-E02D
+M lea rax, [rax+rcx+1] ; K2-E02D s(i)
+M shl rax, 3 ; K2-E02D
+M call $out_hex ;E005
+M mov ecx, 58 ; K2-E02D
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rsp, rbp ; K2-E02D
+M pop rbp ; K2-E02D
+M ret ; K2-E02D
+; ===== K2-Y004 p2s_end =====
+:p2s_end
+M mov rcx, [r13+18068] ;Y004
+M mov [r13+18070], rcx ;Y004
+M mov rax, [r13+18158] ;Y004
+M dec rax ;Y004
+M mov [r13+18158], rax ;Y004
+M mov rcx, rax ;Y004
+M shl rcx, 3 ;Y004
+M mov rdx, rax ;Y004
+M shl rdx, 4 ;Y004
+M add rcx, rdx ;Y004
+M add rcx, r13 ;Y004
+M mov [r13+18200], rcx ;Y004
+M mov rax, [rcx] ;Y004
+M cmp rax, 1 ;Y004
+M je $p2e_func ;Y004
+M cmp rax, 4 ;Y004
+M je $p2e_while ;Y004
+; if/else — метка :_if<ke>
+M mov rcx, [r13+18200] ;Y004
+M mov rcx, [rcx+8] ;Y004
+M mov edx, 1 ;Y004
+M call $emit_iflab ; K2-E02B
+M ret ;Y004
+:p2e_func
+M mov rax, [r13+18110] ;Y004
+M test rax, rax ;Y004
+M jnz $p2e_fdone ;Y004
+M call $emit_epilogue ;E019
+:p2e_fdone
+M xor eax, eax ;Y004
+M mov [r13+18178], rax ;Y004
+M mov [r13+18110], rax ;Y004
+M ret ;Y004
+:p2e_while
+M mov rcx, [r13+18200] ;Y004
+M mov rax, [rcx+8] ;Y004
+M mov [r13+181F8], rax ;Y004
+M mov rax, [rcx+18] ;Y004 lineidx WHILE-строки
+M shl rax, 4 ;Y004
+M lea rdx, [rip+$sm_arr] ;Y004
+M add rdx, rax ;Y004
+M mov rax, [rdx] ;Y004
+M mov [r13+181A0], rax ;Y004 srctxt_ptr
+M mov rax, [rdx+8] ;Y004
+M mov [r13+181A8], rax ;Y004 srctxt_len
+M mov ecx, 1 ;Y004 while
+M xor edx, edx ;Y004
+M mov r8, [r13+181F8] ;Y004
+M call $emit_jmp_line ; K2-E02A
+M mov rcx, [r13+181F8] ;Y004
+M mov edx, 1 ;Y004
+M call $emit_wlab ; K2-E02C
+M ret ;Y004
+; ===== K2-Y005 p2s_else =====
+:p2s_else
+M mov rcx, [r13+18068] ;Y005
+M mov [r13+18070], rcx ;Y005
+M mov rax, [r13+18158] ;Y005
+M dec rax ;Y005
+M mov [r13+18158], rax ;Y005
+M mov rcx, rax ;Y005
+M shl rcx, 3 ;Y005
+M mov rdx, rax ;Y005
+M shl rdx, 4 ;Y005
+M add rcx, rdx ;Y005
+M add rcx, r13 ;Y005
+M mov [r13+181D8], rcx ;Y005 адрес записи (rcx ниже затирается)
+M mov rax, [rcx] ;Y005
+M cmp rax, 2 ;Y005
+M jne $p2el_bad ;Y005
+M mov r8, [rcx+8] ;Y005
+M mov [r13+18200], r8 ;Y005
+M mov rax, [rcx+10] ;Y005
+M mov [r13+181F8], rax ;Y005
+M lea rax, [rip+$ifarr] ;Y005
+M mov rcx, [r13+181F8] ;Y005
+M lea rax, [rax+rcx] ;Y005
+M movzx eax, byte [rax] ;Y005
+M test al, al ;Y005
+M jz $p2el_push ;Y005
+M mov rcx, [r13+181D8] ;Y005 адрес записи {if}
+M mov rax, [rcx+18] ;Y005 lineidx IF-строки
+M shl rax, 4 ;Y005
+M lea rdx, [rip+$sm_arr] ;Y005
+M add rdx, rax ;Y005
+M mov rax, [rdx] ;Y005
+M mov [r13+181A0], rax ;Y005 srctxt_ptr
+M mov rax, [rdx+8] ;Y005
+M mov [r13+181A8], rax ;Y005 srctxt_len
+M xor ecx, ecx ;Y005
+M mov edx, 1 ;Y005
+M mov r8, [r13+18200] ;Y005
+M call $emit_jmp_line ; K2-E02A
+M mov rcx, [r13+18200] ;Y005
+M xor edx, edx ;Y005
+M call $emit_iflab ; K2-E02B
+:p2el_push
+M mov rax, [r13+18158] ;Y005
+M mov rcx, rax ;Y005
+M shl rcx, 3 ;Y005
+M mov rdx, rax ;Y005
+M shl rdx, 4 ;Y005
+M add rcx, rdx ;Y005
+M add rcx, r13 ;Y005
+M mov edx, 3 ;Y005
+M mov [rcx], rdx ;Y005
+M mov rax, [r13+18200] ;Y005
+M mov [rcx+8], rax ;Y005
+M mov rax, [r13+181F8] ;Y005
+M mov [rcx+10], rax ;Y005
+M mov rax, [r13+18158] ;Y005
+M inc rax ;Y005
+M mov [r13+18158], rax ;Y005
+M ret ;Y005
+:p2el_bad
+M int3 ;Y005
+; ===== K2-Y006 p2s_if =====
+:p2s_if
+M push rbp ;Y006
+M mov rbp, rsp ;Y006
+M sub rsp, 30 ;Y006
+M mov rcx, [r13+18068] ;Y006
+M mov [r13+18070], rcx ;Y006
+M mov rax, [r13+18120] ;Y006
+M inc rax ;Y006
+M mov [r13+18120], rax ;Y006
+M mov [rbp-10], rax ;Y006
+M mov rax, [r13+18100] ;Y006
+M inc rax ;Y006
+M mov [r13+18100], rax ;Y006
+M mov [rbp-8], rax ;Y006
+M call $p_cond ;P018
+M mov [rbp-18], rax ;Y006
+M call $at_end_chk ;P002
+M lea rax, [rip+$ifarr] ;Y006
+M mov rcx, [rbp-10] ;Y006
+M lea rax, [rax+rcx] ;Y006
+M movzx eax, byte [rax] ;Y006
+M mov [rbp-20], rax ;Y006
+M xor edx, edx ;Y006
+M test rax, rax ;Y006
+M jnz $p2i_go ;Y006
+M mov edx, 1 ;Y006
+:p2i_go
+M mov rcx, [rbp-18] ;Y006
+M mov r8, [rbp-8] ;Y006
+M xor r9d, r9d ;Y006 не while
+M call $emit_jcc_line ;E029
+M mov rax, [r13+18158] ;Y006
+M mov rcx, rax ;Y006
+M shl rcx, 3 ;Y006
+M mov rdx, rax ;Y006
+M shl rdx, 4 ;Y006
+M add rcx, rdx ;Y006
+M add rcx, r13 ;Y006
+M mov edx, 2 ;Y006
+M mov [rcx], rdx ;Y006
+M mov rax, [rbp-8] ;Y006
+M mov [rcx+8], rax ;Y006
+M mov rax, [rbp-10] ;Y006
+M mov [rcx+10], rax ;Y006
+M mov rax, [r13+18028] ;Y006 lineidx IF-строки
+M mov [rcx+18], rax ;Y006
+M mov rax, [r13+18158] ;Y006
+M inc rax ;Y006
+M mov [r13+18158], rax ;Y006
+M mov rax, [r13+18158] ;Y006
+M mov rcx, [r13+18180] ;Y006
+M lea rcx, [rcx+1] ;Y006
+M cmp rax, rcx ;Y006
+M jne $p2i_ret ;Y006
+M xor eax, eax ;Y006
+M mov [r13+18110], rax ;Y006
+:p2i_ret
+M mov rsp, rbp ;Y006
+M pop rbp ;Y006
+M ret ;Y006
+; ===== K2-Y007 p2s_while =====
+:p2s_while
+M push rbp ;Y007
+M mov rbp, rsp ;Y007
+M sub rsp, 20 ;Y007
+M mov rcx, [r13+18068] ;Y007
+M mov [r13+18070], rcx ;Y007
+M mov rax, [r13+18100] ;Y007
+M inc rax ;Y007
+M mov [r13+18100], rax ;Y007
+M mov [rbp-8], rax ;Y007
+M mov rcx, [rbp-8] ;Y007
+M xor edx, edx ;Y007
+M call $emit_wlab ; K2-E02C
+M call $p_cond ;P018
+M mov [rbp-18], rax ;Y007
+M call $at_end_chk ;P002
+M mov rcx, [rbp-18] ;Y007 jcc-инверсия
+M mov edx, 1 ;Y007
+M mov r8, [rbp-8] ;Y007
+M mov r9d, 1 ;Y007 while
+M call $emit_jcc_line ;E029
+M mov rax, [r13+18158] ;Y007
+M mov rcx, rax ;Y007
+M shl rcx, 3 ;Y007
+M mov rdx, rax ;Y007
+M shl rdx, 4 ;Y007
+M add rcx, rdx ;Y007
+M add rcx, r13 ;Y007
+M mov edx, 4 ;Y007
+M mov [rcx], rdx ;Y007
+M mov rax, [rbp-8] ;Y007
+M mov [rcx+8], rax ;Y007
+M xor eax, eax ;Y007
+M mov [rcx+10], rax ;Y007
+M mov rax, [r13+18028] ;Y007 lineidx WHILE-строки
+M mov [rcx+18], rax ;Y007
+M mov rax, [r13+18158] ;Y007
+M inc rax ;Y007
+M mov [r13+18158], rax ;Y007
+M mov rax, [r13+18158] ;Y007
+M mov rcx, [r13+18180] ;Y007
+M lea rcx, [rcx+1] ;Y007
+M cmp rax, rcx ;Y007
+M jne $p2w_ret ;Y007
+M xor eax, eax ;Y007
+M mov [r13+18110], rax ;Y007
+:p2w_ret
+M mov rsp, rbp ;Y007
+M pop rbp ;Y007
+M ret ;Y007
+; ===== K2-Y008 p2s_return =====
+:p2s_return
+M mov rcx, [r13+18068] ;Y008
+M mov [r13+18070], rcx ;Y008
+M mov rcx, [r13+18070] ;Y008
+M call $lex_tok ;L001
+M cmp eax, 4 ;Y008
+M je $p2r_epi ;Y008
+M mov ecx, 1 ;Y008
+M call $p_expr ;P010
+M mov ecx, 4E ;Y008
+M call $out_str ;E003
+M call $emit_cmt ;E009
+:p2r_epi
+M call $emit_epilogue ;E019
+M mov rax, [r13+18158] ;Y008
+M mov rcx, [r13+18180] ;Y008
+M lea rcx, [rcx+1] ;Y008
+M cmp rax, rcx ;Y008
+M jne $p2r_ret ;Y008
+M mov eax, 1 ;Y008
+M mov [r13+18110], rax ;Y008
+:p2r_ret
+M ret ;Y008

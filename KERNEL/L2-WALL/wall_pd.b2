@@ -1,0 +1,436 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — объявления прохода 1
+; ===== K2-S003 p1_decl: объявления var/str/ext (EAX = индекс kw) =====
+:p1_decl
+M push rbp ;S003
+M mov rbp, rsp ;S003
+M sub rsp, 20 ;S003
+M mov rcx, [r13+18068] ;S003 поглотить ключевое слово
+M mov [r13+18070], rcx ;S003
+M cmp eax, 0 ;S003
+M jne $d1_notvar ;S003
+M call $want_id ;P003
+M xor edx, edx ;S003
+M call $chk_name ;P005
+M mov rax, [r13+18060] ;S003
+M mov [r13+181D8], rax ;S003
+M mov rax, [r13+18068] ;S003
+M sub rax, [r13+181D8] ;S003
+M mov [r13+181E0], rax ;S003
+M call $at_end_chk ;P002
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_find ;P006
+M cmp rax, -1 ;S003
+M jne $d1_dup ;S003
+M mov r8, 1 ;S003
+M mov r9, [r13+18148] ;S003
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_add ;P007
+M mov rax, [r13+18128] ;S003
+M dec rax ;S003
+M mov rcx, [r13+18148] ;S003
+M shl rcx, 3 ;S003
+M lea rdx, [rip+$varr] ;S003
+M add rdx, rcx ;S003
+M mov [rdx], rax ;S003
+M mov rax, [r13+18148] ;S003
+M inc rax ;S003
+M mov [r13+18148], rax ;S003
+M jmp $d1_ret ;S003
+:d1_notvar
+M cmp eax, 1 ;S003
+M jne $d1_notstr ;S003
+M call $want_id ;P003
+M xor edx, edx ;S003
+M call $chk_name ;P005
+M mov rax, [r13+18060] ;S003
+M mov [r13+181D8], rax ;S003
+M mov rax, [r13+18068] ;S003
+M sub rax, [r13+181D8] ;S003
+M mov [r13+181E0], rax ;S003
+M mov ecx, 3D ;S003
+M call $want_sym1 ;P001
+M mov rcx, [r13+18070] ;S003
+M call $lex_tok ;L001
+M cmp eax, 3 ;S003
+M jne $d1_notstrlit ;S003
+M mov rax, [r13+18060] ;S003
+M mov [r13+181E8], rax ;S003
+M mov rax, [r13+18068] ;S003
+M sub rax, [r13+181E8] ;S003
+M dec rax ;S003 без закрывающей кавычки
+M mov [r13+181F0], rax ;S003
+M mov rcx, [r13+18068] ;S003
+M mov [r13+18070], rcx ;S003
+M call $at_end_chk ;P002
+M mov rdx, [r13+181E8] ;S003
+M mov r8, [r13+181F0] ;S003
+M call $str_dlen ;E013
+M cmp rax, 200 ;S003
+M ja $d1_strlong ;S003
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_find ;P006
+M cmp rax, -1 ;S003
+M jne $d1_dup ;S003
+M mov r8, 2 ;S003
+M mov r9, [r13+18140] ;S003
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_add ;P007
+M mov rax, [r13+18140] ;S003
+M mov rdx, rax ;S003
+M shl rdx, 4 ;S003
+M mov rcx, rax ;S003
+M shl rcx, 3 ;S003
+M add rdx, rcx ;S003
+M lea rcx, [rip+$sarr] ;S003
+M add rdx, rcx ;S003
+M mov rax, [r13+18128] ;S003
+M dec rax ;S003
+M mov [rdx], rax ;S003
+M mov rax, [r13+181E8] ;S003
+M mov [rdx+8], rax ;S003
+M mov rax, [r13+181F0] ;S003
+M mov [rdx+10], rax ;S003
+M mov rax, [r13+18140] ;S003
+M inc rax ;S003
+M mov [r13+18140], rax ;S003
+M jmp $d1_ret ;S003
+:d1_notstr
+M cmp eax, 2 ;S003
+M jne $d1_bad ;S003
+M call $want_id ;P003
+M mov edx, 1 ;S003
+M call $chk_name ;P005
+M mov rax, [r13+18068] ;S003
+M sub rax, [r13+18060] ;S003
+M cmp rax, 1F ;S003
+M ja $d1_extlong ;S003
+M mov rax, [r13+18060] ;S003
+M mov [r13+181D8], rax ;S003
+M mov rax, [r13+18068] ;S003
+M sub rax, [r13+181D8] ;S003
+M mov [r13+181E0], rax ;S003
+M call $at_end_chk ;P002
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_find_ci ;S005
+M cmp rax, -1 ;S003
+M jne $d1_dup ;S003
+M mov rax, [r13+18150] ;S003
+M cmp rax, 8 ;S003
+M jae $d1_manyext ;S003
+M mov r8, 3 ;S003
+M mov r9, [r13+18150] ;S003
+M mov rcx, [r13+181D8] ;S003
+M mov rdx, [r13+181E0] ;S003
+M call $names_add ;P007
+M mov rax, [r13+18150] ;S003
+M mov rcx, rax ;S003
+M shl rcx, 3 ;S003
+M lea rdx, [rip+$earr] ;S003
+M add rdx, rcx ;S003
+M mov rax, [r13+18128] ;S003
+M dec rax ;S003
+M mov [rdx], rax ;S003
+M mov rax, [r13+18150] ;S003
+M inc rax ;S003
+M mov [r13+18150], rax ;S003
+M jmp $d1_ret ;S003
+:d1_dup
+M call $fail_format ;G002
+:d1_strlong
+M call $fail_format ;G002
+:d1_notstrlit
+M call $fail_format ;G002
+:d1_extlong
+M call $fail_format ;G002
+:d1_manyext
+M call $fail_format ;G002
+:d1_bad
+M call $fail_format ;G002
+:d1_ret
+M mov rsp, rbp ;S003
+M pop rbp ;S003
+M ret ;S003
+; ===== K2-S004 p1_funchdr: заголовок func =====
+:p1_funchdr
+M push rbp ;S004
+M mov rbp, rsp ;S004
+M sub rsp, 30 ;S004
+M mov rcx, [r13+18068] ;S004
+M mov [r13+18070], rcx ;S004
+M call $want_id ;P003
+M xor edx, edx ;S004
+M call $chk_name ;P005
+M mov rax, [r13+18060] ;S004
+M mov [rbp-10], rax ;S004
+M mov rax, [r13+18068] ;S004
+M sub rax, [rbp-10] ;S004
+M mov [rbp-18], rax ;S004
+M xor eax, eax ;S004
+M mov [rbp-8], rax ;S004
+M mov rax, [r13+18138] ;S004 locoff ДО параметров
+M mov [rbp-20], rax ;S004
+M mov [r13+180B0], rax ;S004 st_locoff (окно дублей параметров)
+M mov rcx, [r13+18070] ;S004
+M call $lex_tok ;L001
+M cmp eax, 2 ;S004
+M jne $fh_noparams ;S004
+M mov rax, [r13+18068] ;S004
+M sub rax, [r13+18060] ;S004
+M cmp rax, 1 ;S004
+M jne $fh_noparams ;S004
+M mov rcx, [r13+18060] ;S004
+M movzx eax, byte [rcx] ;S004
+M cmp al, 28 ;S004
+M jne $fh_noparams ;S004
+M mov rcx, [r13+18068] ;S004
+M mov [r13+18070], rcx ;S004
+M mov rcx, [r13+18070] ;S004
+M call $lex_tok ;L001
+M cmp eax, 2 ;S004
+M jne $fh_p1 ;S004
+M mov rax, [r13+18068] ;S004
+M sub rax, [r13+18060] ;S004
+M cmp rax, 1 ;S004
+M jne $fh_p1 ;S004
+M mov rcx, [r13+18060] ;S004
+M movzx eax, byte [rcx] ;S004
+M cmp al, 29 ;S004
+M je $fh_pclose ;S004
+:fh_p1
+M call $fh_param ; K2-S00E
+M mov rax, [rbp-8] ;S004
+M inc rax ;S004
+M mov [rbp-8], rax ;S004
+:fh_ploop
+M mov rcx, [r13+18070] ;S004
+M call $lex_tok ;L001
+M cmp eax, 2 ;S004
+M jne $fh_pend ;S004
+M mov rax, [r13+18068] ;S004
+M sub rax, [r13+18060] ;S004
+M cmp rax, 1 ;S004
+M jne $fh_pend ;S004
+M mov rcx, [r13+18060] ;S004
+M movzx eax, byte [rcx] ;S004
+M cmp al, 2C ;S004
+M jne $fh_pend ;S004
+M mov rcx, [r13+18068] ;S004
+M mov [r13+18070], rcx ;S004
+M call $fh_param ; K2-S00E
+M mov rax, [rbp-8] ;S004
+M inc rax ;S004
+M mov [rbp-8], rax ;S004
+M jmp $fh_ploop ;S004
+:fh_pend
+M mov ecx, 29 ;S004
+M call $want_sym1 ;P001
+M jmp $fh_paramsdone ;S004
+:fh_pclose
+M mov rcx, [r13+18068] ;S004
+M mov [r13+18070], rcx ;S004
+M jmp $fh_paramsdone ;S004
+:fh_noparams
+:fh_paramsdone
+M call $at_end_chk ;P002
+M mov rax, [rbp-8] ;S004
+M cmp rax, 4 ;S004
+M ja $fh_manyparams ;S004
+M mov rcx, [rbp-10] ;S004
+M mov rdx, [rbp-18] ;S004
+M call $names_find ;P006
+M cmp rax, -1 ;S004
+M jne $fh_dup ;S004
+M mov rax, [r13+18130] ;S004
+M mov rcx, rax ;S004
+M shl rcx, 6 ;S004
+M mov rdx, rax ;S004
+M shl rdx, 3 ;S004
+M add rcx, rdx ;S004
+M lea rdx, [rip+$ftab] ;S004
+M add rdx, rcx ;S004
+M mov rax, [rbp-10] ;S004
+M mov [rdx], rax ;S004
+M mov rax, [rbp-18] ;S004
+M mov [rdx+8], rax ;S004
+M mov rax, [rbp-8] ;S004
+M mov [rdx+10], rax ;S004
+M xor eax, eax ;S004
+M mov [rdx+18], rax ;S004
+M mov [rdx+20], rax ;S004
+M mov [rdx+28], rax ;S004
+M mov rax, [rbp-20] ;S004
+M mov [rdx+30], rax ;S004
+M mov rax, [rbp-8] ;S004
+M mov [rdx+38], rax ;S004
+M mov rax, [r13+18020] ;S004
+M mov [rdx+40], rax ;S004
+M mov r8, 4 ;S004
+M mov r9, [r13+18130] ;S004
+M mov rcx, [rbp-10] ;S004
+M mov rdx, [rbp-18] ;S004
+M call $names_add ;P007
+M mov rax, [r13+18130] ;S004
+M mov [rbp-28], rax ;S004
+M mov rax, [r13+18130] ;S004
+M inc rax ;S004
+M mov [r13+18130], rax ;S004
+M mov rax, [rbp-28] ;S004
+M mov [r13+181C0], rax ;S004
+M xor eax, eax ;S004
+M mov [r13+18090], rax ;S004
+M mov [r13+18098], rax ;S004
+M mov [r13+180A0], rax ;S004
+M mov [r13+180A8], rax ;S004
+M mov rax, [rbp-20] ;S004
+M mov [r13+180B0], rax ;S004
+M mov rax, [rbp-8] ;S004
+M mov [r13+180B8], rax ;S004
+M mov rax, [r13+18158] ;S004
+M mov rcx, rax ;S004
+M shl rcx, 3 ;S004
+M mov rdx, rax ;S004
+M shl rdx, 4 ;S004
+M add rcx, rdx ;S004
+M add rcx, r13 ;S004
+M mov eax, 1 ;S004
+M mov [rcx], rax ;S004
+M xor eax, eax ;S004
+M mov [rcx+8], rax ;S004
+M mov [rcx+10], rax ;S004
+M mov rax, [r13+18158] ;S004
+M inc rax ;S004
+M mov [r13+18158], rax ;S004
+M mov eax, 1 ;S004
+M mov [r13+18160], rax ;S004
+M mov [r13+18170], rax ;S004
+M mov rsp, rbp ;S004
+M pop rbp ;S004
+M ret ;S004
+:fh_manyparams
+M call $fail_format ;G002
+:fh_dup
+M call $fail_format ;G002
+; ===== K2-S00E fh_param: один параметр =====
+:fh_param
+M push rbp ; K2-S00E
+M mov rbp, rsp ; K2-S00E
+M sub rsp, 20 ; K2-S00E
+M call $want_id ;P003
+M xor edx, edx ; K2-S00E
+M call $chk_name ;P005
+M mov rax, [r13+18060] ; K2-S00E
+M mov [rbp-10], rax ; K2-S00E
+M mov rax, [r13+18068] ; K2-S00E
+M sub rax, [rbp-10] ; K2-S00E
+M mov [rbp-18], rax ; K2-S00E
+M mov rcx, [rbp-10] ; K2-S00E в глобальных?
+M mov rdx, [rbp-18] ; K2-S00E
+M call $names_find ;P006
+M cmp rax, -1 ; K2-S00E
+M jne $fhp_dup ; K2-S00E
+M mov r8, [r13+180B0] ; K2-S00E дубликат параметров
+M mov r9, [r13+18138] ; K2-S00E
+:fhp_scan
+M cmp r8, r9 ; K2-S00E
+M jae $fhp_ok ; K2-S00E
+M mov rax, r8 ; K2-S00E
+M shl rax, 4 ; K2-S00E
+M lea rdx, [rip+$larr] ; K2-S00E
+M add rdx, rax ; K2-S00E
+M mov rcx, [rdx+8] ; K2-S00E длина
+M cmp rcx, [rbp-18] ; K2-S00E
+M jne $fhp_next ; K2-S00E
+M mov rdi, [rdx] ; K2-S00E ptr
+M xor eax, eax ; K2-S00E
+:fhp_b
+M cmp rax, [rbp-18] ; K2-S00E
+M jae $fhp_dup ; K2-S00E
+M movzx edx, byte [rdi+rax] ; K2-S00E
+M mov rcx, [rbp-10] ; K2-S00E
+M cmp dl, byte [rcx+rax] ; K2-S00E
+M jne $fhp_next ; K2-S00E
+M inc rax ; K2-S00E
+M jmp $fhp_b ; K2-S00E
+:fhp_next
+M inc r8 ; K2-S00E
+M jmp $fhp_scan ; K2-S00E
+:fhp_ok
+M mov rax, [r13+18138] ; K2-S00E append larr
+M shl rax, 4 ; K2-S00E
+M lea rdx, [rip+$larr] ; K2-S00E
+M add rdx, rax ; K2-S00E
+M mov rax, [rbp-10] ; K2-S00E
+M mov [rdx], rax ; K2-S00E
+M mov rax, [rbp-18] ; K2-S00E
+M mov [rdx+8], rax ; K2-S00E
+M mov rax, [r13+18138] ; K2-S00E
+M inc rax ; K2-S00E
+M mov [r13+18138], rax ; K2-S00E
+M mov rsp, rbp ; K2-S00E
+M pop rbp ; K2-S00E
+M ret ; K2-S00E
+:fhp_dup
+M call $fail_format ;G002
+; ===== K2-S005 names_find_ci: без учёта регистра =====
+:names_find_ci
+M push rbp ;S005
+M mov rbp, rsp ;S005
+M sub rsp, 20 ;S005
+M mov [rbp-10], rcx ;S005
+M mov [rbp-18], rdx ;S005
+M xor r8d, r8d ;S005
+:nfc_loop
+M cmp r8, [r13+18128] ;S005
+M jae $nfc_none ;S005
+M lea r9, [rip+$ntab] ;S005
+M mov rax, r8 ;S005
+M shl rax, 5 ;S005
+M mov rdx, r8 ;S005
+M shl rdx, 3 ;S005
+M add rax, rdx ;S005
+M add r9, rax ;S005
+M mov rax, [r9+8] ;S005
+M cmp rax, [rbp-18] ;S005
+M jne $nfc_next ;S005
+M mov rdi, [r9] ;S005
+M mov rcx, [rbp-10] ;S005
+M xor eax, eax ;S005
+:nfc_bloop
+M cmp rax, [rbp-18] ;S005
+M jae $nfc_found ;S005
+M movzx edx, byte [rdi+rax] ;S005
+M cmp dl, 41 ;S005
+M jb $nfc_a ;S005
+M cmp dl, 5A ;S005
+M ja $nfc_a ;S005
+M add dl, 20 ;S005
+:nfc_a
+M movzx r9d, byte [rcx+rax] ;S005
+M cmp r9b, 41 ;S005
+M jb $nfc_b ;S005
+M cmp r9b, 5A ;S005
+M ja $nfc_b ;S005
+M add r9b, 20 ;S005
+:nfc_b
+M cmp dl, r9b ;S005
+M jne $nfc_next ;S005
+M inc rax ;S005
+M jmp $nfc_bloop ;S005
+:nfc_found
+M mov rax, r8 ;S005
+M mov rsp, rbp ;S005
+M pop rbp ;S005
+M ret ;S005
+:nfc_next
+M inc r8 ;S005
+M jmp $nfc_loop ;S005
+:nfc_none
+M mov rax, -1 ;S005
+M mov rsp, rbp ;S005
+M pop rbp ;S005
+M ret ;S005
