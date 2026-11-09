@@ -129,6 +129,15 @@ CASES = [
     # --- приоритет &/<< в movzx reg,reg (дефект оракула E6.2) ---
     ("M movzx edx, dl", "H 0F B6 D2"),
     ("M movzx ecx, bl", "H 0F B6 CB"),
+    # --- рост ISA E6.4c: imul/idiv/cqo (для WALL v2; SPEC/05) ---
+    ("M imul r10, r11", "H 4D 0F AF D3"),   # reg-поле = приёмник r10
+    ("M imul rax, rcx", "H 48 0F AF C1"),
+    ("M imul r8, rax", "H 4C 0F AF C0"),    # REX.R (приёмник r8)
+    ("M imul rax, r8", "H 49 0F AF C0"),    # REX.B (источник r8)
+    ("M idiv r11", "H 49 F7 FB"),
+    ("M idiv rbx", "H 48 F7 FB"),
+    ("M idiv ebx", "H F7 FB"),              # 32-битная форма
+    ("M cqo", "H 48 99"),                   # знак rax -> rdx:rax
 ]
 
 # M-строки, которые обязаны отвергаться (ErrError FORMAT AT=...).
@@ -154,6 +163,13 @@ ERRORS = [
     "M mov rax, [rbx+rcx+rsi]",  # два индекса
     "M mov rax, [rbx+rsi*4]",    # scale в v1 нет
     "M ret rax",                 # у ret нет операндов
+    # --- рост ISA E6.4c: формы imul/idiv/cqo вне подмножества ---
+    "M imul r10, r11, 5",        # трёхоперандная imul — v2+
+    "M imul eax, ecx",           # только 64-битные операнды
+    "M imul rax, [rsi]",         # только reg,reg (память — v2+)
+    "M idiv rax, rbx",           # idiv — один операнд
+    "M idiv al",                 # 8-битного idiv нет
+    "M cqo rax",                 # у cqo нет операндов
 ]
 
 # Полный круг: мини-программа «U-ENC-OK» целиком на M-строках.

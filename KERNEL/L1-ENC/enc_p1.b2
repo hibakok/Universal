@@ -61,6 +61,8 @@ M cmp rax, 2 ; K1-P011 1..2 (ALU, SHIFT) — два операнда
 M jbe $pd_need2 ; K1-P011
 M cmp rax, 7 ; K1-P011 4..7 (MOV/MOVZX/LEA/TEST) — два
 M jbe $pd_need2 ; K1-P011
+M cmp rax, 0E ; K1-P011 E (IMUL) — два (E6.4c)
+M je $pd_need2 ; K1-P011
 M jmp $pd_chk1 ; K1-P011 8..C — один операнд
 :pd_need2
 M cmp rcx, 2 ; K1-P011
@@ -94,7 +96,9 @@ M cmp rax, 0B ; K1-P011
 M je $enc_pushpop ; K1-E030
 M cmp rax, 0C ; K1-P011
 M je $enc_jmp ; K1-E031
-M int3 ; K1-P011 непригодная ветвь (13 обработан выше)
+M cmp rax, 0E ; K1-P011 E — imul (E6.4c)
+M je $enc_imul ; K1-E033
+M int3 ; K1-P011 непригодная ветвь (13 и D обработаны выше)
 ; ===== P012 split_operands: области, запятые, разбор каждого операнда =====
 :split_operands
 M mov rcx, [rip+$el_m1] ; K1-P012

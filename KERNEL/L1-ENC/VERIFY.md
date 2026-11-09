@@ -7,8 +7,8 @@
 | Свойство | Значение |
 |---|---|
 | Файл | KERNEL/L1-ENC/enc.exe |
-| Размер | 11776 байт (0x2E00) |
-| SHA-256 | `93AD8E21FADE2D1EC173F8723CE6165D3C9681C18251486FD27789D0E7A54A45` |
+| Размер | 12288 байт (0x3000) |
+| SHA-256 | `01A7B19280E3E581938E714C23A109559A26BE87A9B2F5EC9F0B5E90C4BAF696` |
 
 ```
 cmd -> certutil -hashfile KERNEL\L1-ENC\enc.exe SHA256
@@ -19,23 +19,27 @@ cmd -> certutil -hashfile KERNEL\L1-ENC\enc.exe SHA256
 1. **Целостность:** SHA-256 выше; равенство `enc.exe == brick(enc.brick) +
    pegen(enc.peg)` (эмуляция, секция кругов батареи).
 2. **PE-инварианты SPEC/04:** одна секция, один импорт, точка входа
-   0x1000, hint-RVA чётные, VirtualSize 0x67146 = 0x2BFE + bss.
-3. **Эмуляция сценариев TESTS/T-L1-ENC.md:** справка (T-E6-05), все 109
-   якорей одним файлом (T-E6-06), 21 ошибка с точными номерами строк
+   0x1000, hint-RVA чётные, VirtualSize 0x69EE4 = 0x2CCE + !bss 67216.
+3. **Эмуляция сценариев TESTS/T-L1-ENC.md:** справка (T-E6-05), все 117
+   якорей одним файлом (T-E6-06), 27 ошибок с точными номерами строк
    (T-E6-07/11), круг enc+brick+pegen -> «U-ENC-OK» (T-E6-08), большой
    исходник 23 КиБ (T-E6-10), 8 граничных концов строк.
 4. **Оракул LAB:** enc.exe == lab_enc.normalize байт-в-байт на всём
-   вышеупомянутом; самохостинг enc(enc.b2) == enc.brick (74586 байт,
-   T-E6-09) и полный круг -> enc.exe.
+   вышеупомянутом; самохостинг enc(splice(enc.b2)) == enc.brick
+   (76243 байта, T-E6-09) и полный круг -> enc.exe.
 
-Автоматически: `python3 LAB/py/lab_verify.py` -> 80/80 OK (~22 с; CI
+Автоматически: `python3 LAB/py/lab_verify.py` -> 111/111 OK (~70 с; CI
 запускает на каждый пуш). Без LAB, на Windows (из папки KERNEL):
 
 ```
 L1-ENC\enc.exe
   -> U-L1-ENC CMDS: ENC <SRC.B2> <OUT.BRICK>   код 2
 
-L1-ENC\enc.exe L1-ENC\enc.b2 t.brick
+Самохостинг на Windows (enc не разрешает !include — сначала склеить):
+
+```
+L1-SPLICE\splice.exe L1-ENC\enc.b2 t_flat.b2
+L1-ENC\enc.exe t_flat.b2 t.brick
 L1-BRICK\brick.exe t.brick t_body.bin
 L0-PEGEN\pegen.exe t_body.bin L1-ENC\enc.peg t_enc.exe
 fc /b t_enc.exe L1-ENC\enc.exe    -> различий нет (самохостинг)
@@ -43,6 +47,9 @@ fc /b t.brick L1-ENC\enc.brick    -> различий нет
 
 L1-ENC\enc.exe нет.b2 t.brick
   -> U-L1-ENC ERR=OPEN SRC                      код 4
+
+echo M imul r10, r11> t.b2 && L1-ENC\enc.exe t.b2 t.brick
+  -> t.brick: H 4D 0F AF D3                     (рост ISA E6.4c)
 
 echo M bogus rax, rax> t.b2 && L1-ENC\enc.exe t.b2 t.brick
   -> U-L1-ENC ERR=FORMAT AT=0001                код 6
@@ -98,7 +105,21 @@ echo M bogus rax, rax> t.b2 && L1-ENC\enc.exe t.b2 t.brick
 
 ## 5. Регламент регресса
 
-Любое изменение enc.b2: батарея 80/80; T-E6-06 на всех якорях; самохостинг
+Любое изменение enc.b2: батарея 111/111; T-E6-06 на всех якорях; самохостинг
 обоих кругов. Изменение SPEC/09: сначала CASES/ERRORS (лаборатория —
 эталон; расхождение оракула с инструментом — находка, не повод
 подгонять — см. §4).
+
+## 6. Рост ISA (E6.4c, для WALL v2)
+
+Добавлены мнемоники **imul** (семейство 0E — новый кирпич K1-E033:
+REX.W 0F AF /r mod11, reg-поле = приёмник, только r64,r64), **idiv**
+(семейство 9 как neg: F7 /7, r32/r64) и **cqo** (семейство D, байты
+48 99). Декодер lab_x86 и исполнитель lab_cpu расширены (imul —
+младшие 64 бита знакового произведения, CF=OF при неполном
+знакорасширении; idiv — частное rax/остаток rdx, усечение к нулю,
+деление на 0 и переполнение частного — #DE; cqo/cdq — знак rax ->
+rdx:rax / eax -> edx:eax). Якоря: 109 -> 117 (+8), ошибки: 21 -> 27
+(+6). Дефектов собственного кода при росте не найдено; найден и
+исправлен перекос чётности RVA hint-записей от нечётного прироста
+кода (калибровка DZ 1 -> DZ 2 после имени DLL — механизм E4a).

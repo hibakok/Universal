@@ -53,7 +53,7 @@ DD 62333172 20 4 80D ; r13b
 DD 62343172 20 4 80E ; r14b
 DD 62353172 20 4 80F ; r15b
 
-; ===== K1-D013 mnemtab: 41 запись {имя(8Б), длина, семейство|параметр<<8, 0} =====
+; ===== K1-D013 mnemtab: 44 записи {имя(8Б), длина, семейство|параметр<<8, 0} =====
 :mnemtab
 DD 646461 0 3 1 ; add
 DD 726F 0 2 10801 ; or
@@ -96,6 +96,9 @@ DD 706D6A 0 3 C ; jmp
 DD 65716463 0 4 98480D ; cdqe
 DD 746572 0 3 C30D ; ret
 DD 33746E69 0 4 CC0D ; int3
+DD 6C756D69 0 4 E ; imul (E6.4c: семейство E, reg,reg 64)
+DD 76696469 0 4 7F709 ; idiv (E6.4c: F7 /7, как neg)
+DD 6F7163 0 3 99480D ; cqo (E6.4c: 48 99)
 
 ; ===== K1-D014 sizetab: 4 записи {ключ с пробелом(8Б), длина, размер, 0} =====
 :sizetab
@@ -165,7 +168,7 @@ DQ 0 ; IAT: терминатор
 DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
 :dll_name
 DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
-DZ 1 ; чётность RVA hint-записей
+DZ 2 ; чётность RVA hint-записей (+1 калибровка E6.4c: код enc_imul нечётен)
 :hint_gsh
 DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
 DZ 1 ; выравнивание

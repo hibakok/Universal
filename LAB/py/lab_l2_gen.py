@@ -1,13 +1,19 @@
-"""lab_l2_gen.py — бэкенд оракула WALL v1 (SPEC/11): AST -> текст BRICK v2.
+"""lab_l2_gen.py — бэкенд оракула WALL v1/v2 (SPEC/11): AST -> текст BRICK v2.
 
 Вход:  программа (AST из lab_l2.parse), таблица имён, карта строк исходника.
 Выход: текст .b2 (BRICK v2) — детерминированный; правила раскладки слотов,
        кадров и эмиттеров — SPEC/11 (это канон: wall.exe обязан повторять
        этот выход байт-в-байт).
 Ошибки: WallError(сообщение, номер_строки) — номер с 1.
+WALL v2 (E6.4c): массивы (имя — адрес a[0]), qword-индексация e[i]/
+       e[i] = v, * / %, len(массив), break/continue, guard-цепочки
+       && / ||. Программы без v2-конструкций дают байт-в-байт выход v1
+       (заголовок «WALL v1»).
 Функция: кирпич кодогенерации слоя L2; вызывается lab_l2.compile_wall().
+         Раскладка кадров — lab_l2_lay.py (разрез E6.4c).
 """
 from lab_l2_err import WallError            # noqa: F401  (реэкспорт)
+from lab_l2_lay import Layout, _align16, _hex
 
 ARGREG = ("rcx", "rdx", "r8", "r9")
 JINV = {"==": "jne", "!=": "je", "<": "jge", "<=": "jg",
@@ -23,127 +29,16 @@ ENTRY_RVA_OFF = 0x200   # смещение :_entry в теле (RVA 0x1200)
 MAXLABELS = 500
 
 
-def _hex(v):
-    return "%X" % v
-
-
-def _align16(v):
-    return (v + 15) & ~15
-
-
-def need(e):
-    """Число T-слотов выражения при генерации с текущей глубины."""
-    t = e[0]
-    if t == "neg":
-        return need(e[1])
-    if t == "bin":
-        return 1 + max(need(e[2]), need(e[3]))
-    if t == "getb":
-        return 1 + max(need(e[1]), need(e[2]))
-    if t == "call":
-        return max([need(a) for a in e[2]] + [0])
-    return 0                      # num, name, addr, len
-
-
-class Layout:
-    """Раскладка кадровых слотов функции (SPEC/11 п.7)."""
-
-    def __init__(self, fn, names, funcparams):
-        self.fn = fn
-        self.names = names
-        self.fp = funcparams
-        base = list(fn["params"]) + list(fn["locals"])
-        self.base = {n: i for i, n in enumerate(base)}
-        self.nbase = len(base)
-        self.maxd = self.maxc = 0
-        self.setb = self.ext5 = False
-        self._scan(fn["body"])
-        self.nslots = (self.nbase + self.maxd + self.maxc +
-                       (3 if self.setb else 0) + (1 if self.ext5 else 0))
-        self.framesize = _align16(8 * self.nslots) + 0x30
-
-    def _upd(self, d):
-        self.maxd = max(self.maxd, d)
-
-    def _call(self, name, args):
-        kind = self.names.get(name)
-        n = len(args)
-        self.maxc = max(self.maxc, min(n, 4) if kind == "ext" else n)
-        if kind == "ext" and n == 5:
-            self.ext5 = True
-        for a in args:
-            self._scan_expr(a)
-
-    def _scan_expr(self, e):
-        """обход выражения: вызовы (в т.ч. вложенные) дают C-слоты"""
-        t = e[0]
-        if t == "call":
-            self._call(e[1], e[2])
-        elif t == "bin":
-            self._scan_expr(e[2])
-            self._scan_expr(e[3])
-        elif t == "neg":
-            self._scan_expr(e[1])
-        elif t == "getb":
-            self._scan_expr(e[1])
-            self._scan_expr(e[2])
-
-    def _scan(self, body):
-        for st in body:
-            t = st[0]
-            if t == "assign":
-                self._scan_expr(st[2])
-                self._upd(need(st[2]))
-            elif t == "return":
-                if st[1] is not None:
-                    self._scan_expr(st[1])
-                    self._upd(need(st[1]))
-            elif t == "call":
-                self._call(st[1], st[2])
-            elif t == "setb":
-                self.setb = True
-                for e in (st[1], st[2], st[3]):
-                    self._scan_expr(e)
-                    self._upd(need(e))
-            elif t == "if":
-                c = st[1]
-                self._scan_expr(c[1])
-                self._scan_expr(c[2])
-                self._upd(1 + max(need(c[1]), need(c[2])))
-                self._scan(st[2])
-                self._scan(st[3])
-            elif t == "while":
-                c = st[1]
-                self._scan_expr(c[1])
-                self._scan_expr(c[2])
-                self._upd(1 + max(need(c[1]), need(c[2])))
-                self._scan(st[2])
-
-    # смещения слотов (rbp-относительные, 0-базовый индекс)
-    def _off(self, idx):
-        return 8 * (idx + 1)
-
-    def local(self, name):
-        return self._off(self.base[name])
-
-    def t(self, d):
-        return self._off(self.nbase + d - 1)
-
-    def c(self, i):
-        return self._off(self.nbase + self.maxd + i - 1)
-
-    def s(self, i):
-        return self._off(self.nbase + self.maxd + self.maxc + i)
-
-
 class Gen:
     """Эмиттер: программа -> список строк .b2 (SPEC/11 п.8 — канон)."""
 
     def __init__(self, prog, names, srcmap):
         self.prog, self.names, self.src = prog, names, srcmap
         self.fp = {f["name"]: len(f["params"]) for f in prog["funcs"]}
+        self.gs = {n: s for n, s, _no in prog["globals"]}
         self.out = []
         self.k = 0            # счётчик меток _if/_w
+        self.wstack = []      # v2: стек k объемлющих while (break/continue)
         self.nlab = 0         # контроль лимита меток brick
 
     def m(self, cmt, text):
@@ -160,8 +55,9 @@ class Gen:
     def run(self):
         p = self.prog
         nl = p["nlines"]
-        self.raw("; UNIVERSAL / WALL v1 / сгенерировано компилятором WALL"
-                 " (SPEC/11)")
+        ver = "v2" if p["v2"] else "v1"
+        self.raw("; UNIVERSAL / WALL %s / сгенерировано компилятором WALL"
+                 " (SPEC/11)" % ver)
         self.raw("; исходник: %d строк; функций: %d; ext: %d; str: %d; "
                  "глобальных var: %d"
                  % (nl, len(p["funcs"]), len(p["exts"]),
@@ -186,9 +82,9 @@ class Gen:
                         "%02X" % b for b in bs[i:i + 16]), src))
         if p["globals"]:
             self.raw("; --- данные: глобальные переменные (нулевые ячейки) ---")
-            for name, no in p["globals"]:
+            for name, size, no in p["globals"]:
                 self.lbl(name)
-                self.raw("DZ 8 ; %s" % self.src[no])
+                self.raw("DZ %s ; %s" % (_hex(8 * size), self.src[no]))
         if self.nlab > MAXLABELS:
             raise WallError("больше %d меток" % MAXLABELS, 0)
         return "\n".join(self.out) + "\n"
@@ -233,7 +129,7 @@ class Gen:
 
     # ------------------------------------------------------------ функция
     def _func(self, fn):
-        lay = Layout(fn, self.names, self.fp)
+        lay = Layout(fn, self.names, self.fp, self.gs)
         self.lbl(fn["name"])
         c = "кадр %s" % fn["name"]
         self.m(c, "push rbp")
@@ -255,16 +151,22 @@ class Gen:
     def _body(self, body, lay, fn):
         for st in body:
             t = st[0]
-            if t == "var":
+            if t == "lvar":
                 continue
             if t == "assign":
                 src = self.src[st[3]]
                 self.expr(st[2], 1, lay, src)
                 name = st[1]
                 if name in lay.base:
+                    if lay.sizes[name] > 1:
+                        raise WallError("массив %r нельзя присвоить целиком"
+                                        % name, st[3])
                     self.m(src, "mov [rbp-%s], r10" % _hex(lay.local(name)))
                 elif self.names.get(name) == "var":
                     self.m(src, "mov [rip+$%s], r10" % name)
+                elif self.names.get(name) == "arr":
+                    raise WallError("массив %r нельзя присвоить целиком"
+                                    % name, st[3])
                 elif self.names.get(name) == "str":
                     raise WallError("строка %r неизменяема (только setb)"
                                     % name, st[3])
@@ -272,6 +174,13 @@ class Gen:
                     raise WallError("%r — не переменная" % name, st[3])
                 else:
                     raise WallError("неизвестное имя %r" % name, st[3])
+            elif t == "astore":            # v2: e[i] = v (S-стейдинг)
+                src = self.src[st[3]]
+                self._astore(st, lay, src)
+            elif t == "break":             # v2
+                self.m(self.src[st[1]], "jmp $_w%de" % self.wstack[-1])
+            elif t == "continue":          # v2
+                self.m(self.src[st[1]], "jmp $_w%d" % self.wstack[-1])
             elif t == "return":
                 src = self.src[st[2]]
                 if st[1] is not None:
@@ -298,7 +207,23 @@ class Gen:
             elif t == "while":
                 self._while(st, lay, fn)
 
-    def _cond(self, c, lay, src):
+    def _astore(self, st, lay, src):
+        """v2: e[i] = v — адрес базы в S0, индекс в S1, значение в S2.
+        st = ("astore", ("index", база, индекс), значение, строка)."""
+        self.expr(st[1][1], 1, lay, src)          # база (адрес)
+        self.m(src, "mov [rbp-%s], r10" % _hex(lay.s(0)))
+        self.expr(st[1][2], 1, lay, src)          # индекс
+        self.m(src, "mov [rbp-%s], r10" % _hex(lay.s(1)))
+        self.expr(st[2], 1, lay, src)             # значение
+        self.m(src, "mov [rbp-%s], r10" % _hex(lay.s(2)))
+        self.m(src, "mov r10, [rbp-%s]" % _hex(lay.s(0)))
+        self.m(src, "mov r11, [rbp-%s]" % _hex(lay.s(1)))
+        self.m(src, "shl r11, 3")
+        self.m(src, "add r10, r11")
+        self.m(src, "mov r11, [rbp-%s]" % _hex(lay.s(2)))
+        self.m(src, "mov [r10], r11")
+
+    def _cond_one(self, c, lay, src):
         self.expr(c[1], 2, lay, src)
         self.m(src, "mov [rbp-%s], r10" % _hex(lay.t(1)))
         self.expr(c[2], 2, lay, src)
@@ -306,21 +231,39 @@ class Gen:
         self.m(src, "mov r10, [rbp-%s]" % _hex(lay.t(1)))
         self.m(src, "cmp r10, r11")
 
+    def _guard(self, cond, lay, src, lfalse, pfx, k):
+        """v2: guard-эми��сия условия — переход на lfalse при лжи.
+
+        cond = [дизъюнкт...] (||), дизъюнкт = [сравнение...] (&&).
+        Провал конъюнкта = провал дизъюнкта -> следующий дизъюнкт
+        (метка _<pfx><k>d<i>) или lfalse; успех дизъюнкта -> тело
+        (jmp _<pfx><k>t / fall-through последнего)."""
+        m = len(cond)
+        for i, disj in enumerate(cond, 1):
+            lfail = "%s%dd%d" % (pfx, k, i + 1) if i < m else lfalse
+            for c in disj:
+                self._cond_one(c, lay, src)
+                self.m(src, "%s $%s" % (JINV[c[0]], lfail))
+            if i < m:
+                self.m(src, "jmp $%s%dt" % (pfx, k))
+                self.lbl("%s%dd%d" % (pfx, k, i + 1))
+        if m > 1:
+            self.lbl("%s%dt" % (pfx, k))
+
     def _if(self, st, lay, fn):
         cond, then, els, no = st[1], st[2], st[3], st[4]
         src = self.src[no]
         self.k += 1
         k = self.k
-        self._cond(cond, lay, src)
         if els:
-            self.m(src, "%s $_if%d" % (JINV[cond[0]], k))
+            self._guard(cond, lay, src, "_if%d" % k, "_if", k)
             self._body(then, lay, fn)
             self.m(src, "jmp $_if%de" % k)
             self.lbl("_if%d" % k)
             self._body(els, lay, fn)
             self.lbl("_if%de" % k)
         else:
-            self.m(src, "%s $_if%de" % (JINV[cond[0]], k))
+            self._guard(cond, lay, src, "_if%de" % k, "_if", k)
             self._body(then, lay, fn)
             self.lbl("_if%de" % k)
 
@@ -330,11 +273,12 @@ class Gen:
         self.k += 1
         k = self.k
         self.lbl("_w%d" % k)
-        self._cond(cond, lay, src)
-        self.m(src, "%s $_w%de" % (JINV[cond[0]], k))
+        self.wstack.append(k)
+        self._guard(cond, lay, src, "_w%de" % k, "_w", k)
         self._body(body, lay, fn)
         self.m(src, "jmp $_w%d" % k)
         self.lbl("_w%de" % k)
+        self.wstack.pop()
 
     # --------------------------------------------------------- выражения
     def expr(self, e, d, lay, src):
@@ -349,17 +293,26 @@ class Gen:
         elif t == "addr":
             name, no = e[1], e[2]
             if name in lay.base:
-                self.m(src, "lea r10, [rbp-%s]" % _hex(lay.local(name)))
-            elif self.names.get(name) in ("var", "str"):
+                off = lay.arrbase(name) if lay.sizes[name] > 1 \
+                    else lay.local(name)
+                self.m(src, "lea r10, [rbp-%s]" % _hex(off))
+            elif self.names.get(name) in ("var", "str", "arr"):
                 self.m(src, "lea r10, [rip+$%s]" % name)
             elif name in self.names:
                 raise WallError("& не применимо к %r" % name, no)
             else:
                 raise WallError("неизвестное имя %r" % name, no)
         elif t == "len":
-            if self.names.get(e[1]) != "str":
-                raise WallError("len применим только к str", e[2])
-            n = len(dict((n, b) for n, b, _ in self.prog["strs"])[e[1]])
+            kind = self.names.get(e[1])
+            if kind == "str":
+                n = len(dict((n, b) for n, b, _ in self.prog["strs"])[e[1]])
+            elif kind == "arr":            # v2: размер массива (компиляция)
+                n = self.gs[e[1]]
+            elif e[1] in lay.base and lay.sizes[e[1]] > 1:
+                n = lay.sizes[e[1]]
+            else:
+                raise WallError("len применим только к str или массиву",
+                                e[2])
             self.m(src, "mov r10, %s" % _hex(n))
         elif t == "bin":
             self.expr(e[2], d + 1, lay, src)
@@ -369,9 +322,29 @@ class Gen:
             self.m(src, "mov r10, [rbp-%s]" % _hex(lay.t(d)))
             if e[1] in ALU:
                 self.m(src, "%s r10, r11" % ALU[e[1]])
+            elif e[1] == "*":              # v2
+                self.m(src, "imul r10, r11")
+            elif e[1] in ("/", "%"):       # v2: rax/rdx, cqo, idiv
+                self.m(src, "mov rax, r10")
+                self.m(src, "cqo")
+                self.m(src, "idiv r11")
+                self.m(src, "mov r10, r%s" % ("ax" if e[1] == "/"
+                                              else "dx"))
             else:
                 self.m(src, "mov rcx, r11")
                 self.m(src, "%s r10, cl" % ("shl" if e[1] == "<<" else "shr"))
+        elif t == "index":                 # v2: qword-загрузка e[i]
+            if e[1][0] == "name" and self.names.get(e[1][1]) == "str":
+                raise WallError("индексирование строки %r запрещено (getb)"
+                                % e[1][1], e[1][2])
+            self.expr(e[1], d + 1, lay, src)
+            self.m(src, "mov [rbp-%s], r10" % _hex(lay.t(d)))
+            self.expr(e[2], d + 1, lay, src)
+            self.m(src, "shl r10, 3")
+            self.m(src, "mov r11, r10")
+            self.m(src, "mov r10, [rbp-%s]" % _hex(lay.t(d)))
+            self.m(src, "add r10, r11")
+            self.m(src, "mov r10, [r10]")
         elif t == "getb":
             self.expr(e[1], d + 1, lay, src)
             self.m(src, "mov [rbp-%s], r10" % _hex(lay.t(d)))
@@ -384,12 +357,15 @@ class Gen:
 
     def _load_name(self, name, no, lay, src):
         if name in lay.base:
-            self.m(src, "mov r10, [rbp-%s]" % _hex(lay.local(name)))
+            if lay.sizes[name] > 1:        # v2: имя массива = адрес a[0]
+                self.m(src, "lea r10, [rbp-%s]" % _hex(lay.arrbase(name)))
+            else:
+                self.m(src, "mov r10, [rbp-%s]" % _hex(lay.local(name)))
             return
         kind = self.names.get(name)
         if kind == "var":
             self.m(src, "mov r10, [rip+$%s]" % name)
-        elif kind == "str":
+        elif kind in ("str", "arr"):       # v2: глобальный массив — адрес
             self.m(src, "lea r10, [rip+$%s]" % name)
         elif kind is None:
             raise WallError("неизвестное имя %r" % name, no)

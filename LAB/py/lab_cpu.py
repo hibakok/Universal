@@ -299,6 +299,56 @@ class CPU:
         self.sf = (val >> (bits - 1)) & 1
         self.put(op, val)
 
+    # --- умножение/деление (E6.4c; SPEC/05 «Расширение E6.4c») ---
+    def _sgn(self, v, size):
+        """беззнаковое -> знаковое значение size бит"""
+        return v - (1 << size) if v >> (size - 1) & 1 else v
+
+    def _op_imul(self, dst, src):
+        # двухоперандная: dst <- младшие size бит (dst * src), знаковые
+        size = dst[2] if dst[0] == "r" else dst[5]
+        full = self._sgn(self.get(dst), size) * self._sgn(self.get(src),
+                                                          size)
+        res = full & ((1 << size) - 1)
+        # CF=OF=1, если результат не знакорасширяется до полного (Intel)
+        self.cf = self.of = 0 if self._sgn(res, size) == full else 1
+        self.zf = 1 if res == 0 else 0
+        self.sf = res >> (size - 1) & 1
+        self.put(dst, res)
+
+    def _op_cqo(self):
+        self.r[2] = M64 if self.r[0] >> 63 else 0
+
+    def _op_cdq(self):
+        self.r[2] = 0xFFFFFFFF if self.r[0] & 0x80000000 else 0
+
+    def _op_idiv(self, op):
+        size = op[2] if op[0] == "r" else op[5]
+        if size not in (DWORD, QWORD):
+            raise ValueError("idiv %d бит вне подмножества" % size)
+        if size == QWORD:
+            dividend = self._sgn(self.r[2] << 64 | self.r[0], 128)
+        else:
+            dividend = self._sgn((self.r[2] & M32) << 32 |
+                                 (self.r[0] & M32), 64)
+        divisor = self._sgn(self.get(op), size)
+        if divisor == 0:
+            raise RuntimeError("idiv: деление на ноль (#DE) @ rip=%X"
+                               % (self.rip - 2))
+        q = abs(dividend) // abs(divisor)          # усечение к нулю (C)
+        if (dividend < 0) != (divisor < 0):
+            q = -q
+        r = dividend - q * divisor
+        if not -(1 << size - 1) <= q < 1 << size - 1:
+            raise RuntimeError("idiv: частное вне диапазона (#DE) @ rip=%X"
+                               % (self.rip - 2))
+        if size == QWORD:
+            self.r[0] = q & M64
+            self.r[2] = r & M64
+        else:                       # 32-битная запись обнуляет старшие
+            self.r[0] = q & M32
+            self.r[2] = r & M32
+
     # --- переходы ---
     def _cond(self, cc):
         zf, cf, sf, of = self.zf, self.cf, self.sf, self.of

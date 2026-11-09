@@ -130,4 +130,4 @@ pegen.exe  t_body.bin wall.peg t.exe
 fc /b t.exe wall.exe              -> различий нет (DoD сборки)
 ```
 
-Батарея: python3 LAB/py/lab_verify.py -> 105/105 (T-E6-25..30).
+Батарея: python3 LAB/py/lab_verify.py -> 111/111 (T-E6-25..30 — инструмент, секция 10; секция 9 с E6.4c включает и оракул v2).

@@ -285,6 +285,8 @@ H 48 83 F8 02 ; K1-P011 1..2 (ALU, SHIFT) — два операнда
 H 0F 86 $pd_need2 ; K1-P011
 H 48 83 F8 07 ; K1-P011 4..7 (MOV/MOVZX/LEA/TEST) — два
 H 0F 86 $pd_need2 ; K1-P011
+H 48 83 F8 0E ; K1-P011 E (IMUL) — два (E6.4c)
+H 0F 84 $pd_need2 ; K1-P011
 H E9 $pd_chk1 ; K1-P011 8..C — один операнд
 :pd_need2
 H 48 83 F9 02 ; K1-P011
@@ -318,7 +320,9 @@ H 48 83 F8 0B ; K1-P011
 H 0F 84 $enc_pushpop ; K1-E030
 H 48 83 F8 0C ; K1-P011
 H 0F 84 $enc_jmp ; K1-E031
-H CC ; K1-P011 непригодная ветвь (13 обработан выше)
+H 48 83 F8 0E ; K1-P011 E — imul (E6.4c)
+H 0F 84 $enc_imul ; K1-E033
+H CC ; K1-P011 непригодная ветвь (13 и D обработаны выше)
 ; ===== P012 split_operands: области, запятые, разбор каждого операнда =====
 :split_operands
 H 48 8B 0D $el_m1 ; K1-P012
@@ -896,8 +900,8 @@ H C3 ; K1-R011
 H 49 89 D0 ; K1-R012
 H 49 29 C8 ; K1-R012 длина
 H 49 89 C9 ; K1-R012
-H 4C 8D 1D $mnemtab ; K1-R012 запись 0 (41 запись)
-H 48 C7 C1 29 00 00 00 ; K1-R012
+H 4C 8D 1D $mnemtab ; K1-R012 запись 0 (44 записи)
+H 48 C7 C1 2C 00 00 00 ; K1-R012
 :lm_loop
 H 48 85 C9 ; K1-R012
 H 0F 84 $fail_format ; K1-R012 неизвестная мнемоника
@@ -2103,7 +2107,7 @@ H 49 8B 55 20 ; K1-E031
 H 49 C7 C0 01 00 00 00 ; K1-E031
 H E8 $emit_slot ; K1-E013
 H C3 ; K1-E031
-; ===== E032 enc_simple: cdqe/ret/int3 (семейство D) =====
+; ===== E032 enc_simple: cdqe/ret/int3/cqo (семейство D) =====
 :enc_simple
 H 8B 05 $m_param ; K1-E032 байт 1 (младший)
 H 0F B6 C0 ; K1-E032
@@ -2115,6 +2119,41 @@ H 0F 84 $sm_done ; K1-E032 однобайтовая
 H E8 $emit2 ; K1-E011
 :sm_done
 H C3 ; K1-E032
+; ===== E033 enc_imul: imul r64,r64 (семейство E; E6.4c) =====
+:enc_imul
+H 49 83 7D 00 00 ; K1-E033 приёмник — регистр
+H 0F 85 $fail_format ; K1-E033
+H 49 83 7D 40 00 ; K1-E033 источник — регистр
+H 0F 85 $fail_format ; K1-E033
+H 49 83 7D 10 40 ; K1-E033 приёмник только 64-бит
+H 0F 85 $fail_format ; K1-E033
+H 49 83 7D 50 40 ; K1-E033 источник только 64-бит
+H 0F 85 $fail_format ; K1-E033
+H B8 48 00 00 00 ; K1-E033 REX = 40|W (всегда выдаётся)
+H 49 8B 4D 08 ; K1-E033 приёмник >= r8 -> бит R
+H 48 83 F9 08 ; K1-E033
+H 0F 8C $im_nor ; K1-E033
+H 83 C8 04 ; K1-E033
+:im_nor
+H 49 8B 4D 48 ; K1-E033 источник >= r8 -> бит B
+H 48 83 F9 08 ; K1-E033
+H 0F 8C $im_nob ; K1-E033
+H 83 C8 01 ; K1-E033
+:im_nob
+H E8 $emit2 ; K1-E011 REX
+H B8 0F 00 00 00 ; K1-E033 опкод 0F AF
+H E8 $emit2 ; K1-E011
+H B8 AF 00 00 00 ; K1-E033
+H E8 $emit2 ; K1-E011
+H 49 8B 45 08 ; K1-E033 modrm = C0|(dst&7)<<3|(src&7)
+H 83 E0 07 ; K1-E033 приёмник — поле reg
+H C1 E0 03 ; K1-E033
+H 49 8B 4D 48 ; K1-E033 источник — поле rm
+H 83 E1 07 ; K1-E033
+H 09 C8 ; K1-E033
+H 81 C8 C0 00 00 00 ; K1-E033 mod 11
+H E8 $emit2 ; K1-E011
+H C3 ; K1-E033
 ; ===== H011 hex16_to_4: 4 hex-цифры в [RDI] =====
 :hex16_to_4
 H B9 04 00 00 00 ; K1-H011
@@ -2359,7 +2398,7 @@ DD 62333172 20 4 80D ; r13b
 DD 62343172 20 4 80E ; r14b
 DD 62353172 20 4 80F ; r15b
 
-; ===== K1-D013 mnemtab: 41 запись {имя(8Б), длина, семейство|параметр<<8, 0} =====
+; ===== K1-D013 mnemtab: 44 записи {имя(8Б), длина, семейство|параметр<<8, 0} =====
 :mnemtab
 DD 646461 0 3 1 ; add
 DD 726F 0 2 10801 ; or
@@ -2402,6 +2441,9 @@ DD 706D6A 0 3 C ; jmp
 DD 65716463 0 4 98480D ; cdqe
 DD 746572 0 3 C30D ; ret
 DD 33746E69 0 4 CC0D ; int3
+DD 6C756D69 0 4 E ; imul (E6.4c: семейство E, reg,reg 64)
+DD 76696469 0 4 7F709 ; idiv (E6.4c: F7 /7, как neg)
+DD 6F7163 0 3 99480D ; cqo (E6.4c: 48 99)
 
 ; ===== K1-D014 sizetab: 4 записи {ключ с пробелом(8Б), длина, размер, 0} =====
 :sizetab
@@ -2471,7 +2513,7 @@ DQ 0 ; IAT: терминатор
 DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0 ; INT: копия IAT
 :dll_name
 DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
-DZ 1 ; чётность RVA hint-записей
+DZ 2 ; чётность RVA hint-записей (+1 калибровка E6.4c: код enc_imul нечётен)
 :hint_gsh
 DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
 DZ 1 ; выравнивание

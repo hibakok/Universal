@@ -215,6 +215,7 @@
 | K1-E030 | enc_pushpop | E | готов | `MAP/M1-ENC-E.md` |
 | K1-E031 | enc_jmp | E | готов | `MAP/M1-ENC-E.md` |
 | K1-E032 | enc_simple | E | готов | `MAP/M1-ENC-E.md` |
+| K1-E033 | enc_imul | E | готов | `MAP/M1-ENC-E.md` |
 | K1-H011 | hex16_to_4 | H | готов | `MAP/M1-ENC-S.md` |
 | K1-U011 | print_line | U | готов | `MAP/M1-ENC-S.md` |
 | K1-F011 | open_file_read | F | готов | `MAP/M1-ENC-S.md` |

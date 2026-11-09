@@ -13,7 +13,7 @@
 
 cmd -> certutil -hashfile KERNEL\L2-WALL\wall.exe SHA256
 
-## 2. Уровни проверки (SPEC/02; батарея 105/105, ~60 с)
+## 2. Уровни проверки (SPEC/02; батарея 111/111, ~70 с)
 
 1. Целостность: SHA-256 (T-E6-30) — в батарее.
 2. PE-инварианты SPEC/04 (T-E6-30): hint-записи на чётных RVA; вход
@@ -89,6 +89,6 @@ cmd -> certutil -hashfile KERNEL\L2-WALL\wall.exe SHA256
 
 ## 5. Прогоны
 
-- python3 LAB/py/lab_verify.py — 105/105 OK (~60 с): секции 1-9 прежние
+- python3 LAB/py/lab_verify.py — 111/111 OK (~70 с): секции 1-9 прежние (9 расширена оракулом v2 — E6.4c)
   (96) + секция 10 (T-E6-25..30).
 - CI (.github/workflows/verify.yml) — та же батарея на каждый пуш.

@@ -165,8 +165,8 @@ M ret ; K1-R011
 M mov r8, rdx ; K1-R012
 M sub r8, rcx ; K1-R012 длина
 M mov r9, rcx ; K1-R012
-M lea r11, [rip+$mnemtab] ; K1-R012 запись 0 (41 запись)
-M mov rcx, 29 ; K1-R012
+M lea r11, [rip+$mnemtab] ; K1-R012 запись 0 (44 записи)
+M mov rcx, 2C ; K1-R012
 :lm_loop
 M test rcx, rcx ; K1-R012
 M jz $fail_format ; K1-R012 неизвестная мнемоника

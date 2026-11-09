@@ -163,7 +163,7 @@ M mov rdx, [r13+20] ; K1-E031
 M mov r8, 1 ; K1-E031
 M call $emit_slot ; K1-E013
 M ret ; K1-E031
-; ===== E032 enc_simple: cdqe/ret/int3 (семейство D) =====
+; ===== E032 enc_simple: cdqe/ret/int3/cqo (семейство D) =====
 :enc_simple
 M mov eax, [rip+$m_param] ; K1-E032 байт 1 (младший)
 M movzx eax, al ; K1-E032
@@ -175,3 +175,38 @@ M jz $sm_done ; K1-E032 однобайтовая
 M call $emit2 ; K1-E011
 :sm_done
 M ret ; K1-E032
+; ===== E033 enc_imul: imul r64,r64 (семейство E; E6.4c) =====
+:enc_imul
+M cmp qword [r13], 0 ; K1-E033 приёмник — регистр
+M jne $fail_format ; K1-E033
+M cmp qword [r13+40], 0 ; K1-E033 источник — регистр
+M jne $fail_format ; K1-E033
+M cmp qword [r13+10], 40 ; K1-E033 приёмник только 64-бит
+M jne $fail_format ; K1-E033
+M cmp qword [r13+50], 40 ; K1-E033 источник только 64-бит
+M jne $fail_format ; K1-E033
+M mov eax, 48 ; K1-E033 REX = 40|W (всегда выдаётся)
+M mov rcx, [r13+8] ; K1-E033 приёмник >= r8 -> бит R
+M cmp rcx, 8 ; K1-E033
+M jl $im_nor ; K1-E033
+M or eax, 4 ; K1-E033
+:im_nor
+M mov rcx, [r13+48] ; K1-E033 источник >= r8 -> бит B
+M cmp rcx, 8 ; K1-E033
+M jl $im_nob ; K1-E033
+M or eax, 1 ; K1-E033
+:im_nob
+M call $emit2 ; K1-E011 REX
+M mov eax, 0F ; K1-E033 опкод 0F AF
+M call $emit2 ; K1-E011
+M mov eax, 0AF ; K1-E033
+M call $emit2 ; K1-E011
+M mov rax, [r13+8] ; K1-E033 modrm = C0|(dst&7)<<3|(src&7)
+M and eax, 7 ; K1-E033 приёмник — поле reg
+M shl eax, 3 ; K1-E033
+M mov rcx, [r13+48] ; K1-E033 источник — поле rm
+M and ecx, 7 ; K1-E033
+M or eax, ecx ; K1-E033
+M or eax, C0 ; K1-E033 mod 11
+M call $emit2 ; K1-E011
+M ret ; K1-E033

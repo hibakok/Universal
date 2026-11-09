@@ -25,20 +25,20 @@
 | `SPEC/02-LAYER0-SPEC.md` | правила слоя L0, верификация | 54 |
 | `SPEC/03-ATOM-FORMAT.md` | грамматика формата ATOM v1 | 62 |
 | `SPEC/04-PE-MINIMAL.md` | структура наших EXE, инварианты | 138 |
-| `SPEC/05-X86-SUBSET.md` | реестр инструкций и кодировок | 234 |
+| `SPEC/05-X86-SUBSET.md` | реестр инструкций и кодировок | 256 |
 | `SPEC/06-ARCHITECTURE.md` | целевая архитектура системы | 72 |
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
-| `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 247 |
+| `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 252 |
 | `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice | 147 |
-| `SPEC/11-WALL-FORMAT.md` | WALL v1: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 275 |
+| `SPEC/11-WALL-FORMAT.md` | WALL v1/v2: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 374 |
 
 ## MAP/ — навигация
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `MAP/INDEX.md` | этот файл | 228 |
-| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 361 |
+| `MAP/INDEX.md` | этот файл | 235 |
+| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 391 |
 | `MAP/M0-SEED.md` | карточки кирпичей M0-SEED (8) | 130 |
 | `MAP/M0-SEED2.md` | карточки кирпичей M0-SEED2 (19) | 299 |
 | `MAP/M0-HXDUMP.md` | карточки кирпичей M0-HXDUMP (23) | 360 |
@@ -46,7 +46,7 @@
 | `MAP/M0-PEGEN.md` | карточки кирпичей M0-PEGEN (37) | 500 |
 | `MAP/M1-BRICK.md` | карточки кирпичей M1-BRICK (42) | 480 |
 | `MAP/M1-ENC.md` | карточки кирпичей M1-ENC (поток и разбор) | 411 |
-| `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 22) | 297 |
+| `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 23; E033 imul — E6.4c) | 310 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
 | `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
 | `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (66) | 146 |
@@ -99,20 +99,20 @@
 | `KERNEL/L1-ENC/CARD.md` | карточка модуля M1-ENC (кодировщик BRICK v2) | 143 |
 | `KERNEL/L1-ENC/enc.b2` | корень модуля M1-ENC: шапка + поток X/C/G + !include 10 частей (разрез E6.3) | 133 |
 | `KERNEL/L1-ENC/enc_n.b2` | часть: ветвь N — нормализация строк (124-224) | 101 |
-| `KERNEL/L1-ENC/enc_p1.b2` | часть: P011-P013 — разбор M-строки (225-494) | 270 |
-| `KERNEL/L1-ENC/enc_p2.b2` | часть: P014-P015 — память/ссылки (495-731) | 237 |
-| `KERNEL/L1-ENC/enc_tr.b2` | часть: T+R — лексика и таблицы (732-984) | 253 |
-| `KERNEL/L1-ENC/enc_e1.b2` | часть: E011-E017 — эмиттеры/память (985-1365) | 381 |
-| `KERNEL/L1-ENC/enc_e2.b2` | часть: E021-E023 — ALU/сдвиги/переходы (1366-1642) | 277 |
-| `KERNEL/L1-ENC/enc_e3.b2` | часть: E024-E025 — mov/movzx/lea (1643-1940) | 298 |
-| `KERNEL/L1-ENC/enc_e4.b2` | часть: E026-E032 — test..int3 (1941-2117) | 177 |
-| `KERNEL/L1-ENC/enc_svc.b2` | часть: H/G/U/C/F — сервис (2118-2306) | 189 |
-| `KERNEL/L1-ENC/enc_data.b2` | часть: D — данные/импорты/bss (2307-2651) | 345 |
-| `KERNEL/L1-ENC/enc.brick` | плоская форма в BRICK v1 = enc(splice(enc.b2)) байт-в-байт (генерируемый артефакт) | 2651 |
+| `KERNEL/L1-ENC/enc_p1.b2` | часть: P011-P013 — разбор M-строки (225-498; E6.4c: диспетчер +семейство E) | 274 |
+| `KERNEL/L1-ENC/enc_p2.b2` | часть: P014-P015 — память/ссылки (499-735) | 237 |
+| `KERNEL/L1-ENC/enc_tr.b2` | часть: T+R — лексика и таблицы (736-988; E6.4c: mnemtab 44) | 253 |
+| `KERNEL/L1-ENC/enc_e1.b2` | часть: E011-E017 — эмиттеры/память (989-1369) | 381 |
+| `KERNEL/L1-ENC/enc_e2.b2` | часть: E021-E023 — ALU/сдвиги/переходы (1370-1646) | 277 |
+| `KERNEL/L1-ENC/enc_e3.b2` | часть: E024-E025 — mov/movzx/lea (1647-1944) | 298 |
+| `KERNEL/L1-ENC/enc_e4.b2` | часть: E026-E033 — test..int3 + imul (E6.4c) (1945-2156) | 212 |
+| `KERNEL/L1-ENC/enc_svc.b2` | часть: H/G/U/C/F — сервис (2157-2345) | 189 |
+| `KERNEL/L1-ENC/enc_data.b2` | часть: D — данные/импорты/bss (2346-2693; E6.4c: mnemtab +3, DZ 2) | 348 |
+| `KERNEL/L1-ENC/enc.brick` | плоская форма в BRICK v1 = enc(splice(enc.b2)) байт-в-байт (генерируемый артефакт) | 2693 |
 | `KERNEL/L1-ENC/enc.peg` | обёртка enc (PEG v1, SPEC/07) | 10 |
-| `KERNEL/L1-ENC/enc.exe` | материализация: brick+pegen, 11776 байт, PE32+ | — |
-| `KERNEL/L1-ENC/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 141 |
-| `KERNEL/L1-ENC/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.2 | 104 |
+| `KERNEL/L1-ENC/enc.exe` | материализация: brick+pegen, 12288 байт, PE32+ (рост ISA E6.4c) | — |
+| `KERNEL/L1-ENC/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 154 |
+| `KERNEL/L1-ENC/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.2 + рост ISA E6.4c | 125 |
 
 | `KERNEL/L1-SPLICE/CARD.md` | карточка модуля M1-SPLICE (склейка !include) | 129 |
 | `KERNEL/L1-SPLICE/splice.b2` | корень модуля M1-SPLICE: шапка + поток X/C/G + !include 3 частей | 137 |
@@ -167,9 +167,9 @@
 | `TESTS/T-L0-HEXGEN.md` | тест-план hexgen T-M4-01..T-M4-14 | 104 |
 | `TESTS/T-L0-PEGEN.md` | тест-план pegen T-M5-01..T-M5-17 | 131 |
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17 | 137 |
-| `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11 (E6.2 выполнен) | 93 |
+| `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11 (E6.2; рост ISA E6.4c) | 109 |
 | `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18 (E6.3 выполнен) | 82 |
-| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул T-E6-19..24 (E6.4a выполнен) + журнал находок | 74 |
+| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул T-E6-19..24 (E6.4a) + v2 T-E6-31..35 (E6.4c) + журналы | 178 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
@@ -180,23 +180,27 @@
 | `LAB/py/lab_atom.py` | оракул ATOM v1 (SPEC/03) | 68 |
 | `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08) | 312 |
 | `LAB/py/lab_pegen.py` | оракул PEG v1 (SPEC/07) | 125 |
-| `LAB/py/lab_enc.py` | оракул ENC v1 (SPEC/09): M-строка -> H-строка | 498 |
+| `LAB/py/lab_enc.py` | оракул ENC v1 (SPEC/09): M-строка -> H-строка | 495 |
+| `LAB/py/lab_enc_isa.py` | кирпич роста ISA оракула ENC: EncError/_err/_rex/_enc_imul (E6.4c) | 31 |
 | `LAB/py/lab_splice.py` | оракул SPLICE v1 (SPEC/10): склейка по !include | 106 |
 | `LAB/py/lab_splice_cases.py` | эталоны SPLICE: 14 якорей, 13 ошибок, большой случай | 135 |
-| `LAB/py/lab_l2.py` | оракул WALL v1 (SPEC/11), фронт: лексер + разбор + семантика | 423 |
-| `LAB/py/lab_l2_gen.py` | оракул WALL v1, бэк: раскладка слотов + канон-эмиттер .b2 | 435 |
+| `LAB/py/lab_l2.py` | оракул WALL v1/v2, фронт: parse + семантика (v2: массивы, astore) | 349 |
+| `LAB/py/lab_l2_lex.py` | оракул WALL: лексер + разбор выражений/условий (v2: * / %, [i], && ||) | 270 |
+| `LAB/py/lab_l2_gen.py` | оракул WALL v1/v2, бэк: канон-эмиттер .b2 (guard, astore, imul/idiv) | 411 |
+| `LAB/py/lab_l2_lay.py` | оракул WALL: раскладка кадров (массивы, maxd/maxc/S) | 160 |
 | `LAB/py/lab_l2_err.py` | ошибка компиляции WallError (лист-кирпич) | 14 |
-| `LAB/py/lab_l2_cases.py` | якоря WALL: 4 полных + 6 фрагментных (вручную) | 409 |
-| `LAB/py/lab_l2_prog.py` | эталоны WALL: 26 ошибок, демо-круг, big_source | 151 |
-| `LAB/py/lab_enc_cases.py` | эталоны ENC: 109 якорей, 21 ошибка, демо-круг | 248 |
-| `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05) | 319 |
-| `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток | 357 |
-| `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС | 223 |
+| `LAB/py/lab_l2_cases.py` | якоря WALL v1: 4 полных + 6 фрагментных (вручную) | 409 |
+| `LAB/py/lab_l2_cases2.py` | якоря WALL v2: 2 полных + 7 фрагментных (вручную, E6.4c) | 440 |
+| `LAB/py/lab_l2_prog.py` | эталоны WALL: 26+13 ошибок, демо-круги v1/v2, big_source 1/2 | 330 |
+| `LAB/py/lab_enc_cases.py` | эталоны ENC: 117 якорей, 27 ошибок, демо-круг | 264 |
+| `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05; E6.4c: imul/idiv/cqo) | 330 |
+| `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток, умножение/деление (#DE) | 407 |
+| `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС + куча (E6.4c) | 247 |
 | `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
 | `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
-| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 401 |
+| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 413 |
 | `LAB/py/lab_t_exe.py` | секции 7-8 батареи: инструменты enc/splice | 218 |
-| `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL (T-E6-19..24) | 124 |
+| `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 217 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты | 228 |
@@ -216,14 +220,16 @@ LAB — измерительный прибор (Python только здесь)
 
 ## Счётчики состояния (обновлять при каждом изменении)
 
-- Кирпичей в реестре: **248** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
+- Кирпичей в реестре: **249** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
   23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK,
-  63 в M1-ENC, 27 в M1-SPLICE; слой L2: 66 в M2-WALL).
+  64 в M1-ENC (+E033 enc_imul, E6.4c), 27 в M1-SPLICE; слой L2: 66 в
+  M2-WALL).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **108** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17, T-M6-01..17, T-E6-01..30; автоматических в батарее — 105).
-- Этап: **E6.4b завершён** (wall.exe == оракулу на якорях и big_source;
-  полный круг WALL -> EXE -> эмуляция «U-WALL-OK 37»; батарея 105/105);
-  следующий — E6.4c: рост языка WALL до v2 (массивы, динамическая
-  память), затем E6.4d — самохостинг wall.wall (см. `DOCS/03-ROADMAP.md`).
+- Тестов: **113** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17, T-E6-01..35; автоматических в батарее — 111).
+- Этап: **E6.4c, части 1–2 завершены** (рост ISA imul/idiv/cqo через весь
+  стек; WALL v2: SPEC/11 + оракул + якоря + демо-круг «U-WALL2-OK 85»
+  с массивами, * / %, break/continue, && / || и кучей; батарея 111/111);
+  следующий — E6.4c-3: перевод инструмента wall.exe на v2, затем
+  E6.4d — самохостинг wall.wall (см. `DOCS/03-ROADMAP.md`).

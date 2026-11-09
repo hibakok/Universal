@@ -134,6 +134,8 @@ def decode(fetch, rip):
                        riprel, fetch)
     if b == 0x98:  # cdqe (REX.W) / cwde
         return "cdqe", pos - rip, (("r", 0, size),)
+    if b == 0x99:  # cqo (REX.W) / cdq — знак rax -> rdx:rax
+        return ("cqo" if w else "cdq"), pos - rip, ()
     if 0xB0 <= b <= 0xB7:  # mov r8, imm8
         reg = (b & 7) | bbit
         imm = fetch(pos, 1)
@@ -219,6 +221,8 @@ def decode(fetch, rip):
         riprel = mem["riprel"]
         if reg == 3:
             return _finish("neg", rip, pos, (mem["op"],), riprel, fetch)
+        if reg == 7 and b == 0xF7:  # idiv r/m (32/64; E6.4c)
+            return _finish("idiv", rip, pos, (mem["op"],), riprel, fetch)
         raise UnknownOpcode("F6/F7 /%d @ %X" % (reg, rip))
     if b == 0xFF:  # группа FF
         mod, reg, mem = _modrm(fetch, pos, rbit, xbit, bbit, size)
@@ -250,6 +254,13 @@ def _decode_0f(fetch, rip, pos, w, rbit, xbit, bbit):
             mem = dict(mem)
             mem["op"] = _apply_riprel(mem["op"], pos, mem["riprel"], rip)
         return "movzx", pos - rip, (("r", reg, size), mem["op"])
+    if b == 0xAF:  # imul r, r/m (двухоперандная; E6.4c): reg — приёмник
+        size = QWORD if w else DWORD
+        mod, reg, mem = _modrm(fetch, pos, rbit, xbit, bbit, size)
+        pos = mem["pos"]
+        riprel = mem["riprel"]
+        return _finish("imul", rip, pos,
+                       (("r", reg, size), mem["op"]), riprel, fetch)
     raise UnknownOpcode("0F %02X @ %X" % (b, rip))
 
 

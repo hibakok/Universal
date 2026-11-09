@@ -41,12 +41,13 @@
 | Разрезать исходник на части / добавить часть | `SPEC/10-SPLICE-FORMAT.md` (директива, каталог включающего, пределы), `KERNEL/L1-ENC/enc.b2` (корень-образец), `MAP/INDEX.md` (строки частей) |
 | Изменить код splice | `KERNEL/L1-SPLICE/CARD.md`, части `splice_s.b2`/`splice_svc.b2`/`splice_data.b2`, `SPEC/10-SPLICE-FORMAT.md`, `MAP/M1-SPLICE.md` |
 | Понять уровни склейки (lv_*) | `KERNEL/L1-SPLICE/CARD.md` (регистровые соглашения), `MAP/M1-SPLICE.md` (K1-S011/S012), `KERNEL/L1-SPLICE/BYTECODE.md` §4 |
-| Написать/понять программу на WALL (L2) | `SPEC/11-WALL-FORMAT.md` (грамматика + канон эмиттера), примеры — `LAB/py/lab_l2_prog.py` (DEMO_WALL) и якоря `LAB/py/lab_l2_cases.py` |
+| Написать/понять программу на WALL (L2) | `SPEC/11-WALL-FORMAT.md` (грамматика + канон эмиттера; v2: п. 0–2, 8–9), примеры — `LAB/py/lab_l2_prog.py` (DEMO_WALL, DEMO_WALL2) и якоря `LAB/py/lab_l2_cases.py` (v1) / `lab_l2_cases2.py` (v2) |
 | Изменить оракул WALL | `SPEC/11-WALL-FORMAT.md`, `LAB/py/lab_l2.py` (фронт: лексер/разбор/семантика) + `LAB/py/lab_l2_gen.py` (бэк: раскладка/эмит), затем прогнать батарею (якоря должны сойтись или быть пересчитаны вручную с фиксацией в журнале) |
-| Добавить конструкцию в WALL | `SPEC/11` (грамматика + канон), якорь в `LAB/py/lab_l2_cases.py` (вручную!), случай в `lab_l2_prog.py` ERRORS, секция 9 батареи — уже покрывает; обновить T-L2-WALL |
-| Собрать программу на WALL | `KERNEL/L2-WALL/CARD.md` (конвейер: wall + enc + brick + pegen), `SPEC/11` п.6 (обёртка PEG — константа), DEMO_WALL_PEG в `LAB/py/lab_l2_prog.py` |
-| Изменить код wall (компилятор) | `KERNEL/L2-WALL/CARD.md` (ветви/регистры/состав), нужная часть `wall_*.b2` (19 частей), `SPEC/11` (канон п.8 — истина), `MAP/M2-WALL.md`; после правки — пересборка конвейером и батарея 105/105 |
-| Добавить конструкцию в WALL (инструмент) | `SPEC/11` (грамматика + канон + якорь в lab_l2_cases), затем.wall_*: лексер (wall_l), парсер (wall_pe/pp/pc), статы (wall_p1*), эмиттер (wall_e/ep/p2s); таблицы kwtab/strblob — генератор LAB/ai/wall_build_data.py; батарея T-E6-26..29 |
+| Добавить конструкцию в WALL | `SPEC/11` (грамматика + канон), якорь в `LAB/py/lab_l2_cases.py` (v1) или `lab_l2_cases2.py` (v2; вручную!), случай в `lab_l2_prog.py` ERRORS/ERRORS2, секция 9 батареи — уже покрывает; обновить T-L2-WALL |
+| Собрать программу на WALL | `KERNEL/L2-WALL/CARD.md` (конвейер: wall + enc + brick + pegen), `SPEC/11` п.6 (обёртка PEG — константа), DEMO_WALL_PEG/DEMO_WALL2_PEG в `LAB/py/lab_l2_prog.py` |
+| Изменить код wall (компилятор) | `KERNEL/L2-WALL/CARD.md` (ветви/регистры/состав), нужная часть `wall_*.b2` (19 частей), `SPEC/11` (канон п.8 — истина), `MAP/M2-WALL.md`; после правки — пересборка конвейером и батарея 111/111 |
+| Добавить конструкцию в WALL (инструмент) | `SPEC/11` (грамматика + канон + якоря в lab_l2_cases/lab_l2_cases2), затем wall_*: лексер (wall_l), парсер (wall_pe/pp/pc), статы (wall_p1*), эмиттер (wall_e/ep/p2s); таблицы kwtab/strblob — генератор LAB/ai/wall_build_data.py; батарея T-E6-26..29 (+ v2-якоря — после E6.4c-3) |
+| Перевести wall.exe на v2 (E6.4c-3) | `SPEC/11` v2 (п. 0–2, 5, 8–10), оракул `lab_l2*.py` (+cases2/prog: ERRORS2, DEMO_WALL2, big_source2), план — `DOCS/03-ROADMAP.md` этап 6.4c часть 3, уроки — `TESTS/T-L2-WALL.md` журнал E6.4b |
 | Отладить расхождение wall.exe с оракулом | `LAB/py/lab_t_wall2.py` (T-E6-26/29 поймает), трассировка эмулятором LAB (шаги + карта меток); журнал дефектов — KERNEL/L2-WALL/VERIFY.md §4 (11 классов; главные ловушки: счётчики в кадрах, hex/dec в числах, r8/r9/rax затираются вызовами) |
 | Реализовать enc.exe (E6.2) | ВЫПОЛНЕНО: `KERNEL/L1-ENC/` (CARD/BYTECODE/VERIFY), `MAP/M1-ENC*.md` |
 | Добавить директиву BRICK | `SPEC/08-BRICK-FORMAT.md`, `MAP/M1-BRICK.md` (K1-A008 parse_data — диспетчер), `KERNEL/L1-BRICK/BYTECODE.md` §3 |
@@ -61,7 +62,7 @@
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
-| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (105 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC/SPLICE/WALL, круги, самохостинг E5/E6.2/E6.3, инструмент wall.exe; ~60 с; CI GitHub делает это на каждый пуш) |
+| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (111 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC/SPLICE/WALL v1+v2, круги, самохостинг E5/E6.2/E6.3, инструменты enc/splice/wall; ~70 с; CI GitHub делает это на каждый пуш) |
 | Узнать, что делал ИИ-разработчик и что дальше | `LAB/ai/JOURNAL.md` (журнал сессий, планы этапов) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
 | Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |
@@ -74,7 +75,7 @@
 `LAB/` — измерительный прибор, а не часть системы (правила —
 `LAB/README.md`). Python там допустим ТОЛЬКО внутри LAB. Перед любым
 изменением KERNEL/ и после него: `python3 LAB/py/lab_verify.py` —
-должно быть 80/80 (запускается и автоматически: CI на каждый пуш).
+должно быть 111/111 (запускается и автоматически: CI на каждый пуш).
 Эмулятор (lab_cpu/lab_win) исполняет наши EXE с заглушками kernel32;
 оракулы (lab_atom/lab_brick/lab_pegen/lab_enc) — независимые реализации
 SPEC/03/08/07/09; расхождение оракула с инструментом — находка, а не

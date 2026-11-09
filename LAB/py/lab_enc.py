@@ -1,15 +1,16 @@
 """lab_enc.py — оракул кодировщика ENC v1 (SPEC/09): M-строка -> H-строка.
 
-Вход:  текст BRICK v2 (str/bytes): v1 + M-строки.
-Выход: normalize(text) -> текст BRICK v1 (M-строки заменены на H-строки);
-       encode_m(мнемоника, [операнды]) -> список токенов (int-байты либо
-       ("slot", имя, размер)); ValueError EncError("FORMAT AT=XXXX").
-Функция: независимая реализация канонических кодировок SPEC/09 —
-         эталон для будущего enc.exe (M1-ENC, этап E6.2) и кодогенератор
-         транслятора L2. Адресов НЕ считает: ссылки $имя/$имя:1 проходят
-         в слоты нетронутыми (их разрешает brick.exe, SPEC/08).
+Вход:  текст BRICK v2 (str/bytes). Выход: normalize(text) -> текст
+       BRICK v1; encode_m(мнемоника, [операнды]) -> токены (байты/слоты);
+       ошибки — EncError("FORMAT AT=XXXX").
+Функция: независимая реализация канонических кодировок SPEC/09 — эталон
+       enc.exe (E6.2) и кодогенератор WALL; с E6.4c включает imul/idiv/
+       cqo (рост ISA; _enc_imul — lab_enc_isa.py). Адресов НЕ считает:
+       ссылки $имя проходят нетронутыми (их разрешает brick, SPEC/08).
 """
 import re
+
+from lab_enc_isa import EncError, _enc_imul, _err, _rex  # ISA E6.4c
 
 REGS = {}
 for _i, (_n, _n32) in enumerate(zip(
@@ -37,12 +38,6 @@ JCC["je"], JCC["jne"] = JCC["jz"], JCC["jnz"]      # синонимы
 SIZEKW = {"byte": 8, "word": 16, "dword": 32, "qword": 64}
 NUM_RE = re.compile(r"^-?[0-9A-F]{1,8}$")
 REF_RE = re.compile(r"^\$([a-z0-9_]{1,63})(:1)?$")
-
-class EncError(ValueError):
-    pass
-
-def _err(ln):
-    raise EncError("FORMAT AT=%04X" % ln)
 
 # ---------------------------------------------------------------- разбор
 class _Op:
@@ -362,8 +357,8 @@ def _enc_shift(mn, ops, ln):
                                      src.val]
 
 def _enc_f7(mn, ops, ln):
-    """neg(/3): reg 32/64."""
-    ext = 3
+    """семейство F7 /ext с одним операндом-регистром: neg(/3), idiv(/7)."""
+    ext = 3 if mn == "neg" else 7
     (o,) = ops
     if o.kind != "reg" or o.size not in (32, 64):
         _err(ln)
@@ -433,13 +428,15 @@ def _enc_movr(ops, ln):
         _err(ln)
     return _enc_mov(ops, ln)
 
-SIMPLE = {"cdqe": [0x48, 0x98], "ret": [0xC3], "int3": [0xCC]}
+SIMPLE = {"cdqe": [0x48, 0x98], "ret": [0xC3], "int3": [0xCC],
+          "cqo": [0x48, 0x99]}
 ENCODERS = {"mov": lambda mn, o, ln: _enc_movr(o, ln),
             "movzx": lambda mn, o, ln: _enc_movzx(o, ln),
             "lea": lambda mn, o, ln: _enc_lea(o, ln),
             "test": lambda mn, o, ln: _enc_test(o, ln),
             "call": lambda mn, o, ln: _enc_call(o, ln),
-            "neg": _enc_f7, "inc": _enc_ff,
+            "imul": lambda mn, o, ln: _enc_imul(o, ln),
+            "neg": _enc_f7, "idiv": _enc_f7, "inc": _enc_ff,
             "dec": _enc_ff, "push": _enc_stack, "pop": _enc_stack,
             "jmp": _enc_jmp}
 for _m in ALU:
@@ -458,8 +455,8 @@ def encode_m(mnem, ops, ln):
     if mnem not in ENCODERS:
         _err(ln)
     parsed = _split_ops(ops, ln) if ops else []
-    need2 = mnem in ("mov", "movzx", "lea", "test") or mnem in ALU \
-        or mnem in SHIFT
+    need2 = mnem in ("mov", "movzx", "lea", "test", "imul") or mnem in \
+        ALU or mnem in SHIFT
     if need2 and len(parsed) != 2 or not need2 and len(parsed) != 1:
         _err(ln)
     return ENCODERS[mnem](mnem, parsed, ln)

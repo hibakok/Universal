@@ -1,221 +1,30 @@
-"""lab_l2.py — оракул WALL v1 (SPEC/11): исходник .wall -> текст BRICK v2.
+"""lab_l2.py — оракул WALL v1/v2 (SPEC/11): исходник .wall -> текст BRICK v2.
 
-Вход:  текст программы на языке WALL v1 (str, ASCII).
+Вход:  текст программы на языке WALL (str, ASCII).
 Выход: compile_wall(text) -> str — текст .b2 (BRICK v2), детерминированный
        (R8): один вход — один выход; канон эмиттера — SPEC/11 + lab_l2_gen.
 Ошибки: WallError(сообщение, номер_строки) — номер с 1.
-Функция: эталонный компилятор слоя L2 (фронт: лексер + разбор + семантика
-         имён); бэкенд — lab_l2_gen.py. Два независимых свидетеля (оракул
-         на Python здесь, wall.exe на BRICK v2 в E6.4b) обязаны совпадать.
-Состав: lab_l2_err.py (WallError), lab_l2.py (фронт), lab_l2_gen.py (бэк).
+Функция: эталонный компилятор слоя L2 (фронт: разбор строк/утверждений +
+         семантика имён); два независимых свидетеля (оракул на Python
+         здесь, wall.exe на BRICK v2) обязаны совпадать.
+WALL v2 (E6.4c): массивы var a[n] (значение имени — адрес нулевого
+         элемента), индексация qword e[i] (чтение/запись, цепочки),
+         умножение/деление/остаток (* / %), break/continue, цепочки
+         условий && и || (short-circuit). Программа без v2-конструкций
+         компилируется байт-в-байт как v1 (заголовок «WALL v1»).
+Состав: lab_l2_err.py (WallError), lab_l2_lex.py (лексер+выражения),
+       lab_l2.py (этот файл: parse), lab_l2_gen.py (бэк-эмиттер),
+       lab_l2_lay.py (раскладка кадров).
 """
 import re
 
 from lab_l2_err import WallError          # noqa: F401 — реэкспорт для батареи
 import lab_l2_gen
-CMP_OPS = ("==", "!=", "<=", ">=", "<", ">")
-ADD_OPS = ("+", "-", "|", "^")
-MUL_OPS = ("&", "<<", ">>")
-MAXNUM = 2147483647
+from lab_l2_lex import MAXNUM, MUL_OPS, P, _array_size, _lex, _name_ok, \
+    last_line
+
 MAXEXT = 8
-MAXSTR = 512
-MAXNAME = 63
 MAXENAME = 31          # имя ext: слот hint = 2 + 31 + 1 (SPEC/11 п.6)
-_SYM2 = ("==", "!=", "<=", ">=", "<<", ">>")
-_ESC = {"n": 0x0A, "r": 0x0D, "t": 0x09, "0": 0x00, "\\": 0x5C, "'": 0x27}
-
-
-# ---------------------------------------------------------------- лексер
-def _lex(text):
-    """текст -> [(номер, [токен...], исходный-текст-без-комментария)].
-
-    Разбиение строк — как у enc (SPEC/09): LF, CRLF и одиночный CR.
-    Токен: ('id'|'num'|'sym', значение) или ('str', байты). Комментарий —
-    от ';' до конца строки (внутри '...' не считается). Нумерация с 1."""
-    out = []
-    for no, raw in enumerate(re.split(r"\r\n|\r|\n", text), 1):
-        toks, i, n = [], 0, len(raw)
-        while i < n:
-            c = raw[i]
-            if c in " \t\r":
-                i += 1
-            elif c == ";":
-                break
-            elif c == "'":
-                j, bs = i + 1, bytearray()
-                while True:
-                    if j >= n:
-                        raise WallError("незакрытая строка", no)
-                    ch = raw[j]
-                    if ch == "'":
-                        break
-                    if ch == "\\":
-                        if j + 1 >= n:
-                            raise WallError("незакрытая строка", no)
-                        if raw[j + 1] not in _ESC:
-                            raise WallError("неизвестный экран \\%s"
-                                            % raw[j + 1], no)
-                        bs.append(_ESC[raw[j + 1]])
-                        j += 2
-                        continue
-                    if not (0x20 <= ord(ch) <= 0x7E):
-                        raise WallError("символ вне ASCII в строке", no)
-                    bs.append(ord(ch))
-                    j += 1
-                if len(bs) > MAXSTR:
-                    raise WallError("строка длиннее %d байт" % MAXSTR, no)
-                toks.append(("str", bytes(bs)))
-                i = j + 1
-            elif c.isdigit():
-                j = i
-                while j < n and raw[j].isdigit():
-                    j += 1
-                v = int(raw[i:j])
-                if v > MAXNUM:
-                    raise WallError("число больше %d" % MAXNUM, no)
-                toks.append(("num", v))
-                i = j
-            elif c.isalpha() or c == "_":
-                j = i
-                while j < n and (raw[j].isalnum() or raw[j] == "_"):
-                    j += 1
-                toks.append(("id", raw[i:j]))
-                i = j
-            elif raw[i:i + 2] in _SYM2:
-                toks.append(("sym", raw[i:i + 2]))
-                i += 2
-            elif c in "()=,-+<>|&^!":
-                toks.append(("sym", c))
-                i += 1
-            else:
-                raise WallError("недопустимый символ %r" % c, no)
-        out.append((no, toks, raw[:i].strip()))
-    return out
-
-
-# ---------------------------------------------------------------- разбор
-class P:
-    """Разбор выражений/условий из токенов одной строки."""
-
-    def __init__(self, no, toks):
-        self.no = no
-        self.t = toks
-        self.i = 0
-
-    def peek(self):
-        return self.t[self.i] if self.i < len(self.t) else (None, None)
-
-    def pop(self):
-        tok = self.peek()
-        self.i += 1
-        return tok
-
-    def want(self, kind, val=None):
-        k, v = self.pop()
-        if k != kind or (val is not None and v != val):
-            raise WallError("ожидалось %s %r, получено %r"
-                            % (kind, val, v), self.no)
-        return v
-
-    def at_end(self):
-        if self.i < len(self.t):
-            raise WallError("лишние символы в конце строки: %r"
-                            % self.t[self.i][1], self.no)
-
-    def expr(self):
-        e = self.mul()
-        while True:
-            k, v = self.peek()
-            if k == "sym" and v in ADD_OPS:
-                self.pop()
-                e = ("bin", v, e, self.mul())
-            else:
-                return e
-
-    def mul(self):
-        e = self.unary()
-        while True:
-            k, v = self.peek()
-            if k == "sym" and v in MUL_OPS:
-                self.pop()
-                e = ("bin", v, e, self.unary())
-            else:
-                return e
-
-    def unary(self):
-        if self.peek() == ("sym", "-"):
-            self.pop()
-            return ("neg", self.unary())
-        return self.prim()
-
-    def prim(self):
-        k, v = self.pop()
-        if (k, v) == ("sym", "("):
-            e = self.expr()
-            self.want("sym", ")")
-            return e
-        if k == "num":
-            return ("num", v)
-        if k == "id":
-            if v == "getb":
-                self.want("sym", "(")
-                b = self.expr()
-                self.want("sym", ",")
-                ix = self.expr()
-                self.want("sym", ")")
-                return ("getb", b, ix, self.no)
-            if v == "len":
-                self.want("sym", "(")
-                name = self.want("id")
-                self.want("sym", ")")
-                return ("len", name, self.no)
-            if self.peek() == ("sym", "("):
-                self.pop()
-                args = self.args()
-                return ("call", v, args, self.no)
-            return ("name", v, self.no)
-        if (k, v) == ("sym", "&"):
-            name = self.want("id")
-            return ("addr", name, self.no)
-        raise WallError("ожидалось выражение, получено %r" % (v,), self.no)
-
-    def args(self):
-        """аргументы вызова: уже после '('; до ')' включительно."""
-        out = []
-        if self.peek() != ("sym", ")"):
-            out.append(self.expr())
-            while self.peek() == ("sym", ","):
-                self.pop()
-                out.append(self.expr())
-        self.want("sym", ")")
-        return out
-
-    def cond(self):
-        l = self.expr()
-        k, v = self.pop()
-        if k != "sym" or v not in CMP_OPS:
-            raise WallError("в условии ожидается сравнение %s"
-                            % "/".join(CMP_OPS), self.no)
-        return (v, l, self.expr())
-
-
-def _name_ok(name, no, allow_upper=False):
-    if len(name) > MAXNAME:
-        raise WallError("имя длиннее %d байт" % MAXNAME, no)
-    if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", name):
-        raise WallError("плохое имя %r" % name, no)
-    if not allow_upper and name.lower() != name:
-        raise WallError("имя %r должно быть строчным (кроме ext)" % name, no)
-    if name.startswith("_"):
-        raise WallError("имя %r не может начинаться с '_'" % name, no)
-
-
-def last_line(lines):
-    """номер последней непустой строки (для программных ошибок)"""
-    for no, _t, txt in reversed(lines):
-        if txt:
-            return no
-    return lines[-1][0] if lines else 0
 
 
 def parse(text):
@@ -231,11 +40,16 @@ def parse(text):
     if not text:
         nlines = 0
     prog = {"globals": [], "strs": [], "exts": [], "funcs": [],
-            "nlines": nlines}
+            "nlines": nlines, "v2": False}
+
+    def v2on(*_a):
+        prog["v2"] = True
+
     names = {}
     cur = None
     stack = []
     seen_func = False
+    wdepth = [0]                               # v2: глубина вложенности while
 
     def body():
         kind, ref = stack[-1]
@@ -244,6 +58,9 @@ def parse(text):
         if kind == "else":
             return ref[3]
         return ref[2]              # if -> then-ветка, while -> тело
+
+    def locnames():
+        return [n for n, _s in cur["locals"]]
 
     for no, toks, _txt in lines:
         if not toks:
@@ -257,11 +74,17 @@ def parse(text):
             if kw == "var":
                 name = p.want("id")
                 _name_ok(name, no)
+                size = _array_size(p, no)
                 p.at_end()
                 if name in names:
                     raise WallError("повторное имя %r" % name, no)
-                names[name] = "var"
-                prog["globals"].append((name, no))
+                if size is None:
+                    names[name] = "var"
+                    prog["globals"].append((name, 1, no))
+                else:
+                    names[name] = "arr"
+                    v2on()
+                    prog["globals"].append((name, size, no))
             elif kw == "str":
                 name = p.want("id")
                 _name_ok(name, no)
@@ -321,7 +144,7 @@ def parse(text):
             names[name] = "func"
             seen_func = True
             cur = {"name": name, "params": params, "line": no,
-                   "locals": [], "body": []}
+                   "locals": [], "body": []}    # locals: [(имя, размер)]
             stack = [("func", cur["body"])]
             continue
         # ---- утверждения тела ----
@@ -333,6 +156,8 @@ def parse(text):
             if not stack:
                 raise WallError("лишний end", no)
             kind, _b = stack.pop()
+            if kind == "while":
+                wdepth[0] -= 1
             if kind == "func":
                 prog["funcs"].append(cur)
                 cur = None
@@ -348,14 +173,35 @@ def parse(text):
             p.pop()
             name = p.want("id")
             _name_ok(name, no)
+            size = _array_size(p, no)
             p.at_end()
-            if name in cur["locals"] or name in cur["params"]:
+            if name in locnames() or name in cur["params"]:
                 raise WallError("повторное локальное имя %r" % name, no)
             if name in names:
                 raise WallError("локаль %r конфликтует с глобальным" % name,
                                 no)
-            cur["locals"].append(name)
-            body().append(("var", name, no))
+            if size is None:
+                cur["locals"].append((name, 1))
+            else:
+                v2on()
+                cur["locals"].append((name, size))
+            body().append(("lvar", name, size or 1, no))
+            continue
+        if kwk == "id" and kwv == "break":
+            p.pop()
+            p.at_end()
+            if wdepth[0] == 0:
+                raise WallError("break вне цикла while", no)
+            v2on()
+            body().append(("break", no))
+            continue
+        if kwk == "id" and kwv == "continue":
+            p.pop()
+            p.at_end()
+            if wdepth[0] == 0:
+                raise WallError("continue вне цикла while", no)
+            v2on()
+            body().append(("continue", no))
             continue
         if kwk == "id" and kwv == "return":
             p.pop()
@@ -369,6 +215,8 @@ def parse(text):
             p.pop()
             c = p.cond()
             p.at_end()
+            if len(c) > 1 or len(c[0]) > 1:
+                v2on()
             node = ["if", c, [], [], no]
             body().append(node)
             stack.append(("if", node))
@@ -377,9 +225,12 @@ def parse(text):
             p.pop()
             c = p.cond()
             p.at_end()
+            if len(c) > 1 or len(c[0]) > 1:
+                v2on()
             node = ["while", c, [], no]
             body().append(node)
             stack.append(("while", node))
+            wdepth[0] += 1
             continue
         if kwk == "id" and kwv == "setb":
             p.pop()
@@ -401,12 +252,77 @@ def parse(text):
                 p.at_end()
                 body().append(("call", name, args, no))
                 continue
+            if p.peek() == ("sym", "["):       # v2: a[i]... = значение
+                e = ("name", name, no)
+                while p.peek() == ("sym", "["):
+                    p.pop()
+                    ix = p.expr()
+                    p.want("sym", "]")
+                    e = ("index", e, ix, no)
+                p.want("sym", "=")
+                val = p.expr()
+                p.at_end()
+                kind = names.get(name)
+                if kind == "str":
+                    raise WallError("строка %r неизменяема (только setb)"
+                                    % name, no)
+                if kind in ("func", "ext"):
+                    raise WallError("%r — не переменная" % name, no)
+                if kind is None and name not in locnames() and \
+                        name not in cur["params"]:
+                    raise WallError("неизвестное имя %r" % name, no)
+                body().append(("astore", e, val, no))
+                continue
             p.want("sym", "=")
             e = p.expr()
             p.at_end()
             body().append(("assign", name, e, no))
             continue
         raise WallError("не разобрано: %r" % (toks[0][1],), no)
+
+    def _v2_expr(e):
+        t = e[0]
+        if t == "bin":
+            if e[1] in MUL_OPS:
+                v2on()
+            _v2_expr(e[2])
+            _v2_expr(e[3])
+        elif t == "neg":
+            _v2_expr(e[1])
+        elif t == "getb":
+            _v2_expr(e[1])
+            _v2_expr(e[2])
+        elif t == "index":
+            v2on()
+            _v2_expr(e[1])
+            _v2_expr(e[2])
+        elif t == "call":
+            for a in e[2]:
+                _v2_expr(a)
+
+    def _v2_cond(c):
+        for disj in c:
+            for cmp in disj:
+                _v2_expr(cmp[1])
+                _v2_expr(cmp[2])
+
+    for fn in prog["funcs"]:
+        for st in _walk(fn["body"]):
+            if st[0] == "assign":
+                _v2_expr(st[2])
+            elif st[0] == "return" and st[1] is not None:
+                _v2_expr(st[1])
+            elif st[0] == "astore":
+                _v2_expr(st[1])
+                _v2_expr(st[2])
+            elif st[0] == "call":
+                for a in st[2]:
+                    _v2_expr(a)
+            elif st[0] == "setb":
+                for e in st[1:4]:
+                    _v2_expr(e)
+            elif st[0] in ("if", "while"):
+                _v2_cond(st[1])
     if cur is not None or stack:
         raise WallError("незакрытый блок (не хватает end)", last_line(lines))
     mains = [f for f in prog["funcs"] if f["name"] == "main"]
@@ -417,7 +333,18 @@ def parse(text):
     return prog, names, srcmap
 
 
+def _walk(body):
+    """обход утверждений (в т.ч. вложенных if/while) — для флага v2."""
+    for st in body:
+        yield st
+        if st[0] == "if":
+            yield from _walk(st[2])
+            yield from _walk(st[3])
+        elif st[0] == "while":
+            yield from _walk(st[2])
+
+
 def compile_wall(text):
-    """текст WALL v1 -> текст .b2 (BRICK v2). Главный вход оракула."""
+    """текст WALL v1/v2 -> текст .b2 (BRICK v2). Главный вход оракула."""
     prog, names, srcmap = parse(text)
     return lab_l2_gen.Gen(prog, names, srcmap).run()

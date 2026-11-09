@@ -7,8 +7,10 @@
          строку, исполнить от точки входа до ExitProcess.
 
 Заглушки kernel32: GetStdHandle, WriteFile, ExitProcess,
-GetCommandLineA, CreateFileA, ReadFile, CloseHandle. Файлы живут в
-виртуальной ФС (dict); stdout пишется в буфер bytes.
+GetCommandLineA, CreateFileA, ReadFile, CloseHandle; с E6.4c — куча:
+GetProcessHeap, HeapAlloc, HeapFree (бамп-распределитель отдельного
+региона; HeapFree — успешный no-op, документировано в SPEC/11).
+Файлы живут в виртуальной ФС (dict); stdout пишется в буфер bytes.
 """
 import lab_pe
 import lab_cpu
@@ -19,11 +21,14 @@ STACK_SIZE = 0x100000          # 1 МиБ — резерв стека наших
 CMDLINE_BASE = 0x7FF800000000
 STUB_BASE = 0x7FF900000000     # адреса заглушек kernel32
 RETGUARD = 0x7FF90000DEAD      # ловушка возврата из точки входа
+HEAP_BASE = 0x7FFB00000000     # регион кучи HeapAlloc (E6.4c)
+HEAP_SIZE = 0x100000           # 1 МиБ
 STD_OUTPUT_HANDLE = 0xFFFFFFF5  # -11
 INVALID_HANDLE_VALUE = 0xFFFFFFFFFFFFFFFF
 
 KERNEL32 = ["GetStdHandle", "WriteFile", "ExitProcess", "GetCommandLineA",
-            "CreateFileA", "ReadFile", "CloseHandle"]
+            "CreateFileA", "ReadFile", "CloseHandle", "GetProcessHeap",
+            "HeapAlloc", "HeapFree"]
 
 
 class VFile:
@@ -71,6 +76,8 @@ class Machine:
         self.cmdline[0:len(line)] = line
         self.stack = bytearray(STACK_SIZE)
         self.stdout = bytearray()
+        self.heap = bytearray(HEAP_SIZE)      # куча HeapAlloc (E6.4c)
+        self.heap_pos = 0                     # бамп-курсор
         self.host = {self._norm(k): bytes(v) for k, v in
                      (host_files or {}).items()}
         self.files = {}                       # имя -> VFile (созданные)
@@ -78,7 +85,7 @@ class Machine:
         self.next_handle = 0x1000
         self.result = Result()
         regions = [(IMAGE_BASE, self.image), (STACK_BASE, self.stack),
-                   (CMDLINE_BASE, self.cmdline)]
+                   (CMDLINE_BASE, self.cmdline), (HEAP_BASE, self.heap)]
         self.cpu = lab_cpu.CPU(self.image, IMAGE_BASE, regions)
         self._bind_iat()
         self._boot()
@@ -188,6 +195,23 @@ class Machine:
     def _api_closehandle(self, cpu):
         self.handles.pop(cpu.r[1], None)
         cpu.r[0] = 1
+
+    # --- куча (E6.4c): бамп-распределитель; HeapFree — no-op ---
+    def _api_getprocessheap(self, cpu):
+        cpu.r[0] = 0xF00D0003               # условный хэндл процесса
+
+    def _api_heapalloc(self, cpu):
+        _h, _flags, size = cpu.r[1], cpu.r[2], cpu.r[8]
+        size = (size + 15) & ~15            # выравнивание 16
+        if size > len(self.heap) - self.heap_pos:
+            cpu.r[0] = 0                    # нет памяти — NULL
+            return
+        ptr = HEAP_BASE + self.heap_pos
+        self.heap_pos += size
+        cpu.r[0] = ptr
+
+    def _api_heapfree(self, cpu):
+        cpu.r[0] = 1                        # успех (память не возвращается)
 
     # --- утилиты ---
     def _new_handle(self, vf):
