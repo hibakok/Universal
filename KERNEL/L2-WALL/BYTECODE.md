@@ -7,14 +7,14 @@
 | Параметр | Значение |
 |---|---|
 | Файл | KERNEL/L2-WALL/wall.exe, 24064 байта (0x5E00) |
-| SHA-256 | 67EA2C198FCD25523CFB9333ECB8E07DF2C60DF505D5080589A2FFE6740474E9 |
-| Тело секции | 23240 байт (0x5AC8), RVA 0x1000 |
+| SHA-256 | A40A5FF668CE010BF6042D8D59E7F2589AE92F9500302A4D0A4E44D92724181D |
+| Тело секции | 23370 байт (0x5B4A), RVA 0x1000 |
 | Точка входа | 0x1000 (:entry) |
-| idata / iat / intt | 0x69AD / 0x69D5 / 0x6A15; dll 0x6A55; VirtualSize 0x7A6EE0 |
-| bss (DBZ) | 0x7A1418 — единая область :scalars (RVA 0x6AC8) |
-| М-строк в исходнике | 4343 (19 файлов .b2: корень + 18 частей !include) |
-| Меток в исходнике | 499 (лимит brick 512 вкл. base; E6.4c-3/1: -14 bss-меток) |
-| Кирпичей | 69 карточек (MAP/M2-WALL.md) |
+| idata / iat / intt | 0x6A2F / 0x6A57 / 0x6A97; dll 0x6AD7; VirtualSize 0x7A6F62 |
+| bss (DBZ) | 0x7A1418 — единая область :scalars (RVA 0x6B4A) |
+| М-строк в исходнике | 4358 (19 файлов .b2: корень + 18 частей !include) |
+| Меток в исходнике | 507 (лимит brick 512 вкл. base; срез 2: +8 меток S00F/Y00C) |
+| Кирпичей | 71 карточка (MAP/M2-WALL.md) |
 
 ## 2. Карта ветвей (RVA-диапазоны, по убыванию granularity — полный список меток генерируется трассировкой)
 
@@ -41,9 +41,10 @@
                                         (E6.4c-3/1: + * / % односимвольные)
 
 парсер (ветви P):
-  want_sym1..kw_lookup . 1F00-2058   P001-P004: поглощение, chk_name, kwtab
-  names_find/add, local_find 2058-2274 P006-P008: реестр имён, локали
-  chain_count .......... 2392-24A0   P009: число операций уровня (K; ур.0/1/2;
+  want_sym1..kw_lookup . 2052-2158   P001-P004: поглощение, chk_name, kwtab
+                                        (E6.4c-3/2: граница kwtab — 14, E)
+  names_find/add, local_find 2158-2392 P006-P008: реестр имён, локали
+  chain_count .......... 2392-25C0   P009: число операций уровня (K; ур.0/1/2;
                                         сравнения — терминаторы, E6.4c-3/1)
   p_expr ............... 19F8        P010: аддитивный уровень
   p_mul ................ 1BA4        P011: конъюнкция (& << >>)
@@ -51,66 +52,79 @@
                                         механизм tdepth; флаг v2 [r13+18190]
   p_unary .............. 1FB5        P012: унарный минус
   p_prim ............... 2AD2        P013: числа/имена/&/len/getb/скобки/вызовы
-  p_args/pa_stage ...... 2AD2-2EAE   P014/P017: стейджинг C-слотов (5-й ext -> S5)
-  p_call_tail .......... 2AD2-2EAE   P015: загрузки rcx/rdx/r8/r9, call $f /
+  p_args/pa_stage ...... 25C0-2759   P014/P017: стейджинг C-слотов (5-й ext -> S5)
+  p_call_tail .......... 2759-2A32   P015: загрузки rcx/rdx/r8/r9, call $f /
                                         call [rip+$_iat_e], want -> mov r10,rax
-  call_stats ........... 2EAE-2EAF   P016: maxc = max(...), ext5
+  call_stats ........... 2A32-2AD2   P016: maxc = max(...), ext5
   p_cond ............... 2EAF-3364   P018: операнды@2, инверсия -> индекс jcc
 
 проход 1 (статы):
-  pass1, p1_line ....... 3364-4234   S001/S002: цикл, диспетчер
-  p1_decl .............. 3364-3DA0   S003: var/str/ext (проверки имён)
-  fh_param ............. 3DA0-3E80   S00E: параметры (дубликаты в окне locoff)
-  names_find_ci ........ 3E80-3F00   S005: без учёта регистра (ext)
-  p1_funchdr ........... 3F00-4234   S004: ftab-запись, st_* сброс, push {func}
-  p1s_var..p1s_setb .... 4234-4234   S006-S00C: статы утверждений
+  pass1, p1_line ....... 3364-4266   S001/S002: цикл, диспетчер (+0C/0D —
+                                        E6.4c-3/2)
+  p1_decl .............. 359A-38B1   S003: var/str/ext (проверки имён)
+  p1_funchdr ........... 38B1-3B80   S004: ftab-запись, st_* сброс, push {func}
+  fh_param ............. 3B80-3C6A   S00E: параметры (дубликаты в окне locoff)
+  names_find_ci ........ 3C6A-3D29   S005: без учёта регистра (ext)
+  p1s_var..p1s_setb .... 3D29-413E   S006-S00C: статы утверждений
+  p1_namestmt .......... 413E-4214   S00D: вызов/присваивание
+  p1s_brk .............. 4214-4266   S00F (E6.4c-3/2): break/continue — скан
+                                        bstk до while, флаг v2 (одна точка
+                                        входа на оба ключевых слова)
   (локали: larr, дубликаты, maxd/maxc/setb/ext5)
 
 проход 2 (эмитция):
-  pass2, p2_line ....... 4234-52D2   Y001/Y002: цикл, карта текстов строк
-  p2_funchdr ........... 4234-5415   Y00A: раскладка из ftab, пролог
-  p2s_end/else/if/while 5415-5656   Y004-Y007: bstk {kind,k,seq,lineidx}
-  p2s_return/setb/namest 5656-5CA6  Y008/Y009/Y00B: эпилоги, S-слоты, цели
-  emit_jcc/jmp/iflab/wlab 5CA6-5E5E E029-E02C: метки _if/_w (сквозной kctr)
+  pass2, p2_line ....... 4266-4F56   Y001/Y002: цикл, карта текстов строк
+                                        (+0C/0D — E6.4c-3/2)
+  p2_funchdr ........... 443A-45B4   Y00A: раскладка из ftab, пролог
+  emit_jcc/jmp/iflab/wlab 45B4-47B8  E029-E02D: метки _if/_w (сквозной kctr)
+  p2s_end/else/if/while  47B8-4B54   Y004-Y007: bstk {kind,k,seq,lineidx}
+  p2s_return ........... 4B54-4BBD   Y008: выражение + эпилог
+  p2s_break/continue ... 4BBD-4C17   Y00C (E6.4c-3/2): e-флаг EDX->R11, скан
+                                        bstk до while, k=+8, E02A: jmp
+                                        $_w<k>[e]; недостижимый путь — int3
+  p2s_setb/namestmt .... 4C17-4F56   Y009/Y00B: S-слоты, цели
 
 эмиттеры:
-  out_ch/out_copy/str .. 46E7-52D2   E001-E004: байты вывода, strtab2-адресация
-  out_hex/out_hex2 ..... 52D2        E005/E006: ЗАГЛАВНЫЙ hex
+  out_ch/out_copy/str .. 4F56-4FB1   E001-E004: байты вывода, strtab2-адресация
+  out_hex/out_hex2 ..... 4FB1        E005/E006: ЗАГЛАВНЫЙ hex
   div10 ................ —           E007: деление на 10 бит за битом (маска!)
   out_dec .............. —           E008: десятичные числа
   emit_cmt/kadr/vyhod .. —           E009/E010: " ; текст", "кадр/выход имя"
   emit_lab ............. —           E011: ":имя"
   lower_copy ........... —           E012: scr (нижний регистр для _iat_)
   str_dlen/str_emit .... —           E013/E014: декодирование экранов, DB<=16
-  emit_header .......... 52D2        E015: заголовок v1/v2 (флаг [r13+18190])
-  emit_entry, calc_framesize, пролог/эпилог 5415-5656  E016-E019
-  emit_alu ............. 554F        E020: add/sub/and/or/xor r10, r11
-  emit_shift ........... 5656        E021: mov rcx,r11; shl/shr r10, cl
-  emit_imul ............ 5656        E034 (E6.4c-3/1): imul r10, r11
-  emit_divmod .......... 5666        E035 (E6.4c-3/1): rax/cqo/idiv/rax|rdx
-  get_ext/emit_imports . 4EFC-5CA6  E025/E026: импорты (см. данные)
-  emit_strdata/globdata  —           E027/E028: секции данных
+  emit_header .......... 5334        E015: заголовок v1/v2 (флаг [r13+18190];
+                                        ставится * / % (P01A) и break/continue
+                                        (S00F) — E6.4c-3/1 и E6.4c-3/2)
+  emit_entry, calc_framesize, пролог/эпилог 53CA-55B1  E016-E019
+  emit_alu ............. 55B1        E020: add/sub/and/or/xor r10, r11
+  emit_shift ........... 5659        E021: mov rcx,r11; shl/shr r10, cl
+  emit_imul ............ 56B8        E034 (E6.4c-3/1): imul r10, r11
+  emit_divmod .......... 56C8        E035 (E6.4c-3/1): rax/cqo/idiv/rax|rdx
+  get_ext/emit_imports . 5736-5B0C   E025/E026: импорты (см. данные)
+  emit_strdata/globdata  5B0C-5D08   E027/E028: секции данных
 
 данные (ветвь D):
-  digits ............... 5CA6  K2-D001 (16 Б)
-  kwtab ................ 5CB6  K2-D002 (12x20 Б)
-  jcctab ............... 5D76  K2-D003 ({смещ,длина})
-  alutab ............... 5DA6  K2-D004
-  argtab ............... 5DCE  K2-D005
-  errtab ............... 5DEE  K2-D006 (7x20 Б)
-  strblob .............. 5E5E  K2-D007 (0x7C6 Б, 113 строк канона;
+  digits ............... 5D08  K2-D001 (16 Б)
+  kwtab ................ 5D18  K2-D002 (14x16 Б; E6.4c-3/2: +break/+continue)
+  jcctab ............... 5DF8  K2-D003 ({смещ,длина})
+  alutab ............... 5E28  K2-D004
+  argtab ............... 5E50  K2-D005
+  errtab ............... 5E70  K2-D006 (7x20 Б)
+  strblob .............. 5EE0  K2-D007 (0x7C6 Б, 113 строк канона;
                                 E6.4c-3/1: +imul/cqo/idiv/r10-rdx, hdr v2)
-  strtab2 .............. 6624  K2-D008 (113x8 Б)
-  импорты .............. 69AD  K2-D010: idt 0x28 (idata 69AD, iat 69D5),
-                                intt 6A15, dll 6A55 (13+DZ2), hints:
-                                gsh 6A64, wf 6A74, ep 6A80, gcl 6A8E,
-                                cf 6AA0, rf 6AAE, ch 6ABA (чётные RVA,
+  strtab2 .............. 66A6  K2-D008 (113x8 Б)
+  импорты .............. 6A2F  K2-D010: idt 0x28 (idata 6A2F, iat 6A57),
+                                intt 6A97, dll 6AD7 (13+DZ2), hints:
+                                gsh 6AE6, wf 6AF6, ep 6B02, gcl 6B10,
+                                cf 6B22, rf 6B30, ch 6B3C (чётные RVA,
                                 инвариант 7 SPEC/04; калибровка DZ 2)
-  bss .................. 6AC8  K2-D011: :scalars DBZ 7A1418 — ЕДИНАЯ область
-                                (bstk 4096x24 + скаляры + буферы, база R13);
+  bss .................. 6B4A  K2-D011: :scalars DBZ 7A1418 — ЕДИНАЯ область
+                                (bstk 3072x32 + скаляры + буферы, база R13;
+                                E6.4c-3/2: записи 24 -> 32 Б — дефект №15;
                                 E6.4c-3/1: метки буферов -> смещения r13+X
                                 (fname_in r13+18208 … outbuf r13+5A1418);
-                                флаг v2 — скаляр [r13+18190]
+                                флаг v2 — скаляр [r13+18190])
 ```
 
 ## 3. Соглашения ветвей кода (в развитие «ветвей» SPEC/06)

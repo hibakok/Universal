@@ -11,19 +11,19 @@ M call $want_sym1 ;P001
 M mov ecx, 1 ;Y009
 M call $p_expr ;P010
 M xor ecx, ecx ;Y009
-M call $emit_sstore ; K2-E02D S0
+M call $emit_sstore ;E02D S0
 M mov ecx, 2C ;Y009
 M call $want_sym1 ;P001
 M mov ecx, 1 ;Y009
 M call $p_expr ;P010
 M mov ecx, 1 ;Y009
-M call $emit_sstore ; K2-E02D S1
+M call $emit_sstore ;E02D S1
 M mov ecx, 2C ;Y009
 M call $want_sym1 ;P001
 M mov ecx, 1 ;Y009
 M call $p_expr ;P010
 M mov ecx, 2 ;Y009
-M call $emit_sstore ; K2-E02D S2
+M call $emit_sstore ;E02D S2
 M mov ecx, 45 ;Y009
 M call $out_str ;E003
 M mov rax, [r13+180C0] ;Y009
@@ -73,116 +73,116 @@ M pop rbp ;Y009
 M ret ;Y009
 ; ===== K2-Y00B p2_namestmt: вызов/присваивание =====
 :p2_namestmt
-M push rbp ; K2-Y00B
-M mov rbp, rsp ; K2-Y00B
-M sub rsp, 20 ; K2-Y00B
-M mov rax, [r13+18060] ; K2-Y00B имя
-M mov [rbp-10], rax ; K2-Y00B
-M mov rax, [r13+18068] ; K2-Y00B
-M sub rax, [rbp-10] ; K2-Y00B
-M mov [rbp-18], rax ; K2-Y00B
-M mov rcx, [r13+18068] ; K2-Y00B
-M mov [r13+18070], rcx ; K2-Y00B
-M mov rcx, [r13+18070] ; K2-Y00B '(' ?
+M push rbp ;Y00B
+M mov rbp, rsp ;Y00B
+M sub rsp, 20 ;Y00B
+M mov rax, [r13+18060] ;Y00B имя
+M mov [rbp-10], rax ;Y00B
+M mov rax, [r13+18068] ;Y00B
+M sub rax, [rbp-10] ;Y00B
+M mov [rbp-18], rax ;Y00B
+M mov rcx, [r13+18068] ;Y00B
+M mov [r13+18070], rcx ;Y00B
+M mov rcx, [r13+18070] ;Y00B '(' ?
 M call $lex_tok ;L001
-M cmp eax, 2 ; K2-Y00B
-M jne $p2n_assign ; K2-Y00B
-M mov rax, [r13+18068] ; K2-Y00B
-M sub rax, [r13+18060] ; K2-Y00B
-M cmp rax, 1 ; K2-Y00B
-M jne $p2n_assign ; K2-Y00B
-M mov rcx, [r13+18060] ; K2-Y00B
-M movzx eax, byte [rcx] ; K2-Y00B
-M cmp al, 28 ; K2-Y00B
-M jne $p2n_assign ; K2-Y00B
-M mov rcx, [r13+18068] ; K2-Y00B вызов-утверждение
-M mov [r13+18070], rcx ; K2-Y00B
-M xor eax, eax ; K2-Y00B ext-флаг
-M mov [r13+18088], rax ; K2-Y00B
-M mov rcx, [rbp-10] ; K2-Y00B
-M mov rdx, [rbp-18] ; K2-Y00B
+M cmp eax, 2 ;Y00B
+M jne $p2n_assign ;Y00B
+M mov rax, [r13+18068] ;Y00B
+M sub rax, [r13+18060] ;Y00B
+M cmp rax, 1 ;Y00B
+M jne $p2n_assign ;Y00B
+M mov rcx, [r13+18060] ;Y00B
+M movzx eax, byte [rcx] ;Y00B
+M cmp al, 28 ;Y00B
+M jne $p2n_assign ;Y00B
+M mov rcx, [r13+18068] ;Y00B вызов-утверждение
+M mov [r13+18070], rcx ;Y00B
+M xor eax, eax ;Y00B ext-флаг
+M mov [r13+18088], rax ;Y00B
+M mov rcx, [rbp-10] ;Y00B
+M mov rdx, [rbp-18] ;Y00B
 M call $names_find ;P006
-M cmp rax, -1 ; K2-Y00B
-M je $p2n_args ; K2-Y00B
-M mov rcx, rax ; K2-Y00B
-M shl rcx, 5 ; K2-Y00B
-M mov rdx, rax ; K2-Y00B
-M shl rdx, 3 ; K2-Y00B
-M add rcx, rdx ; K2-Y00B
-M lea rdx, [r13+1183D8] ; K2-Y00B
-M add rcx, rdx ; K2-Y00B
-M mov rax, [rcx+10] ; K2-Y00B вид
-M cmp rax, 3 ; K2-Y00B ext?
-M jne $p2n_args ; K2-Y00B
-M mov eax, 1 ; K2-Y00B
-M mov [r13+18088], rax ; K2-Y00B
+M cmp rax, -1 ;Y00B
+M je $p2n_args ;Y00B
+M mov rcx, rax ;Y00B
+M shl rcx, 5 ;Y00B
+M mov rdx, rax ;Y00B
+M shl rdx, 3 ;Y00B
+M add rcx, rdx ;Y00B
+M lea rdx, [r13+1183D8] ;Y00B
+M add rcx, rdx ;Y00B
+M mov rax, [rcx+10] ;Y00B вид
+M cmp rax, 3 ;Y00B ext?
+M jne $p2n_args ;Y00B
+M mov eax, 1 ;Y00B
+M mov [r13+18088], rax ;Y00B
 :p2n_args
-M mov rcx, 1 ; K2-Y00B
+M mov rcx, 1 ;Y00B
 M call $p_args ;P014
-M xor ecx, ecx ; K2-Y00B want = 0
-M mov rdx, [rbp-10] ; K2-Y00B
-M mov r8, [rbp-18] ; K2-Y00B
+M xor ecx, ecx ;Y00B want = 0
+M mov rdx, [rbp-10] ;Y00B
+M mov r8, [rbp-18] ;Y00B
 M call $p_call_tail ;P015
-M jmp $p2n_tl ; K2-Y00B
+M jmp $p2n_tl ;Y00B
 :p2n_assign
-M mov ecx, 3D ; K2-Y00B '='
+M mov ecx, 3D ;Y00B '='
 M call $want_sym1 ;P001
-M mov ecx, 1 ; K2-Y00B
+M mov ecx, 1 ;Y00B
 M call $p_expr ;P010
-M mov rcx, [rbp-10] ; K2-Y00B цель: локаль?
-M mov rdx, [rbp-18] ; K2-Y00B
+M mov rcx, [rbp-10] ;Y00B цель: локаль?
+M mov rdx, [rbp-18] ;Y00B
 M call $local_find ;P008
-M cmp rax, -1 ; K2-Y00B
-M jne $p2n_local ; K2-Y00B
-M mov rcx, [rbp-10] ; K2-Y00B
-M mov rdx, [rbp-18] ; K2-Y00B
+M cmp rax, -1 ;Y00B
+M jne $p2n_local ;Y00B
+M mov rcx, [rbp-10] ;Y00B
+M mov rdx, [rbp-18] ;Y00B
 M call $names_find ;P006
-M cmp rax, -1 ; K2-Y00B
-M je $p2n_unknown ; K2-Y00B
-M mov rcx, rax ; K2-Y00B
-M shl rcx, 5 ; K2-Y00B
-M mov rdx, rax ; K2-Y00B
-M shl rdx, 3 ; K2-Y00B
-M add rcx, rdx ; K2-Y00B
-M lea rdx, [r13+1183D8] ; K2-Y00B
-M add rcx, rdx ; K2-Y00B
-M mov rax, [rcx+10] ; K2-Y00B вид
-M cmp rax, 1 ; K2-Y00B var?
-M jne $p2n_notvar ; K2-Y00B
-M mov ecx, 48 ; K2-Y00B mov [rip+$имя], r10
+M cmp rax, -1 ;Y00B
+M je $p2n_unknown ;Y00B
+M mov rcx, rax ;Y00B
+M shl rcx, 5 ;Y00B
+M mov rdx, rax ;Y00B
+M shl rdx, 3 ;Y00B
+M add rcx, rdx ;Y00B
+M lea rdx, [r13+1183D8] ;Y00B
+M add rcx, rdx ;Y00B
+M mov rax, [rcx+10] ;Y00B вид
+M cmp rax, 1 ;Y00B var?
+M jne $p2n_notvar ;Y00B
+M mov ecx, 48 ;Y00B mov [rip+$имя], r10
 M call $out_str ;E003
-M mov rdx, [rbp-10] ; K2-Y00B
-M mov r8, [rbp-18] ; K2-Y00B
+M mov rdx, [rbp-10] ;Y00B
+M mov r8, [rbp-18] ;Y00B
 M call $out_copy ;E002
-M mov ecx, 5D ; K2-Y00B "], r10"
+M mov ecx, 5D ;Y00B "], r10"
 M call $out_str ;E003
 M call $emit_cmt ;E009
-M jmp $p2n_tl ; K2-Y00B
+M jmp $p2n_tl ;Y00B
 :p2n_local
-M lea rax, [rax+1] ; K2-Y00B
-M shl rax, 3 ; K2-Y00B
-M mov [rbp-8], rax ; K2-Y00B
-M mov ecx, 43 ; K2-Y00B
+M lea rax, [rax+1] ;Y00B
+M shl rax, 3 ;Y00B
+M mov [rbp-8], rax ;Y00B
+M mov ecx, 43 ;Y00B
 M call $out_str ;E003
-M mov rax, [rbp-8] ; K2-Y00B
+M mov rax, [rbp-8] ;Y00B
 M call $out_hex ;E005
-M mov ecx, 58 ; K2-Y00B
+M mov ecx, 58 ;Y00B
 M call $out_str ;E003
 M call $emit_cmt ;E009
-M jmp $p2n_tl ; K2-Y00B
+M jmp $p2n_tl ;Y00B
 :p2n_unknown
 M call $fail_format ;G002
 :p2n_notvar
 M call $fail_format ;G002
 :p2n_tl
-M mov rax, [r13+18158] ; K2-Y00B last_ret
-M mov rcx, [r13+18180] ; K2-Y00B
-M lea rcx, [rcx+1] ; K2-Y00B
-M cmp rax, rcx ; K2-Y00B
-M jne $p2n_ret ; K2-Y00B
-M xor eax, eax ; K2-Y00B
-M mov [r13+18110], rax ; K2-Y00B
+M mov rax, [r13+18158] ;Y00B last_ret
+M mov rcx, [r13+18180] ;Y00B
+M lea rcx, [rcx+1] ;Y00B
+M cmp rax, rcx ;Y00B
+M jne $p2n_ret ;Y00B
+M xor eax, eax ;Y00B
+M mov [r13+18110], rax ;Y00B
 :p2n_ret
-M mov rsp, rbp ; K2-Y00B
-M pop rbp ; K2-Y00B
-M ret ; K2-Y00B
+M mov rsp, rbp ;Y00B
+M pop rbp ;Y00B
+M ret ;Y00B

@@ -104,6 +104,17 @@ FRAG = {
     "s_or": "or", "s_xor": "xor", "s_shl": "shl", "s_shr": "shr",
     "s_rcx": "rcx", "s_rdx": "rdx", "s_r8": "r8", "s_r9": "r9",
 }
+# E6.4c-3/1 (срез 1: * / %) — эмиттеры imul/divmod и заголовок v2.
+# ВНИМАНИЕ: строки добавляются ТОЛЬКО В КОНЕЦ блоба (правило журнала
+# E6.4c-3/1: индексы strtab2 укоренились в коде — 108..112 = 0x6C..0x70).
+APPEND = {
+    "s_mimul": "M imul r10, r11",
+    "s_mcqo": "M cqo",
+    "s_midiv": "M idiv r11",
+    "s_mr10rdx": "M mov r10, rdx",
+    "s_hdr1v2": "; UNIVERSAL / WALL v2 / сгенерировано компилятором "
+                "WALL (SPEC/11)",
+}
 UTIL = {
     "s_usage": "U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n",
     "s_errlong": "U-L2-WALL ERR=LONG NAME\r\n",
@@ -114,8 +125,11 @@ UTIL = {
     "s_errwriteout": "U-L2-WALL ERR=WRITE OUT\r\n",
     "s_fmtpfx": "U-L2-WALL ERR=FORMAT AT=",
 }
+# E6.4c-3/2: +break (индекс 0C), +continue (индекс 0D) — только В КОНЕЦ
+# таблицы: индексы укоренились в диспетчерах (cmp eax, 0C/0D)
 KWS = ["var", "str", "ext", "func", "end", "else",
-       "if", "while", "return", "setb", "getb", "len"]
+       "if", "while", "return", "setb", "getb", "len",
+       "break", "continue"]
 
 # скаляры: одна область :scalars (bstk в начале — база R13), смещения
 # в LAB/ai/scalars_map.py; доступ [r13+X]
@@ -142,7 +156,9 @@ SCALARS = [
     ("tmp2", 8), ("tmp3", 8), ("tmp4", 8), ("tmp5", 8), ("tmp6", 8),
     ("tmp7", 8), ("tmp8", 8),
 ]
-BSTK_SIZE = 4096 * 24
+BSTK_SIZE = 3072 * 32  # дефект №15: 4 поля × 8 Б = 32 Б/запись (было 24 —
+                    # push if затирал lineidx объемлющего while); площадь
+                    # области не изменилась (0x18000), ёмкость 4096 -> 3072
 BSS = [
     ("fname_in", 0x80), ("fname_out", 0x80),
     ("linebuf", 0x40), ("scr", 0x80),
@@ -172,11 +188,14 @@ def pack8(name):
 
 
 def main():
-    # единый блоб строк (сортировка имён = детерминированный порядок)
+    # единый блоб строк: базовый порядок — сортировка имён (детерминизм),
+    # добавления поздних срезов — СТРОГО в конец (индексы в коде)
     strings = dict(UTIL)
     strings.update(FULL)
     strings.update(FRAG)
     order = sorted(strings)
+    strings.update(APPEND)
+    order += [n for n in APPEND]
     blob = bytearray()
     for name in order:
         data = strings[name].encode("utf-8")
@@ -189,7 +208,7 @@ def main():
     A(":digits")
     A("DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46")
     A("")
-    A("; ===== K2-D002 kwtab: 12 ключевых слов {имя(8Б), длина, код, 0} =====")
+    A("; ===== K2-D002 kwtab: 14 ключевых слов {имя(8Б), длина, код, 0} =====")
     A(":kwtab")
     for i, kw in enumerate(KWS):
         A("DD %X %X %X %X ; %s" % (pack8(kw) & 0xFFFFFFFF,
@@ -230,6 +249,9 @@ def main():
     A("")
     A("; ===== K2-D010 таблица импортов kernel32.dll =====")
     A("DZ 1 ; выравнивание чётности RVA hint-записей (инвариант 7 SPEC/04)")
+    # калибровка чётности (механизм E4a): рост тела/данных до dll_name
+    # сдвигает hint-записи; DZ после dll_name подбирается чётным
+    DZ_DLL = 2  # E6.4c-3/1 и E6.4c-3/2 (квtab +2 записи = +0x20, чётно)
     A(":idt")
     A("DD $intt 0 0 $dll_name $iat ; описатель импорта")
     A("DZ 14 ; терминатор IDT")
@@ -253,7 +275,7 @@ def main():
     A("DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0")
     A(":dll_name")
     A("DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll")
-    A("DZ 1 ; чётность RVA hint-записей")
+    A("DZ %d ; чётность RVA hint-записей" % DZ_DLL)
     A(":hint_gsh")
     A("DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle")
     A("DZ 1")
@@ -273,20 +295,27 @@ def main():
     A("DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle")
     A("")
     A("; ===== K2-D011 виртуальные нули (bss) =====")
+    # E6.4c-3/1: единая область :scalars — буферы адресуются смещениями
+    # r13+X (не метками): освобождено 14 записей labtab (предел brick 512).
     total = BSTK_SIZE + 8 * len(SCALARS)
-    A(":scalars")
-    A("DBZ %X ; bstk[4096x24] + %d скаляров (база R13)" % (total,
-                                                            len(SCALARS)))
     offs = {}
     off = BSTK_SIZE
     for name, _sz in SCALARS:
         offs[name] = off
         off += 8
+    bufs = []
     for name, size in BSS:
-        A(":%s" % name)
-        A("DBZ %X" % size)
+        bufs.append(";   %-10s %s DBZ %X"
+                    % (name, ("r13+%X" % off).ljust(11), size))
+        off += size
         total += size
-    A("")
+    A(":scalars")
+    A("DBZ %X ; bstk[3072x32] + скаляры + ВСЕ буферы (база R13)." % total)
+    A("; E6.4c-3/1: буферы адресуются смещениями от R13, а не метками")
+    A("; (освобождено 14 записей labtab — предел меток brick 512).")
+    A("; Сумма прежних DBZ не изменилась (0x7A1418). Карта:")
+    L.extend(bufs)
+
     with open(os.path.join("LAB", "ai", "scalars_map.py"), "w") as f:
         f.write("# смещения скаляров в :scalars (база R13)\n")
         f.write("SCALOFF = %r\n" % (offs,))

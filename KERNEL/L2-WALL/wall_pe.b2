@@ -50,7 +50,7 @@ M mov r11, rdx ;P004
 M lea r9, [rip+$kwtab] ;P004
 M xor r8d, r8d ;P004
 :kl_loop
-M cmp r8d, 12 ;P004
+M cmp r8d, E ;P004 14 записей
 M jae $kl_none ;P004
 M mov eax, [r9+8] ;P004
 M cmp r11, rax ;P004

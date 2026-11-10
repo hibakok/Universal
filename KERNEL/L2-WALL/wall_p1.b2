@@ -118,17 +118,21 @@ M je $p1s_else ;S008
 M cmp eax, 6 ;S002
 M je $p1s_if ;S009
 M cmp eax, 7 ;S002
-M je $p1s_while ; K2-S00A
+M je $p1s_while ;S00A
 M cmp eax, 8 ;S002
-M je $p1s_return ; K2-S00B
+M je $p1s_return ;S00B
 M cmp eax, 9 ;S002
-M je $p1s_setb ; K2-S00C
+M je $p1s_setb ;S00C
+M cmp eax, 0C ;S002 break (v2)
+M je $p1s_brk ;S00F
+M cmp eax, 0D ;S002 continue (v2)
+M je $p1s_brk ;S00F
 M jmp $p1l_name ;S002
 :p1l_func
 M call $p1_funchdr ;S004
 M ret ;S002
 :p1l_name
-M call $p1_namestmt ; K2-S00D
+M call $p1_namestmt ;S00D
 M ret ;S002
 :p1l_hdrfail
 M call $fail_format ;G002

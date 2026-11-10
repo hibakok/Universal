@@ -94,12 +94,16 @@ M cmp eax, 8 ;Y002
 M je $p2s_return ;Y008
 M cmp eax, 9 ;Y002
 M je $p2s_setb ;Y009
+M cmp eax, 0C ;Y002 break (v2)
+M je $p2s_break ;Y00C
+M cmp eax, 0D ;Y002 continue (v2)
+M je $p2s_continue ;Y00C
 M jmp $p2l_name ;Y002
 :p2l_func
-M call $p2_funchdr ; K2-Y00A
+M call $p2_funchdr ;Y00A
 M ret ;Y002
 :p2l_name
-M call $p2_namestmt ; K2-Y00B
+M call $p2_namestmt ;Y00B
 M ret ;Y002
 :p2l_bad
 M int3 ;Y002
@@ -107,81 +111,78 @@ M int3 ;Y002
 M ret ;Y002
 ; ===== K2-Y00A p2_funchdr: эмитция заголовка функции =====
 :p2_funchdr
-M push rbp ; K2-Y00A
-M mov rbp, rsp ; K2-Y00A
-M sub rsp, 20 ; K2-Y00A
-M mov rcx, [r13+18068] ; K2-Y00A поглотить func
-M mov [r13+18070], rcx ; K2-Y00A
+M push rbp ;Y00A
+M mov rbp, rsp ;Y00A
+M sub rsp, 20 ;Y00A
+M mov rcx, [r13+18068] ;Y00A поглотить func
+M mov [r13+18070], rcx ;Y00A
 M call $want_id ;P003
-M mov rax, [r13+18060] ; K2-Y00A
-M mov [rbp-10], rax ; K2-Y00A ptr имени
-M mov rax, [r13+18068] ; K2-Y00A
-M sub rax, [rbp-10] ; K2-Y00A
-M mov [rbp-18], rax ; K2-Y00A len имени
-M mov rcx, [rbp-10] ; K2-Y00A ntab -> fidx
-M mov rdx, [rbp-18] ; K2-Y00A
+M mov rax, [r13+18060] ;Y00A
+M mov [rbp-10], rax ;Y00A ptr имени
+M mov rax, [r13+18068] ;Y00A
+M sub rax, [rbp-10] ;Y00A
+M mov [rbp-18], rax ;Y00A len имени
+M mov rcx, [rbp-10] ;Y00A ntab -> fidx
+M mov rdx, [rbp-18] ;Y00A
 M call $names_find ;P006
-M mov rcx, rax ; K2-Y00A x40
-M shl rcx, 5 ; K2-Y00A
-M mov rdx, rax ; K2-Y00A
-M shl rdx, 3 ; K2-Y00A
-M add rcx, rdx ; K2-Y00A
-M lea rdx, [r13+1183D8] ; K2-Y00A
-M add rcx, rdx ; K2-Y00A
-M mov rax, [rcx+18] ; K2-Y00A мета = fidx
-M mov [rbp-8], rax ; K2-Y00A
-M mov rcx, r15 ; K2-Y00A остаток строки (параметры) пропустить
-M mov [r13+18070], rcx ; K2-Y00A
-M mov rax, [rbp-8] ; K2-Y00A раскладка из ftab
-M mov rcx, rax ; K2-Y00A x72
-M shl rcx, 6 ; K2-Y00A
-M mov rdx, rax ; K2-Y00A
-M shl rdx, 3 ; K2-Y00A
-M add rcx, rdx ; K2-Y00A
-M lea rdx, [r13+2583D8] ; K2-Y00A
-M add rdx, rcx ; K2-Y00A адрес записи
-M mov rax, [rdx+18] ; K2-Y00A maxd
-M mov [r13+180C8], rax ; K2-Y00A
-M mov rax, [rdx+20] ; K2-Y00A maxc
-M mov [r13+180D0], rax ; K2-Y00A
-M mov rax, [rdx+30] ; K2-Y00A locoff
-M mov [r13+180F0], rax ; K2-Y00A
-M mov rax, [rdx+38] ; K2-Y00A loccnt
-M mov [r13+180F8], rax ; K2-Y00A
-M mov [r13+180C0], rax ; K2-Y00A
-M mov rax, [rbp-8] ; K2-Y00A
-M mov [r13+180E8], rax ; K2-Y00A
-M mov rax, [rbp-10] ; K2-Y00A имя функции
-M mov [r13+181B0], rax ; K2-Y00A
-M mov rax, [rbp-18] ; K2-Y00A
-M mov [r13+181B8], rax ; K2-Y00A
-M mov rcx, [rbp-10] ; K2-Y00A пролог
-M mov rdx, [rbp-18] ; K2-Y00A
+M mov rcx, rax ;Y00A x40
+M shl rcx, 5 ;Y00A
+M mov rdx, rax ;Y00A
+M shl rdx, 3 ;Y00A
+M add rcx, rdx ;Y00A
+M lea rdx, [r13+1183D8] ;Y00A
+M add rcx, rdx ;Y00A
+M mov rax, [rcx+18] ;Y00A мета = fidx
+M mov [rbp-8], rax ;Y00A
+M mov rcx, r15 ;Y00A остаток строки (параметры) пропустить
+M mov [r13+18070], rcx ;Y00A
+M mov rax, [rbp-8] ;Y00A раскладка из ftab
+M mov rcx, rax ;Y00A x72
+M shl rcx, 6 ;Y00A
+M mov rdx, rax ;Y00A
+M shl rdx, 3 ;Y00A
+M add rcx, rdx ;Y00A
+M lea rdx, [r13+2583D8] ;Y00A
+M add rdx, rcx ;Y00A адрес записи
+M mov rax, [rdx+18] ;Y00A maxd
+M mov [r13+180C8], rax ;Y00A
+M mov rax, [rdx+20] ;Y00A maxc
+M mov [r13+180D0], rax ;Y00A
+M mov rax, [rdx+30] ;Y00A locoff
+M mov [r13+180F0], rax ;Y00A
+M mov rax, [rdx+38] ;Y00A loccnt
+M mov [r13+180F8], rax ;Y00A
+M mov [r13+180C0], rax ;Y00A
+M mov rax, [rbp-8] ;Y00A
+M mov [r13+180E8], rax ;Y00A
+M mov rax, [rbp-10] ;Y00A имя функции
+M mov [r13+181B0], rax ;Y00A
+M mov rax, [rbp-18] ;Y00A
+M mov [r13+181B8], rax ;Y00A
+M mov rcx, [rbp-10] ;Y00A пролог
+M mov rdx, [rbp-18] ;Y00A
 M call $emit_prologue ;E018
-M mov rax, [r13+18158] ; K2-Y00A push {func}
-M mov [r13+18180], rax ; K2-Y00A базовый индекс
-M mov rcx, rax ; K2-Y00A
-M shl rcx, 3 ; K2-Y00A
-M mov rdx, rax ; K2-Y00A
-M shl rdx, 4 ; K2-Y00A
-M add rcx, rdx ; K2-Y00A
-M add rcx, r13 ; K2-Y00A
-M mov eax, 1 ; K2-Y00A
-M mov [rcx], rax ; K2-Y00A kind func
-M xor eax, eax ; K2-Y00A
-M mov [rcx+8], rax ; K2-Y00A
-M mov [rcx+10], rax ; K2-Y00A
-M mov rax, [r13+18158] ; K2-Y00A
-M inc rax ; K2-Y00A
-M mov [r13+18158], rax ; K2-Y00A
-M mov eax, 1 ; K2-Y00A флаги
-M mov [r13+18168], rax ; K2-Y00A
-M mov [r13+18178], rax ; K2-Y00A
-M xor eax, eax ; K2-Y00A
-M mov [r13+18110], rax ; K2-Y00A
-M mov rsp, rbp ; K2-Y00A
-M pop rbp ; K2-Y00A
-M ret ; K2-Y00A
+M mov rax, [r13+18158] ;Y00A push {func}
+M mov [r13+18180], rax ;Y00A базовый индекс
+M mov rcx, rax ;Y00A
+M shl rcx, 5 ;Y00A ×32 (дефект №15)
+M add rcx, r13 ;Y00A
+M mov eax, 1 ;Y00A
+M mov [rcx], rax ;Y00A kind func
+M xor eax, eax ;Y00A
+M mov [rcx+8], rax ;Y00A
+M mov [rcx+10], rax ;Y00A
+M mov rax, [r13+18158] ;Y00A
+M inc rax ;Y00A
+M mov [r13+18158], rax ;Y00A
+M mov eax, 1 ;Y00A флаги
+M mov [r13+18168], rax ;Y00A
+M mov [r13+18178], rax ;Y00A
+M xor eax, eax ;Y00A
+M mov [r13+18110], rax ;Y00A
+M mov rsp, rbp ;Y00A
+M pop rbp ;Y00A
+M ret ;Y00A
 ; ===== K2-Y003 p2s_var: локаль — только сброс last_ret =====
 :p2s_var
 M mov rcx, r15 ;Y003

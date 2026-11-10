@@ -309,7 +309,8 @@ M call $emit_cmt ;E009
 M ret ;E014
 ; ===== K2-E015 emit_header: 2 строки заголовка =====
 ; Строка 1 зависит от флага v2 [r13+18190] (ненулевой = v2-конструкция;
-; ставится в p_mdm при операциях * / %): «WALL v1» или «WALL v2».
+; ставится в p_mdm при операциях * / % и в p1s_brk при break/continue):
+; «WALL v1» или «WALL v2».
 :emit_header
 M mov ecx, 22 ;E015
 M mov rax, [r13+18190] ;E015

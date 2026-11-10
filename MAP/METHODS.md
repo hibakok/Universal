@@ -336,6 +336,7 @@
 | K2-S00C | p1s_setb | S | готов | `MAP/M2-WALL.md` |
 | K2-S00D | p1_namestmt | S | готов | `MAP/M2-WALL.md` |
 | K2-S00E | fh_param | S | готов | `MAP/M2-WALL.md` |
+| K2-S00F | p1s_brk | S | готов | `MAP/M2-WALL.md` |
 | K2-Y001 | pass2 | Y | готов | `MAP/M2-WALL.md` |
 | K2-Y002 | p2_line | Y | готов | `MAP/M2-WALL.md` |
 | K2-Y003 | p2s_var | Y | готов | `MAP/M2-WALL.md` |
@@ -347,6 +348,7 @@
 | K2-Y009 | p2s_setb | Y | готов | `MAP/M2-WALL.md` |
 | K2-Y00A | p2_funchdr | Y | готов | `MAP/M2-WALL.md` |
 | K2-Y00B | p2_namestmt | Y | готов | `MAP/M2-WALL.md` |
+| K2-Y00C | p2s_break/p2s_continue | Y | готов | `MAP/M2-WALL.md` |
 | K2-E001 | out_ch | E | готов | `MAP/M2-WALL.md` |
 | K2-E002 | out_copy | E | готов | `MAP/M2-WALL.md` |
 | K2-E003 | out_str | E | готов | `MAP/M2-WALL.md` |

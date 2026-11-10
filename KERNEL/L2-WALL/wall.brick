@@ -1157,7 +1157,7 @@ H 49 89 D3 ;P004
 H 4C 8D 0D $kwtab ;P004
 H 45 31 C0 ;P004
 :kl_loop
-H 41 83 F8 12 ;P004
+H 41 83 F8 0E ;P004 14 записей
 H 0F 83 $kl_none ;P004
 H 41 8B 41 08 ;P004
 H 49 39 C3 ;P004
@@ -2468,17 +2468,21 @@ H 0F 84 $p1s_else ;S008
 H 83 F8 06 ;S002
 H 0F 84 $p1s_if ;S009
 H 83 F8 07 ;S002
-H 0F 84 $p1s_while ; K2-S00A
+H 0F 84 $p1s_while ;S00A
 H 83 F8 08 ;S002
-H 0F 84 $p1s_return ; K2-S00B
+H 0F 84 $p1s_return ;S00B
 H 83 F8 09 ;S002
-H 0F 84 $p1s_setb ; K2-S00C
+H 0F 84 $p1s_setb ;S00C
+H 83 F8 0C ;S002 break (v2)
+H 0F 84 $p1s_brk ;S00F
+H 83 F8 0D ;S002 continue (v2)
+H 0F 84 $p1s_brk ;S00F
 H E9 $p1l_name ;S002
 :p1l_func
 H E8 $p1_funchdr ;S004
 H C3 ;S002
 :p1l_name
-H E8 $p1_namestmt ; K2-S00D
+H E8 $p1_namestmt ;S00D
 H C3 ;S002
 :p1l_hdrfail
 H E8 $fail_format ;G002
@@ -2690,7 +2694,7 @@ H 0F B6 01 ;S004
 H 80 F8 29 ;S004
 H 0F 84 $fh_pclose ;S004
 :fh_p1
-H E8 $fh_param ; K2-S00E
+H E8 $fh_param ;S00E
 H 48 8B 45 F8 ;S004
 H 48 FF C0 ;S004
 H 48 89 45 F8 ;S004
@@ -2709,7 +2713,7 @@ H 80 F8 2C ;S004
 H 0F 85 $fh_pend ;S004
 H 49 8B 8D 68 80 01 00 ;S004
 H 49 89 8D 70 80 01 00 ;S004
-H E8 $fh_param ; K2-S00E
+H E8 $fh_param ;S00E
 H 48 8B 45 F8 ;S004
 H 48 FF C0 ;S004
 H 48 89 45 F8 ;S004
@@ -2780,10 +2784,7 @@ H 48 8B 45 F8 ;S004
 H 49 89 85 B8 80 01 00 ;S004
 H 49 8B 85 58 81 01 00 ;S004
 H 48 89 C1 ;S004
-H 48 C1 E1 03 ;S004
-H 48 89 C2 ;S004
-H 48 C1 E2 04 ;S004
-H 48 01 D1 ;S004
+H 48 C1 E1 05 ;S004 ×32 (дефект №15)
 H 4C 01 E9 ;S004
 H B8 01 00 00 00 ;S004
 H 48 89 01 ;S004
@@ -2805,63 +2806,63 @@ H E8 $fail_format ;G002
 H E8 $fail_format ;G002
 ; ===== K2-S00E fh_param: один параметр =====
 :fh_param
-H 55 ; K2-S00E
-H 48 89 E5 ; K2-S00E
-H 48 83 EC 20 ; K2-S00E
+H 55 ;S00E
+H 48 89 E5 ;S00E
+H 48 83 EC 20 ;S00E
 H E8 $want_id ;P003
-H 31 D2 ; K2-S00E
+H 31 D2 ;S00E
 H E8 $chk_name ;P005
-H 49 8B 85 60 80 01 00 ; K2-S00E
-H 48 89 45 F0 ; K2-S00E
-H 49 8B 85 68 80 01 00 ; K2-S00E
-H 48 2B 45 F0 ; K2-S00E
-H 48 89 45 E8 ; K2-S00E
-H 48 8B 4D F0 ; K2-S00E в глобальных?
-H 48 8B 55 E8 ; K2-S00E
+H 49 8B 85 60 80 01 00 ;S00E
+H 48 89 45 F0 ;S00E
+H 49 8B 85 68 80 01 00 ;S00E
+H 48 2B 45 F0 ;S00E
+H 48 89 45 E8 ;S00E
+H 48 8B 4D F0 ;S00E в глобальных?
+H 48 8B 55 E8 ;S00E
 H E8 $names_find ;P006
-H 48 83 F8 FF ; K2-S00E
-H 0F 85 $fhp_dup ; K2-S00E
-H 4D 8B 85 B0 80 01 00 ; K2-S00E дубликат параметров
-H 4D 8B 8D 38 81 01 00 ; K2-S00E
+H 48 83 F8 FF ;S00E
+H 0F 85 $fhp_dup ;S00E
+H 4D 8B 85 B0 80 01 00 ;S00E дубликат параметров
+H 4D 8B 8D 38 81 01 00 ;S00E
 :fhp_scan
-H 4D 39 C8 ; K2-S00E
-H 0F 83 $fhp_ok ; K2-S00E
-H 4C 89 C0 ; K2-S00E
-H 48 C1 E0 04 ; K2-S00E
-H 49 8D 95 D8 83 37 00 ; K2-S00E
-H 48 01 C2 ; K2-S00E
-H 48 8B 4A 08 ; K2-S00E длина
-H 48 3B 4D E8 ; K2-S00E
-H 0F 85 $fhp_next ; K2-S00E
-H 48 8B 3A ; K2-S00E ptr
-H 31 C0 ; K2-S00E
+H 4D 39 C8 ;S00E
+H 0F 83 $fhp_ok ;S00E
+H 4C 89 C0 ;S00E
+H 48 C1 E0 04 ;S00E
+H 49 8D 95 D8 83 37 00 ;S00E
+H 48 01 C2 ;S00E
+H 48 8B 4A 08 ;S00E длина
+H 48 3B 4D E8 ;S00E
+H 0F 85 $fhp_next ;S00E
+H 48 8B 3A ;S00E ptr
+H 31 C0 ;S00E
 :fhp_b
-H 48 3B 45 E8 ; K2-S00E
-H 0F 83 $fhp_dup ; K2-S00E
-H 0F B6 14 07 ; K2-S00E
-H 48 8B 4D F0 ; K2-S00E
-H 3A 14 01 ; K2-S00E
-H 0F 85 $fhp_next ; K2-S00E
-H 48 FF C0 ; K2-S00E
-H E9 $fhp_b ; K2-S00E
+H 48 3B 45 E8 ;S00E
+H 0F 83 $fhp_dup ;S00E
+H 0F B6 14 07 ;S00E
+H 48 8B 4D F0 ;S00E
+H 3A 14 01 ;S00E
+H 0F 85 $fhp_next ;S00E
+H 48 FF C0 ;S00E
+H E9 $fhp_b ;S00E
 :fhp_next
-H 49 FF C0 ; K2-S00E
-H E9 $fhp_scan ; K2-S00E
+H 49 FF C0 ;S00E
+H E9 $fhp_scan ;S00E
 :fhp_ok
-H 49 8B 85 38 81 01 00 ; K2-S00E append larr
-H 48 C1 E0 04 ; K2-S00E
-H 49 8D 95 D8 83 37 00 ; K2-S00E
-H 48 01 C2 ; K2-S00E
-H 48 8B 45 F0 ; K2-S00E
-H 48 89 02 ; K2-S00E
-H 48 8B 45 E8 ; K2-S00E
-H 48 89 42 08 ; K2-S00E
-H 49 8B 85 38 81 01 00 ; K2-S00E
-H 48 FF C0 ; K2-S00E
-H 49 89 85 38 81 01 00 ; K2-S00E
-H 48 89 EC ; K2-S00E
-H 5D ; K2-S00E
-H C3 ; K2-S00E
+H 49 8B 85 38 81 01 00 ;S00E append larr
+H 48 C1 E0 04 ;S00E
+H 49 8D 95 D8 83 37 00 ;S00E
+H 48 01 C2 ;S00E
+H 48 8B 45 F0 ;S00E
+H 48 89 02 ;S00E
+H 48 8B 45 E8 ;S00E
+H 48 89 42 08 ;S00E
+H 49 8B 85 38 81 01 00 ;S00E
+H 48 FF C0 ;S00E
+H 49 89 85 38 81 01 00 ;S00E
+H 48 89 EC ;S00E
+H 5D ;S00E
+H C3 ;S00E
 :fhp_dup
 H E8 $fail_format ;G002
 ; ===== K2-S005 names_find_ci: без учёта регистра =====
@@ -3001,10 +3002,7 @@ H 0F 84 $p1e_extra ;S007
 H 48 FF C8 ;S007
 H 49 89 85 58 81 01 00 ;S007
 H 48 89 C1 ;S007
-H 48 C1 E1 03 ;S007
-H 48 89 C2 ;S007
-H 48 C1 E2 04 ;S007
-H 48 01 D1 ;S007
+H 48 C1 E1 05 ;S007 ×32 (дефект №15)
 H 4C 01 E9 ;S007
 H 48 8B 01 ;S007
 H 48 83 F8 01 ;S007
@@ -3051,10 +3049,7 @@ H 48 85 C0 ;S008
 H 0F 84 $p1el_fail ;S008
 H 48 FF C8 ;S008
 H 48 89 C2 ;S008
-H 48 C1 E2 03 ;S008
-H 49 89 C0 ;S008
-H 49 C1 E0 04 ;S008
-H 4C 01 C2 ;S008
+H 48 C1 E2 05 ;S008 ×32 (дефект №15)
 H 4C 01 EA ;S008
 H 48 8B 02 ;S008
 H 48 83 F8 02 ;S008
@@ -3083,10 +3078,7 @@ H 48 8D 0C 01 ;S009
 H C6 01 00 ;S009
 H 49 8B 85 58 81 01 00 ;S009
 H 48 89 C1 ;S009
-H 48 C1 E1 03 ;S009
-H 48 89 C2 ;S009
-H 48 C1 E2 04 ;S009
-H 48 01 D1 ;S009
+H 48 C1 E1 05 ;S009 ×32 (дефект №15)
 H 4C 01 E9 ;S009
 H BA 02 00 00 00 ;S009
 H 48 89 11 ;S009
@@ -3100,130 +3092,149 @@ H 49 89 85 58 81 01 00 ;S009
 H C3 ;S009
 ; ===== K2-S00A p1s_while =====
 :p1s_while
-H 49 8B 8D 68 80 01 00 ; K2-S00A поглотить while
-H 49 89 8D 70 80 01 00 ; K2-S00A
+H 49 8B 8D 68 80 01 00 ;S00A поглотить while
+H 49 89 8D 70 80 01 00 ;S00A
 H E8 $p_cond ;P018
 H E8 $at_end_chk ;P002
-H 49 8B 85 58 81 01 00 ; K2-S00A push {while, 0, 0}
-H 48 89 C1 ; K2-S00A
-H 48 C1 E1 03 ; K2-S00A
-H 48 89 C2 ; K2-S00A
-H 48 C1 E2 04 ; K2-S00A
-H 48 01 D1 ; K2-S00A
-H 4C 01 E9 ; K2-S00A
-H BA 04 00 00 00 ; K2-S00A
-H 48 89 11 ; K2-S00A kind while
-H 31 C0 ; K2-S00A
-H 48 89 41 08 ; K2-S00A
-H 48 89 41 10 ; K2-S00A
-H 49 8B 85 58 81 01 00 ; K2-S00A
-H 48 FF C0 ; K2-S00A
-H 49 89 85 58 81 01 00 ; K2-S00A
-H C3 ; K2-S00A
+H 49 8B 85 58 81 01 00 ;S00A push {while, 0, 0}
+H 48 89 C1 ;S00A
+H 48 C1 E1 05 ;S00A ×32 (дефект №15)
+H 4C 01 E9 ;S00A
+H BA 04 00 00 00 ;S00A
+H 48 89 11 ;S00A kind while
+H 31 C0 ;S00A
+H 48 89 41 08 ;S00A
+H 48 89 41 10 ;S00A
+H 49 8B 85 58 81 01 00 ;S00A
+H 48 FF C0 ;S00A
+H 49 89 85 58 81 01 00 ;S00A
+H C3 ;S00A
 ; ===== K2-S00B p1s_return =====
 :p1s_return
-H 49 8B 8D 68 80 01 00 ; K2-S00B поглотить return
-H 49 89 8D 70 80 01 00 ; K2-S00B
-H 49 8B 8D 70 80 01 00 ; K2-S00B выражение есть?
+H 49 8B 8D 68 80 01 00 ;S00B поглотить return
+H 49 89 8D 70 80 01 00 ;S00B
+H 49 8B 8D 70 80 01 00 ;S00B выражение есть?
 H E8 $lex_tok ;L001
-H 83 F8 04 ; K2-S00B
-H 0F 84 $p1r_noexpr ; K2-S00B
-H B9 01 00 00 00 ; K2-S00B
+H 83 F8 04 ;S00B
+H 0F 84 $p1r_noexpr ;S00B
+H B9 01 00 00 00 ;S00B
 H E8 $p_expr ;P010
-H 48 89 C2 ; K2-S00B
-H 49 3B 95 90 80 01 00 ; K2-S00B
-H 0F 86 $p1r_atend ; K2-S00B
-H 49 89 95 90 80 01 00 ; K2-S00B
-H E9 $p1r_atend ; K2-S00B
+H 48 89 C2 ;S00B
+H 49 3B 95 90 80 01 00 ;S00B
+H 0F 86 $p1r_atend ;S00B
+H 49 89 95 90 80 01 00 ;S00B
+H E9 $p1r_atend ;S00B
 :p1r_noexpr
 :p1r_atend
 H E8 $at_end_chk ;P002
-H C3 ; K2-S00B
+H C3 ;S00B
 ; ===== K2-S00C p1s_setb =====
 :p1s_setb
-H 49 8B 8D 68 80 01 00 ; K2-S00C поглотить setb
-H 49 89 8D 70 80 01 00 ; K2-S00C
-H B9 28 00 00 00 ; K2-S00C '('
+H 49 8B 8D 68 80 01 00 ;S00C поглотить setb
+H 49 89 8D 70 80 01 00 ;S00C
+H B9 28 00 00 00 ;S00C '('
 H E8 $want_sym1 ;P001
-H B9 01 00 00 00 ; K2-S00C
+H B9 01 00 00 00 ;S00C
 H E8 $p_expr ;P010
-H 48 89 C2 ; K2-S00C
-H 49 3B 95 90 80 01 00 ; K2-S00C
-H 0F 86 $p1sb_2 ; K2-S00C
-H 49 89 95 90 80 01 00 ; K2-S00C
+H 48 89 C2 ;S00C
+H 49 3B 95 90 80 01 00 ;S00C
+H 0F 86 $p1sb_2 ;S00C
+H 49 89 95 90 80 01 00 ;S00C
 :p1sb_2
-H B9 2C 00 00 00 ; K2-S00C ','
+H B9 2C 00 00 00 ;S00C ','
 H E8 $want_sym1 ;P001
-H B9 01 00 00 00 ; K2-S00C
+H B9 01 00 00 00 ;S00C
 H E8 $p_expr ;P010
-H 48 89 C2 ; K2-S00C
-H 49 3B 95 90 80 01 00 ; K2-S00C
-H 0F 86 $p1sb_3 ; K2-S00C
-H 49 89 95 90 80 01 00 ; K2-S00C
+H 48 89 C2 ;S00C
+H 49 3B 95 90 80 01 00 ;S00C
+H 0F 86 $p1sb_3 ;S00C
+H 49 89 95 90 80 01 00 ;S00C
 :p1sb_3
-H B9 2C 00 00 00 ; K2-S00C ','
+H B9 2C 00 00 00 ;S00C ','
 H E8 $want_sym1 ;P001
-H B9 01 00 00 00 ; K2-S00C
+H B9 01 00 00 00 ;S00C
 H E8 $p_expr ;P010
-H 48 89 C2 ; K2-S00C
-H 49 3B 95 90 80 01 00 ; K2-S00C
-H 0F 86 $p1sb_4 ; K2-S00C
-H 49 89 95 90 80 01 00 ; K2-S00C
+H 48 89 C2 ;S00C
+H 49 3B 95 90 80 01 00 ;S00C
+H 0F 86 $p1sb_4 ;S00C
+H 49 89 95 90 80 01 00 ;S00C
 :p1sb_4
-H B9 29 00 00 00 ; K2-S00C ')'
+H B9 29 00 00 00 ;S00C ')'
 H E8 $want_sym1 ;P001
 H E8 $at_end_chk ;P002
-H B8 01 00 00 00 ; K2-S00C
-H 49 89 85 A0 80 01 00 ; K2-S00C
-H C3 ; K2-S00C
+H B8 01 00 00 00 ;S00C
+H 49 89 85 A0 80 01 00 ;S00C
+H C3 ;S00C
 ; ===== K2-S00D p1_namestmt: вызов-утверждение или присваивание =====
 :p1_namestmt
-H 55 ; K2-S00D
-H 48 89 E5 ; K2-S00D
-H 48 83 EC 20 ; K2-S00D
-H 49 8B 85 60 80 01 00 ; K2-S00D имя
-H 48 89 45 F0 ; K2-S00D
-H 49 8B 85 68 80 01 00 ; K2-S00D
-H 48 2B 45 F0 ; K2-S00D
-H 48 89 45 E8 ; K2-S00D
-H 49 8B 8D 68 80 01 00 ; K2-S00D поглотить имя
-H 49 89 8D 70 80 01 00 ; K2-S00D
-H 49 8B 8D 70 80 01 00 ; K2-S00D '(' ?
+H 55 ;S00D
+H 48 89 E5 ;S00D
+H 48 83 EC 20 ;S00D
+H 49 8B 85 60 80 01 00 ;S00D имя
+H 48 89 45 F0 ;S00D
+H 49 8B 85 68 80 01 00 ;S00D
+H 48 2B 45 F0 ;S00D
+H 48 89 45 E8 ;S00D
+H 49 8B 8D 68 80 01 00 ;S00D поглотить имя
+H 49 89 8D 70 80 01 00 ;S00D
+H 49 8B 8D 70 80 01 00 ;S00D '(' ?
 H E8 $lex_tok ;L001
-H 83 F8 02 ; K2-S00D
-H 0F 85 $p1n_assign ; K2-S00D
-H 49 8B 85 68 80 01 00 ; K2-S00D
-H 49 2B 85 60 80 01 00 ; K2-S00D
-H 48 83 F8 01 ; K2-S00D
-H 0F 85 $p1n_assign ; K2-S00D
-H 49 8B 8D 60 80 01 00 ; K2-S00D
-H 0F B6 01 ; K2-S00D
-H 80 F8 28 ; K2-S00D
-H 0F 85 $p1n_assign ; K2-S00D
-H 49 8B 8D 68 80 01 00 ; K2-S00D вызов-утверждение
-H 49 89 8D 70 80 01 00 ; K2-S00D
-H 48 C7 C1 01 00 00 00 ; K2-S00D
+H 83 F8 02 ;S00D
+H 0F 85 $p1n_assign ;S00D
+H 49 8B 85 68 80 01 00 ;S00D
+H 49 2B 85 60 80 01 00 ;S00D
+H 48 83 F8 01 ;S00D
+H 0F 85 $p1n_assign ;S00D
+H 49 8B 8D 60 80 01 00 ;S00D
+H 0F B6 01 ;S00D
+H 80 F8 28 ;S00D
+H 0F 85 $p1n_assign ;S00D
+H 49 8B 8D 68 80 01 00 ;S00D вызов-утверждение
+H 49 89 8D 70 80 01 00 ;S00D
+H 48 C7 C1 01 00 00 00 ;S00D
 H E8 $p_args ;P014
-H 48 8B 4D F0 ; K2-S00D
-H 48 8B 55 E8 ; K2-S00D
+H 48 8B 4D F0 ;S00D
+H 48 8B 55 E8 ;S00D
 H E8 $call_stats ;P016
 H E8 $at_end_chk ;P002
-H E9 $p1n_ret ; K2-S00D
+H E9 $p1n_ret ;S00D
 :p1n_assign
-H B9 3D 00 00 00 ; K2-S00D '='
+H B9 3D 00 00 00 ;S00D '='
 H E8 $want_sym1 ;P001
-H B9 01 00 00 00 ; K2-S00D
+H B9 01 00 00 00 ;S00D
 H E8 $p_expr ;P010
-H 48 89 C2 ; K2-S00D
-H 49 3B 95 90 80 01 00 ; K2-S00D
-H 0F 86 $p1n_atend ; K2-S00D
-H 49 89 95 90 80 01 00 ; K2-S00D
+H 48 89 C2 ;S00D
+H 49 3B 95 90 80 01 00 ;S00D
+H 0F 86 $p1n_atend ;S00D
+H 49 89 95 90 80 01 00 ;S00D
 :p1n_atend
 H E8 $at_end_chk ;P002
 :p1n_ret
-H 48 89 EC ; K2-S00D
-H 5D ; K2-S00D
-H C3 ; K2-S00D
+H 48 89 EC ;S00D
+H 5D ;S00D
+H C3 ;S00D
+; ===== K2-S00F p1s_brk: break/continue проход 1 (v2; только в while) =====
+:p1s_brk
+H 49 8B 8D 68 80 01 00 ;S00F
+H 49 89 8D 70 80 01 00 ;S00F
+H E8 $at_end_chk ;P002
+H 4D 8B 85 58 81 01 00 ;S00F скан bstk до while
+:p1b_loop
+H 4D 85 C0 ;S00F
+H 0F 85 $p1b_go ;S00F
+H E8 $fail_format ;G002 вне while
+H CC ;S00F
+:p1b_go
+H 49 FF C8 ;S00F
+H 4C 89 C1 ;S00F
+H 48 C1 E1 05 ;S00F ×32
+H 4C 01 E9 ;S00F
+H 48 8B 01 ;S00F
+H 48 83 F8 04 ;S00F
+H 0F 85 $p1b_loop ;S00F
+H 48 C7 C0 01 00 00 00 ;S00F
+H 49 89 85 90 81 01 00 ;S00F флаг v2
+H C3 ;S00F
 ; ===== K2-Y001 pass2: эмитция .b2 по канону SPEC/11 п.8 =====
 :pass2
 H 55 ;Y001
@@ -3320,12 +3331,16 @@ H 83 F8 08 ;Y002
 H 0F 84 $p2s_return ;Y008
 H 83 F8 09 ;Y002
 H 0F 84 $p2s_setb ;Y009
+H 83 F8 0C ;Y002 break (v2)
+H 0F 84 $p2s_break ;Y00C
+H 83 F8 0D ;Y002 continue (v2)
+H 0F 84 $p2s_continue ;Y00C
 H E9 $p2l_name ;Y002
 :p2l_func
-H E8 $p2_funchdr ; K2-Y00A
+H E8 $p2_funchdr ;Y00A
 H C3 ;Y002
 :p2l_name
-H E8 $p2_namestmt ; K2-Y00B
+H E8 $p2_namestmt ;Y00B
 H C3 ;Y002
 :p2l_bad
 H CC ;Y002
@@ -3333,81 +3348,78 @@ H CC ;Y002
 H C3 ;Y002
 ; ===== K2-Y00A p2_funchdr: эмитция заголовка функции =====
 :p2_funchdr
-H 55 ; K2-Y00A
-H 48 89 E5 ; K2-Y00A
-H 48 83 EC 20 ; K2-Y00A
-H 49 8B 8D 68 80 01 00 ; K2-Y00A поглотить func
-H 49 89 8D 70 80 01 00 ; K2-Y00A
+H 55 ;Y00A
+H 48 89 E5 ;Y00A
+H 48 83 EC 20 ;Y00A
+H 49 8B 8D 68 80 01 00 ;Y00A поглотить func
+H 49 89 8D 70 80 01 00 ;Y00A
 H E8 $want_id ;P003
-H 49 8B 85 60 80 01 00 ; K2-Y00A
-H 48 89 45 F0 ; K2-Y00A ptr имени
-H 49 8B 85 68 80 01 00 ; K2-Y00A
-H 48 2B 45 F0 ; K2-Y00A
-H 48 89 45 E8 ; K2-Y00A len имени
-H 48 8B 4D F0 ; K2-Y00A ntab -> fidx
-H 48 8B 55 E8 ; K2-Y00A
+H 49 8B 85 60 80 01 00 ;Y00A
+H 48 89 45 F0 ;Y00A ptr имени
+H 49 8B 85 68 80 01 00 ;Y00A
+H 48 2B 45 F0 ;Y00A
+H 48 89 45 E8 ;Y00A len имени
+H 48 8B 4D F0 ;Y00A ntab -> fidx
+H 48 8B 55 E8 ;Y00A
 H E8 $names_find ;P006
-H 48 89 C1 ; K2-Y00A x40
-H 48 C1 E1 05 ; K2-Y00A
-H 48 89 C2 ; K2-Y00A
-H 48 C1 E2 03 ; K2-Y00A
-H 48 01 D1 ; K2-Y00A
-H 49 8D 95 D8 83 11 00 ; K2-Y00A
-H 48 01 D1 ; K2-Y00A
-H 48 8B 41 18 ; K2-Y00A мета = fidx
-H 48 89 45 F8 ; K2-Y00A
-H 4C 89 F9 ; K2-Y00A остаток строки (параметры) пропустить
-H 49 89 8D 70 80 01 00 ; K2-Y00A
-H 48 8B 45 F8 ; K2-Y00A раскладка из ftab
-H 48 89 C1 ; K2-Y00A x72
-H 48 C1 E1 06 ; K2-Y00A
-H 48 89 C2 ; K2-Y00A
-H 48 C1 E2 03 ; K2-Y00A
-H 48 01 D1 ; K2-Y00A
-H 49 8D 95 D8 83 25 00 ; K2-Y00A
-H 48 01 CA ; K2-Y00A адрес записи
-H 48 8B 42 18 ; K2-Y00A maxd
-H 49 89 85 C8 80 01 00 ; K2-Y00A
-H 48 8B 42 20 ; K2-Y00A maxc
-H 49 89 85 D0 80 01 00 ; K2-Y00A
-H 48 8B 42 30 ; K2-Y00A locoff
-H 49 89 85 F0 80 01 00 ; K2-Y00A
-H 48 8B 42 38 ; K2-Y00A loccnt
-H 49 89 85 F8 80 01 00 ; K2-Y00A
-H 49 89 85 C0 80 01 00 ; K2-Y00A
-H 48 8B 45 F8 ; K2-Y00A
-H 49 89 85 E8 80 01 00 ; K2-Y00A
-H 48 8B 45 F0 ; K2-Y00A имя функции
-H 49 89 85 B0 81 01 00 ; K2-Y00A
-H 48 8B 45 E8 ; K2-Y00A
-H 49 89 85 B8 81 01 00 ; K2-Y00A
-H 48 8B 4D F0 ; K2-Y00A пролог
-H 48 8B 55 E8 ; K2-Y00A
+H 48 89 C1 ;Y00A x40
+H 48 C1 E1 05 ;Y00A
+H 48 89 C2 ;Y00A
+H 48 C1 E2 03 ;Y00A
+H 48 01 D1 ;Y00A
+H 49 8D 95 D8 83 11 00 ;Y00A
+H 48 01 D1 ;Y00A
+H 48 8B 41 18 ;Y00A мета = fidx
+H 48 89 45 F8 ;Y00A
+H 4C 89 F9 ;Y00A остаток строки (параметры) пропустить
+H 49 89 8D 70 80 01 00 ;Y00A
+H 48 8B 45 F8 ;Y00A раскладка из ftab
+H 48 89 C1 ;Y00A x72
+H 48 C1 E1 06 ;Y00A
+H 48 89 C2 ;Y00A
+H 48 C1 E2 03 ;Y00A
+H 48 01 D1 ;Y00A
+H 49 8D 95 D8 83 25 00 ;Y00A
+H 48 01 CA ;Y00A адрес записи
+H 48 8B 42 18 ;Y00A maxd
+H 49 89 85 C8 80 01 00 ;Y00A
+H 48 8B 42 20 ;Y00A maxc
+H 49 89 85 D0 80 01 00 ;Y00A
+H 48 8B 42 30 ;Y00A locoff
+H 49 89 85 F0 80 01 00 ;Y00A
+H 48 8B 42 38 ;Y00A loccnt
+H 49 89 85 F8 80 01 00 ;Y00A
+H 49 89 85 C0 80 01 00 ;Y00A
+H 48 8B 45 F8 ;Y00A
+H 49 89 85 E8 80 01 00 ;Y00A
+H 48 8B 45 F0 ;Y00A имя функции
+H 49 89 85 B0 81 01 00 ;Y00A
+H 48 8B 45 E8 ;Y00A
+H 49 89 85 B8 81 01 00 ;Y00A
+H 48 8B 4D F0 ;Y00A пролог
+H 48 8B 55 E8 ;Y00A
 H E8 $emit_prologue ;E018
-H 49 8B 85 58 81 01 00 ; K2-Y00A push {func}
-H 49 89 85 80 81 01 00 ; K2-Y00A базовый индекс
-H 48 89 C1 ; K2-Y00A
-H 48 C1 E1 03 ; K2-Y00A
-H 48 89 C2 ; K2-Y00A
-H 48 C1 E2 04 ; K2-Y00A
-H 48 01 D1 ; K2-Y00A
-H 4C 01 E9 ; K2-Y00A
-H B8 01 00 00 00 ; K2-Y00A
-H 48 89 01 ; K2-Y00A kind func
-H 31 C0 ; K2-Y00A
-H 48 89 41 08 ; K2-Y00A
-H 48 89 41 10 ; K2-Y00A
-H 49 8B 85 58 81 01 00 ; K2-Y00A
-H 48 FF C0 ; K2-Y00A
-H 49 89 85 58 81 01 00 ; K2-Y00A
-H B8 01 00 00 00 ; K2-Y00A флаги
-H 49 89 85 68 81 01 00 ; K2-Y00A
-H 49 89 85 78 81 01 00 ; K2-Y00A
-H 31 C0 ; K2-Y00A
-H 49 89 85 10 81 01 00 ; K2-Y00A
-H 48 89 EC ; K2-Y00A
-H 5D ; K2-Y00A
-H C3 ; K2-Y00A
+H 49 8B 85 58 81 01 00 ;Y00A push {func}
+H 49 89 85 80 81 01 00 ;Y00A базовый индекс
+H 48 89 C1 ;Y00A
+H 48 C1 E1 05 ;Y00A ×32 (дефект №15)
+H 4C 01 E9 ;Y00A
+H B8 01 00 00 00 ;Y00A
+H 48 89 01 ;Y00A kind func
+H 31 C0 ;Y00A
+H 48 89 41 08 ;Y00A
+H 48 89 41 10 ;Y00A
+H 49 8B 85 58 81 01 00 ;Y00A
+H 48 FF C0 ;Y00A
+H 49 89 85 58 81 01 00 ;Y00A
+H B8 01 00 00 00 ;Y00A флаги
+H 49 89 85 68 81 01 00 ;Y00A
+H 49 89 85 78 81 01 00 ;Y00A
+H 31 C0 ;Y00A
+H 49 89 85 10 81 01 00 ;Y00A
+H 48 89 EC ;Y00A
+H 5D ;Y00A
+H C3 ;Y00A
 ; ===== K2-Y003 p2s_var: локаль — только сброс last_ret =====
 :p2s_var
 H 4C 89 F9 ;Y003
@@ -3467,105 +3479,105 @@ H 5D ;E029
 H C3 ;E029
 ; ===== K2-E02A emit_jmp_line: безусловный; RCX=while, RDX=e, R8=k =====
 :emit_jmp_line
-H 55 ; K2-E02A
-H 48 89 E5 ; K2-E02A
-H 48 83 EC 20 ; K2-E02A
-H 48 89 4D F8 ; K2-E02A while-флаг
-H 48 89 55 F0 ; K2-E02A e-флаг
-H 4C 89 45 E8 ; K2-E02A k
-H 48 8B 45 F8 ; K2-E02A
-H 48 85 C0 ; K2-E02A
-H 0F 84 $ejm_if ; K2-E02A
-H B9 3F 00 00 00 ; K2-E02A "M jmp $_w"
+H 55 ;E02A
+H 48 89 E5 ;E02A
+H 48 83 EC 20 ;E02A
+H 48 89 4D F8 ;E02A while-флаг
+H 48 89 55 F0 ;E02A e-флаг
+H 4C 89 45 E8 ;E02A k
+H 48 8B 45 F8 ;E02A
+H 48 85 C0 ;E02A
+H 0F 84 $ejm_if ;E02A
+H B9 3F 00 00 00 ;E02A "M jmp $_w"
 H E8 $out_str ;E003
-H E9 $ejm_k ; K2-E02A
+H E9 $ejm_k ;E02A
 :ejm_if
-H B9 3E 00 00 00 ; K2-E02A "M jmp $_if"
+H B9 3E 00 00 00 ;E02A "M jmp $_if"
 H E8 $out_str ;E003
 :ejm_k
-H 48 8B 45 E8 ; K2-E02A
+H 48 8B 45 E8 ;E02A
 H E8 $out_dec ;E008
-H 48 8B 45 F0 ; K2-E02A
-H 48 85 C0 ; K2-E02A
-H 0F 84 $ejm_noe ; K2-E02A
-H B9 10 00 00 00 ; K2-E02A
+H 48 8B 45 F0 ;E02A
+H 48 85 C0 ;E02A
+H 0F 84 $ejm_noe ;E02A
+H B9 10 00 00 00 ;E02A
 H E8 $out_str ;E003
 :ejm_noe
 H E8 $emit_cmt ;E009
-H 48 89 EC ; K2-E02A
-H 5D ; K2-E02A
-H C3 ; K2-E02A
+H 48 89 EC ;E02A
+H 5D ;E02A
+H C3 ;E02A
 ; ===== K2-E02B emit_iflab: метка :_if<k>[e]; RCX=k, RDX=e =====
 :emit_iflab
-H 55 ; K2-E02B
-H 48 89 E5 ; K2-E02B
-H 48 83 EC 20 ; K2-E02B
-H 48 89 4D F8 ; K2-E02B
-H 48 89 55 F0 ; K2-E02B
-H B9 29 00 00 00 ; K2-E02B ":_if"
+H 55 ;E02B
+H 48 89 E5 ;E02B
+H 48 83 EC 20 ;E02B
+H 48 89 4D F8 ;E02B
+H 48 89 55 F0 ;E02B
+H B9 29 00 00 00 ;E02B ":_if"
 H E8 $out_str ;E003
-H 48 8B 45 F8 ; K2-E02B
+H 48 8B 45 F8 ;E02B
 H E8 $out_dec ;E008
-H 48 8B 45 F0 ; K2-E02B
-H 48 85 C0 ; K2-E02B
-H 0F 84 $eil_noe ; K2-E02B
-H B9 10 00 00 00 ; K2-E02B
+H 48 8B 45 F0 ;E02B
+H 48 85 C0 ;E02B
+H 0F 84 $eil_noe ;E02B
+H B9 10 00 00 00 ;E02B
 H E8 $out_str ;E003
 :eil_noe
-H 41 C6 04 24 0A ; K2-E02B
-H 49 FF C4 ; K2-E02B
-H 49 8B 85 08 81 01 00 ; K2-E02B
-H 48 FF C0 ; K2-E02B
-H 49 89 85 08 81 01 00 ; K2-E02B
-H 48 89 EC ; K2-E02B
-H 5D ; K2-E02B
-H C3 ; K2-E02B
+H 41 C6 04 24 0A ;E02B
+H 49 FF C4 ;E02B
+H 49 8B 85 08 81 01 00 ;E02B
+H 48 FF C0 ;E02B
+H 49 89 85 08 81 01 00 ;E02B
+H 48 89 EC ;E02B
+H 5D ;E02B
+H C3 ;E02B
 ; ===== K2-E02C emit_wlab: метка :_w<k>[e]; RCX=k, RDX=e =====
 :emit_wlab
-H 55 ; K2-E02C
-H 48 89 E5 ; K2-E02C
-H 48 83 EC 20 ; K2-E02C
-H 48 89 4D F8 ; K2-E02C
-H 48 89 55 F0 ; K2-E02C
-H B9 68 00 00 00 ; K2-E02C ":_w"
+H 55 ;E02C
+H 48 89 E5 ;E02C
+H 48 83 EC 20 ;E02C
+H 48 89 4D F8 ;E02C
+H 48 89 55 F0 ;E02C
+H B9 68 00 00 00 ;E02C ":_w"
 H E8 $out_str ;E003
-H 48 8B 45 F8 ; K2-E02C
+H 48 8B 45 F8 ;E02C
 H E8 $out_dec ;E008
-H 48 8B 45 F0 ; K2-E02C
-H 48 85 C0 ; K2-E02C
-H 0F 84 $ewl_noe ; K2-E02C
-H B9 10 00 00 00 ; K2-E02C
+H 48 8B 45 F0 ;E02C
+H 48 85 C0 ;E02C
+H 0F 84 $ewl_noe ;E02C
+H B9 10 00 00 00 ;E02C
 H E8 $out_str ;E003
 :ewl_noe
-H 41 C6 04 24 0A ; K2-E02C
-H 49 FF C4 ; K2-E02C
-H 49 8B 85 08 81 01 00 ; K2-E02C
-H 48 FF C0 ; K2-E02C
-H 49 89 85 08 81 01 00 ; K2-E02C
-H 48 89 EC ; K2-E02C
-H 5D ; K2-E02C
-H C3 ; K2-E02C
+H 41 C6 04 24 0A ;E02C
+H 49 FF C4 ;E02C
+H 49 8B 85 08 81 01 00 ;E02C
+H 48 FF C0 ;E02C
+H 49 89 85 08 81 01 00 ;E02C
+H 48 89 EC ;E02C
+H 5D ;E02C
+H C3 ;E02C
 ; ===== K2-E02D emit_sstore: стейджинг S-слота; RCX = i =====
 :emit_sstore
-H 55 ; K2-E02D
-H 48 89 E5 ; K2-E02D
-H 48 83 EC 20 ; K2-E02D
-H 48 89 4D F8 ; K2-E02D
-H B9 43 00 00 00 ; K2-E02D
+H 55 ;E02D
+H 48 89 E5 ;E02D
+H 48 83 EC 20 ;E02D
+H 48 89 4D F8 ;E02D
+H B9 43 00 00 00 ;E02D
 H E8 $out_str ;E003
-H 49 8B 85 C0 80 01 00 ; K2-E02D
-H 49 03 85 C8 80 01 00 ; K2-E02D
-H 49 03 85 D0 80 01 00 ; K2-E02D
-H 48 8B 4D F8 ; K2-E02D
-H 48 8D 44 08 01 ; K2-E02D s(i)
-H 48 C1 E0 03 ; K2-E02D
+H 49 8B 85 C0 80 01 00 ;E02D
+H 49 03 85 C8 80 01 00 ;E02D
+H 49 03 85 D0 80 01 00 ;E02D
+H 48 8B 4D F8 ;E02D
+H 48 8D 44 08 01 ;E02D s(i)
+H 48 C1 E0 03 ;E02D
 H E8 $out_hex ;E005
-H B9 58 00 00 00 ; K2-E02D
+H B9 58 00 00 00 ;E02D
 H E8 $out_str ;E003
 H E8 $emit_cmt ;E009
-H 48 89 EC ; K2-E02D
-H 5D ; K2-E02D
-H C3 ; K2-E02D
+H 48 89 EC ;E02D
+H 5D ;E02D
+H C3 ;E02D
 ; ===== K2-Y004 p2s_end =====
 :p2s_end
 H 49 8B 8D 68 80 01 00 ;Y004
@@ -3574,10 +3586,7 @@ H 49 8B 85 58 81 01 00 ;Y004
 H 48 FF C8 ;Y004
 H 49 89 85 58 81 01 00 ;Y004
 H 48 89 C1 ;Y004
-H 48 C1 E1 03 ;Y004
-H 48 89 C2 ;Y004
-H 48 C1 E2 04 ;Y004
-H 48 01 D1 ;Y004
+H 48 C1 E1 05 ;Y004 ×32 (дефект №15)
 H 4C 01 E9 ;Y004
 H 49 89 8D 00 82 01 00 ;Y004
 H 48 8B 01 ;Y004
@@ -3589,7 +3598,7 @@ H 0F 84 $p2e_while ;Y004
 H 49 8B 8D 00 82 01 00 ;Y004
 H 48 8B 49 08 ;Y004
 H BA 01 00 00 00 ;Y004
-H E8 $emit_iflab ; K2-E02B
+H E8 $emit_iflab ;E02B
 H C3 ;Y004
 :p2e_func
 H 49 8B 85 10 81 01 00 ;Y004
@@ -3616,10 +3625,10 @@ H 49 89 85 A8 81 01 00 ;Y004 srctxt_len
 H B9 01 00 00 00 ;Y004 while
 H 31 D2 ;Y004
 H 4D 8B 85 F8 81 01 00 ;Y004
-H E8 $emit_jmp_line ; K2-E02A
+H E8 $emit_jmp_line ;E02A
 H 49 8B 8D F8 81 01 00 ;Y004
 H BA 01 00 00 00 ;Y004
-H E8 $emit_wlab ; K2-E02C
+H E8 $emit_wlab ;E02C
 H C3 ;Y004
 ; ===== K2-Y005 p2s_else =====
 :p2s_else
@@ -3629,10 +3638,7 @@ H 49 8B 85 58 81 01 00 ;Y005
 H 48 FF C8 ;Y005
 H 49 89 85 58 81 01 00 ;Y005
 H 48 89 C1 ;Y005
-H 48 C1 E1 03 ;Y005
-H 48 89 C2 ;Y005
-H 48 C1 E2 04 ;Y005
-H 48 01 D1 ;Y005
+H 48 C1 E1 05 ;Y005 ×32 (дефект №15)
 H 4C 01 E9 ;Y005
 H 49 89 8D D8 81 01 00 ;Y005 адрес записи (rcx ниже затирается)
 H 48 8B 01 ;Y005
@@ -3660,17 +3666,14 @@ H 49 89 85 A8 81 01 00 ;Y005 srctxt_len
 H 31 C9 ;Y005
 H BA 01 00 00 00 ;Y005
 H 4D 8B 85 00 82 01 00 ;Y005
-H E8 $emit_jmp_line ; K2-E02A
+H E8 $emit_jmp_line ;E02A
 H 49 8B 8D 00 82 01 00 ;Y005
 H 31 D2 ;Y005
-H E8 $emit_iflab ; K2-E02B
+H E8 $emit_iflab ;E02B
 :p2el_push
 H 49 8B 85 58 81 01 00 ;Y005
 H 48 89 C1 ;Y005
-H 48 C1 E1 03 ;Y005
-H 48 89 C2 ;Y005
-H 48 C1 E2 04 ;Y005
-H 48 01 D1 ;Y005
+H 48 C1 E1 05 ;Y005 ×32 (дефект №15)
 H 4C 01 E9 ;Y005
 H BA 03 00 00 00 ;Y005
 H 48 89 11 ;Y005
@@ -3718,10 +3721,7 @@ H 45 31 C9 ;Y006 не while
 H E8 $emit_jcc_line ;E029
 H 49 8B 85 58 81 01 00 ;Y006
 H 48 89 C1 ;Y006
-H 48 C1 E1 03 ;Y006
-H 48 89 C2 ;Y006
-H 48 C1 E2 04 ;Y006
-H 48 01 D1 ;Y006
+H 48 C1 E1 05 ;Y006 ×32 (дефект №15)
 H 4C 01 E9 ;Y006
 H BA 02 00 00 00 ;Y006
 H 48 89 11 ;Y006
@@ -3758,7 +3758,7 @@ H 49 89 85 00 81 01 00 ;Y007
 H 48 89 45 F8 ;Y007
 H 48 8B 4D F8 ;Y007
 H 31 D2 ;Y007
-H E8 $emit_wlab ; K2-E02C
+H E8 $emit_wlab ;E02C
 H E8 $p_cond ;P018
 H 48 89 45 E8 ;Y007
 H E8 $at_end_chk ;P002
@@ -3769,10 +3769,7 @@ H 41 B9 01 00 00 00 ;Y007 while
 H E8 $emit_jcc_line ;E029
 H 49 8B 85 58 81 01 00 ;Y007
 H 48 89 C1 ;Y007
-H 48 C1 E1 03 ;Y007
-H 48 89 C2 ;Y007
-H 48 C1 E2 04 ;Y007
-H 48 01 D1 ;Y007
+H 48 C1 E1 05 ;Y007 ×32 (дефект №15)
 H 4C 01 E9 ;Y007
 H BA 04 00 00 00 ;Y007
 H 48 89 11 ;Y007
@@ -3820,6 +3817,34 @@ H B8 01 00 00 00 ;Y008
 H 49 89 85 10 81 01 00 ;Y008
 :p2r_ret
 H C3 ;Y008
+; ===== K2-Y00C p2s_break/p2s_continue: эмитция jmp $_w<k>[e] (v2) =====
+:p2s_break
+H BA 01 00 00 00 ;Y00C break: e=1
+H E9 $p2s_brk_go ;Y00C
+:p2s_continue
+H 31 D2 ;Y00C continue: e=0
+:p2s_brk_go
+H 49 89 D3 ;Y00C e-флаг
+H 49 8B 8D 68 80 01 00 ;Y00C
+H 49 89 8D 70 80 01 00 ;Y00C
+H 4D 8B 85 58 81 01 00 ;Y00C скан bstk до while
+:p2b_loop
+H 4D 85 C0 ;Y00C
+H 0F 85 $p2b_go ;Y00C
+H CC ;Y00C вне while — отвергнуто в pass 1
+:p2b_go
+H 49 FF C8 ;Y00C
+H 4C 89 C1 ;Y00C
+H 48 C1 E1 05 ;Y00C ×32
+H 4C 01 E9 ;Y00C
+H 48 8B 01 ;Y00C
+H 48 83 F8 04 ;Y00C
+H 0F 85 $p2b_loop ;Y00C
+H 4C 8B 41 08 ;Y00C k объемлющего while
+H B9 01 00 00 00 ;Y00C
+H 4C 89 DA ;Y00C
+H E8 $emit_jmp_line ;E02A
+H C3 ;Y00C
 ; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — утверждения эмитции
 ; ===== K2-Y009 p2s_setb =====
 :p2s_setb
@@ -3833,19 +3858,19 @@ H E8 $want_sym1 ;P001
 H B9 01 00 00 00 ;Y009
 H E8 $p_expr ;P010
 H 31 C9 ;Y009
-H E8 $emit_sstore ; K2-E02D S0
+H E8 $emit_sstore ;E02D S0
 H B9 2C 00 00 00 ;Y009
 H E8 $want_sym1 ;P001
 H B9 01 00 00 00 ;Y009
 H E8 $p_expr ;P010
 H B9 01 00 00 00 ;Y009
-H E8 $emit_sstore ; K2-E02D S1
+H E8 $emit_sstore ;E02D S1
 H B9 2C 00 00 00 ;Y009
 H E8 $want_sym1 ;P001
 H B9 01 00 00 00 ;Y009
 H E8 $p_expr ;P010
 H B9 02 00 00 00 ;Y009
-H E8 $emit_sstore ; K2-E02D S2
+H E8 $emit_sstore ;E02D S2
 H B9 45 00 00 00 ;Y009
 H E8 $out_str ;E003
 H 49 8B 85 C0 80 01 00 ;Y009
@@ -3895,119 +3920,119 @@ H 5D ;Y009
 H C3 ;Y009
 ; ===== K2-Y00B p2_namestmt: вызов/присваивание =====
 :p2_namestmt
-H 55 ; K2-Y00B
-H 48 89 E5 ; K2-Y00B
-H 48 83 EC 20 ; K2-Y00B
-H 49 8B 85 60 80 01 00 ; K2-Y00B имя
-H 48 89 45 F0 ; K2-Y00B
-H 49 8B 85 68 80 01 00 ; K2-Y00B
-H 48 2B 45 F0 ; K2-Y00B
-H 48 89 45 E8 ; K2-Y00B
-H 49 8B 8D 68 80 01 00 ; K2-Y00B
-H 49 89 8D 70 80 01 00 ; K2-Y00B
-H 49 8B 8D 70 80 01 00 ; K2-Y00B '(' ?
+H 55 ;Y00B
+H 48 89 E5 ;Y00B
+H 48 83 EC 20 ;Y00B
+H 49 8B 85 60 80 01 00 ;Y00B имя
+H 48 89 45 F0 ;Y00B
+H 49 8B 85 68 80 01 00 ;Y00B
+H 48 2B 45 F0 ;Y00B
+H 48 89 45 E8 ;Y00B
+H 49 8B 8D 68 80 01 00 ;Y00B
+H 49 89 8D 70 80 01 00 ;Y00B
+H 49 8B 8D 70 80 01 00 ;Y00B '(' ?
 H E8 $lex_tok ;L001
-H 83 F8 02 ; K2-Y00B
-H 0F 85 $p2n_assign ; K2-Y00B
-H 49 8B 85 68 80 01 00 ; K2-Y00B
-H 49 2B 85 60 80 01 00 ; K2-Y00B
-H 48 83 F8 01 ; K2-Y00B
-H 0F 85 $p2n_assign ; K2-Y00B
-H 49 8B 8D 60 80 01 00 ; K2-Y00B
-H 0F B6 01 ; K2-Y00B
-H 80 F8 28 ; K2-Y00B
-H 0F 85 $p2n_assign ; K2-Y00B
-H 49 8B 8D 68 80 01 00 ; K2-Y00B вызов-утверждение
-H 49 89 8D 70 80 01 00 ; K2-Y00B
-H 31 C0 ; K2-Y00B ext-флаг
-H 49 89 85 88 80 01 00 ; K2-Y00B
-H 48 8B 4D F0 ; K2-Y00B
-H 48 8B 55 E8 ; K2-Y00B
+H 83 F8 02 ;Y00B
+H 0F 85 $p2n_assign ;Y00B
+H 49 8B 85 68 80 01 00 ;Y00B
+H 49 2B 85 60 80 01 00 ;Y00B
+H 48 83 F8 01 ;Y00B
+H 0F 85 $p2n_assign ;Y00B
+H 49 8B 8D 60 80 01 00 ;Y00B
+H 0F B6 01 ;Y00B
+H 80 F8 28 ;Y00B
+H 0F 85 $p2n_assign ;Y00B
+H 49 8B 8D 68 80 01 00 ;Y00B вызов-утверждение
+H 49 89 8D 70 80 01 00 ;Y00B
+H 31 C0 ;Y00B ext-флаг
+H 49 89 85 88 80 01 00 ;Y00B
+H 48 8B 4D F0 ;Y00B
+H 48 8B 55 E8 ;Y00B
 H E8 $names_find ;P006
-H 48 83 F8 FF ; K2-Y00B
-H 0F 84 $p2n_args ; K2-Y00B
-H 48 89 C1 ; K2-Y00B
-H 48 C1 E1 05 ; K2-Y00B
-H 48 89 C2 ; K2-Y00B
-H 48 C1 E2 03 ; K2-Y00B
-H 48 01 D1 ; K2-Y00B
-H 49 8D 95 D8 83 11 00 ; K2-Y00B
-H 48 01 D1 ; K2-Y00B
-H 48 8B 41 10 ; K2-Y00B вид
-H 48 83 F8 03 ; K2-Y00B ext?
-H 0F 85 $p2n_args ; K2-Y00B
-H B8 01 00 00 00 ; K2-Y00B
-H 49 89 85 88 80 01 00 ; K2-Y00B
+H 48 83 F8 FF ;Y00B
+H 0F 84 $p2n_args ;Y00B
+H 48 89 C1 ;Y00B
+H 48 C1 E1 05 ;Y00B
+H 48 89 C2 ;Y00B
+H 48 C1 E2 03 ;Y00B
+H 48 01 D1 ;Y00B
+H 49 8D 95 D8 83 11 00 ;Y00B
+H 48 01 D1 ;Y00B
+H 48 8B 41 10 ;Y00B вид
+H 48 83 F8 03 ;Y00B ext?
+H 0F 85 $p2n_args ;Y00B
+H B8 01 00 00 00 ;Y00B
+H 49 89 85 88 80 01 00 ;Y00B
 :p2n_args
-H 48 C7 C1 01 00 00 00 ; K2-Y00B
+H 48 C7 C1 01 00 00 00 ;Y00B
 H E8 $p_args ;P014
-H 31 C9 ; K2-Y00B want = 0
-H 48 8B 55 F0 ; K2-Y00B
-H 4C 8B 45 E8 ; K2-Y00B
+H 31 C9 ;Y00B want = 0
+H 48 8B 55 F0 ;Y00B
+H 4C 8B 45 E8 ;Y00B
 H E8 $p_call_tail ;P015
-H E9 $p2n_tl ; K2-Y00B
+H E9 $p2n_tl ;Y00B
 :p2n_assign
-H B9 3D 00 00 00 ; K2-Y00B '='
+H B9 3D 00 00 00 ;Y00B '='
 H E8 $want_sym1 ;P001
-H B9 01 00 00 00 ; K2-Y00B
+H B9 01 00 00 00 ;Y00B
 H E8 $p_expr ;P010
-H 48 8B 4D F0 ; K2-Y00B цель: локаль?
-H 48 8B 55 E8 ; K2-Y00B
+H 48 8B 4D F0 ;Y00B цель: локаль?
+H 48 8B 55 E8 ;Y00B
 H E8 $local_find ;P008
-H 48 83 F8 FF ; K2-Y00B
-H 0F 85 $p2n_local ; K2-Y00B
-H 48 8B 4D F0 ; K2-Y00B
-H 48 8B 55 E8 ; K2-Y00B
+H 48 83 F8 FF ;Y00B
+H 0F 85 $p2n_local ;Y00B
+H 48 8B 4D F0 ;Y00B
+H 48 8B 55 E8 ;Y00B
 H E8 $names_find ;P006
-H 48 83 F8 FF ; K2-Y00B
-H 0F 84 $p2n_unknown ; K2-Y00B
-H 48 89 C1 ; K2-Y00B
-H 48 C1 E1 05 ; K2-Y00B
-H 48 89 C2 ; K2-Y00B
-H 48 C1 E2 03 ; K2-Y00B
-H 48 01 D1 ; K2-Y00B
-H 49 8D 95 D8 83 11 00 ; K2-Y00B
-H 48 01 D1 ; K2-Y00B
-H 48 8B 41 10 ; K2-Y00B вид
-H 48 83 F8 01 ; K2-Y00B var?
-H 0F 85 $p2n_notvar ; K2-Y00B
-H B9 48 00 00 00 ; K2-Y00B mov [rip+$имя], r10
+H 48 83 F8 FF ;Y00B
+H 0F 84 $p2n_unknown ;Y00B
+H 48 89 C1 ;Y00B
+H 48 C1 E1 05 ;Y00B
+H 48 89 C2 ;Y00B
+H 48 C1 E2 03 ;Y00B
+H 48 01 D1 ;Y00B
+H 49 8D 95 D8 83 11 00 ;Y00B
+H 48 01 D1 ;Y00B
+H 48 8B 41 10 ;Y00B вид
+H 48 83 F8 01 ;Y00B var?
+H 0F 85 $p2n_notvar ;Y00B
+H B9 48 00 00 00 ;Y00B mov [rip+$имя], r10
 H E8 $out_str ;E003
-H 48 8B 55 F0 ; K2-Y00B
-H 4C 8B 45 E8 ; K2-Y00B
+H 48 8B 55 F0 ;Y00B
+H 4C 8B 45 E8 ;Y00B
 H E8 $out_copy ;E002
-H B9 5D 00 00 00 ; K2-Y00B "], r10"
+H B9 5D 00 00 00 ;Y00B "], r10"
 H E8 $out_str ;E003
 H E8 $emit_cmt ;E009
-H E9 $p2n_tl ; K2-Y00B
+H E9 $p2n_tl ;Y00B
 :p2n_local
-H 48 8D 40 01 ; K2-Y00B
-H 48 C1 E0 03 ; K2-Y00B
-H 48 89 45 F8 ; K2-Y00B
-H B9 43 00 00 00 ; K2-Y00B
+H 48 8D 40 01 ;Y00B
+H 48 C1 E0 03 ;Y00B
+H 48 89 45 F8 ;Y00B
+H B9 43 00 00 00 ;Y00B
 H E8 $out_str ;E003
-H 48 8B 45 F8 ; K2-Y00B
+H 48 8B 45 F8 ;Y00B
 H E8 $out_hex ;E005
-H B9 58 00 00 00 ; K2-Y00B
+H B9 58 00 00 00 ;Y00B
 H E8 $out_str ;E003
 H E8 $emit_cmt ;E009
-H E9 $p2n_tl ; K2-Y00B
+H E9 $p2n_tl ;Y00B
 :p2n_unknown
 H E8 $fail_format ;G002
 :p2n_notvar
 H E8 $fail_format ;G002
 :p2n_tl
-H 49 8B 85 58 81 01 00 ; K2-Y00B last_ret
-H 49 8B 8D 80 81 01 00 ; K2-Y00B
-H 48 8D 49 01 ; K2-Y00B
-H 48 39 C8 ; K2-Y00B
-H 0F 85 $p2n_ret ; K2-Y00B
-H 31 C0 ; K2-Y00B
-H 49 89 85 10 81 01 00 ; K2-Y00B
+H 49 8B 85 58 81 01 00 ;Y00B last_ret
+H 49 8B 8D 80 81 01 00 ;Y00B
+H 48 8D 49 01 ;Y00B
+H 48 39 C8 ;Y00B
+H 0F 85 $p2n_ret ;Y00B
+H 31 C0 ;Y00B
+H 49 89 85 10 81 01 00 ;Y00B
 :p2n_ret
-H 48 89 EC ; K2-Y00B
-H 5D ; K2-Y00B
-H C3 ; K2-Y00B
+H 48 89 EC ;Y00B
+H 5D ;Y00B
+H C3 ;Y00B
 ; ===== K2-E001 out_ch: байт AL -> вывод =====
 :out_ch
 H 41 88 04 24 ;E001
@@ -4319,7 +4344,8 @@ H E8 $emit_cmt ;E009
 H C3 ;E014
 ; ===== K2-E015 emit_header: 2 строки заголовка =====
 ; Строка 1 зависит от флага v2 [r13+18190] (ненулевой = v2-конструкция;
-; ставится в p_mdm при операциях * / %): «WALL v1» или «WALL v2».
+; ставится в p_mdm при операциях * / % и в p1s_brk при break/continue):
+; «WALL v1» или «WALL v2».
 :emit_header
 H B9 22 00 00 00 ;E015
 H 49 8B 85 90 81 01 00 ;E015
@@ -4970,7 +4996,7 @@ H C3 ;E028
 :digits
 DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46
 
-; ===== K2-D002 kwtab: 12 ключевых слов {имя(8Б), длина, код, 0} =====
+; ===== K2-D002 kwtab: 14 ключевых слов {имя(8Б), длина, код, 0} =====
 :kwtab
 DD 726176 0 3 0 ; var
 DD 727473 0 3 1 ; str
@@ -4984,6 +5010,8 @@ DD 75746572 6E72 6 8 ; return
 DD 62746573 0 4 9 ; setb
 DD 62746567 0 4 A ; getb
 DD 6E656C 0 3 B ; len
+DD 61657262 6B 5 C ; break
+DD 746E6F63 65756E69 8 D ; continue
 
 ; ===== K2-D003 jcctab: инверсии сравнений {смещ, длина} =====
 :jcctab
@@ -5309,7 +5337,7 @@ DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
 
 ; ===== K2-D011 виртуальные нули (bss) =====
 :scalars
-DBZ 7A1418 ; bstk[4096x24] + скаляры + ВСЕ буферы (база R13).
+DBZ 7A1418 ; bstk[3072x32] + скаляры + ВСЕ буферы (база R13).
 ; E6.4c-3/1: буферы адресуются смещениями от R13, а не метками
 ; (освобождено 14 записей labtab — предел меток brick 512).
 ; Сумма прежних DBZ не изменилась (0x7A1418). Карта:

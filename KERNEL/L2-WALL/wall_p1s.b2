@@ -77,10 +77,7 @@ M jz $p1e_extra ;S007
 M dec rax ;S007
 M mov [r13+18158], rax ;S007
 M mov rcx, rax ;S007
-M shl rcx, 3 ;S007
-M mov rdx, rax ;S007
-M shl rdx, 4 ;S007
-M add rcx, rdx ;S007
+M shl rcx, 5 ;S007 ×32 (дефект №15)
 M add rcx, r13 ;S007
 M mov rax, [rcx] ;S007
 M cmp rax, 1 ;S007
@@ -127,10 +124,7 @@ M test rax, rax ;S008
 M jz $p1el_fail ;S008
 M dec rax ;S008
 M mov rdx, rax ;S008
-M shl rdx, 3 ;S008
-M mov r8, rax ;S008
-M shl r8, 4 ;S008
-M add rdx, r8 ;S008
+M shl rdx, 5 ;S008 ×32 (дефект №15)
 M add rdx, r13 ;S008
 M mov rax, [rdx] ;S008
 M cmp rax, 2 ;S008
@@ -159,10 +153,7 @@ M lea rcx, [rcx+rax] ;S009
 M mov byte [rcx], 0 ;S009
 M mov rax, [r13+18158] ;S009
 M mov rcx, rax ;S009
-M shl rcx, 3 ;S009
-M mov rdx, rax ;S009
-M shl rdx, 4 ;S009
-M add rcx, rdx ;S009
+M shl rcx, 5 ;S009 ×32 (дефект №15)
 M add rcx, r13 ;S009
 M mov edx, 2 ;S009
 M mov [rcx], rdx ;S009
@@ -176,127 +167,146 @@ M mov [r13+18158], rax ;S009
 M ret ;S009
 ; ===== K2-S00A p1s_while =====
 :p1s_while
-M mov rcx, [r13+18068] ; K2-S00A поглотить while
-M mov [r13+18070], rcx ; K2-S00A
+M mov rcx, [r13+18068] ;S00A поглотить while
+M mov [r13+18070], rcx ;S00A
 M call $p_cond ;P018
 M call $at_end_chk ;P002
-M mov rax, [r13+18158] ; K2-S00A push {while, 0, 0}
-M mov rcx, rax ; K2-S00A
-M shl rcx, 3 ; K2-S00A
-M mov rdx, rax ; K2-S00A
-M shl rdx, 4 ; K2-S00A
-M add rcx, rdx ; K2-S00A
-M add rcx, r13 ; K2-S00A
-M mov edx, 4 ; K2-S00A
-M mov [rcx], rdx ; K2-S00A kind while
-M xor eax, eax ; K2-S00A
-M mov [rcx+8], rax ; K2-S00A
-M mov [rcx+10], rax ; K2-S00A
-M mov rax, [r13+18158] ; K2-S00A
-M inc rax ; K2-S00A
-M mov [r13+18158], rax ; K2-S00A
-M ret ; K2-S00A
+M mov rax, [r13+18158] ;S00A push {while, 0, 0}
+M mov rcx, rax ;S00A
+M shl rcx, 5 ;S00A ×32 (дефект №15)
+M add rcx, r13 ;S00A
+M mov edx, 4 ;S00A
+M mov [rcx], rdx ;S00A kind while
+M xor eax, eax ;S00A
+M mov [rcx+8], rax ;S00A
+M mov [rcx+10], rax ;S00A
+M mov rax, [r13+18158] ;S00A
+M inc rax ;S00A
+M mov [r13+18158], rax ;S00A
+M ret ;S00A
 ; ===== K2-S00B p1s_return =====
 :p1s_return
-M mov rcx, [r13+18068] ; K2-S00B поглотить return
-M mov [r13+18070], rcx ; K2-S00B
-M mov rcx, [r13+18070] ; K2-S00B выражение есть?
+M mov rcx, [r13+18068] ;S00B поглотить return
+M mov [r13+18070], rcx ;S00B
+M mov rcx, [r13+18070] ;S00B выражение есть?
 M call $lex_tok ;L001
-M cmp eax, 4 ; K2-S00B
-M je $p1r_noexpr ; K2-S00B
-M mov ecx, 1 ; K2-S00B
+M cmp eax, 4 ;S00B
+M je $p1r_noexpr ;S00B
+M mov ecx, 1 ;S00B
 M call $p_expr ;P010
-M mov rdx, rax ; K2-S00B
-M cmp rdx, [r13+18090] ; K2-S00B
-M jbe $p1r_atend ; K2-S00B
-M mov [r13+18090], rdx ; K2-S00B
-M jmp $p1r_atend ; K2-S00B
+M mov rdx, rax ;S00B
+M cmp rdx, [r13+18090] ;S00B
+M jbe $p1r_atend ;S00B
+M mov [r13+18090], rdx ;S00B
+M jmp $p1r_atend ;S00B
 :p1r_noexpr
 :p1r_atend
 M call $at_end_chk ;P002
-M ret ; K2-S00B
+M ret ;S00B
 ; ===== K2-S00C p1s_setb =====
 :p1s_setb
-M mov rcx, [r13+18068] ; K2-S00C поглотить setb
-M mov [r13+18070], rcx ; K2-S00C
-M mov ecx, 28 ; K2-S00C '('
+M mov rcx, [r13+18068] ;S00C поглотить setb
+M mov [r13+18070], rcx ;S00C
+M mov ecx, 28 ;S00C '('
 M call $want_sym1 ;P001
-M mov ecx, 1 ; K2-S00C
+M mov ecx, 1 ;S00C
 M call $p_expr ;P010
-M mov rdx, rax ; K2-S00C
-M cmp rdx, [r13+18090] ; K2-S00C
-M jbe $p1sb_2 ; K2-S00C
-M mov [r13+18090], rdx ; K2-S00C
+M mov rdx, rax ;S00C
+M cmp rdx, [r13+18090] ;S00C
+M jbe $p1sb_2 ;S00C
+M mov [r13+18090], rdx ;S00C
 :p1sb_2
-M mov ecx, 2C ; K2-S00C ','
+M mov ecx, 2C ;S00C ','
 M call $want_sym1 ;P001
-M mov ecx, 1 ; K2-S00C
+M mov ecx, 1 ;S00C
 M call $p_expr ;P010
-M mov rdx, rax ; K2-S00C
-M cmp rdx, [r13+18090] ; K2-S00C
-M jbe $p1sb_3 ; K2-S00C
-M mov [r13+18090], rdx ; K2-S00C
+M mov rdx, rax ;S00C
+M cmp rdx, [r13+18090] ;S00C
+M jbe $p1sb_3 ;S00C
+M mov [r13+18090], rdx ;S00C
 :p1sb_3
-M mov ecx, 2C ; K2-S00C ','
+M mov ecx, 2C ;S00C ','
 M call $want_sym1 ;P001
-M mov ecx, 1 ; K2-S00C
+M mov ecx, 1 ;S00C
 M call $p_expr ;P010
-M mov rdx, rax ; K2-S00C
-M cmp rdx, [r13+18090] ; K2-S00C
-M jbe $p1sb_4 ; K2-S00C
-M mov [r13+18090], rdx ; K2-S00C
+M mov rdx, rax ;S00C
+M cmp rdx, [r13+18090] ;S00C
+M jbe $p1sb_4 ;S00C
+M mov [r13+18090], rdx ;S00C
 :p1sb_4
-M mov ecx, 29 ; K2-S00C ')'
+M mov ecx, 29 ;S00C ')'
 M call $want_sym1 ;P001
 M call $at_end_chk ;P002
-M mov eax, 1 ; K2-S00C
-M mov [r13+180A0], rax ; K2-S00C
-M ret ; K2-S00C
+M mov eax, 1 ;S00C
+M mov [r13+180A0], rax ;S00C
+M ret ;S00C
 ; ===== K2-S00D p1_namestmt: вызов-утверждение или присваивание =====
 :p1_namestmt
-M push rbp ; K2-S00D
-M mov rbp, rsp ; K2-S00D
-M sub rsp, 20 ; K2-S00D
-M mov rax, [r13+18060] ; K2-S00D имя
-M mov [rbp-10], rax ; K2-S00D
-M mov rax, [r13+18068] ; K2-S00D
-M sub rax, [rbp-10] ; K2-S00D
-M mov [rbp-18], rax ; K2-S00D
-M mov rcx, [r13+18068] ; K2-S00D поглотить имя
-M mov [r13+18070], rcx ; K2-S00D
-M mov rcx, [r13+18070] ; K2-S00D '(' ?
+M push rbp ;S00D
+M mov rbp, rsp ;S00D
+M sub rsp, 20 ;S00D
+M mov rax, [r13+18060] ;S00D имя
+M mov [rbp-10], rax ;S00D
+M mov rax, [r13+18068] ;S00D
+M sub rax, [rbp-10] ;S00D
+M mov [rbp-18], rax ;S00D
+M mov rcx, [r13+18068] ;S00D поглотить имя
+M mov [r13+18070], rcx ;S00D
+M mov rcx, [r13+18070] ;S00D '(' ?
 M call $lex_tok ;L001
-M cmp eax, 2 ; K2-S00D
-M jne $p1n_assign ; K2-S00D
-M mov rax, [r13+18068] ; K2-S00D
-M sub rax, [r13+18060] ; K2-S00D
-M cmp rax, 1 ; K2-S00D
-M jne $p1n_assign ; K2-S00D
-M mov rcx, [r13+18060] ; K2-S00D
-M movzx eax, byte [rcx] ; K2-S00D
-M cmp al, 28 ; K2-S00D
-M jne $p1n_assign ; K2-S00D
-M mov rcx, [r13+18068] ; K2-S00D вызов-утверждение
-M mov [r13+18070], rcx ; K2-S00D
-M mov rcx, 1 ; K2-S00D
+M cmp eax, 2 ;S00D
+M jne $p1n_assign ;S00D
+M mov rax, [r13+18068] ;S00D
+M sub rax, [r13+18060] ;S00D
+M cmp rax, 1 ;S00D
+M jne $p1n_assign ;S00D
+M mov rcx, [r13+18060] ;S00D
+M movzx eax, byte [rcx] ;S00D
+M cmp al, 28 ;S00D
+M jne $p1n_assign ;S00D
+M mov rcx, [r13+18068] ;S00D вызов-утверждение
+M mov [r13+18070], rcx ;S00D
+M mov rcx, 1 ;S00D
 M call $p_args ;P014
-M mov rcx, [rbp-10] ; K2-S00D
-M mov rdx, [rbp-18] ; K2-S00D
+M mov rcx, [rbp-10] ;S00D
+M mov rdx, [rbp-18] ;S00D
 M call $call_stats ;P016
 M call $at_end_chk ;P002
-M jmp $p1n_ret ; K2-S00D
+M jmp $p1n_ret ;S00D
 :p1n_assign
-M mov ecx, 3D ; K2-S00D '='
+M mov ecx, 3D ;S00D '='
 M call $want_sym1 ;P001
-M mov ecx, 1 ; K2-S00D
+M mov ecx, 1 ;S00D
 M call $p_expr ;P010
-M mov rdx, rax ; K2-S00D
-M cmp rdx, [r13+18090] ; K2-S00D
-M jbe $p1n_atend ; K2-S00D
-M mov [r13+18090], rdx ; K2-S00D
+M mov rdx, rax ;S00D
+M cmp rdx, [r13+18090] ;S00D
+M jbe $p1n_atend ;S00D
+M mov [r13+18090], rdx ;S00D
 :p1n_atend
 M call $at_end_chk ;P002
 :p1n_ret
-M mov rsp, rbp ; K2-S00D
-M pop rbp ; K2-S00D
-M ret ; K2-S00D
+M mov rsp, rbp ;S00D
+M pop rbp ;S00D
+M ret ;S00D
+; ===== K2-S00F p1s_brk: break/continue проход 1 (v2; только в while) =====
+:p1s_brk
+M mov rcx, [r13+18068] ;S00F
+M mov [r13+18070], rcx ;S00F
+M call $at_end_chk ;P002
+M mov r8, [r13+18158] ;S00F скан bstk до while
+:p1b_loop
+M test r8, r8 ;S00F
+M jnz $p1b_go ;S00F
+M call $fail_format ;G002 вне while
+M int3 ;S00F
+:p1b_go
+M dec r8 ;S00F
+M mov rcx, r8 ;S00F
+M shl rcx, 5 ;S00F ×32
+M add rcx, r13 ;S00F
+M mov rax, [rcx] ;S00F
+M cmp rax, 4 ;S00F
+M jne $p1b_loop ;S00F
+M mov rax, 1 ;S00F
+M mov [r13+18190], rax ;S00F флаг v2
+M ret ;S00F
