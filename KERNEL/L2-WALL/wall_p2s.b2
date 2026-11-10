@@ -184,7 +184,7 @@ M mov rax, [rcx+8] ;Y004
 M mov [r13+181F8], rax ;Y004
 M mov rax, [rcx+18] ;Y004 lineidx WHILE-строки
 M shl rax, 4 ;Y004
-M lea rdx, [rip+$sm_arr] ;Y004
+M lea rdx, [r13+183C8] ;Y004
 M add rdx, rax ;Y004
 M mov rax, [rdx] ;Y004
 M mov [r13+181A0], rax ;Y004 srctxt_ptr
@@ -219,7 +219,7 @@ M mov r8, [rcx+8] ;Y005
 M mov [r13+18200], r8 ;Y005
 M mov rax, [rcx+10] ;Y005
 M mov [r13+181F8], rax ;Y005
-M lea rax, [rip+$ifarr] ;Y005
+M lea rax, [r13+578418] ;Y005
 M mov rcx, [r13+181F8] ;Y005
 M lea rax, [rax+rcx] ;Y005
 M movzx eax, byte [rax] ;Y005
@@ -228,7 +228,7 @@ M jz $p2el_push ;Y005
 M mov rcx, [r13+181D8] ;Y005 адрес записи {if}
 M mov rax, [rcx+18] ;Y005 lineidx IF-строки
 M shl rax, 4 ;Y005
-M lea rdx, [rip+$sm_arr] ;Y005
+M lea rdx, [r13+183C8] ;Y005
 M add rdx, rax ;Y005
 M mov rax, [rdx] ;Y005
 M mov [r13+181A0], rax ;Y005 srctxt_ptr
@@ -279,7 +279,7 @@ M mov [rbp-8], rax ;Y006
 M call $p_cond ;P018
 M mov [rbp-18], rax ;Y006
 M call $at_end_chk ;P002
-M lea rax, [rip+$ifarr] ;Y006
+M lea rax, [r13+578418] ;Y006
 M mov rcx, [rbp-10] ;Y006
 M lea rax, [rax+rcx] ;Y006
 M movzx eax, byte [rax] ;Y006

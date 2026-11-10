@@ -30,7 +30,7 @@ M shl rcx, 6 ;E018
 M mov rdx, rax ;E018
 M shl rdx, 3 ;E018
 M add rcx, rdx ;E018
-M lea rdx, [rip+$ftab] ;E018
+M lea rdx, [r13+2583D8] ;E018
 M add rdx, rcx ;E018
 M mov rax, [rdx+10] ;E018
 M mov [rbp-8], rax ;E018
@@ -152,3 +152,41 @@ M call $emit_cmt ;E009
 M mov rsp, rbp ;E021
 M pop rbp ;E021
 M ret ;E021
+; ===== K2-E034 emit_imul: "M imul r10, r11" + комментарий (v2, * / %) =====
+:emit_imul
+M mov ecx, 6C ;E034
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M ret ;E034
+; ===== K2-E035 emit_divmod: EAX = 0 '/' / 1 '%' (v2, SPEC/11 п.8) =====
+; "M mov rax, r10 / M cqo / M idiv r11 / M mov r10, rax|rdx" + комментарии
+:emit_divmod
+M push rbp ;E035
+M mov rbp, rsp ;E035
+M sub rsp, 20 ;E035
+M mov [rbp-8], rax ;E035
+M mov ecx, 4E ;E035
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 6D ;E035
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 6E ;E035
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rax, [rbp-8] ;E035
+M test rax, rax ;E035
+M jnz $edm_rdx ;E035
+M mov ecx, 4C ;E035
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E035
+M pop rbp ;E035
+M ret ;E035
+:edm_rdx
+M mov ecx, 6F ;E035
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E035
+M pop rbp ;E035
+M ret ;E035

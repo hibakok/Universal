@@ -2,7 +2,7 @@
 :get_ext
 M mov rax, rcx ;E025
 M shl rax, 3 ;E025
-M lea rdx, [rip+$earr] ;E025
+M lea rdx, [r13+5783D8] ;E025
 M add rdx, rax ;E025
 M mov r9, [rdx] ;E025
 M mov rcx, r9 ;E025
@@ -10,7 +10,7 @@ M shl rcx, 5 ;E025
 M mov rax, r9 ;E025
 M shl rax, 3 ;E025
 M add rcx, rax ;E025
-M lea rax, [rip+$ntab] ;E025
+M lea rax, [r13+1183D8] ;E025
 M add rcx, rax ;E025
 M mov rdx, [rcx] ;E025
 M mov r8, [rcx+8] ;E025
@@ -58,7 +58,7 @@ M mov [rbp-18], rdx ;E026
 M mov [rbp-20], r8 ;E026
 M mov ecx, 25 ;E026
 M call $out_str ;E003
-M lea rdx, [rip+$scr] ;E026
+M lea rdx, [r13+18348] ;E026
 M mov r8, [rbp-10] ;E026
 M call $out_copy ;E002
 M mov byte [r12], 0A ;E026
@@ -68,7 +68,7 @@ M inc rax ;E026
 M mov [r13+18108], rax ;E026
 M mov ecx, A ;E026
 M call $out_str ;E003
-M lea rdx, [rip+$scr] ;E026
+M lea rdx, [r13+18348] ;E026
 M mov r8, [rbp-10] ;E026
 M call $out_copy ;E002
 M mov byte [r12], 0A ;E026
@@ -128,7 +128,7 @@ M call $get_ext ;E025
 M mov [rbp-10], rax ;E026 длина scr (rax затирается out_str)
 M mov ecx, 24 ;E026
 M call $out_str ;E003
-M lea rdx, [rip+$scr] ;E026
+M lea rdx, [r13+18348] ;E026
 M mov r8, [rbp-10] ;E026
 M call $out_copy ;E002
 M jmp $ei_intnext ;E026
@@ -170,7 +170,7 @@ M mov [rbp-18], rdx ;E026
 M mov [rbp-20], r8 ;E026
 M mov ecx, 23 ;E026
 M call $out_str ;E003
-M lea rdx, [rip+$scr] ;E026
+M lea rdx, [r13+18348] ;E026
 M mov r8, [rbp-10] ;E026
 M call $out_copy ;E002
 M mov byte [r12], 0A ;E026
@@ -257,7 +257,7 @@ M shl rdx, 4 ;E027
 M mov rcx, rax ;E027
 M shl rcx, 3 ;E027
 M add rdx, rcx ;E027
-M lea rcx, [rip+$sarr] ;E027
+M lea rcx, [r13+4783D8] ;E027
 M add rdx, rcx ;E027
 M mov rax, [rdx] ;E027
 M mov rcx, rax ;E027
@@ -265,7 +265,7 @@ M shl rcx, 5 ;E027
 M mov r8, rax ;E027
 M shl r8, 3 ;E027
 M add rcx, r8 ;E027
-M lea r8, [rip+$ntab] ;E027
+M lea r8, [r13+1183D8] ;E027
 M add rcx, r8 ;E027
 M mov rax, [rcx] ;E027
 M mov [rbp-10], rax ;E027
@@ -273,7 +273,7 @@ M mov rax, [rcx+8] ;E027
 M mov [rbp-18], rax ;E027
 M mov rax, [rcx+20] ;E027
 M shl rax, 4 ;E027
-M lea rdx, [rip+$sm_arr] ;E027
+M lea rdx, [r13+183C8] ;E027
 M add rdx, rax ;E027
 M mov rax, [rdx] ;E027
 M mov [r13+181A0], rax ;E027
@@ -291,7 +291,7 @@ M shl rdx, 4 ;E027
 M mov rcx, rax ;E027
 M shl rcx, 3 ;E027
 M add rdx, rcx ;E027
-M lea rcx, [rip+$sarr] ;E027
+M lea rcx, [r13+4783D8] ;E027
 M add rdx, rcx ;E027
 M mov r8, [rdx+10] ;E027
 M mov rdx, [rdx+8] ;E027
@@ -309,7 +309,7 @@ M shl rdx, 4 ;E027
 M mov rcx, rax ;E027
 M shl rcx, 3 ;E027
 M add rdx, rcx ;E027
-M lea rcx, [rip+$sarr] ;E027
+M lea rcx, [r13+4783D8] ;E027
 M add rdx, rcx ;E027
 M mov r8, [rdx+10] ;E027
 M mov rdx, [rdx+8] ;E027
@@ -336,7 +336,7 @@ M cmp rax, [r13+18148] ;E028
 M jae $egd_ret ;E028
 M mov rcx, rax ;E028
 M shl rcx, 3 ;E028
-M lea rdx, [rip+$varr] ;E028
+M lea rdx, [r13+5383D8] ;E028
 M add rdx, rcx ;E028
 M mov rax, [rdx] ;E028
 M mov rcx, rax ;E028
@@ -344,7 +344,7 @@ M shl rcx, 5 ;E028
 M mov r8, rax ;E028
 M shl r8, 3 ;E028
 M add rcx, r8 ;E028
-M lea r8, [rip+$ntab] ;E028
+M lea r8, [r13+1183D8] ;E028
 M add rcx, r8 ;E028
 M mov rdx, [rcx] ;E028
 M mov [rbp-10], rdx ;E028
@@ -352,7 +352,7 @@ M mov r8, [rcx+8] ;E028
 M mov [rbp-18], r8 ;E028
 M mov rax, [rcx+20] ;E028
 M shl rax, 4 ;E028
-M lea rdx, [rip+$sm_arr] ;E028
+M lea rdx, [r13+183C8] ;E028
 M add rdx, rax ;E028
 M mov rax, [rdx] ;E028
 M mov [r13+181A0], rax ;E028

@@ -144,6 +144,10 @@ def assemble(text):
                     name = buf[addr:addr + n].decode()
                     if name in labels:
                         _err(lineno)           # дубликат (вкл. base)
+                    if len(labels) >= 512:
+                        _err(lineno)           # переполнение labtab (SPEC/08:
+                        # меток <= 512, ВКЛ. предопределённую base; поймано
+                        # расхождение оракула с brick.exe — E6.4c-3/1)
                     labels[name] = cursor
                 while buf[p] not in (0, 0x0A):
                     p += 1

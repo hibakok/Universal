@@ -169,6 +169,15 @@ DB 55 2D 4C 32 2D 57 41 4C 4C 20 43 4D 44 53 3A 20
 DB 57 41 4C 4C 20 3C 53 52 43 2E 57 41 4C 4C 3E 20
 DB 3C 4F 55 54 2E 42 32 3E 0D 0A D0 B2 D1 8B D1 85
 DB D0 BE D0 B4 20 3A 5F 77 20 24 5F 77 78 6F 72 30
+DB 4D 20 69 6D 75 6C 20 72 31 30 2C 20 72 31 31 4D
+DB 20 63 71 6F 4D 20 69 64 69 76 20 72 31 31 4D 20
+DB 6D 6F 76 20 72 31 30 2C 20 72 64 78 3B 20 55 4E
+DB 49 56 45 52 53 41 4C 20 2F 20 57 41 4C 4C 20 76
+DB 32 20 2F 20 D1 81 D0 B3 D0 B5 D0 BD D0 B5 D1 80
+DB D0 B8 D1 80 D0 BE D0 B2 D0 B0 D0 BD D0 BE 20 D0
+DB BA D0 BE D0 BC D0 BF D0 B8 D0 BB D1 8F D1 82 D0
+DB BE D1 80 D0 BE D0 BC 20 57 41 4C 4C 20 28 53 50
+DB 45 43 2F 31 31 29
 
 ; ===== K2-D008 strtab2: смещения/длины (индекс = номер) =====
 :strtab2
@@ -280,6 +289,11 @@ DD 735 3 ; s_wlbl
 DD 738 4 ; s_wref
 DD 73C 3 ; s_xor
 DD 73F 1 ; s_zero
+DD 740 F ; s_mimul
+DD 74F 5 ; s_mcqo
+DD 754 A ; s_midiv
+DD 75E E ; s_mr10rdx
+DD 76C 5A ; s_hdr1v2
 
 ; ===== K2-D010 таблица импортов kernel32.dll =====
 DZ 1 ; выравнивание чётности RVA hint-записей (инвариант 7 SPEC/04)
@@ -306,7 +320,7 @@ DQ 0 ; терминатор
 DQ $hint_gsh $hint_wf $hint_ep $hint_gcl $hint_cf $hint_rf $hint_ch 0
 :dll_name
 DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; kernel32.dll
-DZ 1 ; чётность RVA hint-записей
+DZ 2 ; чётность RVA hint-записей
 :hint_gsh
 DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 ; GetStdHandle
 DZ 1
@@ -327,33 +341,21 @@ DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; CloseHandle
 
 ; ===== K2-D011 виртуальные нули (bss) =====
 :scalars
-DBZ 18208 ; bstk[4096x24] + 65 скаляров (база R13)
-:fname_in
-DBZ 80
-:fname_out
-DBZ 80
-:linebuf
-DBZ 40
-:scr
-DBZ 80
-:sm_arr
-DBZ 100010
-:ntab
-DBZ 140000
-:ftab
-DBZ 120000
-:larr
-DBZ 100000
-:sarr
-DBZ C0000
-:varr
-DBZ 40000
-:earr
-DBZ 40
-:ifarr
-DBZ 8000
-:filebuf
-DBZ 21000
-:outbuf
-DBZ 200000
-
+DBZ 7A1418 ; bstk[4096x24] + скаляры + ВСЕ буферы (база R13).
+; E6.4c-3/1: буферы адресуются смещениями от R13, а не метками
+; (освобождено 14 записей labtab — предел меток brick 512).
+; Сумма прежних DBZ не изменилась (0x7A1418). Карта:
+;   fname_in   r13+18208   DBZ 80
+;   fname_out  r13+18288   DBZ 80
+;   linebuf    r13+18308   DBZ 40
+;   scr        r13+18348   DBZ 80
+;   sm_arr     r13+183C8   DBZ 100010
+;   ntab       r13+1183D8  DBZ 140000
+;   ftab       r13+2583D8  DBZ 120000
+;   larr       r13+3783D8  DBZ 100000
+;   sarr       r13+4783D8  DBZ C0000
+;   varr       r13+5383D8  DBZ 40000
+;   earr       r13+5783D8  DBZ 40
+;   ifarr      r13+578418  DBZ 8000
+;   filebuf    r13+580418  DBZ 21000
+;   outbuf     r13+5A1418  DBZ 200000

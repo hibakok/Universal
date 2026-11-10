@@ -138,7 +138,7 @@ M call $fail_format ;G002
 ; ===== K2-P006 names_find: RCX = ptr, RDX = len -> EAX = индекс | -1 =====
 :names_find
 M mov r11, rdx ;P006
-M lea r9, [rip+$ntab] ;P006
+M lea r9, [r13+1183D8] ;P006
 M xor r8d, r8d ;P006
 :nf_loop
 M cmp r8, [r13+18128] ;P006
@@ -181,7 +181,7 @@ M shl rcx, 5 ;P007
 M mov rdx, rax ;P007
 M shl rdx, 3 ;P007
 M add rcx, rdx ;P007
-M lea rdx, [rip+$ntab] ;P007
+M lea rdx, [r13+1183D8] ;P007
 M add rcx, rdx ;P007
 M mov rax, [rbp-8] ;P007
 M mov [rcx], rax ;P007
@@ -210,7 +210,7 @@ M cmp r9, r8 ;P008
 M jae $lf_none ;P008
 M mov rax, r9 ;P008
 M shl rax, 4 ;P008
-M lea rdi, [rip+$larr] ;P008
+M lea rdi, [r13+3783D8] ;P008
 M add rdi, rax ;P008
 M mov rax, [rdi+8] ;P008
 M cmp rax, r11 ;P008
@@ -236,9 +236,11 @@ M jmp $lf_loop ;P008
 M mov rax, -1 ;P008
 M ret ;P008
 ; ===== K2-P009 chain_count: число операций уровня в остатке строки =====
-; RCX = 0 (аддитивные + - | ^) / 1 (мультипликативные & << >>);
+; RCX = 0 (аддитивные + - | ^) / 1 (конъюнкция & << >>) / 2 (v2: * / %);
 ; сканирует токены от pc_cur БЕЗ потребления; RAX = число операций.
-; Завершители на глубине 0: ')' , ','; аддитивные на мул-уровне тоже.
+; Завершители на глубине 0: ')' , ','; операторы старших уровней;
+; сравнения == != <= >= — конец ЛЮБОЙ цепочки (правый операнд сравнения
+; не считается в цепочку левого — дефект E6.4b, пойман E6.4c-3/1).
 :chain_count
 M push rbp ;P009
 M mov rbp, rsp ;P009
@@ -265,11 +267,17 @@ M cmp al, 28 ;P009
 M je $cc_open ;P009
 M cmp al, 29 ;P009
 M je $cc_close ;P009
+M cmp al, 3C ;P009
+M je $cc_done ;P009
+M cmp al, 3E ;P009
+M je $cc_done ;P009
 M test r9d, r9d ;P009
 M jnz $cc_adv ;P009
-M mov rdx, [rbp-8] ;P009
-M test rdx, rdx ;P009
-M jnz $cc_mul ;P009
+M mov rdi, [rbp-8] ;P009
+M cmp rdi, 1 ;P009
+M je $cc_mul ;P009
+M cmp rdi, 2 ;P009
+M je $cc_mdm ;P009
 M cmp al, 2B ;P009
 M je $cc_op ;P009
 M cmp al, 2D ;P009
@@ -295,15 +303,43 @@ M je $cc_done ;P009
 M cmp al, 2C ;P009
 M je $cc_done ;P009
 M jmp $cc_adv ;P009
+:cc_mdm
+M cmp al, 2A ;P009
+M je $cc_op ;P009
+M cmp al, 2F ;P009
+M je $cc_op ;P009
+M cmp al, 25 ;P009
+M je $cc_op ;P009
+M cmp al, 26 ;P009
+M je $cc_done ;P009
+M cmp al, 2B ;P009
+M je $cc_done ;P009
+M cmp al, 2D ;P009
+M je $cc_done ;P009
+M cmp al, 7C ;P009
+M je $cc_done ;P009
+M cmp al, 5E ;P009
+M je $cc_done ;P009
+M cmp al, 2C ;P009
+M je $cc_done ;P009
+M jmp $cc_adv ;P009
 :cc_sym2
 M test r9d, r9d ;P009
 M jnz $cc_adv ;P009
-M mov rdx, [rbp-8] ;P009
-M test rdx, rdx ;P009
-M jz $cc_adv ;P009
-M mov rdx, [r13+18060] ;P009 tok_ptr (rax затирается байтом)
+M mov rdx, [r13+18060] ;P009
 M movzx eax, byte [rdx] ;P009
 M movzx edx, byte [rdx+1] ;P009
+; у всех сравнений (== != <= >=) второй байт 3D, у сдвигов — 3C/3E:
+; сравнение — конец ЛЮБОЙ цепочки на любом уровне (правый операнд
+; сравнения не считается в цепочку левого — дефект E6.4b, E6.4c-3/1)
+M cmp dl, 3D ;P009
+M je $cc_done ;P009
+:cc_2lvl
+M mov rdi, [rbp-8] ;P009
+M cmp rdi, 2 ;P009
+M je $cc_s2mdm ;P009
+M test rdi, rdi ;P009
+M jz $cc_adv ;P009
 M cmp al, 3C ;P009
 M jne $cc_m2b ;P009
 M cmp dl, 3C ;P009
@@ -314,6 +350,18 @@ M cmp al, 3E ;P009
 M jne $cc_adv ;P009
 M cmp dl, 3E ;P009
 M je $cc_op ;P009
+M jmp $cc_adv ;P009
+:cc_s2mdm
+M cmp al, 3C ;P009
+M jne $cc_m2b2 ;P009
+M cmp dl, 3C ;P009
+M je $cc_done ;P009
+M jmp $cc_adv ;P009
+:cc_m2b2
+M cmp al, 3E ;P009
+M jne $cc_adv ;P009
+M cmp dl, 3E ;P009
+M je $cc_done ;P009
 M jmp $cc_adv ;P009
 :cc_open
 M inc r9d ;P009

@@ -14,7 +14,7 @@ M mov [r13+18178], rax ;Y001
 M mov [r13+18110], rax ;Y001
 M mov eax, 1 ;Y001
 M mov [r13+18080], rax ;Y001
-M lea rsi, [rip+$filebuf] ;Y001
+M lea rsi, [r13+580418] ;Y001
 M call $emit_header ;E015
 M call $emit_imports ;E026
 M call $emit_entry ;E016
@@ -57,7 +57,7 @@ M mov rcx, r14 ;Y002
 M mov [r13+18070], rcx ;Y002
 M mov rax, [r13+18028] ;Y002
 M shl rax, 4 ;Y002
-M lea rdx, [rip+$sm_arr] ;Y002
+M lea rdx, [r13+183C8] ;Y002
 M add rdx, rax ;Y002
 M mov rax, [rdx] ;Y002
 M mov [r13+181A0], rax ;Y002
@@ -126,7 +126,7 @@ M shl rcx, 5 ; K2-Y00A
 M mov rdx, rax ; K2-Y00A
 M shl rdx, 3 ; K2-Y00A
 M add rcx, rdx ; K2-Y00A
-M lea rdx, [rip+$ntab] ; K2-Y00A
+M lea rdx, [r13+1183D8] ; K2-Y00A
 M add rcx, rdx ; K2-Y00A
 M mov rax, [rcx+18] ; K2-Y00A мета = fidx
 M mov [rbp-8], rax ; K2-Y00A
@@ -138,7 +138,7 @@ M shl rcx, 6 ; K2-Y00A
 M mov rdx, rax ; K2-Y00A
 M shl rdx, 3 ; K2-Y00A
 M add rcx, rdx ; K2-Y00A
-M lea rdx, [rip+$ftab] ; K2-Y00A
+M lea rdx, [r13+2583D8] ; K2-Y00A
 M add rdx, rcx ; K2-Y00A адрес записи
 M mov rax, [rdx+18] ; K2-Y00A maxd
 M mov [r13+180C8], rax ; K2-Y00A

@@ -109,7 +109,7 @@ M shl rcx, 5 ;P013
 M mov rdx, rax ;P013
 M shl rdx, 3 ;P013
 M add rcx, rdx ;P013
-M lea rdx, [rip+$ntab] ;P013
+M lea rdx, [r13+1183D8] ;P013
 M add rcx, rdx ;P013
 M mov rax, [rcx+10] ;P013
 M cmp rax, 3 ;P013

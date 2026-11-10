@@ -31,7 +31,7 @@ M mov rax, [r13+18128] ;S003
 M dec rax ;S003
 M mov rcx, [r13+18148] ;S003
 M shl rcx, 3 ;S003
-M lea rdx, [rip+$varr] ;S003
+M lea rdx, [r13+5383D8] ;S003
 M add rdx, rcx ;S003
 M mov [rdx], rax ;S003
 M mov rax, [r13+18148] ;S003
@@ -85,7 +85,7 @@ M shl rdx, 4 ;S003
 M mov rcx, rax ;S003
 M shl rcx, 3 ;S003
 M add rdx, rcx ;S003
-M lea rcx, [rip+$sarr] ;S003
+M lea rcx, [r13+4783D8] ;S003
 M add rdx, rcx ;S003
 M mov rax, [r13+18128] ;S003
 M dec rax ;S003
@@ -130,7 +130,7 @@ M call $names_add ;P007
 M mov rax, [r13+18150] ;S003
 M mov rcx, rax ;S003
 M shl rcx, 3 ;S003
-M lea rdx, [rip+$earr] ;S003
+M lea rdx, [r13+5783D8] ;S003
 M add rdx, rcx ;S003
 M mov rax, [r13+18128] ;S003
 M dec rax ;S003
@@ -251,7 +251,7 @@ M shl rcx, 6 ;S004
 M mov rdx, rax ;S004
 M shl rdx, 3 ;S004
 M add rcx, rdx ;S004
-M lea rdx, [rip+$ftab] ;S004
+M lea rdx, [r13+2583D8] ;S004
 M add rdx, rcx ;S004
 M mov rax, [rbp-10] ;S004
 M mov [rdx], rax ;S004
@@ -340,7 +340,7 @@ M cmp r8, r9 ; K2-S00E
 M jae $fhp_ok ; K2-S00E
 M mov rax, r8 ; K2-S00E
 M shl rax, 4 ; K2-S00E
-M lea rdx, [rip+$larr] ; K2-S00E
+M lea rdx, [r13+3783D8] ; K2-S00E
 M add rdx, rax ; K2-S00E
 M mov rcx, [rdx+8] ; K2-S00E длина
 M cmp rcx, [rbp-18] ; K2-S00E
@@ -362,7 +362,7 @@ M jmp $fhp_scan ; K2-S00E
 :fhp_ok
 M mov rax, [r13+18138] ; K2-S00E append larr
 M shl rax, 4 ; K2-S00E
-M lea rdx, [rip+$larr] ; K2-S00E
+M lea rdx, [r13+3783D8] ; K2-S00E
 M add rdx, rax ; K2-S00E
 M mov rax, [rbp-10] ; K2-S00E
 M mov [rdx], rax ; K2-S00E
@@ -387,7 +387,7 @@ M xor r8d, r8d ;S005
 :nfc_loop
 M cmp r8, [r13+18128] ;S005
 M jae $nfc_none ;S005
-M lea r9, [rip+$ntab] ;S005
+M lea r9, [r13+1183D8] ;S005
 M mov rax, r8 ;S005
 M shl rax, 5 ;S005
 M mov rdx, r8 ;S005

@@ -55,11 +55,11 @@ M jmp $word1 ;C001
 M mov ecx, 0 ;G003
 M call $print_error ;G003
 :word1
-M lea r8, [rip+$fname_in] ;G004
+M lea r8, [r13+18208] ;G004
 M call $next_arg ;C002
-M lea r8, [rip+$fname_out] ;G004
+M lea r8, [r13+18288] ;G004
 M call $next_arg ;C002
-M lea rcx, [rip+$fname_in] ;G004
+M lea rcx, [r13+18208] ;G004
 M call $open_file_read ;F001
 M cmp rax, -1 ;G004
 M jnz $ok1 ;G004
@@ -68,7 +68,7 @@ M call $print_error ;G003
 :ok1
 M mov r12, rax ;G004
 M mov rcx, r12 ;G004
-M lea rdx, [rip+$filebuf] ;G004
+M lea rdx, [r13+580418] ;G004
 M mov r8d, 20001 ;G004
 M lea r9, [r13+18010] ;G004
 M call $read_whole_dst ;F004
@@ -85,19 +85,19 @@ M call $print_error ;G003
 M mov rcx, r12 ;G004
 M call $close_file ;F003
 M mov rax, [r13+18010] ;G004
-M lea rcx, [rip+$filebuf] ;G004
+M lea rcx, [r13+580418] ;G004
 M add rcx, rax ;G004
 M mov byte [rcx], 0 ;G004
 M mov [r13+18048], rcx ;G004
 ; ---- инициализация регистров ----
-M lea r10, [rip+$outbuf] ;X001
+M lea r10, [r13+5A1418] ;X001
 M mov r12, r10 ;X001
 ; ---- три прохода ----
 M call $pass0 ;N002
 M call $pass1 ;S001
 M call $pass2 ;Y001
 ; ---- запись выхода ----
-M lea rcx, [rip+$fname_out] ;G004
+M lea rcx, [r13+18288] ;G004
 M call $create_file_write ;F002
 M cmp rax, -1 ;G004
 M jnz $ok6 ;G004
@@ -106,7 +106,7 @@ M call $print_error ;G003
 :ok6
 M mov r15, rax ;G004
 M mov rcx, r15 ;G004
-M lea rdx, [rip+$outbuf] ;G004
+M lea rdx, [r13+5A1418] ;G004
 M mov r8, r12 ;G004
 M sub r8, r10 ;G004
 M call $write_all ;F005

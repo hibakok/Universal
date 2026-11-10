@@ -26,7 +26,7 @@ M mov r9d, [rax+4]
 M lea rsi, [rip+$strblob]
 M add rsi, rdx
 M mov ecx, r9d ; длина префикса
-M lea rdi, [rip+$linebuf]
+M lea rdi, [r13+18308]
 :ff_loop
 M movzx eax, byte [rsi] ;G002
 M mov [rdi], al ;G002
@@ -43,7 +43,7 @@ M mov byte [rdi], 0A ;G002
 M inc rdi ;G002
 M mov r8d, r9d ;G002 длина префикса
 M add r8d, 6 ;G002
-M lea rdx, [rip+$linebuf] ;G002
+M lea rdx, [r13+18308] ;G002
 M call $print_line ;U001
 M mov ecx, 6 ;G002
 M call [rip+$iat_ep] ;G002

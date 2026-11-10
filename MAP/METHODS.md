@@ -315,6 +315,7 @@
 | K2-P010 | p_expr | P | готов | `MAP/M2-WALL.md` |
 | K2-P011 | p_mul | P | готов | `MAP/M2-WALL.md` |
 | K2-P012 | p_unary | P | готов | `MAP/M2-WALL.md` |
+| K2-P01A | p_mdm | P | готов | `MAP/M2-WALL.md` |
 | K2-P013 | p_prim | P | готов | `MAP/M2-WALL.md` |
 | K2-P014 | p_args | P | готов | `MAP/M2-WALL.md` |
 | K2-P015 | p_call_tail | P | готов | `MAP/M2-WALL.md` |
@@ -367,6 +368,8 @@
 | K2-E019 | emit_epilogue | E | готов | `MAP/M2-WALL.md` |
 | K2-E020 | emit_alu | E | готов | `MAP/M2-WALL.md` |
 | K2-E021 | emit_shift | E | готов | `MAP/M2-WALL.md` |
+| K2-E034 | emit_imul | E | готов | `MAP/M2-WALL.md` |
+| K2-E035 | emit_divmod | E | готов | `MAP/M2-WALL.md` |
 | K2-E022 | emit_addr | E | готов | `MAP/M2-WALL.md` |
 | K2-E023 | emit_len | E | готов | `MAP/M2-WALL.md` |
 | K2-E024 | emit_load | E | готов | `MAP/M2-WALL.md` |

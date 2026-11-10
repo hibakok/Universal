@@ -113,7 +113,7 @@ M shl rcx, 5 ;P015
 M mov rdx, rax ;P015
 M shl rdx, 3 ;P015
 M add rcx, rdx ;P015
-M lea rdx, [rip+$ntab] ;P015
+M lea rdx, [r13+1183D8] ;P015
 M add rcx, rdx ;P015
 M mov rax, [rcx+10] ;P015
 M cmp rax, 4 ;P015
@@ -128,7 +128,7 @@ M shl rax, 6 ;P015
 M mov rcx, rdx ;P015
 M shl rcx, 3 ;P015
 M add rax, rcx ;P015
-M lea rcx, [rip+$ftab] ;P015
+M lea rcx, [r13+2583D8] ;P015
 M add rcx, rax ;P015
 M mov rax, [rcx+10] ;P015
 M cmp rax, [r13+181E8] ;P015
@@ -245,7 +245,7 @@ M call $out_str ;E003
 M mov rdx, [rbp-10] ;P015
 M mov r8, [rbp-18] ;P015
 M call $lower_copy ;E012
-M lea rdx, [rip+$scr] ;P015
+M lea rdx, [r13+18348] ;P015
 M mov r8, rax ;P015
 M call $out_copy ;E002
 M mov byte [r12], 5D ;P015
@@ -280,7 +280,7 @@ M shl rcx, 5 ;P016
 M mov rdx, rax ;P016
 M shl rdx, 3 ;P016
 M add rcx, rdx ;P016
-M lea rdx, [rip+$ntab] ;P016
+M lea rdx, [r13+1183D8] ;P016
 M add rcx, rdx ;P016
 M mov rax, [rcx+10] ;P016
 M cmp rax, 3 ;P016

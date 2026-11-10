@@ -120,7 +120,7 @@ M call $chain_count ;P009
 M mov [rbp-28], rax ;P011
 M mov rcx, [rbp-8] ;P011
 M add rcx, rax ;P011
-M call $p_unary ;P012
+M call $p_mdm ;P01A
 M mov [rbp-10], rax ;P011
 M mov rax, [rbp-8] ;P011
 M add rax, [rbp-28] ;P011
@@ -130,7 +130,7 @@ M jmp $pm_loop ;P011
 :pm_nok
 M mov rcx, [rbp-8] ;P011
 M add rcx, 1 ;P011
-M call $p_unary ;P012
+M call $p_mdm ;P01A
 M mov [rbp-10], rax ;P011
 M xor eax, eax ;P011
 M mov [rbp-18], rax ;P011
@@ -180,7 +180,7 @@ M test rax, rax ;P011
 M jnz $pm_emit_t ;P011
 M mov rcx, [rbp-8] ;P011
 M add rcx, 1 ;P011
-M call $p_unary ;P012
+M call $p_mdm ;P01A
 M mov rdx, [rbp-10] ;P011
 M cmp rdx, rax ;P011
 M jge $pm_stmax ;P011
@@ -203,7 +203,7 @@ M call $out_str ;E003
 M call $emit_cmt ;E009
 M mov rcx, [rbp-18] ;P011
 M add rcx, 1 ;P011
-M call $p_unary ;P012
+M call $p_mdm ;P01A
 M mov ecx, 4D ;P011
 M call $out_str ;E003
 M call $emit_cmt ;E009
@@ -242,6 +242,130 @@ M mov rax, [rbp-10] ;P011
 M mov rsp, rbp ;P011
 M pop rbp ;P011
 M ret ;P011
+; ===== K2-P01A p_mdm: уровень * / % (v2, SPEC/11 п.2); RCX = глубина d =====
+; Как p_expr/p_mul: статы RAX=need; эмит — chain_count ур.2, первый
+; операнд на d+K, правые на tdepth+1, T-склад на tdepth, tdepth убывает.
+; Операция ставит флаг v2 [r13+18190] (заголовок «WALL v2», E6.4c-3/1).
+:p_mdm
+M push rbp ;P01A
+M mov rbp, rsp ;P01A
+M sub rsp, 30 ;P01A
+M mov [rbp-8], rcx ;P01A
+M mov rax, [r13+18080] ;P01A
+M test rax, rax ;P01A
+M jz $md_nok ;P01A
+M mov ecx, 2 ;P01A
+M call $chain_count ;P009
+M mov [rbp-28], rax ;P01A
+M mov rcx, [rbp-8] ;P01A
+M add rcx, rax ;P01A
+M call $p_unary ;P012
+M mov [rbp-10], rax ;P01A
+M mov rax, [rbp-8] ;P01A
+M add rax, [rbp-28] ;P01A
+M dec rax ;P01A
+M mov [rbp-18], rax ;P01A
+M jmp $md_loop ;P01A
+:md_nok
+M mov rcx, [rbp-8] ;P01A
+M add rcx, 1 ;P01A
+M call $p_unary ;P012
+M mov [rbp-10], rax ;P01A
+M xor eax, eax ;P01A
+M mov [rbp-18], rax ;P01A
+:md_loop
+M mov rcx, [r13+18070] ;P01A
+M call $lex_tok ;L001
+M cmp eax, 2 ;P01A
+M jne $md_done ;P01A
+M mov rax, [r13+18068] ;P01A
+M sub rax, [r13+18060] ;P01A
+M cmp rax, 1 ;P01A
+M jne $md_done ;P01A
+M mov rcx, [r13+18060] ;P01A
+M movzx eax, byte [rcx] ;P01A
+M cmp al, 2A ;P01A '*'
+M je $md_op ;P01A
+M cmp al, 2F ;P01A '/'
+M je $md_op ;P01A
+M cmp al, 25 ;P01A '%'
+M jne $md_done ;P01A
+:md_op
+M mov [rbp-20], rax ;P01A
+M mov [r13+18190], rax ;P01A
+M mov rcx, [r13+18068] ;P01A
+M mov [r13+18070], rcx ;P01A
+M mov rax, [r13+18080] ;P01A
+M test rax, rax ;P01A
+M jnz $md_emit_t ;P01A
+M mov rcx, [rbp-8] ;P01A
+M add rcx, 1 ;P01A
+M call $p_unary ;P012
+M mov rdx, [rbp-10] ;P01A
+M cmp rdx, rax ;P01A
+M jge $md_stmax ;P01A
+M mov rdx, rax ;P01A
+:md_stmax
+M lea rax, [rdx+1] ;P01A
+M mov [rbp-10], rax ;P01A
+M jmp $md_loop ;P01A
+:md_emit_t
+M mov rax, [r13+180C0] ;P01A
+M add rax, [rbp-18] ;P01A
+M shl rax, 3 ;P01A
+M mov [rbp-30], rax ;P01A
+M mov ecx, 43 ;P01A
+M call $out_str ;E003
+M mov rax, [rbp-30] ;P01A
+M call $out_hex ;E005
+M mov ecx, 58 ;P01A
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rcx, [rbp-18] ;P01A
+M add rcx, 1 ;P01A
+M call $p_unary ;P012
+M mov ecx, 4D ;P01A
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P01A
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P01A
+M add rax, [rbp-18] ;P01A
+M shl rax, 3 ;P01A
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P01A
+M inc r12 ;P01A
+M call $emit_cmt ;E009
+M mov rax, [rbp-20] ;P01A
+M cmp al, 2A ;P01A '*'
+M jne $md_div ;P01A
+M call $emit_imul ;E034
+M mov rax, [rbp-18] ;P01A
+M dec rax ;P01A
+M mov [rbp-18], rax ;P01A
+M jmp $md_loop ;P01A
+:md_div
+M mov rax, [rbp-20] ;P01A
+M cmp al, 2F ;P01A '/'
+M jne $md_mod ;P01A
+M xor eax, eax ;P01A
+M call $emit_divmod ;E035
+M mov rax, [rbp-18] ;P01A
+M dec rax ;P01A
+M mov [rbp-18], rax ;P01A
+M jmp $md_loop ;P01A
+:md_mod
+M mov eax, 1 ;P01A
+M call $emit_divmod ;E035
+M mov rax, [rbp-18] ;P01A
+M dec rax ;P01A
+M mov [rbp-18], rax ;P01A
+M jmp $md_loop ;P01A
+:md_done
+M mov rax, [rbp-10] ;P01A
+M mov rsp, rbp ;P01A
+M pop rbp ;P01A
+M ret ;P01A
 ; ===== K2-P012 p_unary: унарный минус / первичное; RCX = d =====
 :p_unary
 M push rbp ;P012

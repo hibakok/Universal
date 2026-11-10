@@ -48,7 +48,7 @@ M ret ;N001
 M xor eax, eax ;N002
 M mov [r13+18028], rax ;N002
 M mov [r13+18040], rax ;N002
-M lea rsi, [rip+$filebuf] ;N002
+M lea rsi, [r13+580418] ;N002
 :p0_loop
 M call $line_next ;N002
 M mov [r13+181D0], rax ;N002
@@ -124,7 +124,7 @@ M mov rdx, rax ;N003
 M sub rdx, [r13+18198] ;N003
 M mov rax, [r13+18028] ;N003
 M shl rax, 4 ;N003
-M lea rcx, [rip+$sm_arr] ;N003
+M lea rcx, [r13+183C8] ;N003
 M add rcx, rax ;N003
 M mov rax, [r13+18198] ;N003
 M mov [rcx], rax ;N003

@@ -7,13 +7,14 @@ import os
 import sys
 import tempfile
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "py"))
+UNI = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, os.path.join(UNI, "LAB", "py"))
 import lab_l2                       # noqa: E402
 import lab_l2_cases                 # noqa: E402
 import lab_l2_prog                  # noqa: E402
 import lab_run                      # noqa: E402
 
-WALL = "/home/z/my-project/Universal/KERNEL/L2-WALL/wall.exe"
+WALL = os.path.join(UNI, "KERNEL", "L2-WALL", "wall.exe")
 
 
 def run_wall(src, name="t.wall"):

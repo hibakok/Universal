@@ -15,7 +15,7 @@ M mov [r13+18158], rax ;S001
 M mov [r13+18118], rax ;S001
 M mov [r13+18160], rax ;S001
 M mov [r13+18170], rax ;S001
-M lea rsi, [rip+$filebuf] ;S001
+M lea rsi, [r13+580418] ;S001
 :p1_loop
 M call $line_next ;N001
 M mov [r13+181D0], rax ;S001
@@ -41,7 +41,7 @@ M mov [rbp-8], rax ;S001
 M mov [rbp-10], rax ;S001
 M mov [rbp-18], rax ;S001
 M xor r8d, r8d ;S001
-M lea rdi, [rip+$ftab] ;S001
+M lea rdi, [r13+2583D8] ;S001
 :p1_mscan
 M cmp r8, [r13+18130] ;S001
 M jae $p1_mdone ;S001

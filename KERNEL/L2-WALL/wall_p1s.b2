@@ -22,7 +22,7 @@ M cmp r8, rcx ;S006
 M jae $p1v_glob ;S006
 M mov rax, r8 ;S006
 M shl rax, 4 ;S006
-M lea rdx, [rip+$larr] ;S006
+M lea rdx, [r13+3783D8] ;S006
 M add rdx, rax ;S006
 M mov rdi, [rdx] ;S006
 M mov rax, [rdx+8] ;S006
@@ -49,7 +49,7 @@ M cmp rax, -1 ;S006
 M jne $p1v_dup ;S006
 M mov rax, [r13+18138] ;S006
 M shl rax, 4 ;S006
-M lea rdx, [rip+$larr] ;S006
+M lea rdx, [r13+3783D8] ;S006
 M add rdx, rax ;S006
 M mov rax, [r13+181D8] ;S006
 M mov [rdx], rax ;S006
@@ -91,7 +91,7 @@ M shl rcx, 6 ;S007
 M mov rdx, rax ;S007
 M shl rdx, 3 ;S007
 M add rcx, rdx ;S007
-M lea rdx, [rip+$ftab] ;S007
+M lea rdx, [r13+2583D8] ;S007
 M add rdx, rcx ;S007
 M mov rax, [r13+18090] ;S007
 M mov [rdx+18], rax ;S007
@@ -136,7 +136,7 @@ M mov rax, [rdx] ;S008
 M cmp rax, 2 ;S008
 M jne $p1el_fail ;S008
 M mov rax, [rdx+10] ;S008
-M lea rcx, [rip+$ifarr] ;S008 флаг непустого else
+M lea rcx, [r13+578418] ;S008 флаг непустого else
 M lea rcx, [rcx+rax] ;S008
 M mov byte [rcx], 1 ;S008
 M mov rcx, 3 ;S008
@@ -154,7 +154,7 @@ M call $at_end_chk ;P002
 M mov rax, [r13+18118] ;S009
 M inc rax ;S009
 M mov [r13+18118], rax ;S009
-M lea rcx, [rip+$ifarr] ;S009
+M lea rcx, [r13+578418] ;S009
 M lea rcx, [rcx+rax] ;S009
 M mov byte [rcx], 0 ;S009
 M mov rax, [r13+18158] ;S009

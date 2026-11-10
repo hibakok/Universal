@@ -169,7 +169,7 @@ M shl rcx, 5 ;E022
 M mov rdx, r9 ;E022
 M shl rdx, 3 ;E022
 M add rcx, rdx ;E022
-M lea rdx, [rip+$ntab] ;E022
+M lea rdx, [r13+1183D8] ;E022
 M add rcx, rdx ;E022
 M mov rax, [rcx+10] ;E022
 M cmp rax, 1 ;E022
@@ -222,7 +222,7 @@ M shl rcx, 5 ;E023
 M mov rdx, r9 ;E023
 M shl rdx, 3 ;E023
 M add rcx, rdx ;E023
-M lea rdx, [rip+$ntab] ;E023
+M lea rdx, [r13+1183D8] ;E023
 M add rcx, rdx ;E023
 M mov rax, [rcx+10] ;E023
 M cmp rax, 2 ;E023
@@ -233,7 +233,7 @@ M shl rcx, 4 ;E023
 M mov rdx, rax ;E023
 M shl rdx, 3 ;E023
 M add rcx, rdx ;E023
-M lea rdx, [rip+$sarr] ;E023
+M lea rdx, [r13+4783D8] ;E023
 M add rdx, rcx ;E023
 M mov r8, [rdx+10] ;E023
 M mov rdx, [rdx+8] ;E023
@@ -271,7 +271,7 @@ M shl rcx, 5 ;E024
 M mov rdx, rax ;E024
 M shl rdx, 3 ;E024
 M add rcx, rdx ;E024
-M lea rdx, [rip+$ntab] ;E024
+M lea rdx, [r13+1183D8] ;E024
 M add rcx, rdx ;E024
 M mov rax, [rcx+10] ;E024
 M cmp rax, 1 ;E024

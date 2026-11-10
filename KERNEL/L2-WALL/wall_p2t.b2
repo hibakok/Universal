@@ -109,7 +109,7 @@ M shl rcx, 5 ; K2-Y00B
 M mov rdx, rax ; K2-Y00B
 M shl rdx, 3 ; K2-Y00B
 M add rcx, rdx ; K2-Y00B
-M lea rdx, [rip+$ntab] ; K2-Y00B
+M lea rdx, [r13+1183D8] ; K2-Y00B
 M add rcx, rdx ; K2-Y00B
 M mov rax, [rcx+10] ; K2-Y00B вид
 M cmp rax, 3 ; K2-Y00B ext?
@@ -144,7 +144,7 @@ M shl rcx, 5 ; K2-Y00B
 M mov rdx, rax ; K2-Y00B
 M shl rdx, 3 ; K2-Y00B
 M add rcx, rdx ; K2-Y00B
-M lea rdx, [rip+$ntab] ; K2-Y00B
+M lea rdx, [r13+1183D8] ; K2-Y00B
 M add rcx, rdx ; K2-Y00B
 M mov rax, [rcx+10] ; K2-Y00B вид
 M cmp rax, 1 ; K2-Y00B var?
