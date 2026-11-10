@@ -192,16 +192,38 @@ def _t_splice(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("t.flat") == want,
           "строк=%d шагов=%d" % (want.count(b"\n"), r.steps))
 
-    # T-E6-17: инструмент == оракулу на корнях репозитория (3 разреза)
+    # T-E6-16b: пределы 256 КиБ (E6.4e-2): корень и включение 0x20020
+    # байт приняты (старые FILECAP/OUTCAP 0x20000 отвергли бы; включение
+    # проверяет адресацию уровня shl 18 и буфер уровня 1); включение
+    # 0x40000 отвергнуто ERR=BIG SRC (код 7)
+    line132 = b";" + b"A" * (0x20020 - 2) + b"\n"
+    r1 = lab_run.run_kv(splice_exe, ["r.b2", "t.flat"],
+                        {"r.b2": line132})
+    part132 = b";" + b"B" * (0x20020 - 2) + b"\n"
+    r2 = lab_run.run_kv(splice_exe, ["r.b2", "t.flat"],
+                        {"r.b2": b"!include p.b2\n", "p.b2": part132})
+    r3 = lab_run.run_kv(splice_exe, ["r.b2", "t.flat"],
+                        {"r.b2": b"!include big.b2\n",
+                         "big.b2": b"C" * 0x40000})
+    check("T-E6-16b пределы 256 КиБ (корень+включение 132К приняты /"
+          " 256К отвергнут)",
+          r1.exit_code == 0 and r1.files.get("t.flat") == line132 and
+          r2.exit_code == 0 and r2.files.get("t.flat") == part132 and
+          r3.exit_code == 7 and
+          r3.stdout == b"U-L1-SPLICE ERR=BIG SRC\r\n",
+          "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
+
+    # T-E6-17: инструмент == оракулу на корнях репозитория (4 разреза;
+    #    с E6.4e-2 и wall.b2 — крупнейший потребитель пределов)
     kh = kernel_host()
     bad = []
     for root in ("l1-enc/enc.b2", "l1-brick/brick.brick",
-                 "l1-splice/splice.b2"):
+                 "l1-splice/splice.b2", "l2-wall/wall.b2"):
         want = lab_splice.splice(root, kh)
         r = lab_run.run_kv(splice_exe, [root, "t.flat"], kh)
         if not (r.exit_code == 0 and r.files.get("t.flat") == want):
             bad.append(root)
-    check("T-E6-17 splice == оракулу на корнях репозитория (3)",
+    check("T-E6-17 splice == оракулу на корнях репозитория (4)",
           not bad, "; ".join(bad))
 
     # T-E6-18: самохостинг — splice(splice.b2) -> enc -> brick -> pegen

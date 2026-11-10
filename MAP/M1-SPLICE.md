@@ -217,7 +217,7 @@
 | Слой | L1 |
 | Ветвь | S — вывод строки |
 | Файл | KERNEL/L1-SPLICE/splice_s.b2, тело 0x04E6 |
-| Функция | Копировать [R14,R15) в outbuf + LF; занято+длина+1 > 0x20000 — BIG OUT (код 10) |
+| Функция | Копировать [R14,R15) в outbuf + LF; занято+длина+1 > 0x40000 — BIG OUT (код 10; E6.4e-2) |
 | Вход | R14/R15 = строка; R10/R12 = outbuf/курсор |
 | Выход | R12 += длина+1 (или выход 10) |
 | Состоит из | K1-G022 |
@@ -422,7 +422,7 @@
 | Слой | L1 |
 | Ветвь | D |
 | Файл | KERNEL/L1-SPLICE/splice_data.b2, тело 0x0AD2 |
-| Функция | bss 0x120630: ячейки (hstdout, written, wa_len, srclen, curline), fname_in/fname_out/namebuild (0x80), lv_name (8×0x80), lv_cur (8×8), lv_pref (8), linebuf (0x40), filebufs (8×0x20000), outbuf (0x20000) |
+| Функция | bss 0x240630 (E6.4e-2): ячейки (hstdout, written, wa_len, srclen, curline), fname_in/fname_out/namebuild (0x80), lv_name (8×0x80), lv_cur (8×8), lv_pref (8), linebuf (0x40), filebufs (8×0x40000, адресация shl 18), outbuf (0x40000) |
 | Вход | — |
 | Выход | — |
 | Состоит из | — (данные) |

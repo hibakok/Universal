@@ -67,7 +67,7 @@ M call $print_error ; K1-G022
 M mov r11, rax ; K1-G021 R11 = хэндл корня
 M mov rcx, r11 ; K1-G021
 M lea rdx, [rip+$filebufs] ; K1-G021 буфер уровня 0
-M mov r8d, 20000 ; K1-G021 вместимость 0x20000
+M mov r8d, 40000 ; K1-G021 вместимость 0x40000 (E6.4e-2)
 M lea r9, [rip+$srclen] ; K1-G021 счётчик прочитанного
 M call $read_whole_dst ; K1-F024
 M cmp rax, -1 ; K1-G021
@@ -75,7 +75,7 @@ M jnz $ok2 ; K1-G021
 M mov ecx, 3 ; K1-G021 ERR=READ SRC
 M call $print_error ; K1-G022
 :ok2
-M cmp rax, 20000 ; K1-G021 предел 128 КиБ (сентинелу нужен запас)
+M cmp rax, 40000 ; K1-G021 предел 256 КиБ (сентинелу нужен запас)
 M jb $ok3 ; K1-G021
 M mov ecx, 4 ; K1-G021 ERR=BIG SRC
 M call $print_error ; K1-G022

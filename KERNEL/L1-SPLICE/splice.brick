@@ -67,7 +67,7 @@ H E8 $print_error ; K1-G022
 H 49 89 C3 ; K1-G021 R11 = хэндл корня
 H 4C 89 D9 ; K1-G021
 H 48 8D 15 $filebufs ; K1-G021 буфер уровня 0
-H 41 B8 00 00 02 00 ; K1-G021 вместимость 0x20000
+H 41 B8 00 00 04 00 ; K1-G021 вместимость 0x40000 (E6.4e-2)
 H 4C 8D 0D $srclen ; K1-G021 счётчик прочитанного
 H E8 $read_whole_dst ; K1-F024
 H 48 83 F8 FF ; K1-G021
@@ -75,7 +75,7 @@ H 0F 85 $ok2 ; K1-G021
 H B9 03 00 00 00 ; K1-G021 ERR=READ SRC
 H E8 $print_error ; K1-G022
 :ok2
-H 48 81 F8 00 00 02 00 ; K1-G021 предел 128 КиБ (сентинелу нужен запас)
+H 48 81 F8 00 00 04 00 ; K1-G021 предел 256 КиБ (сентинелу нужен запас)
 H 0F 82 $ok3 ; K1-G021
 H B9 04 00 00 00 ; K1-G021 ERR=BIG SRC
 H E8 $print_error ; K1-G022
@@ -296,10 +296,10 @@ H 49 89 C3 ; K1-S012 R11 = хэндл (живёт через read)
 H 4C 89 D9 ; K1-S012
 H 4C 89 EA ; K1-S012
 H 48 FF C2 ; K1-S012
-H 48 C1 E2 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 C1 E2 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 H 48 8D 05 $filebufs ; K1-S012
 H 48 01 C2 ; K1-S012 RDX = буфер нового уровня
-H 41 B8 00 00 02 00 ; K1-S012 вместимость 0x20000
+H 41 B8 00 00 04 00 ; K1-S012 вместимость 0x40000 (E6.4e-2)
 H 4C 8D 0D $srclen ; K1-S012
 H E8 $read_whole_dst ; K1-F024
 H 48 83 F8 FF ; K1-S012
@@ -307,7 +307,7 @@ H 0F 85 $hl_read2 ; K1-S012
 H B9 03 00 00 00 ; K1-S012 ERR=READ SRC
 H E8 $print_error ; K1-G022
 :hl_read2
-H 48 81 F8 00 00 02 00 ; K1-S012 предел 128 КиБ
+H 48 81 F8 00 00 04 00 ; K1-S012 предел 256 КиБ (E6.4e-2)
 H 0F 82 $hl_size2 ; K1-S012
 H B9 04 00 00 00 ; K1-S012 ERR=BIG SRC
 H E8 $print_error ; K1-G022
@@ -316,7 +316,7 @@ H 4C 89 D9 ; K1-S012
 H E8 $close_file ; K1-F023
 H 4C 89 EA ; K1-S012 сентинел нового уровня
 H 48 FF C2 ; K1-S012
-H 48 C1 E2 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 C1 E2 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 H 48 8D 0D $filebufs ; K1-S012
 H 48 01 D1 ; K1-S012
 H 8B 15 $srclen ; K1-S012 длина прочитанного
@@ -324,7 +324,7 @@ H 48 01 D1 ; K1-S012
 H C6 01 00 ; K1-S012 NUL-сентинел
 H 49 FF C5 ; K1-S012 спуск на уровень ниже
 H 4C 89 E8 ; K1-S012
-H 48 C1 E0 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+H 48 C1 E0 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 H 48 8D 35 $filebufs ; K1-S012
 H 48 01 C6 ; K1-S012 RSI = начало файла
 H C3 ; K1-S012 цикл продолжится с нового уровня
@@ -334,7 +334,7 @@ H E8 $print_error ; K1-G022
 :hl_long
 H B9 01 00 00 00 ; K1-S012 errtab: LONG NAME
 H E8 $print_error ; K1-G022
-; ===== S013 emit_line: строка -> outbuf + LF (предел 128 КиБ) =====
+; ===== S013 emit_line: строка -> outbuf + LF (предел 256 КиБ) =====
 :hl_emit
 H 4C 89 E0 ; K1-S013 занято в outbuf
 H 4C 29 D0 ; K1-S013
@@ -342,7 +342,7 @@ H 4C 89 F9 ; K1-S013 длина строки
 H 4C 29 F1 ; K1-S013
 H 48 8D 14 08 ; K1-S013 занято + длина
 H 48 FF C2 ; K1-S013 + LF
-H 48 81 FA 00 00 02 00 ; K1-S013 предел вывода 128 КиБ
+H 48 81 FA 00 00 04 00 ; K1-S013 предел вывода 256 КиБ (E6.4e-2)
 H 0F 86 $hl_room ; K1-S013
 H B9 07 00 00 00 ; K1-S013 errtab: BIG OUT
 H E8 $print_error ; K1-G022
@@ -686,6 +686,6 @@ DBZ 8
 :linebuf
 DBZ 40
 :filebufs
-DBZ 100000 ; 8 уровней x 0x20000 (адресация уровня shl 17)
+DBZ 200000 ; 8 уровней x 0x40000 (адресация уровня shl 18; E6.4e-2)
 :outbuf
-DBZ 20000
+DBZ 40000 ; 256 КиБ (E6.4e-2)

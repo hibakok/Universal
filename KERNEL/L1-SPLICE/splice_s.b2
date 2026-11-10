@@ -162,10 +162,10 @@ M mov r11, rax ; K1-S012 R11 = хэндл (живёт через read)
 M mov rcx, r11 ; K1-S012
 M mov rdx, r13 ; K1-S012
 M inc rdx ; K1-S012
-M shl rdx, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M shl rdx, 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 M lea rax, [rip+$filebufs] ; K1-S012
 M add rdx, rax ; K1-S012 RDX = буфер нового уровня
-M mov r8d, 20000 ; K1-S012 вместимость 0x20000
+M mov r8d, 40000 ; K1-S012 вместимость 0x40000 (E6.4e-2)
 M lea r9, [rip+$srclen] ; K1-S012
 M call $read_whole_dst ; K1-F024
 M cmp rax, -1 ; K1-S012
@@ -173,7 +173,7 @@ M jnz $hl_read2 ; K1-S012
 M mov ecx, 3 ; K1-S012 ERR=READ SRC
 M call $print_error ; K1-G022
 :hl_read2
-M cmp rax, 20000 ; K1-S012 предел 128 КиБ
+M cmp rax, 40000 ; K1-S012 предел 256 КиБ (E6.4e-2)
 M jb $hl_size2 ; K1-S012
 M mov ecx, 4 ; K1-S012 ERR=BIG SRC
 M call $print_error ; K1-G022
@@ -182,7 +182,7 @@ M mov rcx, r11 ; K1-S012
 M call $close_file ; K1-F023
 M mov rdx, r13 ; K1-S012 сентинел нового уровня
 M inc rdx ; K1-S012
-M shl rdx, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M shl rdx, 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 M lea rcx, [rip+$filebufs] ; K1-S012
 M add rcx, rdx ; K1-S012
 M mov edx, [rip+$srclen] ; K1-S012 длина прочитанного
@@ -190,7 +190,7 @@ M add rcx, rdx ; K1-S012
 M mov byte [rcx], 0 ; K1-S012 NUL-сентинел
 M inc r13 ; K1-S012 спуск на уровень ниже
 M mov rax, r13 ; K1-S012
-M shl rax, 11 ; K1-S012 x 0x20000 (0x11 = 17 dec)
+M shl rax, 12 ; K1-S012 x 0x40000 (0x12 = 18 dec; E6.4e-2)
 M lea rsi, [rip+$filebufs] ; K1-S012
 M add rsi, rax ; K1-S012 RSI = начало файла
 M ret ; K1-S012 цикл продолжится с нового уровня
@@ -200,7 +200,7 @@ M call $print_error ; K1-G022
 :hl_long
 M mov ecx, 1 ; K1-S012 errtab: LONG NAME
 M call $print_error ; K1-G022
-; ===== S013 emit_line: строка -> outbuf + LF (предел 128 КиБ) =====
+; ===== S013 emit_line: строка -> outbuf + LF (предел 256 КиБ) =====
 :hl_emit
 M mov rax, r12 ; K1-S013 занято в outbuf
 M sub rax, r10 ; K1-S013
@@ -208,7 +208,7 @@ M mov rcx, r15 ; K1-S013 длина строки
 M sub rcx, r14 ; K1-S013
 M lea rdx, [rax+rcx] ; K1-S013 занято + длина
 M inc rdx ; K1-S013 + LF
-M cmp rdx, 20000 ; K1-S013 предел вывода 128 КиБ
+M cmp rdx, 40000 ; K1-S013 предел вывода 256 КиБ (E6.4e-2)
 M jbe $hl_room ; K1-S013
 M mov ecx, 7 ; K1-S013 errtab: BIG OUT
 M call $print_error ; K1-G022

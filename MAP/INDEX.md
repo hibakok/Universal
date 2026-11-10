@@ -30,7 +30,7 @@
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
 | `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 252 |
-| `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice | 147 |
+| `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice (пределы 256 КиБ, E6.4e-2) | 148 |
 | `SPEC/11-WALL-FORMAT.md` | WALL v1/v2: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 378 |
 
 ## MAP/ — навигация
@@ -114,16 +114,16 @@
 | `KERNEL/L1-ENC/BYTECODE.md` | сводка, карта кирпичей, данные, импорты | 154 |
 | `KERNEL/L1-ENC/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.2 + рост ISA E6.4c + пределы E6.4e-1 | 128 |
 
-| `KERNEL/L1-SPLICE/CARD.md` | карточка модуля M1-SPLICE (склейка !include) | 129 |
+| `KERNEL/L1-SPLICE/CARD.md` | карточка модуля M1-SPLICE (склейка !include) | 131 |
 | `KERNEL/L1-SPLICE/splice.b2` | корень модуля M1-SPLICE: шапка + поток X/C/G + !include 3 частей | 137 |
 | `KERNEL/L1-SPLICE/splice_s.b2` | часть: ветви S/N — цикл уровней, директива, вывод строки | 248 |
 | `KERNEL/L1-SPLICE/splice_svc.b2` | часть: H/G/U/C/F — печать, ошибки, командная строка, файлы | 189 |
 | `KERNEL/L1-SPLICE/splice_data.b2` | часть: D — таблицы, строки, импорты, bss | 120 |
 | `KERNEL/L1-SPLICE/splice.brick` | плоская форма в BRICK v1 = enc(splice(splice.b2)) байт-в-байт (генерируемый артефакт) | 691 |
 | `KERNEL/L1-SPLICE/splice.peg` | обёртка splice (PEG v1, SPEC/07) | 10 |
-| `KERNEL/L1-SPLICE/splice.exe` | материализация: brick+pegen, 3584 байта, PE32+ | — |
-| `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты | 114 |
-| `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3 | 96 |
+| `KERNEL/L1-SPLICE/splice.exe` | материализация: brick+pegen, 3584 байта, PE32+ (пределы 256 КиБ E6.4e-2) | — |
+| `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты, история образа | 124 |
+| `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3, история пределов | 111 |
 | `KERNEL/L2-WALL/CARD.md` | карточка модуля M2-WALL (компилятор WALL v1/v2) | 144 |
 | `KERNEL/L2-WALL/wall.b2` | корень: поток + 18 !include (19 частей) | 122 |
 | `KERNEL/L2-WALL/wall_svc.b2` | ветви H/G/U/C/F — сервисы (реинкарнации K1) | 192 |
@@ -168,7 +168,7 @@
 | `TESTS/T-L0-PEGEN.md` | тест-план pegen T-M5-01..T-M5-17 | 131 |
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17 | 137 |
 | `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11b (E6.2; рост ISA E6.4c; предел 256 КиБ E6.4e-1) | 120 |
-| `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18 (E6.3 выполнен) | 82 |
+| `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18, T-E6-16b (E6.3, E6.4e-2) | 97 |
 | `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + срез 1 (E6.4c-3/1) + журналы | 225 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
@@ -199,12 +199,13 @@
 | `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
 | `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
 | `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 413 |
-| `LAB/py/lab_t_exe.py` | секции 7-8 батареи: инструменты enc/splice (T-E6-05..11b) | 230 |
+| `LAB/py/lab_t_exe.py` | секции 7-8 батареи: инструменты enc/splice (T-E6-05..11b, 12..18b) | 252 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
-| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 916 |
+| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 998 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
 | `LAB/ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты | 228 |
+| `LAB/ai/splice_build_lim.py` | (частное) пересборка M1-SPLICE + dev-тесты пределов 256 КиБ (E6.4e-2) | 344 |
 | `LAB/ai/wall_build.py` | (частное) пересборка M2-WALL (E6.4b) | 117 |
 | `LAB/ai/wall_test.py` | (частное) dev-тест wall.exe v1 (E6.4b) | 100 |
 | `LAB/ai/wall_test_v2.py` | (частное) dev-тест среза 1: * / %, v1/v2, «U-MDM-OK 52» | 377 |
@@ -232,14 +233,16 @@ LAB — измерительный прибор (Python только здесь)
   M2-WALL — +P01A/E034/E035 E6.4c-3/1, +S00F/Y00C E6.4c-3/2).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **114** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17, T-M6-01..17, T-E6-01..35 + T-E6-10b; автоматических в
-  батарее — 112).
-- Этап: **E6.4e-1 выполнен** (enc: предел входа 128 -> 256 КиБ, outbuf
-  0x88020; файл/тело не изменились, vsize 0xCDEF4; +T-E6-10b; батарея
-  112/112; самохостинг и все круги зелёные) поверх E6.4c-3 срез 2 из 5
-  (break/continue, дефект №15, круг «U-BC-OK 25"); далее E6.4e-2
-  (splice: FILECAP/OUTCAP 256 КиБ) и E6.4e-3 (brick: filebuf), затем
-  срез 3 (&& / ||); бюджет wall.b2 130217 Б — enc больше не
-  ограничивает, но splice OUTCAP 131072 Б и вход brick 131072 Б ещё
-  ограничивают (см. `DOCS/03-ROADMAP.md` E6.4e и журнал сессии 11).
+- Тестов: **115** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17, T-E6-01..35 + T-E6-10b + T-E6-16b;
+  автоматических в батарее — 113).
+- Этап: **E6.4e-2 выполнен** (splice: FILECAP/OUTCAP и буферы уровней
+  128 -> 256 КиБ; 9 байтов кода + 2 заголовка, тело/файл не изменились;
+  bss 0x240630, vsize 0x241102; якоря BIG SRC/OUT перевыпущены; +T-E6-16b;
+  T-E6-17 + wall.b2; батарея 113/113; самохостинг и все круги зелёные)
+  поверх E6.4e-1 (enc: 256 КиБ) и E6.4c-3 срез 2 из 5 (break/continue,
+  дефект №15, круг «U-BC-OK 25»); далее E6.4e-3 (brick: filebuf —
+  wall.brick 123170 Б упирается в 128 КиБ; проверить метки 507/511),
+  затем срез 3 (&& / ||). Бюджет wall.b2 130217 Б — enc и splice
+  больше не ограничивают (см. `DOCS/03-ROADMAP.md` E6.4e и журнал
+  сессии 12).
