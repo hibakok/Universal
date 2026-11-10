@@ -187,7 +187,7 @@
 | Слой | L1 |
 | Ветвь | D |
 | Файл | enc.b2, тело 0x2CCE (DBZ-блок) |
-| Функция | bss 0x64548: hstdout/written/srclen/curline/wa_len, fname_in/out (0x80), opbuf (2x0x40), linebuf (0x40), ~70 ячеек разбора/кодирования, seg_a/seg_b (0x20), filebuf (0x20100), outbuf (0x44010) |
+| Функция | bss 0xC8558: hstdout/written/srclen/curline/wa_len, fname_in/out (0x80), opbuf (2x0x40), linebuf (0x40), ~70 ячеек разбора/кодирования, seg_a/seg_b (0x20), filebuf (0x40100), outbuf (0x88020) — буферы удвоены E6.4e-1 |
 | Используется в | весь модуль |
 | Тест | T-E6-05..10 |
 | Статус | готов |

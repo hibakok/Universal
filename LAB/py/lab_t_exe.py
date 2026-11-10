@@ -110,6 +110,18 @@ def _t_enc_exe(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("t.brick") == want,
           "строк=%d шагов=%d" % (len(lines), r.steps))
 
+    # T-E6-10b: предел входа 256 КиБ (E6.4e-1): 0x20020 байт одной
+    # строкой приняты (старый предел 0x20000 отверг бы), 0x40000
+    # отвергнуты ERR=BIG SRC (код 7); выход проходной строки == вход
+    line132 = b";" + b"A" * (0x20020 - 2) + b"\n"
+    r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line132})
+    line256 = b";" + b"A" * (0x40000 - 2) + b"\n"
+    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line256})
+    check("T-E6-10b предел входа 256 КиБ (132К принят / 256К отвергнут)",
+          r1.exit_code == 0 and r1.files.get("t.brick") == line132 and
+          r2.exit_code == 7 and r2.stdout == b"U-L1-ENC ERR=BIG SRC\r\n",
+          "шагов=%d+%d" % (r1.steps, r2.steps))
+
     # концы строк: пустой вход, без LF, CRLF, одиночный CR (как splitlines)
     bad = []
     for e in [b"", b"M ret", b"M ret\r\nM int3", b"M ret\rM int3", b"\n",
