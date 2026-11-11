@@ -1,10 +1,11 @@
 """wall_test_v2.py — dev-тест wall.exe v2 (E6.4c-3, срез 1: * / %).
 
 Паспорт файла: LAB/ai/wall_test_v2.py | слой: внешний инструмент |
-роль: сверка wall.exe с оракулом LAB/py/lab_l2* на конструкциях
-операторов * / % (E6.4c-3/1) + регресс v1 + исправление дефекта
-chain_count (сравнения как терминаторы) + заголовки v1/v2 + полный
-круг DEMO_MDM до эмуляции. Запуск: python3 LAB/ai/wall_test_v2.py.
+роль: быстрый dev-прогон среза 1 (операторы * / %) при работе над
+wall.exe: регресс v1 + сверка с оракулом LAB/py/lab_l2* + заголовки
+v1/v2 + полный круг DEMO_MDM. Эталоны срез 1 — в LAB/py/lab_l2_mdm.py
+(с E6.4c-3/3b общий источник с батареей, секция 11 = T-E6-37..45).
+Запуск: python3 LAB/ai/wall_test_v2.py.
 """
 import os
 import sys
@@ -17,6 +18,7 @@ import lab_enc            # noqa: E402
 import lab_l2             # noqa: E402
 import lab_l2_cases       # noqa: E402
 import lab_l2_cases2      # noqa: E402
+import lab_l2_mdm         # noqa: E402
 import lab_l2_prog        # noqa: E402
 import lab_pegen          # noqa: E402
 import lab_run            # noqa: E402
@@ -25,203 +27,6 @@ WALL = os.path.join(UNI, "KERNEL", "L2-WALL", "wall.exe")
 ENC = os.path.join(UNI, "KERNEL", "L1-ENC", "enc.exe")
 BRICK = os.path.join(UNI, "KERNEL", "L1-BRICK", "brick.exe")
 PEGEN = os.path.join(UNI, "KERNEL", "L0-PEGEN", "pegen.exe")
-
-# ---- якоря среза 1: только v1-конструкции + * / % --------------------
-MDM_ANCHORS = [
-    ("mdm_basic", """\
-func main
-    var x
-    var y
-    x = 2 * 3 + 4 * 5
-    x = 1 + 2 * 3
-    x = 2 * (3 + 4)
-    x = 100 / 7
-    x = 100 % 7
-    x = 2 & 3 * 3
-    x = 1 << 2 * 2
-    x = 0 - 7 * 2
-    y = x * x + x / 2 % 3
-end
-"""),
-    ("mdm_positions", """\
-func f(a, b)
-    return a * b + a % b
-end
-func main
-    var x
-    var s
-    x = f(10, 3) / 4
-    s = 0
-    while x * 2 < 20 + 1
-        x = x + 5 % 3
-    end
-    if x / 2 == 3 + 3
-        setb(&x, 0, 1 * 2)
-    end
-    s = x
-end
-"""),
-    ("mdm_neg", """\
-func main
-    var x
-    var y
-    var z
-    x = 0 - 43
-    y = x / 10
-    z = x % 10
-    x = y * 3 + z
-end
-"""),
-    ("mdm_chain", """\
-func main
-    var x
-    var y
-    x = 1 * 2 * 3 * 4 * 5 / 6 % 7
-    y = x / 2 / 3 * 4 % 5 * 6
-    x = (y % 100 + 1) * (x + 2) / 3
-end
-"""),
-    ("mdm_f13", """\
-func main
-    var x
-    x = 2 * 3 + 4 * 5
-    x = 1 + 2 * 3
-    x = 2 * (3 + 4)
-end
-"""),
-    ("cond_arith", """\
-func main
-    var x
-    x = 0
-    if 1 + 2 == 2 + 1
-        x = 5
-    end
-end
-"""),
-    ("cond_shift", """\
-func main
-    var x
-    x = 0
-    if 1 << 2 == 2 << 1
-        x = 5
-    end
-end
-"""),
-    ("while_arith", """\
-func main
-    var i
-    var s
-    i = 0
-    s = 0
-    while i + 1 < 5 + 1
-        s = s + 2
-        i = i + 1
-    end
-end
-"""),
-    ("mdm_conds", """\
-func main
-    var i
-    var s
-    i = 10
-    s = 0
-    while i % 3 == 1
-        s = s + i
-        i = i / 2
-    end
-    if s * 2 != 12 + 1
-        s = s & 15
-    end
-end
-"""),
-]
-
-
-def big_mdm(n=260):
-    """детерминированный большой исходник с * / % повсюду"""
-    ls = []
-    ls.append("func main")
-    ls.append("    var a")
-    ls.append("    var b")
-    ls.append("    a = 1")
-    ls.append("    b = 2")
-    k = 1
-    while len(ls) < n - 6:
-        ls.append("    a = a * %d + b %% %d" % (k % 17 + 1, k % 7 + 2))
-        ls.append("    b = a / %d + b * %d" % (k % 5 + 1, k % 3 + 1))
-        if k % 100 == 0:
-            ls.append("    if a % 1000 < 500 + 1")
-            ls.append("        a = a + 1")
-            ls.append("    end")
-        k += 1
-    ls.append("    a = a + b")
-    ls.append("end")
-    return "\n".join(ls) + "\n"
-
-
-# ---- ошибки: (имя, исходник); строка берётся из оракула ----------------
-MDM_ERRORS = [
-    ("хвост без операнда", "func main\n    var x\n    x = 6 *\nend\n"),
-    ("оператор в начале", "func main\n    var x\n    x = * 5\nend\n"),
-    ("двойной оператор", "func main\n    var x\n    x = 6 * * 5\nend\n"),
-    ("% без операнда в аргументе",
-     "func main\n    var x\n    x = len('ab') %\nend\n"),
-    ("хвост / в возврате",
-     "func f\n    return 10 /\nend\nfunc main\nend\n"),
-]
-
-DEMO_MDM = """\
-; UNIVERSAL / WALL v2 / демонстрация операторов * / % (E6.4c-3/1).
-; Печатает "U-MDM-OK 52": a=6*7=42; b=42/5=8; c=42%%5=2; v=8*10+2=82=0x52.
-ext GetStdHandle
-ext WriteFile
-ext ExitProcess
-
-str msg = 'U-MDM-OK '
-
-var out
-
-func hexnib(n)
-    var t
-    t = n & 15
-    if t < 10
-        t = t + 48
-    else
-        t = t + 55
-    end
-    return t
-end
-
-func main
-    var a
-    var b
-    var c
-    var v
-    var h
-    a = 6 * 7
-    b = a / 5
-    c = a % 5
-    v = b * 10 + c
-    h = GetStdHandle(-11)
-    WriteFile(h, msg, len(msg), &out, 0)
-    setb(&out, 0, hexnib(v >> 4))
-    setb(&out, 1, hexnib(v & 15))
-    setb(&out, 2, 13)
-    setb(&out, 3, 10)
-    WriteFile(h, &out, 4, &out, 0)
-    ExitProcess(0)
-end
-"""
-
-DEMO_MDM_PEG = """\
-; UNIVERSAL / PEG v1 / обёртка WALL v2 (SPEC/11)
-!module mdmdemo
-!entry 1200
-!idata 1000 28
-!iat 1028 48
-!stackcom 4000
-!heapcom 4000
-"""
 
 
 def run_wall(src, name="t.wall"):
@@ -275,9 +80,9 @@ def main():
     ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
     # 3) срез 1: якоря * / % — tool == оракулу
-    for name, src in MDM_ANCHORS:
+    for name, src in lab_l2_mdm.MDM_ANCHORS:
         ok, bad = check_full(ok, bad, "mdm %s" % name, src)
-    big = big_mdm()
+    big = lab_l2_mdm.big_mdm()
     ok, bad = check_full(ok, bad, "mdm big (%d строк)" % big.count("\n"), big)
 
     # 4) фрагментный якорь F13 из cases2 (только * / % + v1)
@@ -305,18 +110,19 @@ def main():
         print("   %r" % h1[:60])
     ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
-    r = run_wall(MDM_ANCHORS[0][1])
+    r = run_wall(lab_l2_mdm.MDM_ANCHORS[0][1])
     h2 = (r.files.get("t.b2") or b"").split(b"\n")[0]
-    oracle_h2 = lab_l2.compile_wall(MDM_ANCHORS[0][1]).encode().split(b"\n")[0]
+    oracle_h2 = lab_l2.compile_wall(lab_l2_mdm.MDM_ANCHORS[0][1]
+                                     ).encode().split(b"\n")[0]
     good = h2 == oracle_h2 and b"WALL v2" in h2
     print("[%s] заголовок v2 у программы с * / %%" % ("OK " if good else "FAIL"))
     if not good:
         print("   %r" % h2[:60])
     ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
-    # 6) ошибки среза 1: строки из оракула
+    # 6) ошибки срез 1: строки из оракула
     badl = []
-    for name, src in MDM_ERRORS:
+    for name, src in lab_l2_mdm.MDM_ERRORS:
         try:
             lab_l2.compile_wall(src)
             badl.append((name, "оракул принял", "-"))
@@ -329,13 +135,13 @@ def main():
             badl.append((name, r.exit_code, line))
     good = not badl
     print("[%s] mdm отвержение (%d)" % ("OK " if good else "FAIL",
-                                        len(MDM_ERRORS)))
+                                        len(lab_l2_mdm.MDM_ERRORS)))
     for b in badl[:5]:
         print("   %s: код=%s (строка %s)" % b)
     ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
     # 7) все M-строки выхода кодируются enc (инвариант T-E6-34)
-    r = run_wall(MDM_ANCHORS[0][1], "a.wall")
+    r = run_wall(lab_l2_mdm.MDM_ANCHORS[0][1], "a.wall")
     b2 = r.files.get("t.b2", b"")
     r2 = lab_run.run_kv(ENC, ["a.b2", "a.brick"], {"a.b2": b2})
     r3 = lab_run.run_kv(BRICK, ["a.brick", "a.bin"],
@@ -345,14 +151,14 @@ def main():
     ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
     # 8) полный круг DEMO_MDM -> EXE -> эмуляция "U-MDM-OK 52"
-    h = {"d.wall": DEMO_MDM.encode()}
+    h = {"d.wall": lab_l2_mdm.DEMO_MDM.encode()}
     r1 = lab_run.run_kv(WALL, ["d.wall", "d.b2"], h)
     h["d.b2"] = r1.files.get("d.b2", b"")
     r2 = lab_run.run_kv(ENC, ["d.b2", "d.brick"], h)
     h["d.brick"] = r2.files.get("d.brick", b"")
     r3 = lab_run.run_kv(BRICK, ["d.brick", "d.bin"], h)
     h["d.bin"] = r3.files.get("d.bin", b"")
-    h["d.peg"] = DEMO_MDM_PEG.encode()
+    h["d.peg"] = lab_l2_mdm.DEMO_MDM_PEG.encode()
     r4 = lab_run.run_kv(PEGEN, ["d.bin", "d.peg", "d.exe"], h)
     demo = r4.files.get("d.exe", b"")
     fd, path = tempfile.mkstemp(suffix=".exe")

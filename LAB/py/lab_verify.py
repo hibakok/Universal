@@ -15,7 +15,11 @@
             (SPEC/11, lab_t_wall): якоря, ошибки, круг до эмуляции;
          10) инструмент wall.exe (lab_t_wall2, E6.4b): равенство
             оракулу на якорях/big_source, отвержение, полный круг
-            WALL -> EXE -> эмуляция, SHA и PE-инварианты.
+            WALL -> EXE -> эмуляция, SHA и PE-инварианты;
+         11) инструмент wall.exe — v2 срезы 1-3 (lab_t_wall3,
+            E6.4c-3/3b): якоря * / % + break/continue + && / ||,
+            big-исходники, отвержение v2, заголовки v1/v2, круги
+            DEMO_MDM/DEMO_BC/DEMO_CC до эмуляции, кодируемость.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -36,6 +40,7 @@ import lab_splice
 import lab_t_exe
 import lab_t_wall
 import lab_t_wall2
+import lab_t_wall3
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -402,6 +407,7 @@ def main():
     lab_t_exe.run(check, kpath, kfile, kernel_host)
     lab_t_wall.run(check, kpath, kfile, kernel_host)
     lab_t_wall2.run(check, kpath, kfile, kernel_host)
+    lab_t_wall3.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
