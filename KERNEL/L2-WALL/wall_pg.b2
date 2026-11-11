@@ -1,0 +1,114 @@
+; ===== K2-E036 emit_jccd: jcc на метку guard-цепочки (v2, срез 3) =====
+; "M <mnem> $<pfx><k>d<i> ; текст строки". RCX = индекс jcc (0..5,
+; jcctab: jne je jge jg jle jl), RDX = pfx (0=if, 1=while),
+; R8 = k (сквозной счётчик if/while), R9 = i (номер d-метки, >= 2).
+; Вызывается из p_cond (K2-P018) для сравнений не последних дизъюнктов.
+:emit_jccd
+M push rbp ;E036
+M mov rbp, rsp ;E036
+M sub rsp, 20 ;E036
+M mov [rbp-8], rcx ;E036 jcc
+M mov [rbp-10], rdx ;E036 pfx
+M mov [rbp-18], r8 ;E036 k
+M mov [rbp-20], r9 ;E036 i
+M mov ecx, 39 ;E036 "M "
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E036
+M lea rdx, [rip+$jcctab] ;E036
+M shl rax, 3 ;E036
+M add rdx, rax ;E036
+M mov eax, [rdx] ;E036 смещение в блобе
+M lea rcx, [rip+$strblob] ;E036
+M add rax, rcx ;E036
+M mov r9d, [rdx+4] ;E036
+M mov rdx, rax ;E036
+M mov r8, r9 ;E036
+M call $out_copy ;E002
+M mov rax, [rbp-10] ;E036
+M test rax, rax ;E036
+M jz $ejd_if ;E036
+M mov ecx, 69 ;E036 " $_w"
+M call $out_str ;E003
+M jmp $ejd_k ;E036
+:ejd_if
+M mov ecx, 2A ;E036 " $_if"
+M call $out_str ;E003
+:ejd_k
+M mov rax, [rbp-18] ;E036
+M call $out_dec ;E008
+M mov byte [r12], 64 ;E036 'd'
+M inc r12 ;E036
+M mov rax, [rbp-20] ;E036
+M call $out_dec ;E008
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E036
+M pop rbp ;E036
+M ret ;E036
+; ===== K2-E037 emit_jmpt: безусловный на t-метку guard-цепочки (v2) =====
+; "M jmp $<pfx><k>t ; текст строки". RCX = pfx (0=if, 1=while),
+; RDX = k. Успех дизъюнкта -> тело (short-circuit, SPEC/11 п.8).
+:emit_jmpt
+M push rbp ;E037
+M mov rbp, rsp ;E037
+M sub rsp, 20 ;E037
+M mov [rbp-8], rcx ;E037 pfx
+M mov [rbp-10], rdx ;E037 k
+M mov rax, [rbp-8] ;E037
+M test rax, rax ;E037
+M jz $ejt_if ;E037
+M mov ecx, 3F ;E037 "M jmp $_w"
+M call $out_str ;E003
+M jmp $ejt_k ;E037
+:ejt_if
+M mov ecx, 3E ;E037 "M jmp $_if"
+M call $out_str ;E003
+:ejt_k
+M mov rax, [rbp-10] ;E037
+M call $out_dec ;E008
+M mov byte [r12], 74 ;E037 't'
+M inc r12 ;E037
+M call $emit_cmt ;E009
+M mov rsp, rbp ;E037
+M pop rbp ;E037
+M ret ;E037
+; ===== K2-E038 emit_glab: метка guard-цепочки (v2) =====
+; ":<pfx><k>d<i>" (R8 = i >= 2) или ":<pfx><k>t" (R8 = 0); nlab++
+; (предел 500 меток выхода — SPEC/11 п.9). RCX = pfx, RDX = k, R8 = i.
+:emit_glab
+M push rbp ;E038
+M mov rbp, rsp ;E038
+M sub rsp, 20 ;E038
+M mov [rbp-8], rcx ;E038 pfx
+M mov [rbp-10], rdx ;E038 k
+M mov [rbp-18], r8 ;E038 i
+M mov rax, [rbp-8] ;E038
+M test rax, rax ;E038
+M jz $egl_if ;E038
+M mov ecx, 68 ;E038 ":_w"
+M call $out_str ;E003
+M jmp $egl_k ;E038
+:egl_if
+M mov ecx, 29 ;E038 ":_if"
+M call $out_str ;E003
+:egl_k
+M mov rax, [rbp-10] ;E038
+M call $out_dec ;E008
+M mov rax, [rbp-18] ;E038
+M test rax, rax ;E038
+M jz $egl_t ;E038
+M mov byte [r12], 64 ;E038 'd'
+M inc r12 ;E038
+M call $out_dec ;E008
+M jmp $egl_nl ;E038
+:egl_t
+M mov byte [r12], 74 ;E038 't'
+M inc r12 ;E038
+:egl_nl
+M mov byte [r12], 0A ;E038
+M inc r12 ;E038
+M mov rax, [r13+18108] ;E038 nlab++
+M inc rax ;E038
+M mov [r13+18108], rax ;E038
+M mov rsp, rbp ;E038
+M pop rbp ;E038
+M ret ;E038

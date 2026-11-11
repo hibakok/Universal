@@ -1,5 +1,6 @@
-; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL (компилятор WALL v1, SPEC/11)
-; Само-исходник wall.exe: компилятор WALL v1 -> BRICK v2 (канон SPEC/11 п.8).
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL (компилятор WALL v1/v2, SPEC/11)
+; Само-исходник wall.exe: компилятор WALL v1/v2 -> BRICK v2 (канон SPEC/11 п.8).
+; v2 (E6.4c-3, срезы 1-3): операторы * / %, break/continue, цепочки && / ||.
 ; Сборка: splice.exe wall.b2 wall-flat.b2; enc.exe wall-flat.b2 wall.brick;
 ;         brick.exe wall.brick wall-body.bin; pegen.exe wall-body.bin wall.peg wall.exe
 ; Контракт: wall.exe <вход.wall> <выход.b2>; выход байт-в-байт равен оракулу
@@ -128,6 +129,7 @@ M int3 ;X002
 !include wall_pa.b2
 !include wall_pp.b2
 !include wall_pc.b2
+!include wall_pg.b2
 !include wall_p1.b2
 !include wall_pd.b2
 !include wall_p1s.b2

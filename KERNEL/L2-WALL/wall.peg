@@ -2,8 +2,8 @@
 ; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
 !module wall
 !entry 1000
-!idata 6A2F 28
-!iat 6A57 40
+!idata 6DB5 28
+!iat 6DDD 40
 !bss 7A1418
 !stackcom 4000
 !heapcom 4000

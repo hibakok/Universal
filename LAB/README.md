@@ -82,6 +82,7 @@ python3 LAB/py/lab_verify.py            # из корня репозитория
 | `ai/wall_test.py` | (частное) dev-тест wall.exe v1 (E6.4b) |
 | `ai/wall_test_v2.py` | (частное) dev-тест среза 1 (E6.4c-3/1): * / %, заголовки, круг «U-MDM-OK 52» |
 | `ai/wall_test_bc.py` | (частное) dev-тест среза 2 (E6.4c-3/2): break/continue, дефект №15, круг «U-BC-OK 25» |
+| `ai/wall_test_cc.py` | (частное) dev-тест среза 3 (E6.4c-3/3): цепочки && / ||, B2/F14/F16, круг «U-CC-OK 31» |
 | `ai/label_map.py` | (частное) карта меток wall.brick (RVA) — обновление BYTECODE.md |
 
 Каждый файл — самодостаточный кирпич: вход/выход описаны в докстроке.

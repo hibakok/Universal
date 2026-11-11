@@ -384,6 +384,9 @@
 | K2-E02B | emit_iflab | E | готов | `MAP/M2-WALL.md` |
 | K2-E02C | emit_wlab | E | готов | `MAP/M2-WALL.md` |
 | K2-E02D | emit_sstore | E | готов | `MAP/M2-WALL.md` |
+| K2-E036 | emit_jccd | E | готов | `MAP/M2-WALL.md` |
+| K2-E037 | emit_jmpt | E | готов | `MAP/M2-WALL.md` |
+| K2-E038 | emit_glab | E | готов | `MAP/M2-WALL.md` |
 | K2-D001 | digits | D | готов | `MAP/M2-WALL.md` |
 | K2-D002 | kwtab | D | готов | `MAP/M2-WALL.md` |
 | K2-D003 | jcctab | D | готов | `MAP/M2-WALL.md` |

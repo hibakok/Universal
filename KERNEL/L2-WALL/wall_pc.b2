@@ -1,13 +1,60 @@
-; ===== K2-P018 p_cond: условие if/while; операнды на глубине 2 =====
-; статы: _upd(1+max(need_l, need_r)); эмит: 4 строки + cmp.
-; Выход: EAX = индекс jcc-инверсии (0..5: jne je jge jg jle jl).
+; ===== K2-P018 p_cond: условие if/while — цепочки && / || (v2, срез 3) =====
+; Вход (проход 2): RCX = pfx (0=if, 1=while), RDX = e (суффикс lfalse),
+; R8 = k (сквозной счётчик if/while). В проходе 1 параметры не задаются
+; и не читаются (pc_mode=0). Разбор: дизъюнкты по '||', внутри дизъюнкта —
+; сравнения по '&&' (SPEC/11 п.2); операнды на глубине 2, T1-склад.
+; Статы (проход 1): maxd = max(maxd, 1+max(need_l, need_r)) КАЖДОГО
+; сравнения; флаг v2 [r13+18190] при && / || (как * / % в p_mdm).
+; Эмит (проход 2), guard-канон SPEC/11 п.8: каждое сравнение + j<инв>
+; на lfail (d<i+1> при i<m, иначе lfalse); после дизъюнкта i<m —
+; "M jmp $<pfx><k>t" + метка d<i+1>; при m>1 — финальная метка t.
+; m=1 (одно сравнение или чистая &&-цепочка) — ни d/t-меток, ни jmp:
+; выход байт-в-байт как v1. m — предподсчёт числа '||' в строке
+; (скан без потребления, паттерн P009).
 :p_cond
 M push rbp ;P018
 M mov rbp, rsp ;P018
-M sub rsp, 30 ;P018
+M sub rsp, 60 ;P018
+M mov [rbp-28], rcx ;P018 pfx
+M mov [rbp-30], rdx ;P018 e
+M mov [rbp-38], r8 ;P018 k
+M mov eax, 1 ;P018
+M mov [rbp-48], rax ;P018 i = 1 (дизъюнкт)
+M mov [rbp-40], rax ;P018 m = 1 (дизъюнктов)
+M mov rax, [r13+18080] ;P018
+M test rax, rax ;P018
+M jz $pcd_cmp ;P018 статы: m не нужен
+M mov rax, [r13+18070] ;P018
+M mov [rbp-50], rax ;P018 скан-курсор
+:pcd_scan
+M mov rcx, [rbp-50] ;P018
+M call $lex_tok ;L001
+M cmp eax, 4 ;P018
+M je $pcd_cmp ;P018 конец строки — m готов
+M cmp eax, 2 ;P018
+M jne $pcd_sadv ;P018
+M mov rax, [r13+18068] ;P018
+M sub rax, [r13+18060] ;P018
+M cmp rax, 2 ;P018
+M jne $pcd_sadv ;P018
+M mov rcx, [r13+18060] ;P018
+M movzx eax, byte [rcx] ;P018
+M cmp al, 7C ;P018
+M jne $pcd_sadv ;P018
+M movzx eax, byte [rcx+1] ;P018
+M cmp al, 7C ;P018
+M jne $pcd_sadv ;P018
+M mov rax, [rbp-40] ;P018
+M inc rax ;P018
+M mov [rbp-40], rax ;P018 m++
+:pcd_sadv
+M mov rax, [r13+18068] ;P018
+M mov [rbp-50], rax ;P018
+M jmp $pcd_scan ;P018
+:pcd_cmp
 M mov ecx, 2 ;P018
-M call $p_expr ;P010
-M mov [rbp-8], rax ;P018
+M call $p_expr ;P010 левый операнд
+M mov [rbp-8], rax ;P018 need_l
 M mov rax, [r13+18080] ;P018
 M test rax, rax ;P018
 M jz $pc_nostore ;P018
@@ -24,7 +71,7 @@ M call $emit_cmt ;E009
 M mov rcx, [r13+18070] ;P018
 M call $lex_tok ;L001
 M cmp eax, 2 ;P018
-M jne $pc_fail ;P018
+M jne $pcd_fail ;P018
 M mov r11, [r13+18068] ;P018
 M sub r11, [r13+18060] ;P018
 M mov rcx, [r13+18060] ;P018
@@ -39,20 +86,20 @@ M cmp al, 3C ;P018
 M je $pc_lt ;P018
 M cmp al, 3E ;P018
 M je $pc_gt ;P018
-M jmp $pc_fail ;P018
+M jmp $pcd_fail ;P018
 :pc_eq
 M cmp r11, 2 ;P018
-M jne $pc_fail ;P018
+M jne $pcd_fail ;P018
 M movzx edx, byte [rcx+1] ;P018
 M cmp dl, 3D ;P018
-M jne $pc_fail ;P018
+M jne $pcd_fail ;P018
 M jmp $pc_opok ;P018
 :pc_ne
 M cmp r11, 2 ;P018
-M jne $pc_fail ;P018
+M jne $pcd_fail ;P018
 M movzx edx, byte [rcx+1] ;P018
 M cmp dl, 3D ;P018
-M jne $pc_fail ;P018
+M jne $pcd_fail ;P018
 M jmp $pc_opok ;P018
 :pc_lt
 M cmp r11, 2 ;P018
@@ -60,23 +107,23 @@ M jne $pc_opok ;P018
 M movzx edx, byte [rcx+1] ;P018
 M cmp dl, 3D ;P018
 M je $pc_opok ;P018
-M jmp $pc_fail ;P018
+M jmp $pcd_fail ;P018
 :pc_gt
 M cmp r11, 2 ;P018
 M jne $pc_opok ;P018
 M movzx edx, byte [rcx+1] ;P018
 M cmp dl, 3D ;P018
 M je $pc_opok ;P018
-M jmp $pc_fail ;P018
+M jmp $pcd_fail ;P018
 :pc_opok
 M mov rcx, [r13+18068] ;P018
 M mov [r13+18070], rcx ;P018
 M mov ecx, 2 ;P018
-M call $p_expr ;P010
-M mov [rbp-20], rax ;P018
+M call $p_expr ;P010 правый операнд
+M mov [rbp-20], rax ;P018 need_r
 M mov rax, [r13+18080] ;P018
 M test rax, rax ;P018
-M jnz $pc_emit ;P018
+M jnz $pcd_emit ;P018
 M mov rdx, [rbp-8] ;P018
 M cmp rdx, [rbp-20] ;P018
 M jge $pc_maxl ;P018
@@ -84,10 +131,10 @@ M mov rdx, [rbp-20] ;P018
 :pc_maxl
 M lea rax, [rdx+1] ;P018
 M cmp rax, [r13+18090] ;P018
-M jbe $pc_ret ;P018
+M jbe $pcd_after ;P018
 M mov [r13+18090], rax ;P018
-M jmp $pc_ret ;P018
-:pc_emit
+M jmp $pcd_after ;P018
+:pcd_emit
 M mov ecx, 4D ;P018
 M call $out_str ;E003
 M call $emit_cmt ;E009
@@ -103,50 +150,111 @@ M call $emit_cmt ;E009
 M mov ecx, 3D ;P018
 M call $out_str ;E003
 M call $emit_cmt ;E009
-:pc_ret
-M mov rax, [rbp-10] ;P018
+M mov rax, [rbp-10] ;P018 индекс инверсии jcc (0..5)
 M cmp al, 3D ;P018
-M je $pc_i0 ;P018
+M je $pcd_i0 ;P018
 M cmp al, 21 ;P018
-M je $pc_i1 ;P018
+M je $pcd_i1 ;P018
 M cmp al, 3C ;P018
-M je $pc_ilt ;P018
+M je $pcd_ilt ;P018
 M mov rax, [rbp-18] ;P018
 M cmp rax, 2 ;P018
-M je $pc_i5 ;P018
+M je $pcd_i5 ;P018
 M mov eax, 4 ;P018
-M mov rsp, rbp ;P018
-M pop rbp ;P018
-M ret ;P018
-:pc_ilt
+M jmp $pcd_jgo ;P018
+:pcd_ilt
 M mov rax, [rbp-18] ;P018
 M cmp rax, 2 ;P018
-M je $pc_i3 ;P018
+M je $pcd_i3 ;P018
 M mov eax, 2 ;P018
-M mov rsp, rbp ;P018
-M pop rbp ;P018
-M ret ;P018
-:pc_i0
+M jmp $pcd_jgo ;P018
+:pcd_i0
 M xor eax, eax ;P018
-M mov rsp, rbp ;P018
-M pop rbp ;P018
-M ret ;P018
-:pc_i1
+M jmp $pcd_jgo ;P018
+:pcd_i1
 M mov eax, 1 ;P018
-M mov rsp, rbp ;P018
-M pop rbp ;P018
-M ret ;P018
-:pc_i3
+M jmp $pcd_jgo ;P018
+:pcd_i3
 M mov eax, 3 ;P018
-M mov rsp, rbp ;P018
-M pop rbp ;P018
-M ret ;P018
-:pc_i5
+M jmp $pcd_jgo ;P018
+:pcd_i5
 M mov eax, 5 ;P018
+:pcd_jgo
+M mov rcx, rax ;P018 jcc
+M mov rax, [rbp-48] ;P018 i
+M cmp rax, [rbp-40] ;P018 m
+M jae $pcd_jlast ;P018 последний дизъюнкт -> lfalse
+M mov rdx, [rbp-28] ;P018 pfx
+M mov r8, [rbp-38] ;P018 k
+M mov r9, [rbp-48] ;P018
+M inc r9 ;P018 d<i+1>
+M call $emit_jccd ;E036
+M jmp $pcd_after ;P018
+:pcd_jlast
+M mov rdx, [rbp-30] ;P018 e
+M mov r8, [rbp-38] ;P018 k
+M mov r9, [rbp-28] ;P018 while=pfx
+M call $emit_jcc_line ;E029
+M jmp $pcd_after ;P018
+:pcd_after
+M mov rcx, [r13+18070] ;P018
+M call $lex_tok ;L001
+M cmp eax, 2 ;P018
+M jne $pcd_fin ;P018
+M mov rax, [r13+18068] ;P018
+M sub rax, [r13+18060] ;P018
+M cmp rax, 2 ;P018
+M jne $pcd_fin ;P018
+M mov rcx, [r13+18060] ;P018
+M movzx eax, byte [rcx] ;P018
+M cmp al, 26 ;P018
+M jne $pcd_chkor ;P018
+M movzx eax, byte [rcx+1] ;P018
+M cmp al, 26 ;P018
+M jne $pcd_chkor ;P018
+M mov [r13+18190], rax ;P018 флаг v2 (&&)
+M mov rcx, [r13+18068] ;P018
+M mov [r13+18070], rcx ;P018 поглотить &&
+M jmp $pcd_cmp ;P018 следующий конъюнкт
+:pcd_chkor
+M cmp al, 7C ;P018
+M jne $pcd_fin ;P018
+M movzx eax, byte [rcx+1] ;P018
+M cmp al, 7C ;P018
+M jne $pcd_fin ;P018
+M mov [r13+18190], rax ;P018 флаг v2 (||)
+M mov rcx, [r13+18068] ;P018
+M mov [r13+18070], rcx ;P018 поглотить ||
+M mov rax, [rbp-48] ;P018
+M inc rax ;P018
+M mov [rbp-48], rax ;P018 i++
+M mov rax, [r13+18080] ;P018
+M test rax, rax ;P018
+M jz $pcd_cmp ;P018 статы: без эмитции
+M mov rcx, [rbp-28] ;P018 pfx
+M mov rdx, [rbp-38] ;P018 k
+M call $emit_jmpt ;E037
+M mov rcx, [rbp-28] ;P018
+M mov rdx, [rbp-38] ;P018
+M mov r8, [rbp-48] ;P018 i (новый)
+M call $emit_glab ;E038
+M jmp $pcd_cmp ;P018 следующий дизъюнкт
+:pcd_fin
+M mov rax, [r13+18080] ;P018
+M test rax, rax ;P018
+M jz $pcd_ret ;P018
+M mov rax, [rbp-40] ;P018 m
+M cmp rax, 1 ;P018
+M jbe $pcd_ret ;P018 m=1: без t-метки (выход как v1)
+M mov rcx, [rbp-28] ;P018 pfx
+M mov rdx, [rbp-38] ;P018 k
+M xor r8d, r8d ;P018 0 = t-метка
+M call $emit_glab ;E038
+:pcd_ret
 M mov rsp, rbp ;P018
 M pop rbp ;P018
 M ret ;P018
-:pc_fail
+:pcd_fail
 M call $fail_format ;G002
 ; ===== K2-E022 emit_addr: RCX = ptr, RDX = len =====
 :emit_addr

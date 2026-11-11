@@ -13,7 +13,7 @@
 | `DOCS/00-MANIFEST.md` | миссия, требования, границы проекта | 57 |
 | `DOCS/01-METHODOLOGY.md` | кирпичи, ветви, слои, 10 правил | 93 |
 | `DOCS/02-AI-NAVIGATION.md` | протокол навигации, таблица типовых задач | 104 |
-| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 457 |
+| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 473 |
 | `DOCS/04-RULES-OF-CHANGE.md` | регламент изменений и коммитов | 59 |
 
 ## SPEC/ — формальные спецификации
@@ -31,14 +31,14 @@
 | `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
 | `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 252 |
 | `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice (пределы 256 КиБ, E6.4e-2) | 148 |
-| `SPEC/11-WALL-FORMAT.md` | WALL v1/v2: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 378 |
+| `SPEC/11-WALL-FORMAT.md` | WALL v1/v2: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 380 |
 
 ## MAP/ — навигация
 
 | Файл | Роль | Строк |
 |---|---|---|
 | `MAP/INDEX.md` | этот файл | 245 |
-| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 396 |
+| `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич) | 399 |
 | `MAP/M0-SEED.md` | карточки кирпичей M0-SEED (8) | 130 |
 | `MAP/M0-SEED2.md` | карточки кирпичей M0-SEED2 (19) | 299 |
 | `MAP/M0-HXDUMP.md` | карточки кирпичей M0-HXDUMP (23) | 360 |
@@ -49,7 +49,7 @@
 | `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 23; E033 imul — E6.4c) | 310 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
 | `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
-| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (71) | 242 |
+| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (74) | 273 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 32 |
 
 ## KERNEL/ — ядро
@@ -124,21 +124,22 @@
 | `KERNEL/L1-SPLICE/splice.exe` | материализация: brick+pegen, 3584 байта, PE32+ (пределы 256 КиБ E6.4e-2) | — |
 | `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты, история образа | 124 |
 | `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3, история пределов | 111 |
-| `KERNEL/L2-WALL/CARD.md` | карточка модуля M2-WALL (компилятор WALL v1/v2) | 144 |
-| `KERNEL/L2-WALL/wall.b2` | корень: поток + 18 !include (19 частей) | 122 |
+| `KERNEL/L2-WALL/CARD.md` | карточка модуля M2-WALL (компилятор WALL v1/v2) | 171 |
+| `KERNEL/L2-WALL/wall.b2` | корень: поток + 19 !include (20 частей) | 142 |
 | `KERNEL/L2-WALL/wall_svc.b2` | ветви H/G/U/C/F — сервисы (реинкарнации K1) | 192 |
 | `KERNEL/L2-WALL/wall_n.b2` | ветвь N — разбиение строк, проход 0 | 147 |
-| `KERNEL/L2-WALL/wall_l.b2` | ветвь L — лексер WALL (+ * / %, E6.4c-3/1) | 233 |
-| `KERNEL/L2-WALL/wall_pe.b2` | ветви P: want_*/поиск/chain_count (ур. 0/1/2) | 385 |
+| `KERNEL/L2-WALL/wall_l.b2` | ветвь L — лексер WALL (+ * / % срез 1; && / || срез 3) | 249 |
+| `KERNEL/L2-WALL/wall_pe.b2` | ветви P: want_*/поиск/chain_count (терминаторы — срез 3) | 392 |
 | `KERNEL/L2-WALL/wall_ph.b2` | p_expr/p_mul/p_mdm/p_unary (уровни; v2: * / %) | 408 |
 | `KERNEL/L2-WALL/wall_pp.b2` | p_prim — первичные выражения | 227 |
 | `KERNEL/L2-WALL/wall_pa.b2` | p_args/p_call_tail/call_stats — вызовы | 300 |
-| `KERNEL/L2-WALL/wall_pc.b2` | p_cond + emit_addr/len/load | 321 |
+| `KERNEL/L2-WALL/wall_pc.b2` | p_cond — цепочки && / || + guard (срез 3); emit_addr/len/load | 429 |
+| `KERNEL/L2-WALL/wall_pg.b2` | guard-эмиттеры E036/E037/E038 (срез 3, d/t-метки) | 114 |
 | `KERNEL/L2-WALL/wall_p1.b2` | проход 1: цикл, диспетчер, main | 138 |
 | `KERNEL/L2-WALL/wall_pd.b2` | объявления + заголовки func | 434 |
 | `KERNEL/L2-WALL/wall_p1s.b2` | утверждения прохода 1 (статы) | 300 |
 | `KERNEL/L2-WALL/wall_p2.b2` | проход 2: цикл, диспетчер, заголовки | 197 |
-| `KERNEL/L2-WALL/wall_p2s.b2` | утверждения прохода 2: if/while/вызовы | 380 |
+| `KERNEL/L2-WALL/wall_p2s.b2` | эмиттеры E029-E02D + утверждения прохода 2: if/while | 406 |
 | `KERNEL/L2-WALL/wall_p2t.b2` | эмиттеры переходов и меток | 100 |
 | `KERNEL/L2-WALL/wall_e.b2` | примитивы вывода, div10, out_dec, заголовок v1/v2 | 389 |
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
@@ -146,9 +147,9 @@
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
-| `KERNEL/L2-WALL/wall.exe` | материализация: 24064 байта (0x5E00), PE32+ | — |
-| `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 148 |
-| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 14 дефектов (+ срез 1) | 137 |
+| `KERNEL/L2-WALL/wall.exe` | материализация: 25088 байт (0x6200), PE32+ | — |
+| `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 194 |
+| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 15 дефектов (+ срезы 1-3) | 260 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -169,13 +170,13 @@
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17, T-E6-36 | 153 |
 | `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11b (E6.2; рост ISA E6.4c; предел 256 КиБ E6.4e-1) | 120 |
 | `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18, T-E6-16b (E6.3, E6.4e-2) | 97 |
-| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + срез 1 (E6.4c-3/1) + журналы | 225 |
+| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + срезы 1-3 (E6.4c-3) + журналы | 316 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `LAB/README.md` | статус и правила лаборатории | 108 |
+| `LAB/README.md` | статус и правила лаборатории | 109 |
 | `LAB/py/lab_pe.py` | разбор PE32+ + инварианты SPEC/04 | 178 |
 | `LAB/py/lab_atom.py` | оракул ATOM v1 (SPEC/03) | 68 |
 | `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08; метки 1024, imagebuf 0x40010 — E6.4e-3) | 317 |
@@ -201,7 +202,7 @@
 | `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 413 |
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36) | 285 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
-| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 998 |
+| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 1254 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
 | `LAB/ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты | 228 |
@@ -209,7 +210,8 @@
 | `LAB/ai/wall_build.py` | (частное) пересборка M2-WALL (E6.4b) | 117 |
 | `LAB/ai/wall_test.py` | (частное) dev-тест wall.exe v1 (E6.4b) | 100 |
 | `LAB/ai/wall_test_v2.py` | (частное) dev-тест среза 1: * / %, v1/v2, «U-MDM-OK 52» | 377 |
-| `LAB/ai/wall_test_bc.py` | (частное) dev-тест среза 2: break/continue, дефект №15, «U-BC-OK 25» | 356 |
+| `LAB/ai/wall_test_bc.py` | (частное) dev-тест среза 2: break/continue, дефект №15, «U-BC-OK 25» | 420 |
+| `LAB/ai/wall_test_cc.py` | (частное) dev-тест среза 3: цепочки && / ||, B2/F14/F16, «U-CC-OK 31» | 431 |
 | `LAB/ai/label_map.py` | (частное) карта меток wall.brick (RVA) для BYTECODE.md | 80 |
 | `LAB/ai/enc_part1..3.txt` | (частное) кодовые части enc.b2 для правок по секциям | — |
 
@@ -227,22 +229,22 @@ LAB — измерительный прибор (Python только здесь)
 
 ## Счётчики состояния (обновлять при каждом изменении)
 
-- Кирпичей в реестре: **254** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
+- Кирпичей в реестре: **257** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
   23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK,
-  64 в M1-ENC (+E033 enc_imul, E6.4c), 27 в M1-SPLICE; слой L2: 71 в
-  M2-WALL — +P01A/E034/E035 E6.4c-3/1, +S00F/Y00C E6.4c-3/2).
+  64 в M1-ENC (+E033 enc_imul, E6.4c), 27 в M1-SPLICE; слой L2: 74 в
+  M2-WALL — +P01A/E034/E035 E6.4c-3/1, +S00F/Y00C E6.4c-3/2,
+  +E036/E037/E038 E6.4c-3/3).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
 - Тестов: **116** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..36 + T-E6-10b + T-E6-16b;
   автоматических в батарее — 114).
-- Этап: **E6.4e-3 выполнен — эпик E6.4e закрыт** (brick: предел
-  исходника 128 -> 256 КиБ + метки 512 -> 1024 записи; ровно 8 слов
-  тела (imm32 x3 + disp32 x5), тело/файл не изменились; bss 0x84178,
-  vsize 0x84D10; +T-E6-36; батарея 114/114; круги E5 зелёные; попутно
-  найден дефект №15 — DZ после DBZ в пассаже 2, фикс отложен)
-  поверх E6.4e-1/2 (enc и splice: 256 КиБ) и E6.4c-3 срезы 1-2 из 5
-  (* / % и break/continue); весь конвейер принимает 256 КиБ на каждом
-  уровне. Далее срез 3 (E6.4c-3/3: цепочки && / || в wall.exe),
-  срезы 4-5 и E6.4d (wall.wall). Бюджет wall.b2 130217 Б — запас 2×
-  (см. `DOCS/03-ROADMAP.md` E6.4e/E6.4d и журнал сессии 13).
+- Этап: **E6.4c-3/3 выполнен — цепочки && / || в wall.exe** (лексер
+  lt_and/lt_or; терминаторы chain_count; p_cond — цикл дизъюнктов с
+  предподсчётом m + guard-эмиттер; новая часть wall_pg.b2 E036-38;
+  m=1 — выход дословно как v1; тело 24272 Б, EXE 25088 Б, метки
+  исходника 528/1024; dev wall_test_cc.py 20/20; батарея 114/114)
+  поверх E6.4c-3 срезов 1-2 из 5 (* / % и break/continue) и эпика
+  E6.4e (пределы конвейера 256 КиБ). Далее срез 4 (массивы), срез 5
+  (финальная сверка всех якорей) и E6.4d (wall.wall). Бюджет wall.b2
+  138126 Б из 256 КиБ (см. `DOCS/03-ROADMAP.md` и журнал сессии 14).

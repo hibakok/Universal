@@ -7,7 +7,9 @@ p2s_continue K2-Y00C) + регресс дефекта №15 (bstk 3072x32: if п
 while больше не затирает lineidx объемлющего while — комментарий
 обратного прыжка) + якорь B2-якорь-фрагменты + ошибки ERRORS2
 (break/continue вне while) + полный круг DEMO_BC до эмуляции
-«U-BC-OK 25». Запуск: python3 LAB/ai/wall_test_bc.py.
+«U-BC-OK 25». С E6.4c-3/3 (срез 3) полный якорь B2 (цепочки && / ||)
+компилируется == оракулу (до среза 3 корректно отвергался).
+Запуск: python3 LAB/ai/wall_test_bc.py.
 """
 import os
 import sys
@@ -306,16 +308,13 @@ def main():
     big = big_bc()
     ok, bad = check_full(ok, bad, "bc big (%d строк)" % big.count("\n"), big)
 
-    # 2) фрагменты якоря B2 (cases2): часть с break/continue
-    b2src, b2frag = lab_l2_cases2.CASES_FULL2[1][1], None
+    # 2) якорь B2 (cases2) целиком: с E6.4c-3/3 (срез 3) цепочки && / ||
+    #    компилируются — весь якорь == оракулу байт-в-байт
+    #    (до среза 3 корректно отвергался ERR=FORMAT)
+    b2src = lab_l2_cases2.CASES_FULL2[1][1]
+    ok, bad = check_full(ok, bad, "bc B2 полный (цепочки — срез 3)", b2src)
     frag_cont = "M jmp $_w1 ; continue"
     frag_break = "M jmp $_w1e ; break"
-    want = lab_l2.compile_wall(b2src).encode()  # && || ещё не поддержаны
-    r = run_wall(b2src)
-    good = r.exit_code == 6  # ERR=FORMAT до среза 3 (&& вне поддержки)
-    print("[%s] B2 (&& ||) корректно отвергнут до среза 3"
-          % ("OK " if good else "FAIL"))
-    ok, bad = ok + (1 if good else 0), bad + (0 if good else 1)
 
     # ядро B2 без && || — фрагменты обязаны присутствовать
     core = BC_ANCHORS[5][1]

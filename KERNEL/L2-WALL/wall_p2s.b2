@@ -267,23 +267,20 @@ M mov rax, [r13+18100] ;Y006
 M inc rax ;Y006
 M mov [r13+18100], rax ;Y006
 M mov [rbp-8], rax ;Y006
-M call $p_cond ;P018
-M mov [rbp-18], rax ;Y006
-M call $at_end_chk ;P002
 M lea rax, [r13+578418] ;Y006
 M mov rcx, [rbp-10] ;Y006
 M lea rax, [rax+rcx] ;Y006
 M movzx eax, byte [rax] ;Y006
-M mov [rbp-20], rax ;Y006
 M xor edx, edx ;Y006
 M test rax, rax ;Y006
 M jnz $p2i_go ;Y006
 M mov edx, 1 ;Y006
 :p2i_go
-M mov rcx, [rbp-18] ;Y006
-M mov r8, [rbp-8] ;Y006
-M xor r9d, r9d ;Y006 не while
-M call $emit_jcc_line ;E029
+M mov [rbp-18], rdx ;Y006 e (ifarr стабилен после pass 1)
+M xor ecx, ecx ;Y006 pfx=0 (if)
+M mov r8, [rbp-8] ;Y006 k
+M call $p_cond ;P018 guard внутри
+M call $at_end_chk ;P002
 M mov rax, [r13+18158] ;Y006
 M mov rcx, rax ;Y006
 M shl rcx, 5 ;Y006 ×32 (дефект №15)
@@ -324,14 +321,11 @@ M mov [rbp-8], rax ;Y007
 M mov rcx, [rbp-8] ;Y007
 M xor edx, edx ;Y007
 M call $emit_wlab ;E02C
-M call $p_cond ;P018
-M mov [rbp-18], rax ;Y007
+M mov ecx, 1 ;Y007 pfx=1 (while)
+M mov edx, 1 ;Y007 e=1 (lfalse = _w<ke>)
+M mov r8, [rbp-8] ;Y007 k
+M call $p_cond ;P018 guard внутри
 M call $at_end_chk ;P002
-M mov rcx, [rbp-18] ;Y007 jcc-инверсия
-M mov edx, 1 ;Y007
-M mov r8, [rbp-8] ;Y007
-M mov r9d, 1 ;Y007 while
-M call $emit_jcc_line ;E029
 M mov rax, [r13+18158] ;Y007
 M mov rcx, rax ;Y007
 M shl rcx, 5 ;Y007 ×32 (дефект №15)

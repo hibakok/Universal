@@ -63,9 +63,9 @@ M je $lt_s1 ;L001
 M cmp al, 2B ;L001
 M je $lt_s1 ;L001
 M cmp al, 7C ;L001
-M je $lt_s1 ;L001
+M je $lt_or ;L001
 M cmp al, 26 ;L001
-M je $lt_s1 ;L001
+M je $lt_and ;L001
 M cmp al, 5E ;L001
 M je $lt_s1 ;L001
 M cmp al, 2A ;L001 '*'
@@ -219,6 +219,22 @@ M je $lt_s2a ;L001
 M cmp al, 3E ;L001
 M je $lt_s2a ;L001
 M jmp $lt_s1 ;L001
+:lt_and
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M cmp byte [rdx], 26 ;L001
+M jne $lt_s1 ;L001
+M add rcx, 2 ;L001
+M jmp $lt_s2 ;L001
+:lt_or
+M lea rdx, [rcx+1] ;L001
+M cmp rdx, r15 ;L001
+M jae $lt_s1 ;L001
+M cmp byte [rdx], 7C ;L001
+M jne $lt_s1 ;L001
+M add rcx, 2 ;L001
+M jmp $lt_s2 ;L001
 :lt_s2a
 M add rcx, 2 ;L001
 M jmp $lt_s2 ;L001

@@ -1,5 +1,6 @@
-; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL (компилятор WALL v1, SPEC/11)
-; Само-исходник wall.exe: компилятор WALL v1 -> BRICK v2 (канон SPEC/11 п.8).
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL (компилятор WALL v1/v2, SPEC/11)
+; Само-исходник wall.exe: компилятор WALL v1/v2 -> BRICK v2 (канон SPEC/11 п.8).
+; v2 (E6.4c-3, срезы 1-3): операторы * / %, break/continue, цепочки && / ||.
 ; Сборка: splice.exe wall.b2 wall-flat.b2; enc.exe wall-flat.b2 wall.brick;
 ;         brick.exe wall.brick wall-body.bin; pegen.exe wall-body.bin wall.peg wall.exe
 ; Контракт: wall.exe <вход.wall> <выход.b2>; выход байт-в-байт равен оракулу
@@ -529,9 +530,9 @@ H 0F 84 $lt_s1 ;L001
 H 80 F8 2B ;L001
 H 0F 84 $lt_s1 ;L001
 H 80 F8 7C ;L001
-H 0F 84 $lt_s1 ;L001
+H 0F 84 $lt_or ;L001
 H 80 F8 26 ;L001
-H 0F 84 $lt_s1 ;L001
+H 0F 84 $lt_and ;L001
 H 80 F8 5E ;L001
 H 0F 84 $lt_s1 ;L001
 H 80 F8 2A ;L001 '*'
@@ -685,6 +686,22 @@ H 0F 84 $lt_s2a ;L001
 H 80 F8 3E ;L001
 H 0F 84 $lt_s2a ;L001
 H E9 $lt_s1 ;L001
+:lt_and
+H 48 8D 51 01 ;L001
+H 4C 39 FA ;L001
+H 0F 83 $lt_s1 ;L001
+H 80 3A 26 ;L001
+H 0F 85 $lt_s1 ;L001
+H 48 83 C1 02 ;L001
+H E9 $lt_s2 ;L001
+:lt_or
+H 48 8D 51 01 ;L001
+H 4C 39 FA ;L001
+H 0F 83 $lt_s1 ;L001
+H 80 3A 7C ;L001
+H 0F 85 $lt_s1 ;L001
+H 48 83 C1 02 ;L001
+H E9 $lt_s2 ;L001
 :lt_s2a
 H 48 83 C1 02 ;L001
 H E9 $lt_s2 ;L001
@@ -1346,8 +1363,9 @@ H C3 ;P008
 ; RCX = 0 (аддитивные + - | ^) / 1 (конъюнкция & << >>) / 2 (v2: * / %);
 ; сканирует токены от pc_cur БЕЗ потребления; RAX = число операций.
 ; Завершители на глубине 0: ')' , ','; операторы старших уровней;
-; сравнения == != <= >= — конец ЛЮБОЙ цепочки (правый операнд сравнения
-; не считается в цепочку левого — дефект E6.4b, пойман E6.4c-3/1).
+; сравнения == != <= >= и цепочки && || — конец ЛЮБОЙ цепочки (правый
+; операнд сравнения/конъюнкта не считается в цепочку левого — дефект
+; E6.4b, пойман E6.4c-3/1; && / || — E6.4c-3/3).
 :chain_count
 H 55 ;P009
 H 48 89 E5 ;P009
@@ -1436,10 +1454,16 @@ H 0F 85 $cc_adv ;P009
 H 49 8B 95 60 80 01 00 ;P009
 H 0F B6 02 ;P009
 H 0F B6 52 01 ;P009
-; у всех сравнений (== != <= >=) второй байт 3D, у сдвигов — 3C/3E:
-; сравнение — конец ЛЮБОЙ цепочки на любом уровне (правый операнд
-; сравнения не считается в цепочку левого — дефект E6.4b, E6.4c-3/1)
+; у всех сравнений (== != <= >=) второй байт 3D, у сдвигов — 3C/3E,
+; у цепочек && / || — первые байты 26/7C (двухсимвольные, E6.4c-3/3):
+; сравнение И цепочка — конец ЛЮБОЙ цепочки на любом уровне (правый
+; операнд сравнения не считается в цепочку левого — дефект E6.4b,
+; E6.4c-3/1; операнд за && / || — не часть цепочки левого — E6.4c-3/3)
 H 80 FA 3D ;P009
+H 0F 84 $cc_done ;P009
+H 80 F8 26 ;P009 &&
+H 0F 84 $cc_done ;P009
+H 80 F8 7C ;P009 ||
 H 0F 84 $cc_done ;P009
 :cc_2lvl
 H 48 8B 7D F8 ;P009
@@ -2027,16 +2051,63 @@ H E8 $fail_format ;G002
 H 48 89 EC ;P013
 H 5D ;P013
 H C3 ;P013
-; ===== K2-P018 p_cond: условие if/while; операнды на глубине 2 =====
-; статы: _upd(1+max(need_l, need_r)); эмит: 4 строки + cmp.
-; Выход: EAX = индекс jcc-инверсии (0..5: jne je jge jg jle jl).
+; ===== K2-P018 p_cond: условие if/while — цепочки && / || (v2, срез 3) =====
+; Вход (проход 2): RCX = pfx (0=if, 1=while), RDX = e (суффикс lfalse),
+; R8 = k (сквозной счётчик if/while). В проходе 1 параметры не задаются
+; и не читаются (pc_mode=0). Разбор: дизъюнкты по '||', внутри дизъюнкта —
+; сравнения по '&&' (SPEC/11 п.2); операнды на глубине 2, T1-склад.
+; Статы (проход 1): maxd = max(maxd, 1+max(need_l, need_r)) КАЖДОГО
+; сравнения; флаг v2 [r13+18190] при && / || (как * / % в p_mdm).
+; Эмит (проход 2), guard-канон SPEC/11 п.8: каждое сравнение + j<инв>
+; на lfail (d<i+1> при i<m, иначе lfalse); после дизъюнкта i<m —
+; "M jmp $<pfx><k>t" + метка d<i+1>; при m>1 — финальная метка t.
+; m=1 (одно сравнение или чистая &&-цепочка) — ни d/t-меток, ни jmp:
+; выход байт-в-байт как v1. m — предподсчёт числа '||' в строке
+; (скан без потребления, паттерн P009).
 :p_cond
 H 55 ;P018
 H 48 89 E5 ;P018
-H 48 83 EC 30 ;P018
+H 48 83 EC 60 ;P018
+H 48 89 4D D8 ;P018 pfx
+H 48 89 55 D0 ;P018 e
+H 4C 89 45 C8 ;P018 k
+H B8 01 00 00 00 ;P018
+H 48 89 45 B8 ;P018 i = 1 (дизъюнкт)
+H 48 89 45 C0 ;P018 m = 1 (дизъюнктов)
+H 49 8B 85 80 80 01 00 ;P018
+H 48 85 C0 ;P018
+H 0F 84 $pcd_cmp ;P018 статы: m не нужен
+H 49 8B 85 70 80 01 00 ;P018
+H 48 89 45 B0 ;P018 скан-курсор
+:pcd_scan
+H 48 8B 4D B0 ;P018
+H E8 $lex_tok ;L001
+H 83 F8 04 ;P018
+H 0F 84 $pcd_cmp ;P018 конец строки — m готов
+H 83 F8 02 ;P018
+H 0F 85 $pcd_sadv ;P018
+H 49 8B 85 68 80 01 00 ;P018
+H 49 2B 85 60 80 01 00 ;P018
+H 48 83 F8 02 ;P018
+H 0F 85 $pcd_sadv ;P018
+H 49 8B 8D 60 80 01 00 ;P018
+H 0F B6 01 ;P018
+H 80 F8 7C ;P018
+H 0F 85 $pcd_sadv ;P018
+H 0F B6 41 01 ;P018
+H 80 F8 7C ;P018
+H 0F 85 $pcd_sadv ;P018
+H 48 8B 45 C0 ;P018
+H 48 FF C0 ;P018
+H 48 89 45 C0 ;P018 m++
+:pcd_sadv
+H 49 8B 85 68 80 01 00 ;P018
+H 48 89 45 B0 ;P018
+H E9 $pcd_scan ;P018
+:pcd_cmp
 H B9 02 00 00 00 ;P018
-H E8 $p_expr ;P010
-H 48 89 45 F8 ;P018
+H E8 $p_expr ;P010 левый операнд
+H 48 89 45 F8 ;P018 need_l
 H 49 8B 85 80 80 01 00 ;P018
 H 48 85 C0 ;P018
 H 0F 84 $pc_nostore ;P018
@@ -2053,7 +2124,7 @@ H E8 $emit_cmt ;E009
 H 49 8B 8D 70 80 01 00 ;P018
 H E8 $lex_tok ;L001
 H 83 F8 02 ;P018
-H 0F 85 $pc_fail ;P018
+H 0F 85 $pcd_fail ;P018
 H 4D 8B 9D 68 80 01 00 ;P018
 H 4D 2B 9D 60 80 01 00 ;P018
 H 49 8B 8D 60 80 01 00 ;P018
@@ -2068,20 +2139,20 @@ H 80 F8 3C ;P018
 H 0F 84 $pc_lt ;P018
 H 80 F8 3E ;P018
 H 0F 84 $pc_gt ;P018
-H E9 $pc_fail ;P018
+H E9 $pcd_fail ;P018
 :pc_eq
 H 49 83 FB 02 ;P018
-H 0F 85 $pc_fail ;P018
+H 0F 85 $pcd_fail ;P018
 H 0F B6 51 01 ;P018
 H 80 FA 3D ;P018
-H 0F 85 $pc_fail ;P018
+H 0F 85 $pcd_fail ;P018
 H E9 $pc_opok ;P018
 :pc_ne
 H 49 83 FB 02 ;P018
-H 0F 85 $pc_fail ;P018
+H 0F 85 $pcd_fail ;P018
 H 0F B6 51 01 ;P018
 H 80 FA 3D ;P018
-H 0F 85 $pc_fail ;P018
+H 0F 85 $pcd_fail ;P018
 H E9 $pc_opok ;P018
 :pc_lt
 H 49 83 FB 02 ;P018
@@ -2089,23 +2160,23 @@ H 0F 85 $pc_opok ;P018
 H 0F B6 51 01 ;P018
 H 80 FA 3D ;P018
 H 0F 84 $pc_opok ;P018
-H E9 $pc_fail ;P018
+H E9 $pcd_fail ;P018
 :pc_gt
 H 49 83 FB 02 ;P018
 H 0F 85 $pc_opok ;P018
 H 0F B6 51 01 ;P018
 H 80 FA 3D ;P018
 H 0F 84 $pc_opok ;P018
-H E9 $pc_fail ;P018
+H E9 $pcd_fail ;P018
 :pc_opok
 H 49 8B 8D 68 80 01 00 ;P018
 H 49 89 8D 70 80 01 00 ;P018
 H B9 02 00 00 00 ;P018
-H E8 $p_expr ;P010
-H 48 89 45 E0 ;P018
+H E8 $p_expr ;P010 правый операнд
+H 48 89 45 E0 ;P018 need_r
 H 49 8B 85 80 80 01 00 ;P018
 H 48 85 C0 ;P018
-H 0F 85 $pc_emit ;P018
+H 0F 85 $pcd_emit ;P018
 H 48 8B 55 F8 ;P018
 H 48 3B 55 E0 ;P018
 H 0F 8D $pc_maxl ;P018
@@ -2113,10 +2184,10 @@ H 48 8B 55 E0 ;P018
 :pc_maxl
 H 48 8D 42 01 ;P018
 H 49 3B 85 90 80 01 00 ;P018
-H 0F 86 $pc_ret ;P018
+H 0F 86 $pcd_after ;P018
 H 49 89 85 90 80 01 00 ;P018
-H E9 $pc_ret ;P018
-:pc_emit
+H E9 $pcd_after ;P018
+:pcd_emit
 H B9 4D 00 00 00 ;P018
 H E8 $out_str ;E003
 H E8 $emit_cmt ;E009
@@ -2132,50 +2203,111 @@ H E8 $emit_cmt ;E009
 H B9 3D 00 00 00 ;P018
 H E8 $out_str ;E003
 H E8 $emit_cmt ;E009
-:pc_ret
-H 48 8B 45 F0 ;P018
+H 48 8B 45 F0 ;P018 индекс инверсии jcc (0..5)
 H 80 F8 3D ;P018
-H 0F 84 $pc_i0 ;P018
+H 0F 84 $pcd_i0 ;P018
 H 80 F8 21 ;P018
-H 0F 84 $pc_i1 ;P018
+H 0F 84 $pcd_i1 ;P018
 H 80 F8 3C ;P018
-H 0F 84 $pc_ilt ;P018
+H 0F 84 $pcd_ilt ;P018
 H 48 8B 45 E8 ;P018
 H 48 83 F8 02 ;P018
-H 0F 84 $pc_i5 ;P018
+H 0F 84 $pcd_i5 ;P018
 H B8 04 00 00 00 ;P018
-H 48 89 EC ;P018
-H 5D ;P018
-H C3 ;P018
-:pc_ilt
+H E9 $pcd_jgo ;P018
+:pcd_ilt
 H 48 8B 45 E8 ;P018
 H 48 83 F8 02 ;P018
-H 0F 84 $pc_i3 ;P018
+H 0F 84 $pcd_i3 ;P018
 H B8 02 00 00 00 ;P018
-H 48 89 EC ;P018
-H 5D ;P018
-H C3 ;P018
-:pc_i0
+H E9 $pcd_jgo ;P018
+:pcd_i0
 H 31 C0 ;P018
-H 48 89 EC ;P018
-H 5D ;P018
-H C3 ;P018
-:pc_i1
+H E9 $pcd_jgo ;P018
+:pcd_i1
 H B8 01 00 00 00 ;P018
-H 48 89 EC ;P018
-H 5D ;P018
-H C3 ;P018
-:pc_i3
+H E9 $pcd_jgo ;P018
+:pcd_i3
 H B8 03 00 00 00 ;P018
-H 48 89 EC ;P018
-H 5D ;P018
-H C3 ;P018
-:pc_i5
+H E9 $pcd_jgo ;P018
+:pcd_i5
 H B8 05 00 00 00 ;P018
+:pcd_jgo
+H 48 89 C1 ;P018 jcc
+H 48 8B 45 B8 ;P018 i
+H 48 3B 45 C0 ;P018 m
+H 0F 83 $pcd_jlast ;P018 последний дизъюнкт -> lfalse
+H 48 8B 55 D8 ;P018 pfx
+H 4C 8B 45 C8 ;P018 k
+H 4C 8B 4D B8 ;P018
+H 49 FF C1 ;P018 d<i+1>
+H E8 $emit_jccd ;E036
+H E9 $pcd_after ;P018
+:pcd_jlast
+H 48 8B 55 D0 ;P018 e
+H 4C 8B 45 C8 ;P018 k
+H 4C 8B 4D D8 ;P018 while=pfx
+H E8 $emit_jcc_line ;E029
+H E9 $pcd_after ;P018
+:pcd_after
+H 49 8B 8D 70 80 01 00 ;P018
+H E8 $lex_tok ;L001
+H 83 F8 02 ;P018
+H 0F 85 $pcd_fin ;P018
+H 49 8B 85 68 80 01 00 ;P018
+H 49 2B 85 60 80 01 00 ;P018
+H 48 83 F8 02 ;P018
+H 0F 85 $pcd_fin ;P018
+H 49 8B 8D 60 80 01 00 ;P018
+H 0F B6 01 ;P018
+H 80 F8 26 ;P018
+H 0F 85 $pcd_chkor ;P018
+H 0F B6 41 01 ;P018
+H 80 F8 26 ;P018
+H 0F 85 $pcd_chkor ;P018
+H 49 89 85 90 81 01 00 ;P018 флаг v2 (&&)
+H 49 8B 8D 68 80 01 00 ;P018
+H 49 89 8D 70 80 01 00 ;P018 поглотить &&
+H E9 $pcd_cmp ;P018 следующий конъюнкт
+:pcd_chkor
+H 80 F8 7C ;P018
+H 0F 85 $pcd_fin ;P018
+H 0F B6 41 01 ;P018
+H 80 F8 7C ;P018
+H 0F 85 $pcd_fin ;P018
+H 49 89 85 90 81 01 00 ;P018 флаг v2 (||)
+H 49 8B 8D 68 80 01 00 ;P018
+H 49 89 8D 70 80 01 00 ;P018 поглотить ||
+H 48 8B 45 B8 ;P018
+H 48 FF C0 ;P018
+H 48 89 45 B8 ;P018 i++
+H 49 8B 85 80 80 01 00 ;P018
+H 48 85 C0 ;P018
+H 0F 84 $pcd_cmp ;P018 статы: без эмитции
+H 48 8B 4D D8 ;P018 pfx
+H 48 8B 55 C8 ;P018 k
+H E8 $emit_jmpt ;E037
+H 48 8B 4D D8 ;P018
+H 48 8B 55 C8 ;P018
+H 4C 8B 45 B8 ;P018 i (новый)
+H E8 $emit_glab ;E038
+H E9 $pcd_cmp ;P018 следующий дизъюнкт
+:pcd_fin
+H 49 8B 85 80 80 01 00 ;P018
+H 48 85 C0 ;P018
+H 0F 84 $pcd_ret ;P018
+H 48 8B 45 C0 ;P018 m
+H 48 83 F8 01 ;P018
+H 0F 86 $pcd_ret ;P018 m=1: без t-метки (выход как v1)
+H 48 8B 4D D8 ;P018 pfx
+H 48 8B 55 C8 ;P018 k
+H 45 31 C0 ;P018 0 = t-метка
+H E8 $emit_glab ;E038
+:pcd_ret
 H 48 89 EC ;P018
 H 5D ;P018
 H C3 ;P018
-:pc_fail
+:pcd_fail
 H E8 $fail_format ;G002
 ; ===== K2-E022 emit_addr: RCX = ptr, RDX = len =====
 :emit_addr
@@ -2348,6 +2480,120 @@ H C3 ;E024
 H E8 $fail_format ;G002
 :el_notvalue
 H E8 $fail_format ;G002
+; ===== K2-E036 emit_jccd: jcc на метку guard-цепочки (v2, срез 3) =====
+; "M <mnem> $<pfx><k>d<i> ; текст строки". RCX = индекс jcc (0..5,
+; jcctab: jne je jge jg jle jl), RDX = pfx (0=if, 1=while),
+; R8 = k (сквозной счётчик if/while), R9 = i (номер d-метки, >= 2).
+; Вызывается из p_cond (K2-P018) для сравнений не последних дизъюнктов.
+:emit_jccd
+H 55 ;E036
+H 48 89 E5 ;E036
+H 48 83 EC 20 ;E036
+H 48 89 4D F8 ;E036 jcc
+H 48 89 55 F0 ;E036 pfx
+H 4C 89 45 E8 ;E036 k
+H 4C 89 4D E0 ;E036 i
+H B9 39 00 00 00 ;E036 "M "
+H E8 $out_str ;E003
+H 48 8B 45 F8 ;E036
+H 48 8D 15 $jcctab ;E036
+H 48 C1 E0 03 ;E036
+H 48 01 C2 ;E036
+H 8B 02 ;E036 смещение в блобе
+H 48 8D 0D $strblob ;E036
+H 48 01 C8 ;E036
+H 44 8B 4A 04 ;E036
+H 48 89 C2 ;E036
+H 4D 89 C8 ;E036
+H E8 $out_copy ;E002
+H 48 8B 45 F0 ;E036
+H 48 85 C0 ;E036
+H 0F 84 $ejd_if ;E036
+H B9 69 00 00 00 ;E036 " $_w"
+H E8 $out_str ;E003
+H E9 $ejd_k ;E036
+:ejd_if
+H B9 2A 00 00 00 ;E036 " $_if"
+H E8 $out_str ;E003
+:ejd_k
+H 48 8B 45 E8 ;E036
+H E8 $out_dec ;E008
+H 41 C6 04 24 64 ;E036 'd'
+H 49 FF C4 ;E036
+H 48 8B 45 E0 ;E036
+H E8 $out_dec ;E008
+H E8 $emit_cmt ;E009
+H 48 89 EC ;E036
+H 5D ;E036
+H C3 ;E036
+; ===== K2-E037 emit_jmpt: безусловный на t-метку guard-цепочки (v2) =====
+; "M jmp $<pfx><k>t ; текст строки". RCX = pfx (0=if, 1=while),
+; RDX = k. Успех дизъюнкта -> тело (short-circuit, SPEC/11 п.8).
+:emit_jmpt
+H 55 ;E037
+H 48 89 E5 ;E037
+H 48 83 EC 20 ;E037
+H 48 89 4D F8 ;E037 pfx
+H 48 89 55 F0 ;E037 k
+H 48 8B 45 F8 ;E037
+H 48 85 C0 ;E037
+H 0F 84 $ejt_if ;E037
+H B9 3F 00 00 00 ;E037 "M jmp $_w"
+H E8 $out_str ;E003
+H E9 $ejt_k ;E037
+:ejt_if
+H B9 3E 00 00 00 ;E037 "M jmp $_if"
+H E8 $out_str ;E003
+:ejt_k
+H 48 8B 45 F0 ;E037
+H E8 $out_dec ;E008
+H 41 C6 04 24 74 ;E037 't'
+H 49 FF C4 ;E037
+H E8 $emit_cmt ;E009
+H 48 89 EC ;E037
+H 5D ;E037
+H C3 ;E037
+; ===== K2-E038 emit_glab: метка guard-цепочки (v2) =====
+; ":<pfx><k>d<i>" (R8 = i >= 2) или ":<pfx><k>t" (R8 = 0); nlab++
+; (предел 500 меток выхода — SPEC/11 п.9). RCX = pfx, RDX = k, R8 = i.
+:emit_glab
+H 55 ;E038
+H 48 89 E5 ;E038
+H 48 83 EC 20 ;E038
+H 48 89 4D F8 ;E038 pfx
+H 48 89 55 F0 ;E038 k
+H 4C 89 45 E8 ;E038 i
+H 48 8B 45 F8 ;E038
+H 48 85 C0 ;E038
+H 0F 84 $egl_if ;E038
+H B9 68 00 00 00 ;E038 ":_w"
+H E8 $out_str ;E003
+H E9 $egl_k ;E038
+:egl_if
+H B9 29 00 00 00 ;E038 ":_if"
+H E8 $out_str ;E003
+:egl_k
+H 48 8B 45 F0 ;E038
+H E8 $out_dec ;E008
+H 48 8B 45 E8 ;E038
+H 48 85 C0 ;E038
+H 0F 84 $egl_t ;E038
+H 41 C6 04 24 64 ;E038 'd'
+H 49 FF C4 ;E038
+H E8 $out_dec ;E008
+H E9 $egl_nl ;E038
+:egl_t
+H 41 C6 04 24 74 ;E038 't'
+H 49 FF C4 ;E038
+:egl_nl
+H 41 C6 04 24 0A ;E038
+H 49 FF C4 ;E038
+H 49 8B 85 08 81 01 00 ;E038 nlab++
+H 48 FF C0 ;E038
+H 49 89 85 08 81 01 00 ;E038
+H 48 89 EC ;E038
+H 5D ;E038
+H C3 ;E038
 ; ===== K2-S001 pass1: разбор + таблицы + статистика кадров =====
 :pass1
 H 55 ;S001
@@ -3702,23 +3948,20 @@ H 49 8B 85 00 81 01 00 ;Y006
 H 48 FF C0 ;Y006
 H 49 89 85 00 81 01 00 ;Y006
 H 48 89 45 F8 ;Y006
-H E8 $p_cond ;P018
-H 48 89 45 E8 ;Y006
-H E8 $at_end_chk ;P002
 H 49 8D 85 18 84 57 00 ;Y006
 H 48 8B 4D F0 ;Y006
 H 48 8D 04 08 ;Y006
 H 0F B6 00 ;Y006
-H 48 89 45 E0 ;Y006
 H 31 D2 ;Y006
 H 48 85 C0 ;Y006
 H 0F 85 $p2i_go ;Y006
 H BA 01 00 00 00 ;Y006
 :p2i_go
-H 48 8B 4D E8 ;Y006
-H 4C 8B 45 F8 ;Y006
-H 45 31 C9 ;Y006 не while
-H E8 $emit_jcc_line ;E029
+H 48 89 55 E8 ;Y006 e (ifarr стабилен после pass 1)
+H 31 C9 ;Y006 pfx=0 (if)
+H 4C 8B 45 F8 ;Y006 k
+H E8 $p_cond ;P018 guard внутри
+H E8 $at_end_chk ;P002
 H 49 8B 85 58 81 01 00 ;Y006
 H 48 89 C1 ;Y006
 H 48 C1 E1 05 ;Y006 ×32 (дефект №15)
@@ -3759,14 +4002,11 @@ H 48 89 45 F8 ;Y007
 H 48 8B 4D F8 ;Y007
 H 31 D2 ;Y007
 H E8 $emit_wlab ;E02C
-H E8 $p_cond ;P018
-H 48 89 45 E8 ;Y007
+H B9 01 00 00 00 ;Y007 pfx=1 (while)
+H BA 01 00 00 00 ;Y007 e=1 (lfalse = _w<ke>)
+H 4C 8B 45 F8 ;Y007 k
+H E8 $p_cond ;P018 guard внутри
 H E8 $at_end_chk ;P002
-H 48 8B 4D E8 ;Y007 jcc-инверсия
-H BA 01 00 00 00 ;Y007
-H 4C 8B 45 F8 ;Y007
-H 41 B9 01 00 00 00 ;Y007 while
-H E8 $emit_jcc_line ;E029
 H 49 8B 85 58 81 01 00 ;Y007
 H 48 89 C1 ;Y007
 H 48 C1 E1 05 ;Y007 ×32 (дефект №15)
