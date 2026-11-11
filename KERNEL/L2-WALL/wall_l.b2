@@ -74,6 +74,10 @@ M cmp al, 2F ;L001 '/'
 M je $lt_s1 ;L001
 M cmp al, 25 ;L001 '%'
 M je $lt_s1 ;L001
+M cmp al, 5B ;L001 '[' (массивы v2, срез 4)
+M je $lt_s1 ;L001
+M cmp al, 5D ;L001 ']'
+M je $lt_s1 ;L001
 M call $fail_format ;L001
 :lt_stop
 M mov [r13+18060], rcx ;L001

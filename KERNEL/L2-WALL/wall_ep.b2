@@ -28,7 +28,7 @@ M mov rax, [r13+180E8] ;E018
 M mov rcx, rax ;E018
 M shl rcx, 6 ;E018
 M mov rdx, rax ;E018
-M shl rdx, 3 ;E018
+M shl rdx, 4 ;E018 ×80 (срез 4)
 M add rcx, rdx ;E018
 M lea rdx, [r13+2583D8] ;E018
 M add rdx, rcx ;E018

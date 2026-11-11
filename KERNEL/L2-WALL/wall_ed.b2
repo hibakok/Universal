@@ -335,9 +335,12 @@ M mov rax, [rbp-8] ;E028
 M cmp rax, [r13+18148] ;E028
 M jae $egd_ret ;E028
 M mov rcx, rax ;E028
-M shl rcx, 3 ;E028
+M shl rcx, 4 ;E028 ×16 {idx, size} (срез 4)
 M lea rdx, [r13+5383D8] ;E028
 M add rdx, rcx ;E028
+M mov rax, [rdx+8] ;E028 размер
+M shl rax, 3 ;E028 8*n
+M mov [rbp-20], rax ;E028 байтов ячеек
 M mov rax, [rdx] ;E028
 M mov rcx, rax ;E028
 M shl rcx, 5 ;E028
@@ -364,8 +367,14 @@ M call $emit_lab ;E011
 M mov rax, [r13+18108] ;E028
 M inc rax ;E028
 M mov [r13+18108], rax ;E028
-M mov ecx, F ;E028
-M call $out_str ;E003
+M mov byte [r12], 44 ;E028 'D' (срез 4: DZ 8n)
+M inc r12 ;E028
+M mov byte [r12], 5A ;E028 'Z'
+M inc r12 ;E028
+M mov byte [r12], 20 ;E028 ' '
+M inc r12 ;E028
+M mov rax, [rbp-20] ;E028
+M call $out_hex ;E005
 M call $emit_cmt ;E009
 M mov rax, [rbp-8] ;E028
 M inc rax ;E028

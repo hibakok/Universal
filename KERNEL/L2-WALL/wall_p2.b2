@@ -137,10 +137,10 @@ M mov [rbp-8], rax ;Y00A
 M mov rcx, r15 ;Y00A остаток строки (параметры) пропустить
 M mov [r13+18070], rcx ;Y00A
 M mov rax, [rbp-8] ;Y00A раскладка из ftab
-M mov rcx, rax ;Y00A x72
+M mov rcx, rax ;Y00A x80 (срез 4)
 M shl rcx, 6 ;Y00A
 M mov rdx, rax ;Y00A
-M shl rdx, 3 ;Y00A
+M shl rdx, 4 ;Y00A
 M add rcx, rdx ;Y00A
 M lea rdx, [r13+2583D8] ;Y00A
 M add rdx, rcx ;Y00A адрес записи
@@ -152,7 +152,8 @@ M mov rax, [rdx+30] ;Y00A locoff
 M mov [r13+180F0], rax ;Y00A
 M mov rax, [rdx+38] ;Y00A loccnt
 M mov [r13+180F8], rax ;Y00A
-M mov [r13+180C0], rax ;Y00A
+M mov rax, [rdx+48] ;Y00A nslots (срез 4)
+M mov [r13+180C0], rax ;Y00A nbase = сумма слотов
 M mov rax, [rbp-8] ;Y00A
 M mov [r13+180E8], rax ;Y00A
 M mov rax, [rbp-10] ;Y00A имя функции

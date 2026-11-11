@@ -16,6 +16,9 @@ M mov [r13+181D8], rax ;S003
 M mov rax, [r13+18068] ;S003
 M sub rax, [r13+181D8] ;S003
 M mov [r13+181E0], rax ;S003
+M call $arr_size ;P019 размер (1 = скаляр; срез 4)
+M mov [r13+181E8], rax ;S003 размер
+M mov [r13+181F0], rdx ;S003 признак [n]
 M call $at_end_chk ;P002
 M mov rcx, [r13+181D8] ;S003
 M mov rdx, [r13+181E0] ;S003
@@ -23,6 +26,11 @@ M call $names_find ;P006
 M cmp rax, -1 ;S003
 M jne $d1_dup ;S003
 M mov r8, 1 ;S003
+M mov rax, [r13+181F0] ;S003
+M test rax, rax ;S003
+M jz $d1_vscal ;S003
+M mov r8, 5 ;S003 вид 5 = массив
+:d1_vscal
 M mov r9, [r13+18148] ;S003
 M mov rcx, [r13+181D8] ;S003
 M mov rdx, [r13+181E0] ;S003
@@ -30,10 +38,12 @@ M call $names_add ;P007
 M mov rax, [r13+18128] ;S003
 M dec rax ;S003
 M mov rcx, [r13+18148] ;S003
-M shl rcx, 3 ;S003
+M shl rcx, 4 ;S003 ×16 {ntab_idx, size} (срез 4)
 M lea rdx, [r13+5383D8] ;S003
 M add rdx, rcx ;S003
 M mov [rdx], rax ;S003
+M mov rax, [r13+181E8] ;S003
+M mov [rdx+8], rax ;S003 размер (срез 4)
 M mov rax, [r13+18148] ;S003
 M inc rax ;S003
 M mov [r13+18148], rax ;S003
@@ -249,7 +259,7 @@ M mov rax, [r13+18130] ;S004
 M mov rcx, rax ;S004
 M shl rcx, 6 ;S004
 M mov rdx, rax ;S004
-M shl rdx, 3 ;S004
+M shl rdx, 4 ;S004 ×80 {.., nslots} (срез 4)
 M add rcx, rdx ;S004
 M lea rdx, [r13+2583D8] ;S004
 M add rdx, rcx ;S004
@@ -269,6 +279,8 @@ M mov rax, [rbp-8] ;S004
 M mov [rdx+38], rax ;S004
 M mov rax, [r13+18020] ;S004
 M mov [rdx+40], rax ;S004
+M xor eax, eax ;S004
+M mov [rdx+48], rax ;S004 nslots (срез 4; заполняет S007)
 M mov r8, 4 ;S004
 M mov r9, [r13+18130] ;S004
 M mov rcx, [rbp-10] ;S004
@@ -290,6 +302,8 @@ M mov rax, [rbp-20] ;S004
 M mov [r13+180B0], rax ;S004
 M mov rax, [rbp-8] ;S004
 M mov [r13+180B8], rax ;S004
+M mov rax, [r13+180B8] ;S004
+M mov [r13+180D8], rax ;S004 st_nslots = nparams (срез 4)
 M mov rax, [r13+18158] ;S004
 M mov rcx, rax ;S004
 M shl rcx, 5 ;S004 ×32 (дефект №15)
@@ -336,7 +350,7 @@ M mov r9, [r13+18138] ;S00E
 M cmp r8, r9 ;S00E
 M jae $fhp_ok ;S00E
 M mov rax, r8 ;S00E
-M shl rax, 4 ;S00E
+M shl rax, 5 ;S00E ×32 {ptr, len, size} (срез 4)
 M lea rdx, [r13+3783D8] ;S00E
 M add rdx, rax ;S00E
 M mov rcx, [rdx+8] ;S00E длина
@@ -358,13 +372,15 @@ M inc r8 ;S00E
 M jmp $fhp_scan ;S00E
 :fhp_ok
 M mov rax, [r13+18138] ;S00E append larr
-M shl rax, 4 ;S00E
+M shl rax, 5 ;S00E ×32 (срез 4)
 M lea rdx, [r13+3783D8] ;S00E
 M add rdx, rax ;S00E
 M mov rax, [rbp-10] ;S00E
 M mov [rdx], rax ;S00E
 M mov rax, [rbp-18] ;S00E
 M mov [rdx+8], rax ;S00E
+M mov rax, 1 ;S00E
+M mov [rdx+10], rax ;S00E размер параметра = 1 (срез 4)
 M mov rax, [r13+18138] ;S00E
 M inc rax ;S00E
 M mov [r13+18138], rax ;S00E

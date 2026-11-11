@@ -364,13 +364,13 @@ M mov rax, [r13+180E8] ;E017
 M mov rcx, rax ;E017
 M shl rcx, 6 ;E017
 M mov rdx, rax ;E017
-M shl rdx, 3 ;E017
+M shl rdx, 4 ;E017 ×80 (срез 4)
 M add rcx, rdx ;E017
 M lea rdx, [r13+2583D8] ;E017
 M add rdx, rcx ;E017
 M mov rax, [rdx+18] ;E017
 M mov rcx, [rdx+20] ;E017
-M mov r8, [rdx+38] ;E017
+M mov r8, [rdx+48] ;E017 nslots (срез 4: сумма слотов, не записей)
 M add rax, rcx ;E017
 M add rax, r8 ;E017
 M mov rcx, [rdx+28] ;E017

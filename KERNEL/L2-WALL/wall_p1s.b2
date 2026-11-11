@@ -13,6 +13,8 @@ M mov [r13+181D8], rax ;S006
 M mov rax, [r13+18068] ;S006
 M sub rax, [r13+181D8] ;S006
 M mov [r13+181E0], rax ;S006
+M call $arr_size ;P019 размер (1 = скаляр; срез 4)
+M mov [rbp-8], rax ;S006 размер
 M call $at_end_chk ;P002
 M mov r8, [r13+180B0] ;S006
 M mov rcx, [r13+180B0] ;S006
@@ -21,7 +23,7 @@ M add rcx, [r13+180B8] ;S006
 M cmp r8, rcx ;S006
 M jae $p1v_glob ;S006
 M mov rax, r8 ;S006
-M shl rax, 4 ;S006
+M shl rax, 5 ;S006 ×32 {ptr, len, size} (срез 4)
 M lea rdx, [r13+3783D8] ;S006
 M add rdx, rax ;S006
 M mov rdi, [rdx] ;S006
@@ -48,19 +50,25 @@ M call $names_find ;P006
 M cmp rax, -1 ;S006
 M jne $p1v_dup ;S006
 M mov rax, [r13+18138] ;S006
-M shl rax, 4 ;S006
+M shl rax, 5 ;S006 ×32 (срез 4)
 M lea rdx, [r13+3783D8] ;S006
 M add rdx, rax ;S006
 M mov rax, [r13+181D8] ;S006
 M mov [rdx], rax ;S006
 M mov rax, [r13+181E0] ;S006
 M mov [rdx+8], rax ;S006
+M mov rax, [rbp-8] ;S006
+M mov [rdx+10], rax ;S006 размер (срез 4)
 M mov rax, [r13+18138] ;S006
 M inc rax ;S006
 M mov [r13+18138], rax ;S006
 M mov rax, [r13+180B8] ;S006
 M inc rax ;S006
 M mov [r13+180B8], rax ;S006
+M mov rax, [r13+180D8] ;S006
+M mov rcx, [rbp-8] ;S006
+M add rax, rcx ;S006
+M mov [r13+180D8], rax ;S006 st_nslots += размер (срез 4)
 M mov rsp, rbp ;S006
 M pop rbp ;S006
 M ret ;S006
@@ -86,7 +94,7 @@ M mov rax, [r13+181C0] ;S007
 M mov rcx, rax ;S007
 M shl rcx, 6 ;S007
 M mov rdx, rax ;S007
-M shl rdx, 3 ;S007
+M shl rdx, 4 ;S007 ×80 (срез 4)
 M add rcx, rdx ;S007
 M lea rdx, [r13+2583D8] ;S007
 M add rdx, rcx ;S007
@@ -108,6 +116,8 @@ M or eax, 2 ;S007
 M mov [rdx+28], rax ;S007
 M mov rax, [r13+180B8] ;S007
 M mov [rdx+38], rax ;S007
+M mov rax, [r13+180D8] ;S007
+M mov [rdx+48], rax ;S007 nslots (срез 4)
 M xor eax, eax ;S007
 M mov [r13+18170], rax ;S007
 :p1e_ret

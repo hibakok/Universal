@@ -322,6 +322,7 @@
 | K2-P016 | call_stats | P | готов | `MAP/M2-WALL.md` |
 | K2-P017 | pa_stage | P | готов | `MAP/M2-WALL.md` |
 | K2-P018 | p_cond | P | готов | `MAP/M2-WALL.md` |
+| K2-P019 | arr_size | P | готов | `MAP/M2-WALL.md` |
 | K2-S001 | pass1 | S | готов | `MAP/M2-WALL.md` |
 | K2-S002 | p1_line | S | готов | `MAP/M2-WALL.md` |
 | K2-S003 | p1_decl | S | готов | `MAP/M2-WALL.md` |

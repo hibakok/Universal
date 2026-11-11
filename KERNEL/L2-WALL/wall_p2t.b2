@@ -159,6 +159,8 @@ M call $out_str ;E003
 M call $emit_cmt ;E009
 M jmp $p2n_tl ;Y00B
 :p2n_local
+M cmp rdx, 1 ;Y00B массив нельзя присвоить целиком (срез 4)
+M ja $p2n_arrw ;Y00B
 M lea rax, [rax+1] ;Y00B
 M shl rax, 3 ;Y00B
 M mov [rbp-8], rax ;Y00B
@@ -170,6 +172,8 @@ M mov ecx, 58 ;Y00B
 M call $out_str ;E003
 M call $emit_cmt ;E009
 M jmp $p2n_tl ;Y00B
+:p2n_arrw
+M call $fail_format ;G002
 :p2n_unknown
 M call $fail_format ;G002
 :p2n_notvar

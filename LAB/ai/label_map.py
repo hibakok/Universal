@@ -69,7 +69,15 @@ want = ["entry", "pass0", "pass1", "pass2", "p1_line", "p2_line",
         "p1s_brk", "p2s_break", "p2s_continue", "p2s_end", "p2s_while",
         "kw_lookup", "p_mdm", "emit_imul", "emit_divmod", "digits",
         "kwtab", "strblob", "idt", "scalars", "hint_gsh", "dll_name",
-        "emit_jmp_line", "fail_format"]
+        "emit_jmp_line", "fail_format",
+        # E6.4c-3/4 (срез 4a): метки карты ветвей BYTECODE.md
+        "lex_tok", "want_sym1", "names_find", "local_find",
+        "chain_count", "arr_size", "p_expr", "p_mul", "p_unary",
+        "p_prim", "p_args", "p_call_tail", "call_stats", "p_cond",
+        "p1_decl", "p1_funchdr", "fh_param", "p1s_var", "p1s_end",
+        "p2_funchdr", "p2_namestmt", "emit_addr", "emit_len",
+        "emit_load", "calc_framesize", "emit_prologue",
+        "emit_globdata", "emit_glab", "emit_entry", "out_hex"]
 for w in want:
     if w in labs:
         print("%-14s %X" % (w, 0x1000 + labs[w]))

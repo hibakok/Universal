@@ -48,7 +48,7 @@ M jae $p1_mdone ;S001
 M mov rax, r8 ;S001
 M shl rax, 6 ;S001
 M mov rcx, r8 ;S001
-M shl rcx, 3 ;S001
+M shl rcx, 4 ;S001 ×80 (срез 4)
 M add rax, rcx ;S001
 M add rax, rdi ;S001
 M mov rcx, [rax+8] ;S001

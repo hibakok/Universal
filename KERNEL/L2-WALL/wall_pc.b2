@@ -284,6 +284,8 @@ M cmp rax, 1 ;E022
 M je $ea_rip ;E022
 M cmp rax, 2 ;E022
 M je $ea_rip ;E022
+M cmp rax, 5 ;E022 массив (срез 4)
+M je $ea_rip ;E022
 M jmp $ea_notvar ;E022
 :ea_rip
 M mov ecx, 34 ;E022
@@ -296,7 +298,7 @@ M inc r12 ;E022
 M call $emit_cmt ;E009
 M jmp $ea_ret ;E022
 :ea_local
-M lea rax, [rax+1] ;E022
+M lea rax, [rax+rdx] ;E022 база+размер (срез 4; скаляр rdx=1)
 M shl rax, 3 ;E022
 M mov [rbp-8], rax ;E022
 M mov ecx, 33 ;E022
@@ -314,13 +316,23 @@ M ret ;E022
 M call $fail_format ;G002
 :ea_notvar
 M call $fail_format ;G002
-; ===== K2-E023 emit_len: RCX = ptr, RDX = len =====
+; ===== K2-E023 emit_len: RCX = ptr, RDX = len (v2: и массивы) =====
 :emit_len
 M push rbp ;E023
 M mov rbp, rsp ;E023
 M sub rsp, 20 ;E023
 M mov [rbp-10], rcx ;E023
 M mov [rbp-18], rdx ;E023
+M call $local_find ;P008 локальный массив? (срез 4)
+M cmp rax, -1 ;E023
+M je $eln_glob ;E023
+M cmp rdx, 1 ;E023 скаляр — len нельзя (как оракул)
+M jbe $el_notstr ;E023
+M mov [rbp-8], rdx ;E023 n = размер
+M jmp $eln_print ;E023
+:eln_glob
+M mov rcx, [rbp-10] ;E023
+M mov rdx, [rbp-18] ;E023
 M call $names_find ;P006
 M cmp rax, -1 ;E023
 M je $el_unknown ;E023
@@ -334,7 +346,20 @@ M lea rdx, [r13+1183D8] ;E023
 M add rcx, rdx ;E023
 M mov rax, [rcx+10] ;E023
 M cmp rax, 2 ;E023
-M jne $el_notstr ;E023
+M je $eln_str ;E023
+M cmp rax, 5 ;E023 глобальный массив (срез 4)
+M je $eln_arr ;E023
+M jmp $el_notstr ;E023
+:eln_arr
+M mov rax, [rcx+18] ;E023 мета = индекс varr
+M mov rcx, rax ;E023
+M shl rcx, 4 ;E023 ×16 {idx, size} (срез 4)
+M lea rdx, [r13+5383D8] ;E023
+M add rdx, rcx ;E023
+M mov rax, [rdx+8] ;E023 размер
+M mov [rbp-8], rax ;E023
+M jmp $eln_print ;E023
+:eln_str
 M mov rax, [rcx+18] ;E023
 M mov rcx, rax ;E023
 M shl rcx, 4 ;E023
@@ -347,6 +372,7 @@ M mov r8, [rdx+10] ;E023
 M mov rdx, [rdx+8] ;E023
 M call $str_dlen ;E013
 M mov [rbp-8], rax ;E023
+:eln_print
 M mov ecx, 44 ;E023
 M call $out_str ;E003
 M mov rax, [rbp-8] ;E023
@@ -386,6 +412,8 @@ M cmp rax, 1 ;E024
 M je $el_var ;E024
 M cmp rax, 2 ;E024
 M je $el_str ;E024
+M cmp rax, 5 ;E024 массив — адрес базы, как str (срез 4)
+M je $el_str ;E024
 M jmp $el_notvalue ;E024
 :el_var
 M mov ecx, 46 ;E024
@@ -408,6 +436,20 @@ M inc r12 ;E024
 M call $emit_cmt ;E009
 M jmp $el_ret ;E024
 :el_local
+M cmp rdx, 1 ;E024 локальный массив? (срез 4)
+M jbe $el_lscal ;E024
+M lea rax, [rax+rdx] ;E024 arrbase = 8*(база+размер)
+M shl rax, 3 ;E024
+M mov [rbp-8], rax ;E024
+M mov ecx, 33 ;E024
+M call $out_str ;E003
+M mov rax, [rbp-8] ;E024
+M call $out_hex ;E005
+M mov byte [r12], 5D ;E024
+M inc r12 ;E024
+M call $emit_cmt ;E009
+M jmp $el_ret ;E024
+:el_lscal
 M lea rax, [rax+1] ;E024
 M shl rax, 3 ;E024
 M mov [rbp-8], rax ;E024

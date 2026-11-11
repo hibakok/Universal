@@ -126,7 +126,7 @@ M mov rdx, [rcx+18] ;P015
 M mov rax, rdx ;P015
 M shl rax, 6 ;P015
 M mov rcx, rdx ;P015
-M shl rcx, 3 ;P015
+M shl rcx, 4 ;P015 ×80 (срез 4)
 M add rax, rcx ;P015
 M lea rcx, [r13+2583D8] ;P015
 M add rcx, rax ;P015

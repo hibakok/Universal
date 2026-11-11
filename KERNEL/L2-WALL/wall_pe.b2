@@ -199,17 +199,24 @@ M mov [r13+18128], rax ;P007
 M mov rsp, rbp ;P007
 M pop rbp ;P007
 M ret ;P007
-; ===== K2-P008 local_find: RCX = ptr, RDX = len -> EAX = индекс | -1 =====
+; ===== K2-P008 local_find: RCX = ptr, RDX = len -> RAX = базовый слот,
+; RDX = размер (срез 4: массивы; скаляр: база=позиция, размер 1);
+; RAX = -1 — не найдено. Окно larr: {ptr, len, size}, шаг 32 =====
 :local_find
+M push rbp ;P008
+M mov rbp, rsp ;P008
+M sub rsp, 20 ;P008
 M mov r11, rdx ;P008
 M mov r9, [r13+180F0] ;P008
 M mov r8, [r13+180F8] ;P008
 M add r8, r9 ;P008
+M xor eax, eax ;P008
+M mov [rbp-8], rax ;P008 аккумулятор базовых слотов
 :lf_loop
 M cmp r9, r8 ;P008
 M jae $lf_none ;P008
 M mov rax, r9 ;P008
-M shl rax, 4 ;P008
+M shl rax, 5 ;P008 ×32 (срез 4: {ptr, len, size})
 M lea rdi, [r13+3783D8] ;P008
 M add rdi, rax ;P008
 M mov rax, [rdi+8] ;P008
@@ -226,14 +233,30 @@ M jne $lf_next ;P008
 M inc rdx ;P008
 M jmp $lf_bloop ;P008
 :lf_found
-M mov rax, r9 ;P008
-M sub rax, [r13+180F0] ;P008
+M mov rdx, r9 ;P008
+M shl rdx, 5 ;P008
+M lea rax, [r13+3783D8] ;P008
+M add rdx, rax ;P008
+M mov rdx, [rdx+10] ;P008 размер -> RDX
+M mov rax, [rbp-8] ;P008 базовый слот -> RAX
+M mov rsp, rbp ;P008
+M pop rbp ;P008
 M ret ;P008
 :lf_next
+M mov rdx, [rbp-8] ;P008 аккумулятор
+M mov rax, r9 ;P008
+M shl rax, 5 ;P008
+M lea rdi, [r13+3783D8] ;P008
+M add rax, rdi ;P008
+M mov rax, [rax+10] ;P008 размер пропущенного
+M add rdx, rax ;P008
+M mov [rbp-8], rdx ;P008
 M inc r9 ;P008
 M jmp $lf_loop ;P008
 :lf_none
 M mov rax, -1 ;P008
+M mov rsp, rbp ;P008
+M pop rbp ;P008
 M ret ;P008
 ; ===== K2-P009 chain_count: число операций уровня в остатке строки =====
 ; RCX = 0 (аддитивные + - | ^) / 1 (конъюнкция & << >>) / 2 (v2: * / %);
@@ -267,6 +290,10 @@ M movzx eax, byte [rax] ;P009
 M cmp al, 28 ;P009
 M je $cc_open ;P009
 M cmp al, 29 ;P009
+M je $cc_close ;P009
+M cmp al, 5B ;P009 '[' — глубина (индексация — постфикс первичного, срез 4)
+M je $cc_open ;P009
+M cmp al, 5D ;P009 ']'
 M je $cc_close ;P009
 M cmp al, 3C ;P009
 M je $cc_done ;P009
@@ -390,3 +417,55 @@ M mov rax, r8 ;P009
 M mov rsp, rbp ;P009
 M pop rbp ;P009
 M ret ;P009
+; ===== K2-P019 arr_size: разбор опционального [n] в объявлении (срез 4) =====
+; Вход: pc_cur — позиция после имени объявления. Выход: RAX = размер
+; (1..1000hex=4096; 1 = скобок нет), RDX = 1 если [n] присутствовал,
+; иначе 0. Потребляет '[' число ']' при наличии; ставит флаг v2
+; [18190]. Ошибки: не число / вне 1..4096 / нет ']' -> fail_format.
+:arr_size
+M push rbp ;P019
+M mov rbp, rsp ;P019
+M sub rsp, 20 ;P019
+M mov rcx, [r13+18070] ;P019
+M call $lex_tok ;L001
+M cmp eax, 2 ;P019 символ?
+M jne $as_none ;P019
+M mov rax, [r13+18068] ;P019
+M sub rax, [r13+18060] ;P019
+M cmp rax, 1 ;P019 односимвольный?
+M jne $as_none ;P019
+M mov rcx, [r13+18060] ;P019
+M movzx eax, byte [rcx] ;P019
+M cmp al, 5B ;P019 '['
+M jne $as_none ;P019
+M mov rcx, [r13+18068] ;P019 потребить '['
+M mov [r13+18070], rcx ;P019
+M mov rcx, [r13+18070] ;P019
+M call $lex_tok ;L001
+M cmp eax, 0 ;P019 число?
+M jne $as_fail ;P019
+M mov rax, [r13+18058] ;P019 tok_val
+M mov [rbp-8], rax ;P019
+M mov rcx, [r13+18068] ;P019 потребить число
+M mov [r13+18070], rcx ;P019
+M mov ecx, 5D ;P019 ']'
+M call $want_sym1 ;P001
+M mov rax, [rbp-8] ;P019
+M cmp rax, 1 ;P019
+M jb $as_fail ;P019
+M cmp rax, 1000 ;P019 4096
+M ja $as_fail ;P019
+M mov rax, 1 ;P019
+M mov [r13+18190], rax ;P019 флаг v2
+M mov rax, [rbp-8] ;P019
+M mov rdx, 1 ;P019 признак массива
+M jmp $as_ret ;P019
+:as_none
+M mov rax, 1 ;P019
+M xor edx, edx ;P019
+:as_ret
+M mov rsp, rbp ;P019
+M pop rbp ;P019
+M ret ;P019
+:as_fail
+M call $fail_format ;G002

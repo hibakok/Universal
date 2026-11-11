@@ -128,26 +128,26 @@
 | `KERNEL/L2-WALL/wall.b2` | корень: поток + 19 !include (20 частей) | 142 |
 | `KERNEL/L2-WALL/wall_svc.b2` | ветви H/G/U/C/F — сервисы (реинкарнации K1) | 192 |
 | `KERNEL/L2-WALL/wall_n.b2` | ветвь N — разбиение строк, проход 0 | 147 |
-| `KERNEL/L2-WALL/wall_l.b2` | ветвь L — лексер WALL (+ * / % срез 1; && / || срез 3) | 249 |
-| `KERNEL/L2-WALL/wall_pe.b2` | ветви P: want_*/поиск/chain_count (терминаторы — срез 3) | 392 |
+| `KERNEL/L2-WALL/wall_l.b2` | ветвь L — лексер WALL (+ * / % срез 1; && / || срез 3; [ ] срез 4a) | 253 |
+| `KERNEL/L2-WALL/wall_pe.b2` | ветви P: want_*/поиск/local_find (база+размер — срез 4a)/chain_count (+ [ ] глубина)/arr_size P019 | 471 |
 | `KERNEL/L2-WALL/wall_ph.b2` | p_expr/p_mul/p_mdm/p_unary (уровни; v2: * / %) | 408 |
 | `KERNEL/L2-WALL/wall_pp.b2` | p_prim — первичные выражения | 227 |
 | `KERNEL/L2-WALL/wall_pa.b2` | p_args/p_call_tail/call_stats — вызовы | 300 |
-| `KERNEL/L2-WALL/wall_pc.b2` | p_cond — цепочки && / || + guard (срез 3); emit_addr/len/load | 429 |
+| `KERNEL/L2-WALL/wall_pc.b2` | p_cond — цепочки && / || + guard (срез 3); emit_addr/len/load (+ массивы срез 4a) | 471 |
 | `KERNEL/L2-WALL/wall_pg.b2` | guard-эмиттеры E036/E037/E038 (срез 3, d/t-метки) | 114 |
 | `KERNEL/L2-WALL/wall_p1.b2` | проход 1: цикл, диспетчер, main | 138 |
-| `KERNEL/L2-WALL/wall_pd.b2` | объявления + заголовки func | 434 |
-| `KERNEL/L2-WALL/wall_p1s.b2` | утверждения прохода 1 (статы) | 300 |
+| `KERNEL/L2-WALL/wall_pd.b2` | объявления (+ var a[n] срез 4a) + заголовки func | 449 |
+| `KERNEL/L2-WALL/wall_p1s.b2` | утверждения прохода 1 (статы; + var a[n] срез 4a) | 322 |
 | `KERNEL/L2-WALL/wall_p2.b2` | проход 2: цикл, диспетчер, заголовки | 197 |
 | `KERNEL/L2-WALL/wall_p2s.b2` | эмиттеры E029-E02D + утверждения прохода 2: if/while | 406 |
 | `KERNEL/L2-WALL/wall_p2t.b2` | эмиттеры переходов и меток | 100 |
 | `KERNEL/L2-WALL/wall_e.b2` | примитивы вывода, div10, out_dec, заголовок v1/v2 | 389 |
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
-| `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var) | 387 |
+| `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var DZ 8n — срез 4a) | 386 |
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
-| `KERNEL/L2-WALL/wall.exe` | материализация: 25088 байт (0x6200), PE32+ | — |
+| `KERNEL/L2-WALL/wall.exe` | материализация: 25600 байт (0x6400), PE32+ | — |
 | `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 194 |
 | `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 15 дефектов (+ срезы 1-3) | 260 |
 
@@ -205,7 +205,7 @@
 | `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 420 |
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36) | 285 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
-| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 (T-E6-37..45, E6.4c-3/3b) | 186 |
+| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a (T-E6-37..46; + массивы E6.4c-3/4) | 197 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 1327 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
@@ -216,6 +216,8 @@
 | `LAB/ai/wall_test_v2.py` | (частное) dev-тест среза 1: * / %, v1/v2, «U-MDM-OK 52» (эталоны — lab_l2_mdm.py) | 183 |
 | `LAB/ai/wall_test_bc.py` | (частное) dev-тест среза 2: break/continue, дефект №15, «U-BC-OK 25» (эталоны — lab_l2_bc.py) | 179 |
 | `LAB/ai/wall_test_cc.py` | (частное) dev-тест среза 3: цепочки && / ||, B2/F14/F16, «U-CC-OK 31» (эталоны — lab_l2_cc.py) | 159 |
+| `LAB/py/lab_l2_arr.py` | эталоны WALL срез 4a: 10 якорей + ошибки + DEMO_ARR «U-ARR-OK 45» + big_arr (E6.4c-3/4) | 208 |
+| `LAB/ai/wall_test_arr.py` | (частное) dev-тест среза 4a: объявления массивов, базы, len (эталоны — lab_l2_arr.py) | 127 |
 | `LAB/ai/label_map.py` | (частное) карта меток wall.brick (RVA) для BYTECODE.md | 80 |
 | `LAB/ai/enc_part1..3.txt` | (частное) кодовые части enc.b2 для правок по секциям | — |
 
@@ -233,22 +235,24 @@ LAB — измерительный прибор (Python только здесь)
 
 ## Счётчики состояния (обновлять при каждом изменении)
 
-- Кирпичей в реестре: **257** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
+- Кирпичей в реестре: **258** (слой L0: 8 в M0-SEED, 19 в M0-SEED2,
   23 в M0-HXDUMP, 29 в M0-HEXGEN, 37 в M0-PEGEN; слой L1: 42 в M1-BRICK,
-  64 в M1-ENC (+E033 enc_imul, E6.4c), 27 в M1-SPLICE; слой L2: 74 в
+  64 в M1-ENC (+E033 enc_imul, E6.4c), 27 в M1-SPLICE; слой L2: 75 в
   M2-WALL — +P01A/E034/E035 E6.4c-3/1, +S00F/Y00C E6.4c-3/2,
-  +E036/E037/E038 E6.4c-3/3).
+  +E036/E037/E038 E6.4c-3/3, +P019 arr_size E6.4c-3/4).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **125** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
-  T-M5-01..17, T-M6-01..17, T-E6-01..45 + T-E6-10b + T-E6-16b;
-  автоматических в батарее — 123).
-- Этап: **E6.4c-3/3b выполнен — регрессионная защита срезов 1–3 в
-  батарее** (секция 11 lab_t_wall3.py, T-E6-37..45: якоря/фрагменты/
-  big/отвержение/заголовки/круги DEMO_MDM/BC/CC; эталоны срезов
-  перенесены в LAB/py/lab_l2_mdm|bc|cc.py — единый источник с
-  dev-тестами; KERNEL/ не тронут, ни одного байта артефактов) поверх
-  E6.4c-3 срезов 1-3 из 5 и эпика E6.4e (пределы 256 КиБ). Батарея
-  123/123 (~86 с). Далее срез 4 (массивы), срез 5 (финальная сверка
+- Тестов: **126** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+  T-M5-01..17, T-M6-01..17, T-E6-01..46 + T-E6-10b + T-E6-16b;
+  автоматических в батарее — 124).
+- Этап: **E6.4c-3/4 (срез 4a) выполнен — объявления массивов в
+  wall.exe** (var a[n] глобально DZ 8n / локально n слотов, базы
+  lea arrbase/rip, len(массив); лексер [ ]; записи реестров ntab-5/
+  varr-16/larr-32/ftab-80; local_find — базовый слот+размер; запрет
+  присваивания массиву; якоря/ошибки/DEMO_ARR «U-ARR-OK 45» —
+  lab_l2_arr.py + wall_test_arr.py 28/28; секция 11 батареи
+  расширена, T-E6-46; индексация e[i]/astore — срез 4b) поверх
+  E6.4c-3 срезов 1-3 из 5 и эпика E6.4e. Батарея 124/124 (~90 с).
+  Далее срез 4b (индексация e[i] + astore), срез 5 (финальная сверка
   всех якорей) и E6.4d (wall.wall). Бюджет wall.b2
-  138126 Б из 256 КиБ (см. `DOCS/03-ROADMAP.md` и журнал сессии 15).
+  144248 Б из 256 КиБ (см. `DOCS/03-ROADMAP.md` и журнал сессии 16).
