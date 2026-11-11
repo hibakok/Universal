@@ -115,7 +115,7 @@ def assemble(text):
     labels = {"base": BASE_LABEL}
     # пасс 1: длины и метки; пасс 2: материализация
     for pas in (1, 2):
-        out, cursor, filelen = bytearray(0x20010), 0, 0
+        out, cursor, filelen = bytearray(0x40010), 0, 0
         lineno, p = 1, 0
         while True:
             c = buf[p]
@@ -144,10 +144,11 @@ def assemble(text):
                     name = buf[addr:addr + n].decode()
                     if name in labels:
                         _err(lineno)           # дубликат (вкл. base)
-                    if len(labels) >= 512:
+                    if len(labels) >= 1024:
                         _err(lineno)           # переполнение labtab (SPEC/08:
-                        # меток <= 512, ВКЛ. предопределённую base; поймано
-                        # расхождение оракула с brick.exe — E6.4c-3/1)
+                        # меток <= 1024, ВКЛ. предопределённую base; 512 ->
+                        # 1024 с E6.4e-3; поймано расхождение оракула с
+                        # brick.exe — E6.4c-3/1)
                     labels[name] = cursor
                 while buf[p] not in (0, 0x0A):
                     p += 1

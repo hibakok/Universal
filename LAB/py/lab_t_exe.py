@@ -1,16 +1,19 @@
-"""lab_t_exe.py — секции 7-8 батареи: инструменты enc.exe и splice.exe.
+"""lab_t_exe.py — секции 7-8b батареи: инструменты enc.exe, splice.exe
+и brick.exe.
 
 Вход:  run(check, kpath, kfile, kernel_host) — колбэк и хелперы батареи.
-Выход: заполняет PASS/FAIL через check; секции описаны в TESTS/T-L1-ENC.md
-       и TESTS/T-L1-SPLICE.md.
-Функция: T-E6-05..11 (enc == оракулу, самохостинг на разрезе) и
+Выход: заполняет PASS/FAIL через check; секции описаны в TESTS/T-L1-ENC.md,
+       TESTS/T-L1-SPLICE.md и TESTS/T-L1-BRICK.md.
+Функция: T-E6-05..11 (enc == оракулу, самохостинг на разрезе),
          T-E6-12..18 (splice: якоря, отвержение, разрезы репозитория,
-         самохостинг собственного include). Выделено из lab_verify.py
-         по лимиту 500 строк (методология LAB).
+         самохостинг собственного include) и T-E6-36 (brick: пределы
+         256 КиБ / 1024 метки, E6.4e-3). Выделено из lab_verify.py по
+         лимиту 500 строк (методология LAB).
 """
 import os
 import tempfile
 
+import lab_brick
 import lab_enc
 import lab_enc_cases
 import lab_run
@@ -246,7 +249,37 @@ def _t_splice(check, kpath, kfile, kernel_host):
           "шагов=%d+%d+%d+%d" % (r0.steps, r1.steps, r2.steps, r3.steps))
 
 
+# ------------------------------------------------------------------ 8b
+def _t_brick(check, kpath, kfile, kernel_host):
+    """Инструмент brick.exe: пределы E6.4e-3 (256 КиБ / 1024 метки)."""
+    brick_exe = kpath("L1-BRICK/brick.exe")
+
+    # T-E6-36: пределы 256 КиБ и 1024 метки (E6.4e-3): исходник
+    # 0x20020 байт одной строкой-комментарием принят (старый предел
+    # 0x20000 отверг бы BIG SRC); 513 меток приняты (старый предел
+    # 512 записей labtab отверг бы 512-ю метку); исходник 0x40000
+    # отвергнут ERR=BIG SRC (код 7)
+    line132 = b";" + b"A" * (0x20020 - 2) + b"\n"
+    r1 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": line132})
+    src513 = b"".join((b":k%d\n" % i) + b"H 90\n" for i in range(513))
+    want513 = lab_brick.assemble(src513)
+    r2 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": src513})
+    line256 = b";" + b"A" * (0x40000 - 2) + b"\n"
+    r3 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": line256})
+    check("T-E6-36 пределы brick 256 КиБ/1024 метки (132К и 513 меток"
+          " приняты / 256К отвергнут)",
+          r1.exit_code == 0 and r1.files.get("t.bin") == b"" and
+          r2.exit_code == 0 and r2.files.get("t.bin") == want513 and
+          r3.exit_code == 7 and
+          r3.stdout == b"U-L1-BRICK ERR=BIG SRC\r\n",
+          "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
+
+
 def run(check, kpath, kfile, kernel_host):
-    """Исполнить секции 7-8 (инструменты enc.exe и splice.exe)."""
+    """Исполнить секции 7-8b (инструменты enc/splice/brick)."""
     _t_enc_exe(check, kpath, kfile, kernel_host)
     _t_splice(check, kpath, kfile, kernel_host)
+    _t_brick(check, kpath, kfile, kernel_host)

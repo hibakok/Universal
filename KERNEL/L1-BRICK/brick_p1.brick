@@ -54,8 +54,8 @@ H E8 $print_error ; K1-G001 call print_error
 :ok1
 H 49 89 C4 ; K1-G001 mov r12,rax (хэндл исходника)
 H 4C 89 E1 ; K1-G001 mov rcx,r12
-H 48 8D 15 $filebuf ; K1-G001 lea rdx,[rip+filebuf] (буфер 128 КиБ)
-H 41 B8 00 00 02 00 ; K1-G001 mov r8d,0x20000 (вместимость)
+H 48 8D 15 $filebuf ; K1-G001 lea rdx,[rip+filebuf] (буфер 256 КиБ)
+H 41 B8 00 00 04 00 ; K1-G001 mov r8d,0x40000 (вместимость)
 H 4C 8D 0D $srclen ; K1-G001 lea r9,[rip+srclen]
 H E8 $read_whole_dst ; K1-G001 call read_whole_dst
 H 48 83 F8 FF ; K1-G001 cmp rax,-1
@@ -63,7 +63,7 @@ H 75 $ok2:1 ; K1-G001 jnz ok2
 H B9 03 00 00 00 ; K1-G001 mov ecx,3 (ERR=READ SRC)
 H E8 $print_error ; K1-G001 call print_error
 :ok2
-H 48 3D 00 00 02 00 ; K1-G001 cmp rax,0x20000 (сентинелу нужен запас)
+H 48 3D 00 00 04 00 ; K1-G001 cmp rax,0x40000 (сентинелу нужен запас)
 H 72 $ok3:1 ; K1-G001 jb ok3
 H B9 04 00 00 00 ; K1-G001 mov ecx,4 (ERR=BIG SRC)
 H E8 $print_error ; K1-G001 call print_error

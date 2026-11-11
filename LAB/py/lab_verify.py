@@ -53,8 +53,8 @@ SHA = {
                         "ACCE07AB3FD241BF",
     "L0-PEGEN/pegen": "39B7D78C344B2FAC0000AD929764EBF418D9EF98D39445782"
                       "6E5B8C806F1906C",
-    "L1-BRICK/brick": "5F7F9EFD3398B735E762B37610ED1F197C383DA7252A3CD0"
-                      "C73DD3EE31A5C857",
+    "L1-BRICK/brick": "FEDA2B1A0E3F8EFD5D0E4FEEEF3C0B4AB06E729CCFC1A97B"
+                      "7DCC6C4B0C15EC74",
     "L1-ENC/enc": "18E6F2FDFA45FAEDA1E50D99483D9DBC05D71181089B724"
                 "0926894C7264E4CA5",
     "L1-SPLICE/splice": "E5C974173A7028A664A44DDC572D182B7855497694217F35"
@@ -386,7 +386,8 @@ def _enc_rejects(m):
 
 
 # ------------------------------------------------------------------ 7+8
-# Секции 7 (enc.exe) и 8 (splice.exe) — в LAB/py/lab_t_exe.py (лимит 500)
+# Секции 7 (enc.exe), 8 (splice.exe) и 8b (brick.exe) — в
+# LAB/py/lab_t_exe.py (лимит 500)
 # Секция 9 (оракул WALL v1, E6.4a) — в LAB/py/lab_t_wall.py (лимит 500)
 
 

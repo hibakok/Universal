@@ -111,7 +111,7 @@ H 58 5A 41 58 ; K1-N001 pop rax + pop rdx + pop r8 (восстановить а�
 H 49 83 FB FF ; K1-N001 cmp r11,-1
 H 75 $dl_dup:1 ; K1-N001 jne dl_dup (дубликат)
 H 44 8B 1D $labcnt ; K1-N001 mov r11d,[rip+labcnt]
-H 41 81 FB 00 02 00 00 ; K1-N001 cmp r11d,0x200 (предел 512)
+H 41 81 FB 00 04 00 00 ; K1-N001 cmp r11d,0x400 (предел 1024)
 H 73 $dl_full:1 ; K1-N001 jae dl_full
 H 49 C1 E3 04 ; K1-N001 shl r11,4 (запись x 16 байт)
 H 4C 8D 0D $labtab ; K1-N001 lea r9,[rip+labtab]

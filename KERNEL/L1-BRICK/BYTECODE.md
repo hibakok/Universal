@@ -12,17 +12,17 @@
 | Свойство | Значение |
 |---|---|
 | Размер файла | 3584 байта (0xE00) |
-| SHA-256 | `5F7F9EFD3398B735E762B37610ED1F197C383DA7252A3CD0C73DD3EE31A5C857` |
+| SHA-256 | `FEDA2B1A0E3F8EFD5D0E4FEEEF3C0B4AB06E729CCFC1A97B7DCC6C4B0C15EC74` |
 | Точка входа | RVA 0x1000 (тело 0x0000, K1-X001) |
 | Код | 0x8F3 байта (тело 0x0000..0x08F2), 668 инструкций (LAB disasm, без сбоев декодирования) |
 | Данные | 0x2A5 байта @ тело 0x08F3 (таблицы, строки, импорты) |
-| Виртуальные нули | 0x42178 байт @ тело 0x0B98 (ячейки, labtab, filebuf, imagebuf) |
+| Виртуальные нули | 0x84178 байт @ тело 0x0B98 (ячейки, labtab, filebuf, imagebuf) |
 | Смещение → RVA | RVA = телесное смещение + 0x1000 |
 
 ## 1. Заголовки
 
-Генерируются pegen из `brick.peg`: SizeOfImage = 0x44000, VirtualSize =
-0x42D10, SizeOfRawData = 0xC00, DD[1] = RVA 0x1A7E (размер 0x28), DD[12] =
+Генерируются pegen из `brick.peg`: SizeOfImage = 0x85000, VirtualSize =
+0x84D10, SizeOfRawData = 0xC00, DD[1] = RVA 0x1A7E (размер 0x28), DD[12] =
 RVA 0x1AA6 (размер 0x40), фиксации стека/кучи = 0x4000. Инварианты SPEC/04
 выполняются (hint-записи — на чётных RVA).
 
@@ -39,9 +39,9 @@ RVA 0x1AA6 (размер 0x40), фиксации стека/кучи = 0x4000. �
 тело 0x0B26  имя "kernel32.dll"; DZ 1 (выравнивание); hint-записи 7 функций (чётные RVA)
 тело 0x0B98  [виртуальные нули] ячейки и буферы:
              hstdout/written/srclen/outlen/curline/labcnt (RVA 0x1B98..),
-             fname_in/fname_out (0x80), linebuf (0x40), labtab (0x2000),
-             filebuf (0x20008), imagebuf (0x20010)
-тело 0x42D10 конец секции (VirtualSize)
+             fname_in/fname_out (0x80), linebuf (0x40), labtab (0x4000),
+             filebuf (0x40008), imagebuf (0x40010)
+тело 0x84D10 конец секции (VirtualSize)
 ```
 
 ## 3. Карта кирпичей (тело / RVA)
@@ -95,7 +95,7 @@ RVA 0x1AA6 (размер 0x40), фиксации стека/кучи = 0x4000. �
 ## 6. Инварианты (проверены эмуляцией и кругами)
 
 1. `brick.hex` материализуется в тело 0xB98 байта; SRD = 0xC00; файл 0xE00;
-   VirtualSize = 0xB98 + bss 0x42178 = 0x42D10.
+   VirtualSize = 0xB98 + bss 0x84178 = 0x84D10.
 2. brick.exe = hexgen(brick.hex) + pegen(·, brick.peg) байт-в-байт.
 3. **Самохостинг:** brick.exe(brick.brick) == hexgen(brick.hex) (2968 байта);
    pegen(brick(brick.brick)) == brick.exe.
@@ -104,6 +104,19 @@ RVA 0x1AA6 (размер 0x40), фиксации стека/кучи = 0x4000. �
 
 ## 7. История изменений образа
 
+- **E6.4e-3 (рост пределов):** предел исходника 128 -> 256 КиБ (K1-G001:
+  mov r8d/cmp rax 0x20000 -> 0x40000 — 2 imm32), предел меток 512 ->
+  1024 записи (K1-N001: cmp r11d 0x200 -> 0x400), буферы labtab
+  0x2000 -> 0x4000, filebuf 0x20008 -> 0x40008, imagebuf 0x20010 ->
+  0x40010 (DBZ в brick.brick — виртуальные). Тело 0xB98 и файл 0xE00 НЕ
+  изменились; изменены 8 слов (imm32 x3 + disp32 x5: ссылки на filebuf
+  +0x2000 x3, на imagebuf +0x22000 x2) + 2 байта заголовков (VirtualSize,
+  SizeOfImage 0x44000 -> 0x85000); bss 0x42178 -> 0x84178, vsize
+  0x42D10 -> 0x84D10; brick.peg: !bss 84178. SHA 5F7F9EFD… -> FEDA2B1A….
+  Мотивация: wall.brick 123170 Б упирался в предел 128 КиБ (94%), метки
+  wall 507/512 — срезы 3-5 и E6.4d требовали запаса. Проверено: 8 слов
+  побайтовым diff (LAB/ai/brick_build_lim.py), круги E5, батарея 114/114
+  (+T-E6-36: 132 КиБ и 513 меток приняты / 256 КиБ отвергнут).
 - **E5a (лаборатория LAB):** в K1-H001 (hex16_to_4) добавлен `shl eax,16`
   (тело 0x73B) — до этого 4 ротации по 4 бита читали только биты 16..31
   eax, и номер строки в ERR=FORMAT AT= всегда печатался как 0000 для
