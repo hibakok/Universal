@@ -113,15 +113,16 @@ def _t_enc_exe(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("t.brick") == want,
           "строк=%d шагов=%d" % (len(lines), r.steps))
 
-    # T-E6-10b: предел входа 256 КиБ (E6.4e-1): 0x20020 байт одной
-    # строкой приняты (старый предел 0x20000 отверг бы), 0x40000
-    # отвергнуты ERR=BIG SRC (код 7); выход проходной строки == вход
-    line132 = b";" + b"A" * (0x20020 - 2) + b"\n"
-    r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line132})
-    line256 = b";" + b"A" * (0x40000 - 2) + b"\n"
-    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line256})
-    check("T-E6-10b предел входа 256 КиБ (132К принят / 256К отвергнут)",
-          r1.exit_code == 0 and r1.files.get("t.brick") == line132 and
+    # T-E6-10b: предел входа 512 КиБ (E6.4f-1): 0x40020 байт одной
+    # строкой приняты (старый предел 0x40000 из E6.4e-1 отверг бы),
+    # 0x80000 отвергнуты ERR=BIG SRC (код 7); выход проходной строки
+    # == вход
+    line260 = b";" + b"A" * (0x40020 - 2) + b"\n"
+    r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line260})
+    line512 = b";" + b"A" * (0x80000 - 2) + b"\n"
+    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line512})
+    check("T-E6-10b предел входа 512 КиБ (260К принят / 512К отвергнут)",
+          r1.exit_code == 0 and r1.files.get("t.brick") == line260 and
           r2.exit_code == 7 and r2.stdout == b"U-L1-ENC ERR=BIG SRC\r\n",
           "шагов=%d+%d" % (r1.steps, r2.steps))
 
@@ -251,28 +252,28 @@ def _t_splice(check, kpath, kfile, kernel_host):
 
 # ------------------------------------------------------------------ 8b
 def _t_brick(check, kpath, kfile, kernel_host):
-    """Инструмент brick.exe: пределы E6.4e-3 (256 КиБ / 1024 метки)."""
+    """Инструмент brick.exe: пределы E6.4f-2 (512 КиБ / 2048 меток)."""
     brick_exe = kpath("L1-BRICK/brick.exe")
 
-    # T-E6-36: пределы 256 КиБ и 1024 метки (E6.4e-3): исходник
-    # 0x20020 байт одной строкой-комментарием принят (старый предел
-    # 0x20000 отверг бы BIG SRC); 513 меток приняты (старый предел
-    # 512 записей labtab отверг бы 512-ю метку); исходник 0x40000
-    # отвергнут ERR=BIG SRC (код 7)
-    line132 = b";" + b"A" * (0x20020 - 2) + b"\n"
+    # T-E6-36: пределы 512 КиБ и 2048 меток (E6.4f-2): исходник
+    # 0x40020 байт одной строкой-комментарием принят (старый предел
+    # 0x40000 из E6.4e-3 отверг бы BIG SRC); 1025 меток приняты (старый
+    # предел 1024 записи labtab отверг бы 1024-ю метку); исходник
+    # 0x80000 отвергнут ERR=BIG SRC (код 7)
+    line260 = b";" + b"A" * (0x40020 - 2) + b"\n"
     r1 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": line132})
-    src513 = b"".join((b":k%d\n" % i) + b"H 90\n" for i in range(513))
-    want513 = lab_brick.assemble(src513)
+                        {"t.brick": line260})
+    src1025 = b"".join((b":k%d\n" % i) + b"H 90\n" for i in range(1025))
+    want1025 = lab_brick.assemble(src1025)
     r2 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": src513})
-    line256 = b";" + b"A" * (0x40000 - 2) + b"\n"
+                        {"t.brick": src1025})
+    line512 = b";" + b"A" * (0x80000 - 2) + b"\n"
     r3 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": line256})
-    check("T-E6-36 пределы brick 256 КиБ/1024 метки (132К и 513 меток"
-          " приняты / 256К отвергнут)",
+                        {"t.brick": line512})
+    check("T-E6-36 пределы brick 512 КиБ/2048 меток (260К и 1025 меток"
+          " приняты / 512К отвергнут)",
           r1.exit_code == 0 and r1.files.get("t.bin") == b"" and
-          r2.exit_code == 0 and r2.files.get("t.bin") == want513 and
+          r2.exit_code == 0 and r2.files.get("t.bin") == want1025 and
           r3.exit_code == 7 and
           r3.stdout == b"U-L1-BRICK ERR=BIG SRC\r\n",
           "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))

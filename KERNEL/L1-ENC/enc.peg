@@ -4,6 +4,6 @@
 !entry 1000
 !idata 3BB3 28
 !iat 3BDB 40
-!bss CB226
+!bss 193246
 !stackcom 4000
 !heapcom 4000

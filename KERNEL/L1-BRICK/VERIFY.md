@@ -8,7 +8,7 @@
 |---|---|
 | Файл | `KERNEL/L1-BRICK/brick.exe` |
 | Размер | 3584 байта (0xE00) |
-| SHA-256 | `FEDA2B1A0E3F8EFD5D0E4FEEEF3C0B4AB06E729CCFC1A97B7DCC6C4B0C15EC74` |
+| SHA-256 | `AD3886E746F41C1A7FAA3769797C0803E6E075ECA93FD4F9915B6CFE264D2767` |
 | Тип | PE32+ (консоль, x86-64), 1 секция + bss, импорт kernel32.dll |
 | Исходники | `brick.hex` (ATOM L0, бутстрап) и `brick.brick` (BRICK v1, канонический) + `brick.peg` |
 

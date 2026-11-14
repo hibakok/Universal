@@ -22,6 +22,12 @@
 ; классе источников без обработки func (источники с func до S004/S006+
 ; останавливаются с ERR=FORMAT на первом func — задокументированное
 ; отличие каркаса; см. TESTS + VERIFY-E6D.md).
+; E6.4d-2/4: заголовки func (S004 p1_funchdr + S00E fh_param части pd:
+; имя, <= 4 параметров, дубликаты, larr, bstk push kind 1, ftab 80 Б)
+; и закрытие func плечом end (S007 p1s_end части p1s: финальная запись
+; ftab, fcur = 0) — класс расширен на источники с func-заголовками и
+; ПУСТЫМИ телами (любой другой стат тела — ERR=FORMAT текущей строки
+; до E6.4d-3; см. VERIFY-E6D и _expect_line секции 12 батареи).
 ; Выходной .b2 при успехе пока ПУСТ — эмитция прохода 2 последует
 ; (шаги E6.4d-3+).
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
@@ -80,6 +86,15 @@ var ecount
 var fdepth
 var seenfunc
 var fcur
+var lcount
+var curf
+var st_locoff
+var st_loccnt
+var st_nslots
+var st_maxd
+var st_maxc
+var st_setb
+var st_ext5
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -99,6 +114,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_pe.wall
 !include wall_self_pd.wall
 !include wall_self_p1.wall
+!include wall_self_p1s.wall
 
 func main
   var i
@@ -137,8 +153,10 @@ func main
     print_error(s_rsrc, len(s_rsrc), 5)
   end
   ; таблицы прохода 1: ntab 32768x40 + varr 32768x16 + sarr 16384x24
-  ; + ftab 16384x80 + earr 8x8 = 3539008 (смещения — wall_self_pe.wall)
-  tabmem = GlobalAlloc(0, 3539008)
+  ; + ftab 16384x80 + earr 8x8 + larr 32768x32 (параметры/локали — S004)
+  ; + bstk 3072x32 (стек блоков — S004/S007) = 4685888 (смещения —
+  ; wall_self_pe.wall / wall_self_pd.wall / wall_self_p1s.wall)
+  tabmem = GlobalAlloc(0, 4685888)
   if tabmem == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end

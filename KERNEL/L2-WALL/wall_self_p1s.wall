@@ -1,0 +1,46 @@
+; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4)
+; Паспорт: KERNEL/L2-WALL/wall_self_p1s.wall | слой L2 | роль: реинкарнация
+; ветви статов прохода 1 (K2-S006..S00F, wall_p1s.b2) на самом языке
+; WALL v2. E6.4d-2/4: только K2-S007 p1s_end — закрытие блока end:
+; at_end, при fdepth == 0 — лишний end (ERR=FORMAT текущей строки);
+; pop bstk (запись 32 Б {kind, k, ifseq, lineidx} — дефект №15; в
+; каркасе до E6.4d-3 записи только kind 1 — func, пушит S004 части pd);
+; kind 1 — финальная запись ftab[curf]: maxd, maxc, flags (бит 0 —
+; st_setb, бит 1 — st_ext5), loccnt, nslots — и fcur = 0 (функция
+; закрыта); kind 2/3 (if/while/else) — проход 1 у wall.exe больше
+; ничего не делает (стат-статистику копят выражения/статы, шаг
+; E6.4d-3). Прочие статы (S006 var-локаль/larr, S008 else, S009 if,
+; S00A while, S00B return, S00C setb, S00D namestmt, S00F break/
+; continue) — шаг E6.4d-3; до него диспетчер p1_line части p1 даёт
+; на них ERR=FORMAT текущей строки (класс эквивалентности задокументи-
+; рован в VERIFY-E6D и _expect_line батареи).
+; bstk — в куче tabmem+4587584, 3072x32 (как bstk wall.exe 0x18000/32;
+; ёмкость 3072 записей — дефект №15: площадь та же, записи шире).
+
+; закрытие блока: end (K2-S007); pos — курсор за ключевым словом
+func p1s_end(pos, le)
+  var kind
+  var flags
+  at_end(pos, le)
+  if fdepth == 0
+    fail_format(curline)
+  end
+  fdepth = fdepth - 1
+  kind = getq(tabmem + 4587584 + fdepth * 32)
+  if kind == 1
+    stq(tabmem + 2228224 + curf * 80 + 24, st_maxd)
+    stq(tabmem + 2228224 + curf * 80 + 32, st_maxc)
+    flags = 0
+    if st_setb != 0
+      flags = 1
+    end
+    if st_ext5 != 0
+      flags = flags + 2
+    end
+    stq(tabmem + 2228224 + curf * 80 + 40, flags)
+    stq(tabmem + 2228224 + curf * 80 + 56, st_loccnt)
+    stq(tabmem + 2228224 + curf * 80 + 72, st_nslots)
+    fcur = 0
+  end
+  return 0
+end

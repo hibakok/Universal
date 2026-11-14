@@ -4,7 +4,7 @@
 Выход: проверки T-E6-49a/b/c/d (печать через check).
 Функция: самохостинг E6.4d — KERNEL/L2-WALL/wall.wall (WALL v2, корень
          с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall
-         — проход 0, wall_self_pe/pd/p1.wall — проход 1) компилируется
+         — проход 0, wall_self_pe/pd/p1/p1s.wall — проход 1) компилируется
          wall.exe байт-в-байт как оракул спрямлённого текста (склейка —
          оракул splice); полный круг enc+brick+pegen даёт рабочий EXE;
          CLI-поведение == wall.exe байт-в-байт (stdout и коды возврата)
@@ -15,10 +15,17 @@
          E6.4d-2/3: проход 1 (читатели карты, диспетчер + kwtab,
          объявления var/str/ext + ntab/varr/sarr/earr, пост-проверка
          main) — ошибки разбора == оракул parse на классе источников
-         без обработки func; источники, которым нужен func/статы (первая
-         строка-func раньше точки решения), пропускаются — до шагов
-         E6.4d-2/4+ каркас останавливается на первом func с ERR=FORMAT
-         (задокументированное отличие; VERIFY-E6D.md).
+         без обработки func.
+         E6.4d-2/4: заголовки func (S004 p1_funchdr + S00E fh_param —
+         имя, <= 4 параметров, дубликаты, larr/bstk/ftab в куче tabmem)
+         и закрытие func плечом end (S007 p1s_end: финальная запись
+         ftab, fcur = 0) — класс расширен на источники с func-заголовками
+         и ПУСТЫМИ телами: прочие статы тела дают ERR=FORMAT текущей
+         строки (S006+ — шаг E6.4d-3); успешно разобранные источники
+         дают КОД 0 (выход .b2 пока пуст — эмитция прохода 2 позже).
+         Вложенная func — quirk wall.exe: инструменты принимают её
+         как заголовок (плечо kw==3 раньше fcur; проверено: каркас ==
+         wall.exe), оракул падает «не разобрано» — источник вне класса.
          Границы BIG SRC: 131073 (отказ) и 131072 (оба инструмента
          дают нет main); буфер входа, карта текстов и таблицы прохода 1
          — GlobalAlloc (куча эмулятора 8 МиБ).
@@ -149,6 +156,26 @@ def _corpus():
         ("микро: переводы строк (пусто)", "\n\n\n"),
         ("микро: main с параметром", "func main(x)\nend\n"),
         ("микро: незакрытый блок", "func main\n"),
+        # E6.4d-2/4: заголовки func + плечо end (класс с пустыми телами)
+        ("микро: func без имени", "func 5\nend\n"),
+        ("микро: func имя повтор",
+         "func f\nend\nfunc f\nend\nfunc main\nend\n"),
+        ("микро: пустые скобки main — код 0", "func main()\nend\n"),
+        ("микро: main 4 параметра", "func main(a, b, c, d)\nend\n"),
+        ("микро: func скобка без закр", "func f(a\nend\nfunc main\nend\n"),
+        ("микро: func конец мусор", "func f x\nend\nfunc main\nend\n"),
+        ("микро: параметр == глобаль",
+         "var g\nfunc f(g)\nend\nfunc main\nend\n"),
+        ("микро: запятая без параметра", "func f(,)\nend\nfunc main\nend\n"),
+        ("микро: end между func",
+         "func f\nend\nend\nfunc main\nend\n"),
+        ("микро: две func + main — код 0",
+         "func a\nend\nfunc main\nend\n"),
+        ("микро: CRLF-заголовки — код 0",
+         "func f\r\nend\r\nfunc main\r\nend\r\n"),
+        ("микро: var в теле (статы — E6.4d-3)", "func main\nvar i\nend\n"),
+        ("микро: вложенная func (quirk — вне класса)",
+         "func f\nfunc g\nend\nend\n"),
     ]
     return [(n, s) for n, s in out if _ascii(s)]
 
@@ -162,27 +189,106 @@ def _ascii(s):
 
 
 def _expect_line(s):
-    """Строка ожидаемой ошибки (int) или None — источник недоступен.
+    """(код, строка) — исход ожидания: (6, L) — ERR=FORMAT AT=L;
+    (0, None) — успех (код 0, пустой stdout/.b2); None — источник вне
+    класса эквивалентности каркаса (пропуск).
 
-    Класс эквивалентности каркаса E6.4d-2/3 — источники, разбор которых
-    решается до первой обработки func (заголовки/статы не реализованы):
+    Класс E6.4d-2/4 (S004 заголовки func + S007 плечо end; тела —
+    только end): моделирование прохода 1 каркаса по строкам оракула
+    _lex (состояние fcur/seenfunc/fdepth; строки с токенами):
     1) _lex отказал — ошибка лексера (ловится проходом 0 каркаса);
-    2) parse отказал в строке L: если первая строка-func (первый токен
-       id func) не раньше L — ошибка уровня объявлений/диспетчера,
-       иначе None (нужен func-заголовок/статы);
-    3) parse принял: func нет вовсе — «нет main» на последней непустой
-       (пост-проверка, как wall.exe); func есть — None."""
+    2) не-имя первым токеном — каркас ERR=FORMAT на строке; сравнимо,
+       если оракул parse падает на той же строке;
+    3) func — заголовок (в ЛЮБОМ состоянии — quirk wall.exe: плечо
+       kw==3 раньше fcur; вложенная func — оракул падает на строке,
+       инструменты принимают — вне класса); ошибка заголовка у обоих
+       на строке заголовка; корректный заголовок — fcur=1/seenfunc=1/
+       fdepth+1;
+    4) в теле (fcur): end — закрытие (fdepth-1, fcur=0; лишние токены
+       или лишний end — ошибка на строке); прочий стат — каркас
+       ERR=FORMAT на строке (S006+ — E6.4d-3); сравнимо, если оракул
+       падает на той же строке, иначе — вне класса;
+    5) между func (seenfunc) — только func (заголовок), прочее —
+       ERR=FORMAT на строке у обоих;
+    6) до первой func — объявления S003 (как E6.4d-2/3);
+    7) пост-проверки: незакрытый func — set_lastline (последняя
+       непустая); ровно одна main без параметров — КОД 0 (выход .b2
+       пуст — эмитция прохода 2 позже); main с параметрами — ошибка
+       в строке заголовка main; не одна main — последняя непустая.
+    Сравнимо = модель совпадает с ожиданием оракула parse (строка
+    ошибки или приём). Инструмент wall.exe — третья сторона (проверя-
+    ется прогоном)."""
     try:
         lines = lab_l2_lex._lex(s)
     except lab_l2_err.WallError as e:
-        return e.line
-    fline = next((no for no, toks, _t in lines
-                  if toks and toks[0] == ("id", "func")), None)
+        return (6, e.line)
     try:
         lab_l2.parse(s)
+        perr = None
     except lab_l2_err.WallError as e:
-        return e.line if fline is None or fline >= e.line else None
-    return lab_l2_lex.last_line(lines) if fline is None else None
+        perr = e.line
+    fcur = seen = fdepth = 0
+    for no, toks, _t in lines:
+        if not toks:
+            continue
+        k, v = toks[0]
+        if k != "id":
+            return (6, no) if perr == no else None
+        if v == "func":
+            if fcur:
+                # вложенная func — quirk wall.exe: инструменты приняли
+                # бы заголовок (проверено: каркас == wall.exe), оракул
+                # падает на этой строке — вне класса
+                return None
+            if perr == no:
+                return (6, no)
+            fcur = 1
+            seen = 1
+            fdepth += 1
+            continue
+        if fcur:
+            if v == "end":
+                if perr == no:
+                    return (6, no)
+                fdepth -= 1
+                fcur = 0
+                continue
+            return (6, no) if perr == no else None
+        if seen:
+            return (6, no) if perr == no else None
+        if perr == no:
+            return (6, no)
+    if fdepth or fcur:
+        last = lab_l2_lex.last_line(lines)
+        return (6, last) if perr == last else None
+    # все func закрыты (тела пустые): пост-проверка main по заголовкам
+    mains = mline = mpar = 0
+    inf = 0
+    for no, toks, _t in lines:
+        if not toks:
+            continue
+        k, v = toks[0]
+        if k == "id" and v == "func":
+            inf = 1
+            nm = toks[1][1] if len(toks) > 1 and toks[1][0] == "id" \
+                else None
+            np_ = 0
+            if ("sym", "(") in toks:
+                i = toks.index(("sym", "("))
+                if not (i + 1 < len(toks) and toks[i + 1] == ("sym", ")")):
+                    np_ = sum(1 for t in toks[i + 1:] if t[0] == "id")
+            if nm == "main":
+                mains += 1
+                mline = no
+                mpar = np_
+        elif k == "id" and v == "end" and inf:
+            inf = 0
+    if mains == 1 and mpar == 0:
+        return (0, None) if perr is None else None
+    if mains == 1 and mpar != 0:
+        return (6, mline) if perr == mline else None
+    last = lab_l2_lex.last_line(lines)
+    return (6, last) if perr == last else None
 
 
 def run(check, kpath, kfile, kernel_host):
@@ -239,27 +345,37 @@ def run(check, kpath, kfile, kernel_host):
           not bad, "; ".join(bad[:3]))
 
     # T-E6-49d: проход 0+1 каркаса == оракул parse + инструмент wall.exe
-    # на классе источников без обработки func (E6.4d-2/3)
+    # на классе источников с func-заголовками и ПУСТЫМИ телами
+    # (E6.4d-2/4; тела с прочими статами — E6.4d-3)
     corpus = _corpus()
     bad = []
     skipped = 0
+    zeros = 0
     for name, s in corpus:
-        want_line = _expect_line(s)
-        if want_line is None:
+        want = _expect_line(s)
+        if want is None:
             skipped += 1
             continue
-        wout = ("U-L2-WALL ERR=FORMAT AT=%04X\r\n" % want_line).encode()
         rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                              {"t.wall": s.encode("latin1")}).run()
-        ok = rs.exit_code == 6 and rs.stdout == wout
+        if want[0] == 6:
+            wout = ("U-L2-WALL ERR=FORMAT AT=%04X\r\n"
+                    % want[1]).encode()
+            ok = rs.exit_code == 6 and rs.stdout == wout
+        else:
+            ok = rs.exit_code == 0 and rs.stdout == b""
+            zeros += 1
         if ok:                    # третья сторона: инструмент wall.exe
             rw = lab_win.Machine(wall, ["t.wall", "t.b2"],
                                  {"t.wall": s.encode("latin1")}).run()
-            ok = rw.exit_code == 6 and rw.stdout == wout
+            if want[0] == 6:
+                ok = rw.exit_code == 6 and rw.stdout == wout
+            else:
+                ok = rw.exit_code == 0 and rw.stdout == b""
         if not ok:
             bad.append("%s (код=%s)" % (name, rs.exit_code))
-    check("T-E6-49d проход 0+1: объявления == оракулу parse "
-          "(%d из %d, func-класс пропущен %d)"
-          % (len(corpus) - skipped, len(corpus), skipped),
+    check("T-E6-49d проход 0+1: заголовки func + end == оракулу parse "
+          "(%d из %d, код-0 %d, вне класса %d)"
+          % (len(corpus) - skipped, len(corpus), zeros, skipped),
           not bad, "; ".join(bad[:3]))
     os.unlink(path)

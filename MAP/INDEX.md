@@ -13,7 +13,7 @@
 | `DOCS/00-MANIFEST.md` | миссия, требования, границы проекта | 57 |
 | `DOCS/01-METHODOLOGY.md` | кирпичи, ветви, слои, 10 правил | 93 |
 | `DOCS/02-AI-NAVIGATION.md` | протокол навигации, таблица типовых задач | 104 |
-| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 436 |
+| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 499 |
 | `DOCS/03a-HISTORY.md` | детальная история выполненных этапов (вынесено из ROADMAP, E6.4c-3/4b) | 107 |
 | `DOCS/04-RULES-OF-CHANGE.md` | регламент изменений и коммитов | 59 |
 
@@ -29,8 +29,8 @@
 | `SPEC/05-X86-SUBSET.md` | реестр инструкций и кодировок | 256 |
 | `SPEC/06-ARCHITECTURE.md` | целевая архитектура системы | 72 |
 | `SPEC/07-PEG-FORMAT.md` | формат PEG v1 и поведение pegen | 111 |
-| `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1) | 153 |
-| `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc | 252 |
+| `SPEC/08-BRICK-FORMAT.md` | формат BRICK v1 и поведение brick (слой L1; пределы 512 КиБ/2048 меток — E6.4f-2) | 155 |
+| `SPEC/09-ENC-FORMAT.md` | BRICK v2: M-строки, канонические кодировки, контракт enc (предел входа 512 КиБ — E6.4f-1) | 253 |
 | `SPEC/10-SPLICE-FORMAT.md` | SPLICE v1: !include, склейка исходников, контракт splice (пределы 256 КиБ, E6.4e-2) | 148 |
 | `SPEC/11-WALL-FORMAT.md` | WALL v1/v2: язык слоя L2, компиляция в BRICK v2, канон эмиттера | 380 |
 
@@ -150,14 +150,15 @@
 | `KERNEL/L2-WALL/wall_self_c.wall` | часть каркаса: сервис — print_error/skip0/read_arg/widen (E6.4d-1) | 147 |
 | `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
 | `KERNEL/L2-WALL/wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3) — getq, tok_next, kw_lookup, chk_name, names_find/_ci/add, arr_size, at_end/want_id/want_sym1; таблицы tabmem | 371 |
-| `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления прохода 1 (E6.4d-2/3) — p1_decl (S003): var/str/ext | 97 |
-| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3) — p1_line (S002), pass1 (S001) + пост-проверка main, set_lastline | 113 |
+| `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab | 226 |
+| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..2/4) — p1_line (S002: func -> S004, fcur -> S007), pass1 (S001) + пост-проверка main, set_lastline | 119 |
+| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4) — p1s_end (S007): закрытие func, финальная запись ftab; статы S006+ — E6.4d-3 | 46 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
 | `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 194 |
 | `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 16 дефектов (+ срезы 1-3, E6.4d-1..2/1) | 486 |
-| `KERNEL/L2-WALL/VERIFY-E6D.md` | журнал верификации самохостинга E6.4d-2/2+ (VERIFY.md у лимита 500) | 97 |
+| `KERNEL/L2-WALL/VERIFY-E6D.md` | журнал верификации самохостинга E6.4d-2/2+ (VERIFY.md у лимита 500) | 397 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -211,10 +212,10 @@
 | `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
 | `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
 | `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 420 |
-| `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36) | 285 |
+| `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36; пределы enc 512 КиБ и brick 512 КиБ/2048 меток — E6.4f) | 286 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 (T-E6-37..48; big_source2, структурные списки якорей/ошибок) | 249 |
-| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0 == _lex (T-E6-49a/b/c/d, 65 исходников) | 218 |
+| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 (заголовки func + end, пустые тела) == оракулу parse (T-E6-49a/b/c/d, корпус 104: 68 сравнимо / 7 код-0 / 36 вне класса) | 381 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 1327 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
@@ -260,17 +261,24 @@ LAB — измерительный прибор (Python только здесь)
   T-E6-49a/b/c/d; автоматических в батарее — 130).
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
   (E6.4d-1: каркас CLI на WALL, дефект №16 str_emit исправлен),
-  под-шаг 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел
+  под-шаги 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел
   SPEC/11 п.9), 2/2 (проход 0: разбиение строк + полная лексика +
-  карта текстов smem; лексер == оракулу _lex) и 2/3 (проход 1:
+  карта текстов smem; лексер == оракулу _lex), 2/3 (проход 1:
   читатели карты getq/getb, диспетчер p1_line + kwtab s_kws,
-  объявления var/str/ext — p1_decl, ntab/varr/sarr/earr в куче
-  tabmem GlobalAlloc 3539008 (куча эмулятора 8 МиБ), пост-проверка
-  main; разбор == оракулу parse на классе без обработки func)
-  выполнены; батарея 130/130 (T-E6-49d переопределён с _lex на
-  parse, корпус 91: 42 доступно / 49 func-класс пропущено). Далее
-  E6.4d-2/4: S004 заголовки func (+S007-плечо end), затем статы
-  S006+. Плоский каркас 1142 строки / 34762 Б (33.9 из 128 КиБ),
-  .b2 217071 Б,
-  тело 23615/65536, меток 356/1024 (см. `DOCS/03-ROADMAP.md`,
-  журнал 19-22, VERIFY-E6D.md).
+  объявления var/str/ext — p1_decl; пост-проверка main) и 2/4
+  (заголовки func: p1_funchdr S004 + fh_param S00E — larr/bstk/
+  ftab 80 Б в куче tabmem 4685888; закрытие func плечом end —
+  p1s_end S007; латентный дефект main-скана getb(srcbuf, np+k)
+  исправлен; quirk «func в теле» закрыт: каркас == wall.exe)
+  выполнены; батарея 130/130 (T-E6-49d: модель класса по строкам,
+  корпус 104 — 68 сравнимо / 7 код-0 / 36 вне класса; впервые
+  успешный разбор — код 0). Попутно эпик **E6.4f — пределы
+  конвейера 512 КиБ** (E6.4f-1 enc: вход 512 КиБ, outbuf 0x110040,
+  SHA 4BB73143…; E6.4f-2 brick: исходник 512 КиБ / метки 2048,
+  labtab/filebuf/imagebuf выросли, brick.hex перегенерирован, SHA
+  AD3886E7…; оракул lab_brick синхронизирован; мотив — .b2 каркаса
+  288470 > 256 КиБ). Далее E6.4d-3: статы S006+ (var-локаль, else,
+  if, while, return, setb, namestmt, break/continue), затем проход
+  2. Плоский каркас 1340 строк / 42489 Б, .b2 288470 Б (55% предела
+  enc), .brick 270052, тело 28895/65536, меток 388/2048 (см.
+  `DOCS/03-ROADMAP.md`, журнал 19-23, VERIFY-E6D.md).

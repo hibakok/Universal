@@ -1,24 +1,40 @@
-; wall_self_pd.wall — объявления прохода 1 каркаса wall.wall (E6.4d-2/3)
+; wall_self_pd.wall — объявления + заголовки func каркаса wall.wall
 ; Паспорт: KERNEL/L2-WALL/wall_self_pd.wall | слой L2 | роль: реинкарнация
-; K2-S003 p1_decl (wall_pd.b2) на самом языке WALL v2: разбор строки
-; объявления в режиме до первой func — var (скаляр или массив [n] с
-; 1..4096 — вид 5), str (имя = 'литерал'; litptr/litlen — содержимое
-; без кавычек, в sarr), ext (имя <= 31 байта, без учёта регистра;
-; earr, <= 8 — SPEC/11 п.6). Курсор pos — за ключевым словом (его
-; лекснул диспетчер p1_line части p1). Ошибки — fail_format(curline):
-; код 6 ERR=FORMAT AT=XXXX, строки == wall.exe == оракул parse.
+; K2-S003 p1_decl + K2-S004 p1_funchdr + K2-S00E fh_param (wall_pd.b2)
+; на самом языке WALL v2. S003: разбор строки объявления в режиме до
+; первой func — var (скаляр или массив [n] с 1..4096 — вид 5), str
+; (имя = 'литерал'; litptr/litlen — содержимое без кавычек, в sarr),
+; ext (имя <= 31 байта, без учёта регистра; earr, <= 8 — SPEC/11 п.6).
+; E6.4d-2/4 S004: заголовок func — имя (want_id + chk_name), список
+; параметров '(' [a [, b]…] ')' (fh_param: дубликат с глобальными —
+; names_find; дубликат в окне параметров [st_locoff, lcount) — побайтовое
+; сравнение; larr {ptr, len, size 1}), <= 4 параметров, дубликат имени
+; функции, ftab-запись 80 Б {nameptr, namelen, nparams, maxd, maxc,
+; flags, locoff, loccnt, hdrline, nslots} (10 qword, как ftab wall.exe),
+; names_add вид 4 + мета fcount (старый, как r9 wall.exe), curf/fcount,
+; сброс st_maxd/st_maxc/st_setb/st_ext5, st_locoff = locoff ДО параметров
+; (окно дубликатов), st_loccnt = st_nslots = nparams, bstk push kind 1
+; (tabmem+4587584, 3072x32 {kind, k, ifseq, lineidx} — как bstk wall.exe
+; 0x18000/32, дефект №15), fdepth++, seenfunc = fcur = 1.
+; Курсор pos — за ключевым словом (его лекснул диспетчер p1_line части
+; p1). Ошибки — fail_format(curline): код 6 ERR=FORMAT AT=XXXX,
+; строки == wall.exe == оракул parse.
 ; Порядок проверок == wall.exe (важно для номера строки ошибки):
 ; var: want_id, chk_name, [n], at_end, дубликат, запись;
 ; str: want_id, chk_name, '=', литерал (вид 3), at_end, дубликат;
-; ext: want_id, chk_name, <= 31, at_end, дубликат-ci, <= 8.
+; ext: want_id, chk_name, <= 31, at_end, дубликат-ci, <= 8;
+; func: want_id, chk_name, '('…')', at_end, > 4, дубликат имени.
 ; Отличия от wall.exe (эквивалентность выхода сохранена):
 ; 1) нет str_dlen/E013: длина литерала <= 512 проверена в проходе 0
 ;    (slen при накоплении, как оракул _lex); у wall.exe — в проходе 1;
 ;    литерал не переходит границу строк — выход тот же;
-; 2) таблицы значений (varr/sarr/earr) — в куче tabmem со смещениями
-;    (1310720/1835008/3538944), записи {…} как у wall.exe; ntab-индекс
-;    записи = ncount - 1 после names_add (мета — старый счётчик таблицы,
-;    как r9 у wall.exe: vcount/scount/ecount до инкремента).
+; 2) таблицы значений (varr/sarr/earr/larr/bstk) — в куче tabmem со
+;    смещениями (1310720/1835008/3538944/3539008/4587584), записи {…}
+;    как у wall.exe; ntab-индекс записи = ncount - 1 после names_add
+;    (мета — старый счётчик таблицы, как r9 у wall.exe);
+; 3) вложенные скобки параметров переписаны без goto: ветка ')' и
+;    цикл ',' — структурные if/else/while (fh_pclose/fh_p1/fh_ploop/
+;    fh_pend wall.exe); порядок проверок тот же.
 
 ; разбор объявления: kwi — индекс ключевого слова (0 var, 1 str, 2 ext;
 ; иное/не-ключевое имя — ERR=FORMAT), pos — курсор за ключевым словом
@@ -94,4 +110,117 @@ func p1_decl(kwi, pos, le)
   end
   fail_format(curline)
   return 0
+end
+
+; разбор заголовка func: pos — курсор за ключевым словом func (K2-S004)
+func p1_funchdr(pos, le)
+  var nptr
+  var nln
+  var nparams
+  var locoff
+  var k
+  pos = want_id(pos, le)
+  chk_name(0)
+  nptr = tokptr
+  nln = tokend - tokptr
+  nparams = 0
+  locoff = lcount
+  st_locoff = locoff
+  k = tok_next(pos, le)
+  if k == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
+    pos = tokend
+    k = tok_next(pos, le)
+    if k == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 41
+      pos = tokend
+    else
+      pos = fh_param(pos, le)
+      nparams = nparams + 1
+      k = tok_next(pos, le)
+      while k == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 44
+        pos = tokend
+        pos = fh_param(pos, le)
+        nparams = nparams + 1
+        k = tok_next(pos, le)
+      end
+      pos = want_sym1(41, pos, le)
+    end
+  end
+  at_end(pos, le)
+  if nparams > 4
+    fail_format(curline)
+  end
+  if names_find(nptr, nln) != -1
+    fail_format(curline)
+  end
+  stq(tabmem + 2228224 + fcount * 80, nptr)
+  stq(tabmem + 2228224 + fcount * 80 + 8, nln)
+  stq(tabmem + 2228224 + fcount * 80 + 16, nparams)
+  stq(tabmem + 2228224 + fcount * 80 + 24, 0)
+  stq(tabmem + 2228224 + fcount * 80 + 32, 0)
+  stq(tabmem + 2228224 + fcount * 80 + 40, 0)
+  stq(tabmem + 2228224 + fcount * 80 + 48, locoff)
+  stq(tabmem + 2228224 + fcount * 80 + 56, nparams)
+  stq(tabmem + 2228224 + fcount * 80 + 64, curline)
+  stq(tabmem + 2228224 + fcount * 80 + 72, 0)
+  names_add(nptr, nln, 4, fcount)
+  curf = fcount
+  fcount = fcount + 1
+  st_maxd = 0
+  st_maxc = 0
+  st_setb = 0
+  st_ext5 = 0
+  st_locoff = locoff
+  st_loccnt = nparams
+  st_nslots = nparams
+  stq(tabmem + 4587584 + fdepth * 32, 1)
+  stq(tabmem + 4587584 + fdepth * 32 + 8, 0)
+  stq(tabmem + 4587584 + fdepth * 32 + 16, 0)
+  fdepth = fdepth + 1
+  seenfunc = 1
+  fcur = 1
+  return 0
+end
+
+; один параметр заголовка: имя; дубликаты — ERR (K2-S00E); возврат —
+; курсор за именем (tokend)
+func fh_param(pos, le)
+  var nptr
+  var nln
+  var i
+  var p
+  var l
+  var k
+  var hit
+  pos = want_id(pos, le)
+  chk_name(0)
+  nptr = tokptr
+  nln = tokend - tokptr
+  if names_find(nptr, nln) != -1
+    fail_format(curline)
+  end
+  i = st_locoff
+  while i < lcount
+    p = getq(tabmem + 3539008 + i * 32)
+    l = getq(tabmem + 3539008 + i * 32 + 8)
+    if l == nln
+      k = 0
+      hit = 1
+      while k < nln
+        if getb(srcbuf, p + k) != getb(srcbuf, nptr + k)
+          hit = 0
+          break
+        end
+        k = k + 1
+      end
+      if hit == 1
+        fail_format(curline)
+      end
+    end
+    i = i + 1
+  end
+  stq(tabmem + 3539008 + lcount * 32, nptr)
+  stq(tabmem + 3539008 + lcount * 32 + 8, nln)
+  stq(tabmem + 3539008 + lcount * 32 + 16, 1)
+  lcount = lcount + 1
+  return tokend
 end

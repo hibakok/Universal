@@ -31,9 +31,22 @@ at_end/want_id/want_sym1 P002/P003/P001), wall_self_pd (S003 p1_decl:
 var/str/ext, порядок проверок == wall.exe) и wall_self_p1 (S002
 p1_line-диспетчер финальной формы, S001 pass1 + пост-проверка main,
 N004 set_lastline); таблицы ntab/varr/sarr/ftab/earr — GlobalAlloc
-3539008 одной областью tabmem (ёмкости >= максимума входа 128 КиБ);
+одной областью tabmem (ёмкости >= максимума входа 128 КиБ);
 разбор == оракулу parse на классе без обработки func; журнал —
-VERIFY-E6D.md.
+VERIFY-E6D.md. E6.4d-2/4: заголовки func НА WALL — wall_self_pd
++ S004 p1_funchdr (ftab-запись 80 Б, bstk push kind 1, seenfunc/
+fcur=1; quirk «func раньше fcur» сохранён) + S00E fh_param (окно
+дубликатов [st_locoff, lcount), larr {ptr, len, size 1}); НОВАЯ часть
+wall_self_p1s — S007 p1s_end (закрытие func: финальная запись ftab
+maxd/maxc/flags/loccnt/nslots, fcur=0); табmem 4685888 (+larr 32768x32
+@3539008, +bstk 3072x32 @4587584); латентный дефект main-скана
+(getb(srcbuf, np+k) — было getb(np, k)) исправлен; класс T-E6-49d
+расширен: 68 из 104 сравнимо (7 код-0 — впервые успех); quirk «func
+в теле» закрыт эмпирически (каркас == wall.exe AT=0004, оракул 0002);
+попутно эпик E6.4f — пределы конвейера 512 КиБ (enc E6.4f-1, brick
+E6.4f-2/2048 меток: .b2 каркаса 288470 > 256 КиБ). Кирпичи S004/S00E/
+S007 — реинкарнации K2-S004/S00E/S007 (карточки ниже) в WALL-код;
+журнал — VERIFY-E6D.md.
 
 ## Поток исполнения (X)
 
