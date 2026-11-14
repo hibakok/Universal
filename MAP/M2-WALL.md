@@ -219,6 +219,12 @@ S007 — реинкарнации K2-S004/S00E/S007 (карточки ниже) 
   срез 4) до at_end_chk; дубликаты в окне/глобальных; larr+
   (×32 Б: {ptr, len, size}), st_loccnt++, st_nslots += size
   (локальный [1] — скаляр для присваивания/len: квирк оракула).
+  Реинкарнация на WALL (E6.4d-3/1): p1s_var части
+  KERNEL/L2-WALL/wall_self_p1s.wall — окно дублей
+  [st_locoff, st_locoff+st_loccnt) побайтовым сравнением larr
+  (как fh_param), larr/bstk/ftab — в куче tabmem со смещениями;
+  диспетчер p1_line части wall_self_p1.wall — плечо var
+  (kw==0, раньше end — порядок wall.exe).
 - **K2-S007 p1s_end** — pop bstk; func -> финализация ftab (maxd/maxc/
   flags/loccnt; срез 4: + nslots в +0x48), infunc1=0; лишний end ->
   G002.

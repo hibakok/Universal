@@ -1,7 +1,7 @@
-; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4)
+; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4, E6.4d-3/1)
 ; Паспорт: KERNEL/L2-WALL/wall_self_p1s.wall | слой L2 | роль: реинкарнация
 ; ветви статов прохода 1 (K2-S006..S00F, wall_p1s.b2) на самом языке
-; WALL v2. E6.4d-2/4: только K2-S007 p1s_end — закрытие блока end:
+; WALL v2. E6.4d-2/4: K2-S007 p1s_end — закрытие блока end:
 ; at_end, при fdepth == 0 — лишний end (ERR=FORMAT текущей строки);
 ; pop bstk (запись 32 Б {kind, k, ifseq, lineidx} — дефект №15; в
 ; каркасе до E6.4d-3 записи только kind 1 — func, пушит S004 части pd);
@@ -9,13 +9,73 @@
 ; st_setb, бит 1 — st_ext5), loccnt, nslots — и fcur = 0 (функция
 ; закрыта); kind 2/3 (if/while/else) — проход 1 у wall.exe больше
 ; ничего не делает (стат-статистику копят выражения/статы, шаг
-; E6.4d-3). Прочие статы (S006 var-локаль/larr, S008 else, S009 if,
-; S00A while, S00B return, S00C setb, S00D namestmt, S00F break/
-; continue) — шаг E6.4d-3; до него диспетчер p1_line части p1 даёт
-; на них ERR=FORMAT текущей строки (класс эквивалентности задокументи-
-; рован в VERIFY-E6D и _expect_line батареи).
+; E6.4d-3).
+; E6.4d-3/1: K2-S006 p1s_var — локальное объявление var имя [n]:
+; want_id + chk_name, опциональный [n] (arr_size P019: 1..4096,
+; ставит v2flag), at_end, дубликат в окне текущей функции
+; [st_locoff, st_locoff + st_loccnt) (побайтовое сравнение larr,
+; как fh_param части pd), конфликт с глобальными (names_find),
+; larr-запись 32 Б {ptr, len, size} под индексом lcount, lcount++,
+; st_loccnt++, st_nslots += size — порядок проверок == wall.exe ==
+; оракул parse (имя, [n], at_end, дубликат, глобаль).
+; Прочие статы (S008 else, S009 if, S00A while, S00B return, S00C
+; setb, S00D namestmt, S00F break/continue) — следующие под-шаги
+; E6.4d-3; до них диспетчер p1_line части p1 даёт на них ERR=FORMAT
+; текущей строки (класс эквивалентности задокументирован в VERIFY-E6D
+; и _expect_line батареи).
 ; bstk — в куче tabmem+4587584, 3072x32 (как bstk wall.exe 0x18000/32;
 ; ёмкость 3072 записей — дефект №15: площадь та же, записи шире).
+
+; локальное объявление: var имя ['[' n ']'] (K2-S006); pos — курсор
+; за ключевым словом var (его лекснул диспетчер p1_line части p1)
+func p1s_var(pos, le)
+  var nptr
+  var nln
+  var size
+  var i
+  var wend
+  var p
+  var l
+  var k
+  var hit
+  pos = want_id(pos, le)
+  chk_name(0)
+  nptr = tokptr
+  nln = tokend - tokptr
+  size = arr_size(pos, le)
+  at_end(aspos, le)
+  i = st_locoff
+  wend = st_locoff + st_loccnt
+  while i < wend
+    p = getq(tabmem + 3539008 + i * 32)
+    l = getq(tabmem + 3539008 + i * 32 + 8)
+    if l == nln
+      k = 0
+      hit = 1
+      while k < nln
+        if getb(srcbuf, p + k) != getb(srcbuf, nptr + k)
+          hit = 0
+          break
+        end
+        k = k + 1
+      end
+      if hit == 1
+        fail_format(curline)
+      end
+    end
+    i = i + 1
+  end
+  if names_find(nptr, nln) != -1
+    fail_format(curline)
+  end
+  stq(tabmem + 3539008 + lcount * 32, nptr)
+  stq(tabmem + 3539008 + lcount * 32 + 8, nln)
+  stq(tabmem + 3539008 + lcount * 32 + 16, size)
+  lcount = lcount + 1
+  st_loccnt = st_loccnt + 1
+  st_nslots = st_nslots + size
+  return 0
+end
 
 ; закрытие блока: end (K2-S007); pos — курсор за ключевым словом
 func p1s_end(pos, le)

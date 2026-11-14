@@ -2,34 +2,32 @@
 
 Вход: исходник .wall (аргумент или stdin).
 Выход: стек вызовов по меткам перед первым fail_format / крашем.
+Запуск: python3 LAB/ai/wall_trace.py [файл.wall] (из любого каталога).
+Изменение E6.4d-3/1: починен сломанный с прошлого этапа build_lbl
+       (ссылка на несуществующий lab_brick_lbl) — карта меток берётся
+       актуальным инструментом label_map.labels_of по артефакту
+       wall.brick; CWD-независимость — от __file__.
 """
 import os
 import sys
 
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "py"))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "py"))
+sys.path.insert(0, HERE)
 import lab_splice                    # noqa: E402
 import lab_run                       # noqa: E402
 import lab_win                       # noqa: E402
 import lab_cpu                       # noqa: E402
+import label_map                     # noqa: E402
 
-U = os.path.join(os.path.dirname(__file__), "..", "..")
+U = os.path.join(HERE, "..", "..")
 WALL = os.path.join(U, "KERNEL", "L2-WALL", "wall.exe")
 
 
 def build_lbl():
-    host = {}
-    for root, _d, fs in os.walk(os.path.join(U, "KERNEL")):
-        for f in fs:
-            p = os.path.join(root, f)
-            rel = os.path.relpath(p, os.path.join(U, "KERNEL"))
-            rel = rel.replace(os.sep, "/").lower()
-            host[rel] = open(p, "rb").read()
-    flat = lab_splice.splice("l2-wall/wall.b2", host)
-    r = lab_run.run_kv(os.path.join(U, "KERNEL", "L1-ENC/enc.exe"),
-                       ["t.b2", "t.brick"], {"t.b2": flat})
-    lab_brick_lbl.assemble(r.files["t.brick"])
-    return lab_brick_lbl.LBL
+    brick = open(os.path.join(U, "KERNEL", "L2-WALL", "wall.brick"),
+                 "rb").read()
+    return label_map.labels_of(brick)
 
 
 def main():

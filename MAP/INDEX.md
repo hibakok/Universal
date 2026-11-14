@@ -151,8 +151,8 @@
 | `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
 | `KERNEL/L2-WALL/wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3) — getq, tok_next, kw_lookup, chk_name, names_find/_ci/add, arr_size, at_end/want_id/want_sym1; таблицы tabmem | 371 |
 | `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab | 226 |
-| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..2/4) — p1_line (S002: func -> S004, fcur -> S007), pass1 (S001) + пост-проверка main, set_lastline | 119 |
-| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4) — p1s_end (S007): закрытие func, финальная запись ftab; статы S006+ — E6.4d-3 | 46 |
+| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/1) — p1_line (S002: func -> S004, fcur -> S006/S007), pass1 (S001) + пост-проверка main, set_lastline | 123 |
+| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4, E6.4d-3/1) — p1s_var (S006): локальные var/larr, окно дублей; p1s_end (S007): закрытие func, финальная запись ftab; статы S008+ — следующие под-шаги E6.4d-3 | 106 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
@@ -265,20 +265,25 @@ LAB — измерительный прибор (Python только здесь)
   SPEC/11 п.9), 2/2 (проход 0: разбиение строк + полная лексика +
   карта текстов smem; лексер == оракулу _lex), 2/3 (проход 1:
   читатели карты getq/getb, диспетчер p1_line + kwtab s_kws,
-  объявления var/str/ext — p1_decl; пост-проверка main) и 2/4
+  объявления var/str/ext — p1_decl; пост-проверка main), 2/4
   (заголовки func: p1_funchdr S004 + fh_param S00E — larr/bstk/
   ftab 80 Б в куче tabmem 4685888; закрытие func плечом end —
   p1s_end S007; латентный дефект main-скана getb(srcbuf, np+k)
-  исправлен; quirk «func в теле» закрыт: каркас == wall.exe)
+  исправлен; quirk «func в теле» закрыт: каркас == wall.exe) и
+  **E6.4d-3/1 (локальные var: p1s_var S006 — имя, [n] 1..4096,
+  дубликат в окне [st_locoff, st_locoff+st_loccnt), конфликт с
+  глобальными, larr, st_nslots; порядок == wall.exe == оракул;
+  попутно починен стенд LAB/ai: wall_trace.py + label_map.py)**
   выполнены; батарея 130/130 (T-E6-49d: модель класса по строкам,
-  корпус 104 — 68 сравнимо / 7 код-0 / 36 вне класса; впервые
-  успешный разбор — код 0). Попутно эпик **E6.4f — пределы
+  корпус 118 — 86 сравнимо / 11 код-0 / 32 вне класса; тела с
+  var-объявлениями — в классе). Попутно эпик **E6.4f — пределы
   конвейера 512 КиБ** (E6.4f-1 enc: вход 512 КиБ, outbuf 0x110040,
   SHA 4BB73143…; E6.4f-2 brick: исходник 512 КиБ / метки 2048,
   labtab/filebuf/imagebuf выросли, brick.hex перегенерирован, SHA
   AD3886E7…; оракул lab_brick синхронизирован; мотив — .b2 каркаса
-  288470 > 256 КиБ). Далее E6.4d-3: статы S006+ (var-локаль, else,
-  if, while, return, setb, namestmt, break/continue), затем проход
-  2. Плоский каркас 1340 строк / 42489 Б, .b2 288470 Б (55% предела
-  enc), .brick 270052, тело 28895/65536, меток 388/2048 (см.
-  `DOCS/03-ROADMAP.md`, журнал 19-23, VERIFY-E6D.md).
+  288470 > 256 КиБ). Далее E6.4d-3/2+: статы S008 else, S009 if,
+  S00A while, S00B return, S00C setb, S00D namestmt, S00F break/
+  continue, затем проход 2. Плоский каркас 1404 строки / 44532 Б,
+  .b2 304886 Б (58% предела enc), .brick 285234, тело 30275/65536
+  (46%), меток 398/2048, EXE 31232 (см. `DOCS/03-ROADMAP.md`,
+  журнал 19-24, VERIFY-E6D.md).
