@@ -1,0 +1,371 @@
+; wall_self_pe.wall — хелперы разбора каркаса wall.wall (E6.4d-2/3)
+; Паспорт: KERNEL/L2-WALL/wall_self_pe.wall | слой L2 | роль: реинкарнация
+; ветвей P/L прохода 1 компилятора на самом языке WALL v2 (K2-P001..P007,
+; K2-P019 из wall_pe.b2 + K2-L001 из wall_l.b2): лексер одного токена
+; (tok_next), поиск ключевого слова (kw_lookup, s_kws — порядок 14 записей
+; == kwtab wall_data.b2: 0 var, 1 str, 2 ext, 3 func, 4 end, 5 else,
+; 6 if, 7 while, 8 return, 9 setb, A getb, B len, C break, D continue),
+; проверка имени (chk_name), таблица имён ntab в куче tabmem (names_find,
+; names_add, names_find_ci — без учёта регистра), опциональный [n] в
+; объявлении (arr_size: 1..4096, ставит флаг v2) и want-хелперы
+; (at_end, want_id, want_sym1). Токен-состояние — глобали корня:
+; tokptr (начало, для литерала — за кавычкой, как tok_ptr wall.exe),
+; tokend (конец, за последним символом), tokval (значение числа),
+; aspos/asflag (результат arr_size).
+; Отличия от wall.exe (эквивалентность выхода сохранена):
+; 1) tok_next работает по ТЕКСТУ строки из карты smem (без ';' —
+;    проход 0 срезал его); стоп — только конец текста; lex_tok wall.exe
+;    лексит сырую строку и проверяет ';' — той же строки не бывает;
+; 2) tok_next не повторяет проверки литералов (байты 0x20..0x7E, экраны)
+;    — текст провалидирован в проходе 0 (lex_line); число 31 бит —
+;    проверяется (как lt_nbig); litptr/litlen — содержимое БЕЗ кавычек
+;    (как 181E8/181F0 у wall.exe);
+; 3) таблицы — в куче tabmem (GlobalAlloc, см. main корня): ntab 32768
+;    имён x 40 Б {ptr, len, вид, мета, строка} с 0; varr 32768 x 16
+;    {ntab_idx, размер} с 1310720; sarr 16384 x 24 {ntab_idx, литерал
+;    ptr, длина} с 1835008; ftab 16384 x 80 {nameptr, namelen, nparams,
+;    maxd, maxc, flags, locoff, loccnt, hdrline, nslots} с 2228224;
+;    earr 8 x 8 {ntab_idx} с 3538944 (ёмкости — с запасом против
+;    максимума входа 128 КиБ: имена <= 21845, func <= 13107,
+;    str <= 14563; проверок переполнения нет, как у wall.exe, кроме
+;    ext <= 8 — SPEC/11 п.6); доступ — stq/getq побайтово (qword-доступа
+;    по произвольному адресу в языке нет, как в проходе 0).
+
+; чтение qword по адресу a (младший байт первый; парный stq из части n)
+func getq(a)
+  var v
+  var k
+  v = 0
+  k = 7
+  while k >= 0
+    v = v * 256 + getb(a, k)
+    k = k - 1
+  end
+  return v
+end
+
+; один токен от pos в [pos, le): пропускает пробелы/табы сам;
+; возврат — вид: 0 число, 1 имя, 2 символ, 3 литерал, 4 стоп (конец
+; текста); ставит глобали tokptr/tokend (спан) и tokval (число)
+func tok_next(pos, le)
+  var c
+  var v
+  var n
+  var m
+  var k
+  while pos < le
+    c = getb(srcbuf, pos)
+    if c == 32 || c == 9
+      pos = pos + 1
+    else
+      break
+    end
+  end
+  if pos >= le
+    tokptr = le
+    tokend = le
+    return 4
+  end
+  c = getb(srcbuf, pos)
+  tokptr = pos
+  if c >= 48 && c <= 57
+    v = 0
+    while pos < le
+      c = getb(srcbuf, pos)
+      if c >= 48 && c <= 57
+        v = v * 10 + (c - 48)
+        if v > 2147483647
+          fail_format(curline)
+        end
+        pos = pos + 1
+      else
+        break
+      end
+    end
+    tokval = v
+    tokend = pos
+    return 0
+  end
+  if c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
+    pos = pos + 1
+    while pos < le
+      c = getb(srcbuf, pos)
+      if c >= 48 && c <= 57 || c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
+        pos = pos + 1
+      else
+        break
+      end
+    end
+    tokend = pos
+    return 1
+  end
+  if c == 39
+    pos = pos + 1
+    tokptr = pos
+    while pos < le
+      c = getb(srcbuf, pos)
+      if c == 39
+        pos = pos + 1
+        tokend = pos
+        return 3
+      end
+      if c == 92
+        pos = pos + 2
+      else
+        pos = pos + 1
+      end
+    end
+    fail_format(curline)
+    return 4
+  end
+  m = 0
+  if pos + 1 < le
+    n = getb(srcbuf, pos + 1)
+    k = 0
+    while k < 8
+      if getb(s_sym2, 2 * k) == c && getb(s_sym2, 2 * k + 1) == n
+        m = 2
+      end
+      k = k + 1
+    end
+  end
+  if m == 2
+    tokend = pos + 2
+    return 2
+  end
+  k = 0
+  while k < len(s_sym1)
+    if getb(s_sym1, k) == c
+      m = 1
+    end
+    k = k + 1
+  end
+  if m == 1
+    tokend = pos + 1
+    return 2
+  end
+  fail_format(curline)
+  return 4
+end
+
+; имя (ptr в srcbuf, длина ln) -> индекс ключевого слова 0..13 | -1;
+; сегменты s_kws разделены пробелом (в словах-именах пробела не бывает)
+func kw_lookup(ptr, ln)
+  var b
+  var e
+  var i
+  var idx
+  var k
+  var hit
+  b = 0
+  idx = 0
+  while idx < 14
+    e = b
+    while e < len(s_kws)
+      if getb(s_kws, e) == 32
+        break
+      end
+      e = e + 1
+    end
+    if e - b == ln
+      k = 0
+      hit = 1
+      while k < ln
+        if getb(s_kws, b + k) != getb(srcbuf, ptr + k)
+          hit = 0
+          break
+        end
+        k = k + 1
+      end
+      if hit == 1
+        return idx
+      end
+    end
+    b = e + 1
+    idx = idx + 1
+  end
+  return -1
+end
+
+; проверка текущего токена (tokptr..tokend) как имени: длина <= 63;
+; первый символ — буква (строчная, если up == 0; ext — заглавные ок);
+; далее [A-Za-z0-9_]; иначе ERR=FORMAT (K2-P005)
+func chk_name(up)
+  var n
+  var c
+  var i
+  n = tokend - tokptr
+  if n > 63
+    fail_format(curline)
+  end
+  c = getb(srcbuf, tokptr)
+  if c < 65
+    fail_format(curline)
+  end
+  if c > 122
+    fail_format(curline)
+  end
+  if c > 90 && c < 97
+    fail_format(curline)
+  end
+  if up == 0
+    if c < 97
+      fail_format(curline)
+    end
+  end
+  i = tokptr + 1
+  while i < tokend
+    c = getb(srcbuf, i)
+    if c == 95 || c >= 48 && c <= 57 || c >= 65 && c <= 90 || c >= 97 && c <= 122
+      i = i + 1
+    else
+      fail_format(curline)
+    end
+  end
+  return 0
+end
+
+; точное имя -> индекс ntab | -1 (K2-P006)
+func names_find(ptr, ln)
+  var i
+  var p
+  var l
+  var k
+  i = 0
+  while i < ncount
+    p = getq(tabmem + i * 40)
+    l = getq(tabmem + i * 40 + 8)
+    if l == ln
+      k = 0
+      while k < ln
+        if getb(srcbuf, p + k) != getb(srcbuf, ptr + k)
+          break
+        end
+        k = k + 1
+      end
+      if k == ln
+        return i
+      end
+    end
+    i = i + 1
+  end
+  return -1
+end
+
+; имя без учёта регистра -> индекс ntab | -1 (K2-S005; ext-дубликаты)
+func names_find_ci(ptr, ln)
+  var i
+  var p
+  var l
+  var k
+  var a
+  var b
+  i = 0
+  while i < ncount
+    p = getq(tabmem + i * 40)
+    l = getq(tabmem + i * 40 + 8)
+    if l == ln
+      k = 0
+      while k < ln
+        a = getb(srcbuf, p + k)
+        if a >= 65 && a <= 90
+          a = a + 32
+        end
+        b = getb(srcbuf, ptr + k)
+        if b >= 65 && b <= 90
+          b = b + 32
+        end
+        if a != b
+          break
+        end
+        k = k + 1
+      end
+      if k == ln
+        return i
+      end
+    end
+    i = i + 1
+  end
+  return -1
+end
+
+; добавить имя в ntab: {ptr, len, вид, мета, curline}; мета — индекс
+; таблицы значения (varr/sarr/earr/ftab), как r9 у wall.exe (K2-P007)
+func names_add(ptr, ln, kind, meta)
+  var base
+  base = ncount * 40
+  stq(tabmem + base, ptr)
+  stq(tabmem + base + 8, ln)
+  stq(tabmem + base + 16, kind)
+  stq(tabmem + base + 24, meta)
+  stq(tabmem + base + 32, curline)
+  ncount = ncount + 1
+  return 0
+end
+
+; опциональный [n] после имени объявления (K2-P019): '[' число ']',
+; число 1..4096; возврат — размер (1 = скобок нет), глобали asflag
+; (1 = скобки были), aspos (курсор после ']'), v2flag = 1 (массив)
+func arr_size(pos, le)
+  var k
+  var v
+  asflag = 0
+  aspos = pos
+  k = tok_next(pos, le)
+  if k == 2
+    if tokend - tokptr == 1
+      if getb(srcbuf, tokptr) == 91
+        pos = tokend
+        if tok_next(pos, le) != 0
+          fail_format(curline)
+        end
+        v = tokval
+        pos = tokend
+        pos = want_sym1(93, pos, le)
+        aspos = pos
+        if v < 1
+          fail_format(curline)
+        end
+        if v > 4096
+          fail_format(curline)
+        end
+        v2flag = 1
+        asflag = 1
+        return v
+      end
+    end
+  end
+  return 1
+end
+
+; дальше токенов нет (иначе ERR=FORMAT) — K2-P002
+func at_end(pos, le)
+  if tok_next(pos, le) != 4
+    fail_format(curline)
+  end
+  return 0
+end
+
+; следующий токен — имя; возврат — курсор за ним (K2-P003)
+func want_id(pos, le)
+  if tok_next(pos, le) != 1
+    fail_format(curline)
+  end
+  return tokend
+end
+
+; следующий токен — символ c; возврат — курсор за ним (K2-P001)
+func want_sym1(c, pos, le)
+  var k
+  k = tok_next(pos, le)
+  if k != 2
+    fail_format(curline)
+  end
+  if tokend - tokptr != 1
+    fail_format(curline)
+  end
+  if getb(srcbuf, tokptr) != c
+    fail_format(curline)
+  end
+  return tokend
+end

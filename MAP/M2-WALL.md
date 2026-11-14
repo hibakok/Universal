@@ -24,7 +24,16 @@ E6.4d-2/2: каркас разрезан на части (wall.wall — коре
 FORMAT с номерами строк == оракул _lex), G002+H001 (fail_format:
 префикс+4 hex+CRLF) и qword-запись stq (карта текстов smem — GlobalAlloc
 1048592, запись 16*i с 1, как sm_arr); лексер каркаса == оракулу на 65
-исходниках (T-E6-49d), CLI — 19 путей; журнал — VERIFY-E6D.md.
+исходниках (T-E6-49d), CLI — 19 путей. E6.4d-2/3: проход 1 НА WALL —
+части wall_self_pe (getq; tok_next L001; kw_lookup P004 + kwtab s_kws;
+chk_name P005; names_find/_ci/add P006/P007/S005; arr_size P019;
+at_end/want_id/want_sym1 P002/P003/P001), wall_self_pd (S003 p1_decl:
+var/str/ext, порядок проверок == wall.exe) и wall_self_p1 (S002
+p1_line-диспетчер финальной формы, S001 pass1 + пост-проверка main,
+N004 set_lastline); таблицы ntab/varr/sarr/ftab/earr — GlobalAlloc
+3539008 одной областью tabmem (ёмкости >= максимума входа 128 КиБ);
+разбор == оракулу parse на классе без обработки func; журнал —
+VERIFY-E6D.md.
 
 ## Поток исполнения (X)
 

@@ -146,9 +146,12 @@
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
 | `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var DZ 8n — срез 4a) | 386 |
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
-| `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/2): ext/var/str + main; CLI == wall.exe, чтение, GlobalAlloc srcbuf+smem, pass0 | 124 |
+| `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/3): ext/var/str + main; CLI == wall.exe, чтение, GlobalAlloc srcbuf+smem+tabmem, pass0+pass1 | 157 |
 | `KERNEL/L2-WALL/wall_self_c.wall` | часть каркаса: сервис — print_error/skip0/read_arg/widen (E6.4d-1) | 147 |
 | `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
+| `KERNEL/L2-WALL/wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3) — getq, tok_next, kw_lookup, chk_name, names_find/_ci/add, arr_size, at_end/want_id/want_sym1; таблицы tabmem | 371 |
+| `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления прохода 1 (E6.4d-2/3) — p1_decl (S003): var/str/ext | 97 |
+| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3) — p1_line (S002), pass1 (S001) + пост-проверка main, set_lastline | 113 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
@@ -258,11 +261,16 @@ LAB — измерительный прибор (Python только здесь)
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
   (E6.4d-1: каркас CLI на WALL, дефект №16 str_emit исправлен),
   под-шаг 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел
-  SPEC/11 п.9) и под-шаг 2/2 (проход 0 на WALL: разбиение строк
-  LF/CRLF/CR + полная лексика + карта текстов smem GlobalAlloc
-  1048592; лексер == оракулу _lex на 65 исходниках; каркас разрезан
-  на части wall_self_c/wall_self_n — SPEC/10) выполнены; батарея
-  130/130 (~110 с). Далее E6.4d-2/3: читатели карты текстов и
-  кирпичи прохода 1 (S001/S002/S003). Плоский каркас 16.3 КиБ из
-  128 КиБ бюджета входа (см. `DOCS/03-ROADMAP.md`, журнал 19-21,
-  VERIFY-E6D.md).
+  SPEC/11 п.9), 2/2 (проход 0: разбиение строк + полная лексика +
+  карта текстов smem; лексер == оракулу _lex) и 2/3 (проход 1:
+  читатели карты getq/getb, диспетчер p1_line + kwtab s_kws,
+  объявления var/str/ext — p1_decl, ntab/varr/sarr/earr в куче
+  tabmem GlobalAlloc 3539008 (куча эмулятора 8 МиБ), пост-проверка
+  main; разбор == оракулу parse на классе без обработки func)
+  выполнены; батарея 130/130 (T-E6-49d переопределён с _lex на
+  parse, корпус 91: 42 доступно / 49 func-класс пропущено). Далее
+  E6.4d-2/4: S004 заголовки func (+S007-плечо end), затем статы
+  S006+. Плоский каркас 1142 строки / 34762 Б (33.9 из 128 КиБ),
+  .b2 217071 Б,
+  тело 23615/65536, меток 356/1024 (см. `DOCS/03-ROADMAP.md`,
+  журнал 19-22, VERIFY-E6D.md).

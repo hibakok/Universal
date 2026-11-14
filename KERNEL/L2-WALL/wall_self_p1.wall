@@ -1,0 +1,113 @@
+; wall_self_p1.wall — каркас прохода 1 каркаса wall.wall (E6.4d-2/3)
+; Паспорт: KERNEL/L2-WALL/wall_self_p1.wall | слой L2 | роль: реинкарнация
+; K2-S001 pass1 + K2-S002 p1_line (wall_p1.b2) и K2-N004 set_lastline
+; (wall_n.b2) на самом языке WALL v2. Цикл строк идёт по карте текстов
+; smem (записи 1..nlentries — {смещение, длина}, читатели getq/getb),
+; а не повторным разбиением, как line_next у wall.exe: записи те же
+; (проход 0), curline = номер записи до разбора строки. Диспетчер:
+; пустая строка — пропуск; не-имя — ERR=FORMAT; func — ERR=FORMAT
+; (заголовки S004 НЕ реализованы — шаг E6.4d-2/4; временное поведение,
+; класс эквивалентности — источники без обработки func, см.
+; VERIFY-E6D.md); тело функции (fcur) и между func (seenfunc) — ERR=FORMAT
+; (статы S006+ и hdrfail — шаги E6.4d-2/4+); объявления (до func) —
+; p1_decl части pd. Пост-проверки: незакрытый блок (fdepth/fcur —
+; всегда 0 до S004, финальная форма) и ровно одна main без параметров
+; (ftab; пуст до S004 — «нет main» на set_lastline, как wall.exe);
+; main с параметрами — ошибка в строке заголовка main (как wall.exe).
+; v2flag — флаг v2 (массивы/статы; ставит arr_size), обнуляется здесь;
+; читается проходом 2 (шаги E6.4d-3+).
+
+; curline := последняя непустая | nlentries (K2-N004)
+func set_lastline
+  if lastnonempty != 0
+    curline = lastnonempty
+  else
+    curline = nlentries
+  end
+  return 0
+end
+
+; диспетчер строки прохода 1: текст строки [pos, pos+len) из smem
+func p1_line(pos, le)
+  var k
+  var kwi
+  k = tok_next(pos, le)
+  if k == 4
+    return 0
+  end
+  if k != 1
+    fail_format(curline)
+  end
+  kwi = kw_lookup(tokptr, tokend - tokptr)
+  if kwi == 3
+    fail_format(curline)
+  end
+  if fcur != 0
+    fail_format(curline)
+  end
+  if seenfunc != 0
+    fail_format(curline)
+  end
+  return p1_decl(kwi, tokend, le)
+end
+
+; проход 1: цикл по записям карты текстов + пост-проверки
+func pass1
+  var i
+  var t0
+  var t1
+  var np
+  var nl
+  var mcount
+  var mline
+  var mparams
+  ncount = 0
+  fcount = 0
+  scount = 0
+  vcount = 0
+  ecount = 0
+  fdepth = 0
+  seenfunc = 0
+  fcur = 0
+  v2flag = 0
+  i = 1
+  while i <= nlentries
+    curline = i
+    t0 = getq(smem + 16 * i)
+    t1 = getq(smem + 16 * i + 8)
+    p1_line(t0, t0 + t1)
+    i = i + 1
+  end
+  if fdepth != 0
+    set_lastline()
+    fail_format(curline)
+  end
+  if fcur != 0
+    set_lastline()
+    fail_format(curline)
+  end
+  i = 0
+  mcount = 0
+  while i < fcount
+    np = getq(tabmem + 2228224 + 80 * i)
+    nl = getq(tabmem + 2228224 + 80 * i + 8)
+    if nl == 4
+      if getb(np, 0) == 109 && getb(np, 1) == 97 && getb(np, 2) == 105 && getb(np, 3) == 110
+        mline = getq(tabmem + 2228224 + 80 * i + 64)
+        mparams = getq(tabmem + 2228224 + 80 * i + 16)
+        mcount = mcount + 1
+      end
+    end
+    i = i + 1
+  end
+  if mcount == 1
+    if mparams == 0
+      return 0
+    end
+    curline = mline
+    fail_format(curline)
+  end
+  set_lastline()
+  fail_format(curline)
+  return 0
+end

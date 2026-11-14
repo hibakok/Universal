@@ -12,7 +12,7 @@
 | Размер | 27648 байт (0x6C00); тело 26998 Б (0x6976) |
 | Платформа | Windows x64, консольная подсистема, PE32+ |
 | Импорты | kernel32.dll: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFileA, ReadFile, CloseHandle |
-| Самохостинг | E6.4d-1, E6.4d-2/1 и E6.4d-2/2 ВЫПОЛНЕНЫ: каркас написан НА WALL v2 — ядро KERNEL/L2-WALL/wall.wall (корень с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall — проход 0; 8 ext — предел SPEC/11 п.9; буфер входа GlobalAlloc 131073 + карта текстов GlobalAlloc 1048592, ОДИН ReadFile — схема wall.exe). Проход 0 (E6.4d-2/2): разбиение строк LF/CRLF/CR + полная лексика + карта текстов — ошибки лексера ERR=FORMAT AT=XXXX (код 6) с номерами строк == wall.exe == оракул _lex (T-E6-49d, 65 исходников); CLI == wall.exe на 19 путях. Выход .b2 при успехе пока пуст — проходы 1/2 (шаги E6.4d-2/3+); журнал — VERIFY-E6D.md |
+| Самохостинг | E6.4d-1, E6.4d-2/1..2/2 и E6.4d-2/3 ВЫПОЛНЕНЫ: каркас написан НА WALL v2 — ядро KERNEL/L2-WALL/wall.wall (корень с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall — проход 0, wall_self_pe/pd/p1.wall — проход 1; 8 ext — предел SPEC/11 п.9; буфер входа GlobalAlloc 131073 + карта текстов GlobalAlloc 1048592 + таблицы прохода 1 GlobalAlloc 3539008 — ntab/varr/sarr/ftab/earr одной областью tabmem, смещения в коде). Проход 0 (2/2): разбиение LF/CRLF/CR + полная лексика + карта текстов — ошибки лексера ERR=FORMAT AT=XXXX (код 6) == wall.exe == оракул _lex. Проход 1 (2/3): читатели карты (getq/getb), диспетчер p1_line + kwtab (s_kws), объявления var/str/ext (p1_decl: ntab/varr/sarr/earr, порядок проверок == wall.exe) и пост-проверка main — ошибки разбора == оракул parse на классе источников без обработки func (до S004/S006+ источник с func останавливается с ERR=FORMAT на первом func — задокументировано в VERIFY-E6D.md); CLI == wall.exe на 19 путях. Выход .b2 при успехе пока пуст — эмитция прохода 2 (шаги E6.4d-3+); журнал — VERIFY-E6D.md |
 
 ## Формат вызова
 
@@ -94,7 +94,10 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
 |---|---|
 | `wall.wall` | само-исходник каркаса на WALL v2 — КОРЕНЬ с разрезом (E6.4d-2/2): ext/var/str + main (CLI, чтение, alloc srcbuf+smem, pass0, запись); сборка через splice | 
 | `wall_self_c.wall` | часть каркаса: сервис — print_error, skip0/read_arg (K2-C001/C003), widen (UTF-16) | 
-| `wall_self_n.wall` | часть каркаса: проход 0 (E6.4d-2/2) — stq, fail_format (G002+H001), lex_line (N003+L001), pass0 (N001+N002) |
+| `wall_self_n.wall` | часть каркаса: проход 0 (E6.4d-2/2) — stq, fail_format (G002+H001), lex_line (N003+L001), pass0 (N001+N002) | 
+| `wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3) — getq, tok_next (L001), kw_lookup (P004), chk_name (P005), names_find/find_ci/add (P006/P007+S005), arr_size (P019), at_end/want_id/want_sym1 (P002/P003/P001) | 
+| `wall_self_pd.wall` | часть каркаса: объявления (E6.4d-2/3) — p1_decl (S003): var/str/ext, порядок проверок == wall.exe | 
+| `wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3) — p1_line (S002), pass1 (S001) + пост-проверка main, set_lastline (N004) |
 | `wall.b2` | корень: поток X/C/G + 20 `!include` частей |
 | `wall_svc.b2` | ветви H/G/U/C/F — печать, ошибки, командная строка, файлы (реинкарнации K1-* из enc) |
 | `wall_n.b2` | ветвь N — разбиение строк, проход 0, карта текстов |

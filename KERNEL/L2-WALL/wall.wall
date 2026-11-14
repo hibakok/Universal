@@ -15,8 +15,15 @@
 ; (SPEC/11). E6.4d-2/2: проход 0 (wall_self_n.wall) — разбиение строк
 ; LF/CRLF/CR + полная лексика + карта текстов smem; ошибки лексера дают
 ; ERR=FORMAT AT=XXXX (код 6), номера строк == wall.exe == оракул _lex.
-; Выходной .b2 при успехе пока ПУСТ — проходы 1/2 и эмитция последуют
-; (задокументированное отличие каркаса; см. TESTS + VERIFY-E6D.md).
+; E6.4d-2/3: проход 1 (wall_self_p1/pd/pe.wall) — читатели карты
+; (getq/getb), диспетчер p1_line + kwtab (s_kws), объявления
+; var/str/ext (p1_decl: ntab/varr/sarr/earr в куче tabmem) и
+; пост-проверка main; ошибки разбора == wall.exe == оракул parse на
+; классе источников без обработки func (источники с func до S004/S006+
+; останавливаются с ERR=FORMAT на первом func — задокументированное
+; отличие каркаса; см. TESTS + VERIFY-E6D.md).
+; Выходной .b2 при успехе пока ПУСТ — эмитция прохода 2 последует
+; (шаги E6.4d-3+).
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
 ; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
 ; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
@@ -58,6 +65,21 @@ var nlines
 var lastnonempty
 var outbuf[64]
 var fmtbuf[8]
+var tabmem
+var tokptr
+var tokend
+var tokval
+var aspos
+var asflag
+var v2flag
+var ncount
+var fcount
+var scount
+var vcount
+var ecount
+var fdepth
+var seenfunc
+var fcur
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -70,9 +92,13 @@ str s_fmt = 'U-L2-WALL ERR=FORMAT AT='
 str s_hexd = '0123456789ABCDEF'
 str s_sym2 = '==!=<=>=<<>&&||'
 str s_sym1 = '()=,-+<>|&^![]*/%'
+str s_kws = 'var str ext func end else if while return setb getb len break continue'
 
 !include wall_self_c.wall
 !include wall_self_n.wall
+!include wall_self_pe.wall
+!include wall_self_pd.wall
+!include wall_self_p1.wall
 
 func main
   var i
@@ -110,7 +136,14 @@ func main
   if smem == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
+  ; таблицы прохода 1: ntab 32768x40 + varr 32768x16 + sarr 16384x24
+  ; + ftab 16384x80 + earr 8x8 = 3539008 (смещения — wall_self_pe.wall)
+  tabmem = GlobalAlloc(0, 3539008)
+  if tabmem == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
   pass0()
+  pass1()
   fh = CreateFile2(w2, 1073741824, 0, 2, 0)
   if fh == -1
     print_error(s_oout, len(s_oout), 8)

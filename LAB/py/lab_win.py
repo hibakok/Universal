@@ -27,8 +27,9 @@ CMDLINE_BASE = 0x7FF800000000
 STUB_BASE = 0x7FF900000000     # адреса заглушек kernel32
 RETGUARD = 0x7FF90000DEAD      # ловушка возврата из точки входа
 HEAP_BASE = 0x7FFB00000000     # регион кучи HeapAlloc (E6.4c)
-HEAP_SIZE = 0x400000           # 4 МиБ (E6.4d-2/2: srcbuf 131 К + карта
-                               # текстов 1 М + будущий outbuf 2 М каркаса)
+HEAP_SIZE = 0x800000           # 8 МиБ (E6.4d-2/3: srcbuf 131 К + карта
+                               # текстов 1 М + таблицы прохода 1 3.4 М +
+                               # будущий outbuf 2 М каркаса)
 STD_OUTPUT_HANDLE = 0xFFFFFFF5  # -11
 INVALID_HANDLE_VALUE = 0xFFFFFFFFFFFFFFFF
 
