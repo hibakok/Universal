@@ -21,6 +21,13 @@
          ix_A1..A6 + B1 (cases2) в (1), фрагменты F11/F11d/F12/F15 в
          (2), big_ix в (3)/(9), ошибки индексации в (4), заголовок
          v2-ix в (5), круг DEMO_WALL2 -> «U-WALL2-OK 85» (T-E6-47).
+         (E6.4c-3/5, срез 5) финал Части 3: big_source2 == оракулу
+         (T-E6-48 — последний большой исходник, не прогонявшийся
+         инструментом); покрытие якорей/ошибок стало структурным:
+         T-E6-38 берёт ВСЕ фрагменты cases2 (фильтр frag_ok удалён),
+         T-E6-40 — ERRORS2 целиком первыми + экстра срезов без
+         дубликатов (было 42 записи с 2 повторами — фильтры
+         BC/ARR/IX_ERR_NAMES удалены, полнота ERRORS2 — по построению).
 """
 import os
 import tempfile
@@ -78,6 +85,27 @@ def _circle(check, wall, enc_exe, brick_exe, pegen_exe, demo, peg,
                                      r4.steps, r5.steps))
 
 
+def _v2_error_list():
+    """Список v2-ошибок инструментального отвержения (T-E6-40, срез 5):
+    ERRORS2 ЦЕЛИКОМ первыми (13) + экстра срезов, имён которых нет в
+    ERRORS2. Структурная гарантия «ERRORS2 целиком»: фильтры по именам
+    (BC/ARR/IX_ERR_NAMES) удалены, дубликаты исключены (было 42 записи
+    с 2 повторами — одни и те же программы в фильтрах ARR и IX)."""
+    by_name = {n: s for n, s, _l in lab_l2_prog.ERRORS2}
+    errs = list(by_name.items())
+    seen = set(by_name)
+    extra = (list(lab_l2_mdm.MDM_ERRORS) +
+             [lab_l2_bc.BC_BREAK_TAIL] +
+             list(lab_l2_cc.CC_ERRORS) +
+             list(lab_l2_arr.ARR_EXTRA_ERRORS) +
+             list(lab_l2_ix.IX_EXTRA_ERRORS))
+    for n, s in extra:
+        if n not in seen:
+            seen.add(n)
+            errs.append((n, s))
+    return errs
+
+
 def _t_wall_v2(check, kpath, kfile, kernel_host):
     wall = kpath("L2-WALL/wall.exe")
     enc_exe = kpath("L1-ENC/enc.exe")
@@ -102,14 +130,11 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     check("T-E6-37 wall == оракулу, якоря срезов 1-3 + 4a + 4b (%d)"
           % len(srcs), not bad, "; ".join(bad[:3]))
 
-    # T-E6-38: фрагменты F13/F14/F16 (срез 3) + F11/F11d/F12/F15 (4b)
-    # + B2 break/continue
+    # T-E6-38: ВСЕ фрагменты cases2 (срез 5: фильтр frag_ok удалён —
+    # покрытие якорей cases2 структурное) + B2 break/continue
     bad = []
     nfrag = 0
-    frag_ok = ("F13", "F14", "F16", "F11", "F11d", "F12", "F15")
     for want_name, src, frag in lab_l2_cases2.CASES_FRAG2:
-        if not want_name.startswith(frag_ok):
-            continue
         nfrag += 1
         r = _run_wall(wall, src)
         if not (r.exit_code == 0 and
@@ -122,8 +147,8 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     if not (r.exit_code == 0 and b"M jmp $_w1 ; continue" in got and
             b"M jmp $_w1e ; break" in got):
         bad.append("B2-фрагменты break/continue")
-    check("T-E6-38 wall фрагменты F13/F14/F16 + B2 break/continue (%d)"
-          % (nfrag + 1), not bad, "; ".join(bad[:3]))
+    check("T-E6-38 wall фрагменты cases2 целиком (%d) + B2 break/continue"
+          % nfrag, not bad, "; ".join(bad[:3]))
 
     # T-E6-39: большие исходники срезов == оракулу (+ big_arr 4a, big_ix 4b)
     bigs = [("mdm", lab_l2_mdm.big_mdm()), ("bc", lab_l2_bc.big_bc()),
@@ -134,18 +159,9 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
         len(bigs), "/".join(str(s.count("\n")) for _n, s in bigs)),
         not bad, "; ".join(bad))
 
-    # T-E6-40: отвержение v2-ошибок с точными строками (+ массивные 4a)
-    errs = list(lab_l2_mdm.MDM_ERRORS)                 # (имя, исходник)
-    errs += [(n, s) for n, s, _l in lab_l2_prog.ERRORS2
-             if n in lab_l2_bc.BC_ERR_NAMES]
-    errs.append(lab_l2_bc.BC_BREAK_TAIL)
-    errs += list(lab_l2_cc.CC_ERRORS)
-    errs += [(n, s) for n, s, _l in lab_l2_prog.ERRORS2
-             if n in lab_l2_arr.ARR_ERR_NAMES]
-    errs += list(lab_l2_arr.ARR_EXTRA_ERRORS)
-    errs += [(n, s) for n, s, _l in lab_l2_prog.ERRORS2
-             if n in lab_l2_ix.IX_ERR_NAMES]
-    errs += list(lab_l2_ix.IX_EXTRA_ERRORS)
+    # T-E6-40: отвержение v2-ошибок с точными строками (срез 5:
+    # ERRORS2 целиком первыми + экстра срезов без дубликатов)
+    errs = _v2_error_list()
     bad = []
     for name, src in errs:
         line = next((l for n, s, l in lab_l2_prog.ERRORS2
@@ -212,5 +228,22 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     check("T-E6-45 big-выходы срезов кодируются enc+brick (%d)"
           % len(bigs), not bad, "; ".join(bad))
 
+def _t_slice5(check, kpath):
+    """Срез 5 (E6.4c-3/5) — финал Части 3: big_source2 == оракулу.
+    Последний большой исходник, не прогонявшийся инструментом wall.exe
+    (до среза 5 он проверялся только оракулом — T-E6-35): 705 строк,
+    479953 байта выхода, ~11 млн шагов эмуляции (+~40 с к батарее —
+    цена финальной гарантии DoD Части 3, мотив отличается от 3b:
+    там прогон добавлял нулевую гарантию, здесь закрывает пробел)."""
+    wall = kpath("L2-WALL/wall.exe")
+    src = lab_l2_prog.big_source2()
+    want = lab_l2.compile_wall(src).encode()
+    r = _run_wall(wall, src, name="big.wall")
+    check("T-E6-48 big_source2 (%d строк) == оракулу" % src.count("\n"),
+          r.exit_code == 0 and r.files.get("t.b2") == want,
+          "шагов=%d" % r.steps)
+
+
 def run(check, kpath, kfile, kernel_host):
     _t_wall_v2(check, kpath, kfile, kernel_host)
+    _t_slice5(check, kpath)
