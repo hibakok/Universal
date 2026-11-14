@@ -146,12 +146,15 @@
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
 | `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var DZ 8n — срез 4a) | 386 |
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
-| `KERNEL/L2-WALL/wall.wall` | само-исходник каркаса на WALL v2 (E6.4d-1..2): CLI-слой == wall.exe; буфер входа GlobalAlloc (8 ext — предел); растёт ветвями до полного компилятора | 245 |
+| `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/2): ext/var/str + main; CLI == wall.exe, чтение, GlobalAlloc srcbuf+smem, pass0 | 124 |
+| `KERNEL/L2-WALL/wall_self_c.wall` | часть каркаса: сервис — print_error/skip0/read_arg/widen (E6.4d-1) | 147 |
+| `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
 | `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 194 |
-| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 16 дефектов (+ срезы 1-3, E6.4d) | 484 |
+| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 16 дефектов (+ срезы 1-3, E6.4d-1..2/1) | 486 |
+| `KERNEL/L2-WALL/VERIFY-E6D.md` | журнал верификации самохостинга E6.4d-2/2+ (VERIFY.md у лимита 500) | 97 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -201,14 +204,14 @@
 | `LAB/py/lab_enc_cases.py` | эталоны ENC: 117 якорей, 27 ошибок, демо-круг | 264 |
 | `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05; E6.4c: imul/idiv/cqo) | 330 |
 | `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток, умножение/деление (#DE) | 407 |
-| `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС + куча (E6.4c; GlobalAlloc — E6.4d-2) | 303 |
+| `LAB/py/lab_win.py` | загрузчик PE + заглушки kernel32 + вирт. ФС + куча (E6.4c; GlobalAlloc — E6.4d-2; 4 МиБ — E6.4d-2/2) | 304 |
 | `LAB/py/lab_run.py` | прогон EXE с командной строкой | 30 |
 | `LAB/py/lab_disasm.py` | дизассемблер (декод -> мнемоника) | 131 |
 | `LAB/py/lab_verify.py` | батарея всех проверок (главный вход) | 420 |
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36) | 285 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 (T-E6-37..48; big_source2, структурные списки якорей/ошибок) | 249 |
-| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (E6.4d-1..2) == оракулу + полный круг + CLI == wall.exe (T-E6-49a/b/c, 13 путей) | 101 |
+| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0 == _lex (T-E6-49a/b/c/d, 65 исходников) | 218 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 1327 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
@@ -225,6 +228,7 @@
 | `LAB/ai/wall_test_ix.py` | (частное) dev-тест среза 4b: индексация e[i] + astore, «U-WALL2-OK 85» (эталоны — lab_l2_ix.py) | 138 |
 | `LAB/ai/label_map.py` | (частное) карта меток wall.brick (RVA) для BYTECODE.md | 80 |
 | `LAB/ai/enc_part1..3.txt` | (частное) кодовые части enc.b2 для правок по секциям | — |
+| `LAB/ai/wall_syntax_check.py` | (частное) быстрая проверка каркаса: splice-оракул + компиляция оракулом (E6.4d-2/2) | 41 |
 
 LAB — измерительный прибор (Python только здесь); подробности —
 `LAB/README.md`. Система UNIVERSAL от LAB не зависит. Батарея также
@@ -248,14 +252,17 @@ LAB — измерительный прибор (Python только здесь)
   +P01B/P01C/P01D/P01E индексация E6.4c-3/4b).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **131** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+- Тестов: **132** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..48 + T-E6-10b + T-E6-16b,
-  T-E6-49a/b/c; автоматических в батарее — 129).
+  T-E6-49a/b/c/d; автоматических в батарее — 130).
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
-  (E6.4d-1: каркас CLI-слоя на WALL, 7 ext, дефект №16 str_emit
-  найден и исправлен) и под-шаг 2/1 (E6.4d-2: буфер входа —
-  GlobalAlloc, 8-й ext — предел SPEC/11 п.9; ОДИН ReadFile 131073;
-  CLI == wall.exe на 13 путях, T-E6-49) выполнены; батарея 129/129
-  (~105 с). Далее E6.4d-2/2: ветвь N — проход 0 (строки, карта
-  текстов sm_arr) на WALL. Бюджет плоского wall.b2 ~151 КиБ из
-  256 КиБ (см. `DOCS/03-ROADMAP.md` и журнал сессий 19-20).
+  (E6.4d-1: каркас CLI на WALL, дефект №16 str_emit исправлен),
+  под-шаг 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел
+  SPEC/11 п.9) и под-шаг 2/2 (проход 0 на WALL: разбиение строк
+  LF/CRLF/CR + полная лексика + карта текстов smem GlobalAlloc
+  1048592; лексер == оракулу _lex на 65 исходниках; каркас разрезан
+  на части wall_self_c/wall_self_n — SPEC/10) выполнены; батарея
+  130/130 (~110 с). Далее E6.4d-2/3: читатели карты текстов и
+  кирпичи прохода 1 (S001/S002/S003). Плоский каркас 16.3 КиБ из
+  128 КиБ бюджета входа (см. `DOCS/03-ROADMAP.md`, журнал 19-21,
+  VERIFY-E6D.md).

@@ -12,7 +12,7 @@
 | Размер | 27648 байт (0x6C00); тело 26998 Б (0x6976) |
 | Платформа | Windows x64, консольная подсистема, PE32+ |
 | Импорты | kernel32.dll: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFileA, ReadFile, CloseHandle |
-| Самохостинг | E6.4d-1 + E6.4d-2/1 ВЫПОЛНЕНЫ: каркас CLI-слоя написан НА WALL — KERNEL/L2-WALL/wall.wall (245 строк, 8 ext — предел SPEC/11 п.9; буфер входа — GlobalAlloc(GMEM_FIXED, 131073), ОДИН ReadFile — схема wall.exe); компилируется wall.exe == оракулу байт-в-байт; CLI-поведение == wall.exe на 13 путях (T-E6-49). Компиляция (.b2) — шаги E6.4d-2/2+ (ветвь N: проход 0) |
+| Самохостинг | E6.4d-1, E6.4d-2/1 и E6.4d-2/2 ВЫПОЛНЕНЫ: каркас написан НА WALL v2 — ядро KERNEL/L2-WALL/wall.wall (корень с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall — проход 0; 8 ext — предел SPEC/11 п.9; буфер входа GlobalAlloc 131073 + карта текстов GlobalAlloc 1048592, ОДИН ReadFile — схема wall.exe). Проход 0 (E6.4d-2/2): разбиение строк LF/CRLF/CR + полная лексика + карта текстов — ошибки лексера ERR=FORMAT AT=XXXX (код 6) с номерами строк == wall.exe == оракул _lex (T-E6-49d, 65 исходников); CLI == wall.exe на 19 путях. Выход .b2 при успехе пока пуст — проходы 1/2 (шаги E6.4d-2/3+); журнал — VERIFY-E6D.md |
 
 ## Формат вызова
 
@@ -92,7 +92,9 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
 
 | Файл | Назначение |
 |---|---|
-| `wall.wall` | само-исходник каркаса на WALL v2 (E6.4d-1): CLI-слой (аргументы, файлы CreateFile2/ReadFile, ошибки) — поведение == wall.exe; растёт ветвями до полного компилятора |
+| `wall.wall` | само-исходник каркаса на WALL v2 — КОРЕНЬ с разрезом (E6.4d-2/2): ext/var/str + main (CLI, чтение, alloc srcbuf+smem, pass0, запись); сборка через splice | 
+| `wall_self_c.wall` | часть каркаса: сервис — print_error, skip0/read_arg (K2-C001/C003), widen (UTF-16) | 
+| `wall_self_n.wall` | часть каркаса: проход 0 (E6.4d-2/2) — stq, fail_format (G002+H001), lex_line (N003+L001), pass0 (N001+N002) |
 | `wall.b2` | корень: поток X/C/G + 20 `!include` частей |
 | `wall_svc.b2` | ветви H/G/U/C/F — печать, ошибки, командная строка, файлы (реинкарнации K1-* из enc) |
 | `wall_n.b2` | ветвь N — разбиение строк, проход 0, карта текстов |

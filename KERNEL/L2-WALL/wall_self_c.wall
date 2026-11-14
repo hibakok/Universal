@@ -1,0 +1,147 @@
+; wall_self_c.wall — сервисный слой каркаса wall.wall (E6.4d-1)
+; Паспорт: KERNEL/L2-WALL/wall_self_c.wall | слой L2 | роль: ветви G/C
+; компилятора на WALL v2 — печать ошибок (K2-G003 print_error + errtab),
+; разбор командной строки (K2-C001/C003: skip0/read_arg — argv0 с
+; кавычками, пробел/таб, предел имени 127) и расширение ANSI -> UTF-16LE
+; (widen — для CreateFile2, имя LPCWSTR; 7-аргументный CreateFileA
+; недостижим из WALL: ext-вызов <= 5 аргументов, SPEC/11 п.3).
+; Сообщения — байт-в-байт из errtab/strblob wall_data.b2 (s_* корня);
+; коды выхода 2 (usage) и 3 (LONG NAME) — SPEC/11 п.8.
+
+; печать сообщения (msg: адрес, mlen: длина) и выход с кодом code
+func print_error(msg, mlen, code)
+  WriteFile(hstdout, msg, mlen, &written, 0)
+  ExitProcess(code)
+end
+
+; пропуск argv0 (кавычки/пробелы/табы, как K2-C001) + разделителей;
+; на конце командной строки — usage и выход 2; возвращает индекс слова 1
+func skip0
+  var i
+  var c
+  var q
+  var u
+  var d
+  i = 0
+  c = getb(cmdline, 0)
+  if c == 34
+    i = i + 1
+    q = 1
+    while q == 1
+      c = getb(cmdline, i)
+      if c == 0
+        print_error(s_use, len(s_use), 2)
+      end
+      if c == 34
+        q = 0
+        i = i + 1
+      else
+        i = i + 1
+      end
+    end
+  else
+    u = 1
+    while u == 1
+      c = getb(cmdline, i)
+      if c == 0
+        print_error(s_use, len(s_use), 2)
+      end
+      if c == 32
+        u = 0
+      else
+        if c == 9
+          u = 0
+        else
+          i = i + 1
+        end
+      end
+    end
+  end
+  d = 1
+  while d == 1
+    c = getb(cmdline, i)
+    if c == 0
+      print_error(s_use, len(s_use), 2)
+    end
+    if c == 32
+      i = i + 1
+    else
+      if c == 9
+        i = i + 1
+      else
+        d = 0
+      end
+    end
+  end
+  return i
+end
+
+; чтение слова с позиции i в байтовый буфер dst (<= 127 байт + NUL);
+; пустое слово (NUL после разделителей) — usage и выход 2 (na_miss);
+; слово >= 128 байт — LONG NAME и выход 3 (cwd_long, K2-C003);
+; длина слова — в глобальную wlen; возвращает позицию после слова
+func read_arg(dst, i)
+  var c
+  var k
+  var s
+  var w
+  s = 1
+  while s == 1
+    c = getb(cmdline, i)
+    if c == 32
+      i = i + 1
+    else
+      if c == 9
+        i = i + 1
+      else
+        s = 0
+      end
+    end
+  end
+  c = getb(cmdline, i)
+  if c == 0
+    print_error(s_use, len(s_use), 2)
+  end
+  k = 0
+  w = 1
+  while w == 1
+    c = getb(cmdline, i)
+    if c == 0
+      w = 0
+    else
+      if c == 32
+        w = 0
+      else
+        if c == 9
+          w = 0
+        else
+          if k >= 127
+            print_error(s_long, len(s_long), 3)
+          end
+          setb(dst, k, c)
+          k = k + 1
+          i = i + 1
+        end
+      end
+    end
+  end
+  wlen = k
+  setb(dst, k, 0)
+  return i
+end
+
+; ANSI-имя (n байтов по адресу src) -> UTF-16LE по адресу dst + терминатор
+func widen(dst, src, n)
+  var k
+  var c
+  k = 0
+  while k < n
+    c = getb(src, k)
+    setb(dst, 2 * k, c)
+    setb(dst, 2 * k + 1, 0)
+    k = k + 1
+  end
+  setb(dst, 2 * n, 0)
+  setb(dst, 2 * n + 1, 0)
+  return 0
+end

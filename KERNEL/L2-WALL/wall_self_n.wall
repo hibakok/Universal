@@ -1,0 +1,262 @@
+; wall_self_n.wall — ветвь N каркаса wall.wall (E6.4d-2/2): проход 0
+; Паспорт: KERNEL/L2-WALL/wall_self_n.wall | слой L2 | роль: реинкарнация
+; ветви N компилятора (K2-N001/N002/N003, wall_n.b2, + лексер K2-L001 из
+; wall_l.b2) на самом языке WALL v2: разбиение строк LF/CRLF/CR, полная
+; лексика каждой строки до стопа, карта текстов (аналог sm_arr).
+; Данные: вход — srcbuf[0..srclen) (куча, ReadFile в main); карта — smem
+; (куча, 16 Б на строку: [+0] смещение текста, [+8] длина; запись i — по
+; смещению 16*i, индексация с 1 — как sm_arr wall.exe; ёмкость 65537
+; записей = 1048592 Б — математический максимум строк входа 128 КиБ).
+; Скаляры прохода: lineidx/curline (1..), nlentries, nlines (правило
+; хвостового терминатора), lastnonempty — глобальные (корень).
+; Ошибки лексера — fail_format(curline): 'U-L2-WALL ERR=FORMAT AT=' +
+; 4 ЗАГЛАВНЫЕ hex-цифры (curline & 0xFFFF) + CRLF, код 6 — байт-в-байт
+; как K2-G002+H001 wall.exe (сообщения оракула SPEC/11 п.10 шире, но
+; инструмент печатает одно и то же для всех них).
+; Отличия от wall.exe (эквивалентность выхода сохранена):
+; 1) «строка длиннее 512 байт» проверяется здесь в проходе 0 (как в
+;    оракуле _lex), у wall.exe — в проходе 1 (str_dlen); литерал не
+;    переходит границу строк — номер строки и выход те же;
+; 2) qword-запись в кучу — побайтово (stq): у языка нет qword-доступа
+;    по произвольному адресу, только getb/setb и массивы.
+
+; запись qword v по адресу a (8 байтов, младший первым; >> — shr)
+func stq(a, v)
+  var k
+  k = 0
+  while k < 8
+    setb(a, k, v & 255)
+    v = v >> 8
+    k = k + 1
+  end
+  return 0
+end
+
+; ERR=FORMAT AT=XXXX + CRLF, выход 6: префикс s_fmt, цифры из s_hexd
+func fail_format(ln)
+  var k
+  var sh
+  var d
+  ln = ln & 65535
+  k = 0
+  while k < len(s_fmt)
+    setb(fmtbuf, k, getb(s_fmt, k))
+    k = k + 1
+  end
+  k = 0
+  while k < 4
+    sh = 12 - 4 * k
+    d = (ln >> sh) & 15
+    setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+    k = k + 1
+  end
+  setb(fmtbuf, len(s_fmt) + 4, 13)
+  setb(fmtbuf, len(s_fmt) + 5, 10)
+  print_error(fmtbuf, len(s_fmt) + 6, 6)
+  return 0
+end
+
+; полная лексика строки [ls, le) + запись карты текстов (N003 + L001):
+; пробелы/табы/CR пропускаются; ';' — стоп; литерал '...' с экранами
+; n r t 0 \ ' (байты 0x20..0x7E, <= 512 декодированных байтов); числа
+; 0..2147483647 (переполнение ловится при накоплении); имена
+; [A-Za-z_][A-Za-z0-9_]*; двухсимвольные == != <= >= << >> && ||
+; (таблица s_sym2), односимвольные ()=,-+<>|&^![]*/% (s_sym1); иное —
+; fail_format. Карта: текст [ls, stop) без пробелов/табов по краям.
+func lex_line(ls, le)
+  var i
+  var c
+  var n
+  var j
+  var k
+  var v
+  var slen
+  var closed
+  var esc
+  var stop
+  var m
+  i = ls
+  stop = le
+  while i < le
+    c = getb(srcbuf, i)
+    if c == 32 || c == 9 || c == 13
+      i = i + 1
+    else
+      if c == 59
+        stop = i
+        break
+      else
+        if c == 39
+          j = i + 1
+          slen = 0
+          closed = 0
+          while closed == 0
+            if j < le
+              c = getb(srcbuf, j)
+              if c == 39
+                closed = 1
+              else
+                if c == 92
+                  if j + 1 < le
+                    esc = getb(srcbuf, j + 1)
+                    if esc == 110 || esc == 114 || esc == 116 || esc == 48 || esc == 92 || esc == 39
+                      slen = slen + 1
+                      j = j + 2
+                    else
+                      fail_format(curline)
+                    end
+                  else
+                    fail_format(curline)
+                  end
+                else
+                  if c >= 32 && c <= 126
+                    slen = slen + 1
+                    j = j + 1
+                  else
+                    fail_format(curline)
+                  end
+                end
+              end
+            else
+              fail_format(curline)
+            end
+          end
+          if slen > 512
+            fail_format(curline)
+          end
+          i = j + 1
+        else
+          if c >= 48 && c <= 57
+            v = 0
+            while i < le
+              c = getb(srcbuf, i)
+              if c >= 48 && c <= 57
+                v = v * 10 + (c - 48)
+                if v > 2147483647
+                  fail_format(curline)
+                end
+                i = i + 1
+              else
+                break
+              end
+            end
+          else
+            if c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
+              i = i + 1
+              while i < le
+                c = getb(srcbuf, i)
+                if c >= 48 && c <= 57 || c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
+                  i = i + 1
+                else
+                  break
+                end
+              end
+            else
+              m = 0
+              if i + 1 < le
+                n = getb(srcbuf, i + 1)
+                k = 0
+                while k < 8
+                  if getb(s_sym2, 2 * k) == c && getb(s_sym2, 2 * k + 1) == n
+                    m = 2
+                  end
+                  k = k + 1
+                end
+              end
+              if m == 2
+                i = i + 2
+              else
+                k = 0
+                while k < len(s_sym1)
+                  if getb(s_sym1, k) == c
+                    m = 1
+                  end
+                  k = k + 1
+                end
+                if m == 1
+                  i = i + 1
+                else
+                  fail_format(curline)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  k = ls
+  while k < stop
+    c = getb(srcbuf, k)
+    if c == 32 || c == 9
+      k = k + 1
+    else
+      break
+    end
+  end
+  j = stop
+  while j > k
+    c = getb(srcbuf, j - 1)
+    if c == 32 || c == 9
+      j = j - 1
+    else
+      break
+    end
+  end
+  stq(smem + 16 * lineidx, k)
+  stq(smem + 16 * lineidx + 8, j - k)
+  if j - k > 0
+    lastnonempty = lineidx
+  end
+  return 0
+end
+
+; проход 0: все записи разбиения (терминаторов+1, пустой вход = 1
+; запись) + lex_line каждой; lineidx/curline инкрементируются ДО
+; лексики строки (как line_next); nlines — без пустой хвостовой
+func pass0
+  var pos
+  var t
+  var c
+  var more
+  lineidx = 0
+  lastnonempty = 0
+  pos = 0
+  more = 1
+  while more == 1
+    t = pos
+    while t < srclen
+      c = getb(srcbuf, t)
+      if c == 10 || c == 13
+        break
+      end
+      t = t + 1
+    end
+    lineidx = lineidx + 1
+    curline = lineidx
+    lex_line(pos, t)
+    if t < srclen
+      pos = t + 1
+      c = getb(srcbuf, t)
+      if c == 13
+        if pos < srclen
+          if getb(srcbuf, pos) == 10
+            pos = pos + 1
+          end
+        end
+      end
+    else
+      more = 0
+    end
+  end
+  nlentries = lineidx
+  nlines = 0
+  if srclen > 0
+    nlines = nlentries
+    c = getb(srcbuf, srclen - 1)
+    if c == 10 || c == 13
+      nlines = nlentries - 1
+    end
+  end
+  return 0
+end

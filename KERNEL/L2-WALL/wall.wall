@@ -1,36 +1,35 @@
-; wall.wall — самохостинг компилятора WALL (этап E6.4d, шаг 1: каркас CLI)
+; wall.wall — самохостинг компилятора WALL (этап E6.4d; корень с разрезом)
 ; Паспорт: KERNEL/L2-WALL/wall.wall | слой L2 | роль: само-исходник
 ; компилятора WALL, переписываемый с BRICK v2 (wall_*.b2, 20 частей) на
-; сам язык WALL v2 (SPEC/11). Рост по ветвям: сначала сервисный слой
-; (аргументы, файлы, сообщения ошибок), затем проходы 0/1/2.
+; сам язык WALL v2 (SPEC/11). Рост по ветвям: сервисный слой, затем
+; проходы 0/1/2. Разрез — механизм SPEC/10 (как у enc.b2/brick.brick):
+; корень держит объявления и main, части — функции по ветвям.
 ; Сборка (полный круг, все инструменты ядра):
-;   wall.exe wall.wall wall_s.b2
+;   splice.exe wall.wall wall_s.flat
+;   wall.exe wall_s.flat wall_s.b2
 ;   enc.exe wall_s.b2 wall_s.brick
 ;   brick.exe wall_s.brick wall_s.bin
 ;   pegen.exe wall_s.bin wall_s.peg wall_s.exe
-; Контракт каркаса: CLI-поведение == wall.exe байт-в-байт на всех путях
-; ошибок (usage/длинное имя/файлы/предел входа) и кодах возврата
-; 0/2/3/4/5/7/8/9 (SPEC/11). Компиляция ещё не реализована: при успехе
-; выходной .b2 пуст (наполнение — шаги E6.4d-2+).
-; Отличие по API: wall.exe (BRICK v2) открывает файлы 7-аргументным
-; CreateFileA — WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11
-; п.3), поэтому здесь CreateFile2 (kernel32, имя LPCWSTR, параметры —
-; NULL; документировано; см. lab_win._api_createfile2). Расширение имени
-; в UTF-16 — widen(). Буфер входа srcbuf — динамическая память
-; GlobalAlloc(GMEM_FIXED=0, 131073) — 8-й ext, предел SPEC/11 п.9:
-; статический массив языка ограничен 4096 qword (32 КиБ) < входа
-; 128 КиБ, поэтому буфер только в куче. Чтение — ОДИН ReadFile
-; с лимитом 131073 (0x20001) в srcbuf — решение BIG SRC (>= 131073)
-; эквивалентно wall.exe (один вызов с тем же лимитом). Отказ
-; распределения (NULL) сведён в общий путь ERR=READ SRC (код 5):
-; у wall.exe аналога нет (статический bss); на практике 128 КиБ
-; из кучи не отказывают. При передаче &локали в DWORD-аргумент API
-; (got/written) локаль предварительно обнуляется: API пишет только
-; младшие 4 байта ячейки.
-; Пределы: 8 ext (предел SPEC/11 п.9 — новые ext НЕВОЗМОЖНЫ без роста
-; SPEC; вместо этого рост библиотеки L4), 3 функции + main, все
-; сообщения байт-в-байт из errtab/strblob wall_data.b2 (проверено
-; dev-тестом wall_self_test).
+; Контракт: CLI-поведение == wall.exe байт-в-байт на всех путях (usage,
+; длинное имя, файлы, предел входа, ошибки лексера) и кодах 0/2..9
+; (SPEC/11). E6.4d-2/2: проход 0 (wall_self_n.wall) — разбиение строк
+; LF/CRLF/CR + полная лексика + карта текстов smem; ошибки лексера дают
+; ERR=FORMAT AT=XXXX (код 6), номера строк == wall.exe == оракул _lex.
+; Выходной .b2 при успехе пока ПУСТ — проходы 1/2 и эмитция последуют
+; (задокументированное отличие каркаса; см. TESTS + VERIFY-E6D.md).
+; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
+; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
+; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
+; документировано). Куча — GlobalAlloc(GMEM_FIXED=0): srcbuf 131073
+; (буфер входа; ОДИН ReadFile с лимитом 131073 — решение BIG SRC
+; эквивалентно wall.exe) и smem 1048592 (карта текстов прохода 0;
+; ёмкость 65537 записей — максимум строк входа 128 КиБ, как sm_arr).
+; Отказ распределения (NULL) сведён в общий путь ERR=READ SRC (код 5):
+; у wall.exe аналога нет (статический bss); практически недостижим.
+; При передаче &глобали в DWORD-аргумент API (srclen/written) глобаль
+; предварительно обнуляется: API пишет только младшие 4 байта ячейки.
+; Пределы: 8 ext (SPEC/11 п.9 — область импортов 0x200 заполнена),
+; метки/тело — в пределах brick (проверяет полный круг батареи).
 
 ext GetStdHandle
 ext WriteFile
@@ -50,7 +49,15 @@ var arg2[64]
 var w1[64]
 var w2[64]
 var srcbuf
+var smem
+var srclen
+var lineidx
+var curline
+var nlentries
+var nlines
+var lastnonempty
 var outbuf[64]
+var fmtbuf[8]
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -59,151 +66,18 @@ str s_rsrc = 'U-L2-WALL ERR=READ SRC\r\n'
 str s_big = 'U-L2-WALL ERR=BIG SRC\r\n'
 str s_oout = 'U-L2-WALL ERR=OPEN OUT\r\n'
 str s_wout = 'U-L2-WALL ERR=WRITE OUT\r\n'
+str s_fmt = 'U-L2-WALL ERR=FORMAT AT='
+str s_hexd = '0123456789ABCDEF'
+str s_sym2 = '==!=<=>=<<>&&||'
+str s_sym1 = '()=,-+<>|&^![]*/%'
 
-; печать сообщения (msg: адрес, mlen: длина) и выход с кодом code;
-; аналог K2-G003 print_error + errtab
-func print_error(msg, mlen, code)
-  WriteFile(hstdout, msg, mlen, &written, 0)
-  ExitProcess(code)
-end
-
-; пропуск argv0 (кавычки/пробелы/табы, как K2-C001) + разделителей;
-; на конце командной строки — usage и выход 2; возвращает индекс слова 1
-func skip0
-  var i
-  var c
-  var q
-  var u
-  var d
-  i = 0
-  c = getb(cmdline, 0)
-  if c == 34
-    i = i + 1
-    q = 1
-    while q == 1
-      c = getb(cmdline, i)
-      if c == 0
-        print_error(s_use, len(s_use), 2)
-      end
-      if c == 34
-        q = 0
-        i = i + 1
-      else
-        i = i + 1
-      end
-    end
-  else
-    u = 1
-    while u == 1
-      c = getb(cmdline, i)
-      if c == 0
-        print_error(s_use, len(s_use), 2)
-      end
-      if c == 32
-        u = 0
-      else
-        if c == 9
-          u = 0
-        else
-          i = i + 1
-        end
-      end
-    end
-  end
-  d = 1
-  while d == 1
-    c = getb(cmdline, i)
-    if c == 0
-      print_error(s_use, len(s_use), 2)
-    end
-    if c == 32
-      i = i + 1
-    else
-      if c == 9
-        i = i + 1
-      else
-        d = 0
-      end
-    end
-  end
-  return i
-end
-
-; чтение слова с позиции i в байтовый буфер dst (<= 127 байт + NUL);
-; пустое слово (NUL после разделителей) — usage и выход 2 (na_miss);
-; слово >= 128 байт — LONG NAME и выход 3 (cwd_long, K2-C003);
-; длина слова — в глобальную wlen; возвращает позицию после слова
-func read_arg(dst, i)
-  var c
-  var k
-  var s
-  var w
-  s = 1
-  while s == 1
-    c = getb(cmdline, i)
-    if c == 32
-      i = i + 1
-    else
-      if c == 9
-        i = i + 1
-      else
-        s = 0
-      end
-    end
-  end
-  c = getb(cmdline, i)
-  if c == 0
-    print_error(s_use, len(s_use), 2)
-  end
-  k = 0
-  w = 1
-  while w == 1
-    c = getb(cmdline, i)
-    if c == 0
-      w = 0
-    else
-      if c == 32
-        w = 0
-      else
-        if c == 9
-          w = 0
-        else
-          if k >= 127
-            print_error(s_long, len(s_long), 3)
-          end
-          setb(dst, k, c)
-          k = k + 1
-          i = i + 1
-        end
-      end
-    end
-  end
-  wlen = k
-  setb(dst, k, 0)
-  return i
-end
-
-; ANSI-имя (n байтов по адресу src) -> UTF-16LE по адресу dst + терминатор
-func widen(dst, src, n)
-  var k
-  var c
-  k = 0
-  while k < n
-    c = getb(src, k)
-    setb(dst, 2 * k, c)
-    setb(dst, 2 * k + 1, 0)
-    k = k + 1
-  end
-  setb(dst, 2 * n, 0)
-  setb(dst, 2 * n + 1, 0)
-  return 0
-end
+!include wall_self_c.wall
+!include wall_self_n.wall
 
 func main
   var i
   var fh
   var rc
-  var got
   var nlen1
   var nlen2
   hstdout = GetStdHandle(-11)
@@ -223,15 +97,20 @@ func main
   if srcbuf == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
-  got = 0
-  rc = ReadFile(fh, srcbuf, 131073, &got, 0)
+  srclen = 0
+  rc = ReadFile(fh, srcbuf, 131073, &srclen, 0)
   if rc == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
-  if got >= 131073
+  if srclen >= 131073
     print_error(s_big, len(s_big), 7)
   end
   CloseHandle(fh)
+  smem = GlobalAlloc(0, 1048592)
+  if smem == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  pass0()
   fh = CreateFile2(w2, 1073741824, 0, 2, 0)
   if fh == -1
     print_error(s_oout, len(s_oout), 8)

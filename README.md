@@ -13,7 +13,12 @@ E6.4e, E6.4c-3/4 (срез 4a), E6.4c-3/4b, E6.4c-3/5 (срез 5, финал
 (`KERNEL/L2-WALL/wall.wall`, 8 ext — предел SPEC/11 п.9), поведение
 == wall.exe байт-в-байт; буфер входа — GlobalAlloc(GMEM_FIXED,
 131073), ОДИН ReadFile — схема wall.exe; попутно найден и исправлен
-дефект №16 (str_emit: DB-строки литералов >= 13 байт).** Артефакты ядра:
+дефект №16 (str_emit: DB-строки литералов >= 13 байт); E6.4d-2/2 —
+ПРОХОД 0 НА WALL: разбиение строк LF/CRLF/CR + полная лексика + карта
+текстов (smem GlobalAlloc 1048592 — как sm_arr; каркас разрезан на
+части wall_self_c/wall_self_n, SPEC/10; ошибки лексера ERR=FORMAT
+AT=XXXX == оракулу _lex на 65 исходниках — T-E6-49d; лексер №17
+замечен латентно — VERIFY-E6D.md).** Артефакты ядра:
 `KERNEL/L0-SEED/seed.exe` (1024 Б), `KERNEL/L0-SEED2/seed2.exe`
 (2048 Б, командная строка), `KERNEL/L0-HXDUMP/hxdump.exe`
 (3584 Б, файловый ввод), `KERNEL/L0-HEXGEN/hexgen.exe` (2560 Б,
@@ -262,7 +267,7 @@ L0-PEGEN\pegen.exe <модуль>-body.bin <модуль>.peg <модуль>.exe
 
 Автоматическая батарея (без Windows, нужен Python 3.8+):
 python3 LAB/py/lab_verify.py
-Ожидаемо:         ИТОГ: 129/129 OK (~125 секунд) — SHA, PE-инварианты,
+Ожидаемо:         ИТОГ: 130/130 OK (~110 секунд) — SHA, PE-инварианты,
                   эмуляция сценариев TESTS/, оракулы ATOM/BRICK/PEG/ENC/
                   SPLICE, круги E4, самохостинг E5 (на разрезе),
                   равенство enc.exe оракулу (117 якорей + 27 ошибок),

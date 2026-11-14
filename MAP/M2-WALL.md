@@ -18,6 +18,13 @@ E6.4d-1: НАЧАТ самохостинг — KERNEL/L2-WALL/wall.wall (WALL v2
 дефект №16 (str_emit, DB-строки >= 13 байт). E6.4d-2/1: буфер входа —
 GlobalAlloc(GMEM_FIXED, 131073; 8-й ext — предел SPEC/11 п.9),
 ОДИН ReadFile (схема wall.exe); CLI == wall.exe на 13 путях.
+E6.4d-2/2: каркас разрезан на части (wall.wall — корень + wall_self_c
++ wall_self_n, SPEC/10); проход 0 НА WALL — реинкарнации N001 (разбиение
+строк — цикл pass0), N002+N003+L001 (lex_line: полная лексика, ошибки
+FORMAT с номерами строк == оракул _lex), G002+H001 (fail_format:
+префикс+4 hex+CRLF) и qword-запись stq (карта текстов smem — GlobalAlloc
+1048592, запись 16*i с 1, как sm_arr); лексер каркаса == оракулу на 65
+исходниках (T-E6-49d), CLI — 19 путей; журнал — VERIFY-E6D.md.
 
 ## Поток исполнения (X)
 
