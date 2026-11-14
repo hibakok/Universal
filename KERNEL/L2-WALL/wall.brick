@@ -1907,8 +1907,68 @@ H B8 01 00 00 00 ;P016
 H 49 89 85 A8 80 01 00 ;P016
 :cs_ret
 H C3 ;P016
-; ===== K2-P013 p_prim: первичное выражение; RCX = d =====
+; ===== K2-P013 p_prim: первичное + постфиксная индексация e[i] (срез 4b) =====
+; RCX = d. Обёртка: pp_prim0 (тело ниже, прежнее P013) разбирает
+; первичное; peek '[' -> pp_strchk (P01E, база не str) -> pp_pcount
+; (P01B, пары вперёд): k=0 — выход как v1 (байт-в-байт); k>0 — v2:
+; эмит — откат r12, prim на d+k, pp_pairs(d, k); статы — pp_pairs(d, k,
+; need_prim). Канон SPEC/11 п.8 (index); флаг v2 ставит pp_pcount.
+; Откат и повторный разбор нужны потому, что глубина базы = d+k
+; известна только после peek.
 :p_prim
+H 55 ;P013
+H 48 89 E5 ;P013
+H 48 83 EC 30 ;P013
+H 48 89 4D F8 ;P013 d
+H 49 8B 85 70 80 01 00 ;P013
+H 48 89 45 F0 ;P013 курсор до prim (C0)
+H 4C 89 65 E8 ;P013 курсор вывода (R0 — откат эмита)
+H E8 $pp_prim0 ;P013 первичное
+H 48 89 45 E0 ;P013 need prim (статы)
+H 49 8B 8D 70 80 01 00 ;P013 peek: '[' ?
+H E8 $lex_tok ;L001
+H 83 F8 02 ;P013
+H 0F 85 $pw_done ;P013
+H 49 8B 85 68 80 01 00 ;P013
+H 49 2B 85 60 80 01 00 ;P013
+H 48 83 F8 01 ;P013
+H 0F 85 $pw_done ;P013
+H 49 8B 8D 60 80 01 00 ;P013
+H 0F B6 01 ;P013
+H 80 F8 5B ;P013 '['
+H 0F 85 $pw_done ;P013
+H 48 8B 4D F0 ;P013
+H E8 $pp_strchk ;P01E база-имя не строка (до пар)
+H E8 $pp_pcount ;P01B k (флаг v2 внутри)
+H 48 89 45 D8 ;P013 k
+H 49 8B 85 80 80 01 00 ;P013
+H 48 85 C0 ;P013
+H 0F 84 $pw_stats ;P013
+H 4C 8B 65 E8 ;P013 откат вывода (эмиту не нужен prim на d)
+H 48 8B 4D F0 ;P013
+H 49 89 8D 70 80 01 00 ;P013 курсор на prim
+H 48 8B 4D F8 ;P013
+H 48 03 4D D8 ;P013 d + k — глубина базы
+H E8 $pp_prim0 ;P013 база цепочки
+H 48 8B 4D F8 ;P013 d
+H 48 8B 55 D8 ;P013 k
+H 45 31 C0 ;P013 c0 (эмиту не нужен)
+H E8 $pp_pairs ;P01C
+H E9 $pw_ret ;P013
+:pw_stats
+H 48 8B 4D F8 ;P013 d
+H 48 8B 55 D8 ;P013 k
+H 4C 8B 45 E0 ;P013 c0 = need prim
+H E8 $pp_pairs ;P01C RAX = need цепочки
+H E9 $pw_ret ;P013
+:pw_done
+H 48 8B 45 E0 ;P013 need prim (v1-выход без изменений)
+:pw_ret
+H 48 89 EC ;P013
+H 5D ;P013
+H C3 ;P013
+; ===== K2-P013a pp_prim0: первичное выражение (тело прежнего P013) =====
+:pp_prim0
 H 55 ;P013
 H 48 89 E5 ;P013
 H 48 83 EC 20 ;P013
@@ -2134,6 +2194,303 @@ H E8 $fail_format ;G002
 H 48 89 EC ;P013
 H 5D ;P013
 H C3 ;P013
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — механика индексации
+; ===== K2-P01B pp_pcount: число пар [..] в остатке строки (срез 4b) =====
+; Скан от pc_cur БЕЗ потребления (паттерн P009): '[' на глубине 0 =
+; новая пара, вложенные скобки — глубина; стоп — конец строки или
+; любой токен глубины 0 вне пары. Курсор восстанавливается; RAX = k.
+; k>0 ставит флаг v2 [r13+18190] (индексация/astore — E6.4c).
+:pp_pcount
+H 55 ;P01B
+H 48 89 E5 ;P01B
+H 48 83 EC 20 ;P01B
+H 49 8B 85 70 80 01 00 ;P01B
+H 48 89 45 F8 ;P01B скан-позиция
+H 48 89 45 F0 ;P01B старт (восстановить в конце)
+H 45 31 C0 ;P01B k = 0
+H 45 31 C9 ;P01B глубина скобок = 0
+:ppc_loop
+H 48 8B 4D F8 ;P01B
+H E8 $lex_tok ;L001
+H 83 F8 04 ;P01B
+H 0F 84 $ppc_done ;P01B конец строки
+H 83 F8 02 ;P01B
+H 0F 85 $ppc_adv ;P01B
+H 49 8B 85 68 80 01 00 ;P01B
+H 49 2B 85 60 80 01 00 ;P01B
+H 48 83 F8 01 ;P01B
+H 0F 85 $ppc_adv ;P01B
+H 49 8B 8D 60 80 01 00 ;P01B
+H 0F B6 01 ;P01B
+H 80 F8 5B ;P01B '['
+H 0F 84 $ppc_open ;P01B
+H 80 F8 5D ;P01B ']'
+H 0F 84 $ppc_close ;P01B
+H 4D 85 C9 ;P01B
+H 0F 84 $ppc_done ;P01B символ глубины 0 — конец цепочки
+H E9 $ppc_adv ;P01B
+:ppc_open
+H 4D 85 C9 ;P01B
+H 0F 85 $ppc_o2 ;P01B вложенная — не пара
+H 49 FF C0 ;P01B k++
+:ppc_o2
+H 49 FF C1 ;P01B глубина++
+H E9 $ppc_adv ;P01B
+:ppc_close
+H 49 FF C9 ;P01B глубина--
+H E9 $ppc_adv ;P01B
+:ppc_adv
+H 49 8B 85 68 80 01 00 ;P01B
+H 48 89 45 F8 ;P01B к следующему токену
+H E9 $ppc_loop ;P01B
+:ppc_done
+H 48 8B 4D F0 ;P01B
+H 49 89 8D 70 80 01 00 ;P01B восстановить курсор
+H 4D 85 C0 ;P01B
+H 0F 84 $ppc_ret ;P01B
+H B8 01 00 00 00 ;P01B
+H 49 89 85 90 81 01 00 ;P01B флаг v2 (заголовок «WALL v2»)
+:ppc_ret
+H 4C 89 C0 ;P01B RAX = k
+H 48 89 EC ;P01B
+H 5D ;P01B
+H C3 ;P01B
+; ===== K2-P01C pp_pairs: цикл пар индексации (срез 4b, канон SPEC/11) =====
+; RCX = d (глубина верхнего индекса цепочки), RDX = k (число пар),
+; R8 = need базы (статы). Пара j = 1..k: T-склад t(cur-1) ПОСЛЕ базы
+; (cur убывает от d+k до d+1), индекс на cur, хвост
+; shl r10,3 / mov r11,r10 / mov r10,[T] / add r10,r11 / mov r10,[r10].
+; Статы: c = 1 + max(c, need(индекса)) — need()-оракула для index.
+:pp_pairs
+H 55 ;P01C
+H 48 89 E5 ;P01C
+H 48 83 EC 30 ;P01C
+H 48 89 4D F8 ;P01C d
+H 48 89 55 F0 ;P01C k
+H 48 89 D0 ;P01C
+H 48 01 C8 ;P01C cur = d + k
+H 48 89 45 E8 ;P01C cur
+H 4C 89 45 E0 ;P01C c (статы)
+H 49 8B 85 80 80 01 00 ;P01C
+H 48 85 C0 ;P01C
+H 0F 84 $ppp_stloop ;P01C статы: без эмита
+:ppp_eloop
+H B9 43 00 00 00 ;P01C "M mov [rbp-"
+H E8 $out_str ;E003
+H 49 8B 85 C0 80 01 00 ;P01C
+H 48 03 45 E8 ;P01C
+H 48 FF C8 ;P01C t(cur-1): nbase + cur - 1
+H 48 C1 E0 03 ;P01C
+H E8 $out_hex ;E005
+H B9 58 00 00 00 ;P01C "], r10"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
+H B9 5B 00 00 00 ;P01C '['
+H E8 $want_sym1 ;P001
+H 48 8B 4D E8 ;P01C
+H E8 $p_expr ;P010 индекс пары
+H B9 5D 00 00 00 ;P01C ']'
+H E8 $want_sym1 ;P001
+H B9 71 00 00 00 ;P01C "M shl r10, 3"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
+H B9 4D 00 00 00 ;P01C "M mov r11, r10"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
+H B9 45 00 00 00 ;P01C "M mov r10, [rbp-"
+H E8 $out_str ;E003
+H 49 8B 85 C0 80 01 00 ;P01C
+H 48 03 45 E8 ;P01C
+H 48 FF C8 ;P01C
+H 48 C1 E0 03 ;P01C
+H E8 $out_hex ;E005
+H 41 C6 04 24 5D ;P01C ']'
+H 49 FF C4 ;P01C
+H E8 $emit_cmt ;E009
+H B8 2B 00 00 00 ;P01C '+'
+H E8 $emit_alu ;E020 "M add r10, r11"
+H B9 72 00 00 00 ;P01C "M mov r10, [r10]"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
+H 48 8B 45 E8 ;P01C
+H 48 FF C8 ;P01C cur--
+H 48 89 45 E8 ;P01C
+H 48 3B 45 F8 ;P01C cur == d — все k пар
+H 0F 85 $ppp_eloop ;P01C
+H 31 C0 ;P01C
+H E9 $ppp_ret ;P01C
+:ppp_stloop
+H B9 5B 00 00 00 ;P01C '['
+H E8 $want_sym1 ;P001
+H 48 8B 4D E8 ;P01C
+H E8 $p_expr ;P010 need индекса (глубина не влияет)
+H 48 89 C2 ;P01C
+H 48 3B 55 E0 ;P01C
+H 0F 8D $ppp_smax ;P01C
+H 48 8B 55 E0 ;P01C
+:ppp_smax
+H 48 8D 42 01 ;P01C c = 1 + max(c, need)
+H 48 89 45 E0 ;P01C
+H B9 5D 00 00 00 ;P01C ']'
+H E8 $want_sym1 ;P001
+H 48 8B 45 E8 ;P01C
+H 48 FF C8 ;P01C
+H 48 89 45 E8 ;P01C
+H 48 3B 45 F8 ;P01C
+H 0F 85 $ppp_stloop ;P01C
+H 48 8B 45 E0 ;P01C RAX = need цепочки
+:ppp_ret
+H 48 89 EC ;P01C
+H 5D ;P01C
+H C3 ;P01C
+; ===== K2-P01D astore_chk: имя-цель astore допустимо (срез 4b) =====
+; RCX = ptr, RDX = len. Локаль/параметр — ок; глобальные: вид 1 (var)
+; или 5 (массив); str/func/ext/неизвестное — ERR (parse()-оракула:
+; «строка неизменяема», «не переменная», «неизвестное имя»).
+; В проходе 1 (pc_mode=0) окно локалей st_locoff/loccnt [180B0/180B8]
+; копируется в lay-окно local_find (P008) — в проходе 1 local_find
+; иначе пуст (Y00A ставит [180F0/180F8] только в проходе 2).
+:astore_chk
+H 55 ;P01D
+H 48 89 E5 ;P01D
+H 48 83 EC 20 ;P01D
+H 48 89 4D F0 ;P01D
+H 48 89 55 E8 ;P01D
+H 49 8B 85 80 80 01 00 ;P01D
+H 48 85 C0 ;P01D
+H 0F 85 $ac_go ;P01D проход 2: окно уже lay
+H 49 8B 85 B0 80 01 00 ;P01D st_locoff
+H 49 89 85 F0 80 01 00 ;P01D
+H 49 8B 85 B8 80 01 00 ;P01D st_loccnt
+H 49 89 85 F8 80 01 00 ;P01D
+:ac_go
+H 48 8B 4D F0 ;P01D
+H 48 8B 55 E8 ;P01D
+H E8 $local_find ;P008
+H 48 83 F8 FF ;P01D
+H 0F 85 $ac_ok ;P01D локаль/параметр
+H 48 8B 4D F0 ;P01D
+H 48 8B 55 E8 ;P01D
+H E8 $names_find ;P006
+H 48 83 F8 FF ;P01D
+H 0F 84 $ac_fail ;P01D неизвестное имя
+H 48 89 C1 ;P01D
+H 48 C1 E1 05 ;P01D
+H 48 89 C2 ;P01D
+H 48 C1 E2 03 ;P01D
+H 48 01 D1 ;P01D
+H 49 8D 95 D8 83 11 00 ;P01D
+H 48 01 D1 ;P01D
+H 48 8B 41 10 ;P01D вид
+H 48 83 F8 01 ;P01D var
+H 0F 84 $ac_ok ;P01D
+H 48 83 F8 05 ;P01D массив
+H 0F 84 $ac_ok ;P01D
+H E9 $ac_fail ;P01D str/func/ext
+:ac_ok
+H 48 89 EC ;P01D
+H 5D ;P01D
+H C3 ;P01D
+:ac_fail
+H E8 $fail_format ;G002
+; ===== K2-P01E pp_strchk: база индекса — не строка (срез 4b) =====
+; RCX = C0 (курсор до prim). Оракул gen.expr(index): база-ИМЯ (после
+; снятия скобок) вида str — ERR «индексирование строки запрещено
+; (getb)»; &s, вызовы, getb/len и индексные цепочки — разрешены.
+; Семантический корень: k '(' подряд, id (не getb/len, не вызов),
+; k ')' подряд. kind 2 (str) -> fail. Вызывается из p_prim (P013)
+; в ветке '[' ДО разбора пар, в обоих проходах.
+:pp_strchk
+H 55 ;P01E
+H 48 89 E5 ;P01E
+H 48 83 EC 30 ;P01E
+H 48 89 4D F8 ;P01E позиция скана
+H 31 C0 ;P01E
+H 48 89 45 CE ;P01E k — ведущие '(' (в кадре: kw_lookup/lex_tok)
+;      затирают r8/r9/rdi/r11 — рабочие регистры подпрограмм
+:psc_open
+H 48 8B 4D F8 ;P01E
+H E8 $lex_tok ;L001
+H 83 F8 02 ;P01E
+H 0F 85 $psc_root ;P01E
+H 49 8B 85 68 80 01 00 ;P01E
+H 49 2B 85 60 80 01 00 ;P01E
+H 48 83 F8 01 ;P01E
+H 0F 85 $psc_root ;P01E
+H 49 8B 8D 60 80 01 00 ;P01E
+H 0F B6 01 ;P01E
+H 80 F8 28 ;P01E '('
+H 0F 85 $psc_root ;P01E
+H 48 8B 45 CE ;P01E
+H 48 FF C0 ;P01E k++
+H 48 89 45 CE ;P01E
+H 49 8B 85 68 80 01 00 ;P01E
+H 48 89 45 F8 ;P01E
+H E9 $psc_open ;P01E
+:psc_root
+H 83 F8 01 ;P01E id?
+H 0F 85 $psc_ret ;P01E нет — корень не имя
+H 49 8B BD 60 80 01 00 ;P01E ptr имени
+H 48 89 7D DC ;P01E (kw_lookup/lex_tok затирают регистры)
+H 49 8B 85 68 80 01 00 ;P01E
+H 48 29 F8 ;P01E длина имени
+H 48 89 45 EA ;P01E
+H 48 89 F9 ;P01E
+H 48 89 C2 ;P01E
+H E8 $kw_lookup ;P004
+H 83 F8 0A ;P01E getb
+H 0F 84 $psc_ret ;P01E
+H 83 F8 0B ;P01E len
+H 0F 84 $psc_ret ;P01E
+:psc_close
+H 48 8B 45 CE ;P01E
+H 48 85 C0 ;P01E
+H 0F 84 $psc_chk ;P01E скобки закрыты
+H 48 8B 4D F8 ;P01E
+H E8 $lex_tok ;L001
+H 83 F8 02 ;P01E
+H 0F 85 $psc_ret ;P01E
+H 49 8B 85 68 80 01 00 ;P01E
+H 49 2B 85 60 80 01 00 ;P01E
+H 48 83 F8 01 ;P01E
+H 0F 85 $psc_ret ;P01E
+H 49 8B 8D 60 80 01 00 ;P01E
+H 0F B6 01 ;P01E
+H 80 F8 29 ;P01E ')'
+H 0F 85 $psc_ret ;P01E не скобка — корень сложнее
+H 48 8B 45 CE ;P01E
+H 48 FF C8 ;P01E
+H 48 89 45 CE ;P01E
+H 49 8B 85 68 80 01 00 ;P01E
+H 48 89 45 F8 ;P01E
+H E9 $psc_close ;P01E
+:psc_chk
+H 48 8B 4D DC ;P01E
+H 48 8B 55 EA ;P01E
+H E8 $local_find ;P008
+H 48 83 F8 FF ;P01E
+H 0F 85 $psc_ret ;P01E локаль — не str (str глобальны)
+H 48 8B 4D DC ;P01E
+H 48 8B 55 EA ;P01E
+H E8 $names_find ;P006
+H 48 83 F8 FF ;P01E
+H 0F 84 $psc_ret ;P01E неизвестное — ошибка будет позже
+H 48 89 C1 ;P01E
+H 48 C1 E1 05 ;P01E
+H 48 89 C2 ;P01E
+H 48 C1 E2 03 ;P01E
+H 48 01 D1 ;P01E
+H 49 8D 95 D8 83 11 00 ;P01E
+H 48 01 D1 ;P01E
+H 48 8B 41 10 ;P01E вид
+H 48 83 F8 02 ;P01E str
+H 0F 84 $psc_fail ;P01E индексирование строки запрещено
+:psc_ret
+H 48 89 EC ;P01E
+H 5D ;P01E
+H C3 ;P01E
+:psc_fail
+H E8 $fail_format ;G002
 ; ===== K2-P018 p_cond: условие if/while — цепочки && / || (v2, срез 3) =====
 ; Вход (проход 2): RCX = pfx (0=if, 1=while), RDX = e (суффикс lfalse),
 ; R8 = k (сквозной счётчик if/while). В проходе 1 параметры не задаются
@@ -3562,11 +3919,11 @@ H E8 $at_end_chk ;P002
 H B8 01 00 00 00 ;S00C
 H 49 89 85 A0 80 01 00 ;S00C
 H C3 ;S00C
-; ===== K2-S00D p1_namestmt: вызов-утверждение или присваивание =====
+; ===== K2-S00D p1_namestmt: вызов-утверждение, присваивание или astore =====
 :p1_namestmt
 H 55 ;S00D
 H 48 89 E5 ;S00D
-H 48 83 EC 20 ;S00D
+H 48 83 EC 30 ;S00D
 H 49 8B 85 60 80 01 00 ;S00D имя
 H 48 89 45 F0 ;S00D
 H 49 8B 85 68 80 01 00 ;S00D
@@ -3574,18 +3931,23 @@ H 48 2B 45 F0 ;S00D
 H 48 89 45 E8 ;S00D
 H 49 8B 8D 68 80 01 00 ;S00D поглотить имя
 H 49 89 8D 70 80 01 00 ;S00D
-H 49 8B 8D 70 80 01 00 ;S00D '(' ?
+H 49 8B 8D 70 80 01 00 ;S00D '(' / '[' ?
 H E8 $lex_tok ;L001
 H 83 F8 02 ;S00D
 H 0F 85 $p1n_assign ;S00D
 H 49 8B 85 68 80 01 00 ;S00D
 H 49 2B 85 60 80 01 00 ;S00D
 H 48 83 F8 01 ;S00D
-H 0F 85 $p1n_assign ;S00D
+H 0F 85 $p1n_sym ;S00D
 H 49 8B 8D 60 80 01 00 ;S00D
 H 0F B6 01 ;S00D
 H 80 F8 28 ;S00D
-H 0F 85 $p1n_assign ;S00D
+H 0F 84 $p1n_call ;S00D
+:p1n_sym
+H 80 F8 5B ;S00D '[' — astore v2 (срез 4b)
+H 0F 84 $p1n_astore ;S00D
+H E9 $p1n_assign ;S00D
+:p1n_call
 H 49 8B 8D 68 80 01 00 ;S00D вызов-утверждение
 H 49 89 8D 70 80 01 00 ;S00D
 H 48 C7 C1 01 00 00 00 ;S00D
@@ -3594,6 +3956,61 @@ H 48 8B 4D F0 ;S00D
 H 48 8B 55 E8 ;S00D
 H E8 $call_stats ;P016
 H E8 $at_end_chk ;P002
+H E9 $p1n_ret ;S00D
+; ---- v2: e[i]... = значение (S-стейдинг, оракул lab_l2_lay) ----
+:p1n_astore
+H E8 $pp_pcount ;P01B k пар (флаг v2 внутри)
+H 48 89 45 F8 ;S00D k
+H 48 8B 4D F0 ;S00D
+H 48 8B 55 E8 ;S00D
+H E8 $astore_chk ;P01D имя: не str/func/ext/неизвестное
+H 48 8B 45 F8 ;S00D
+H 48 83 F8 01 ;S00D
+H 0F 87 $p1a_chain ;S00D
+H 31 C0 ;S00D база = имя: need 0
+H E9 $p1a_last ;S00D
+:p1a_chain
+H 48 8B 4D F0 ;S00D
+H 49 89 8D 70 80 01 00 ;S00D курсор на имя
+H 48 8B 4D F8 ;S00D k — глубина prim базы
+H E8 $pp_prim0 ;P013
+H 48 C7 C1 01 00 00 00 ;S00D d = 1
+H 48 8B 55 F8 ;S00D
+H 48 FF CA ;S00D k-1 пар базы
+H 45 31 C0 ;S00D c0 = 0
+H E8 $pp_pairs ;P01C RAX = need базы
+:p1a_last
+H 48 89 45 F8 ;S00D need_base
+H B9 5B 00 00 00 ;S00D '['
+H E8 $want_sym1 ;P001
+H B9 01 00 00 00 ;S00D
+H E8 $p_expr ;P010
+H 48 89 45 E0 ;S00D need индекса
+H B9 5D 00 00 00 ;S00D ']'
+H E8 $want_sym1 ;P001
+H B9 3D 00 00 00 ;S00D '='
+H E8 $want_sym1 ;P001
+H B9 01 00 00 00 ;S00D
+H E8 $p_expr ;P010
+H 48 89 45 D8 ;S00D need значения
+H E8 $at_end_chk ;P002
+H 48 8B 45 F8 ;S00D need базы
+H 49 3B 85 90 80 01 00 ;S00D
+H 0F 86 $p1a_m2 ;S00D
+H 49 89 85 90 80 01 00 ;S00D
+:p1a_m2
+H 48 8B 45 E0 ;S00D need индекса
+H 49 3B 85 90 80 01 00 ;S00D
+H 0F 86 $p1a_m3 ;S00D
+H 49 89 85 90 80 01 00 ;S00D
+:p1a_m3
+H 48 8B 45 D8 ;S00D need значения
+H 49 3B 85 90 80 01 00 ;S00D
+H 0F 86 $p1a_m4 ;S00D
+H 49 89 85 90 80 01 00 ;S00D
+:p1a_m4
+H B8 01 00 00 00 ;S00D
+H 49 89 85 A0 80 01 00 ;S00D флаг S-слотов (setb ИЛИ astore)
 H E9 $p1n_ret ;S00D
 :p1n_assign
 H B9 3D 00 00 00 ;S00D '='
@@ -4322,18 +4739,23 @@ H 48 2B 45 F0 ;Y00B
 H 48 89 45 E8 ;Y00B
 H 49 8B 8D 68 80 01 00 ;Y00B
 H 49 89 8D 70 80 01 00 ;Y00B
-H 49 8B 8D 70 80 01 00 ;Y00B '(' ?
+H 49 8B 8D 70 80 01 00 ;Y00B '(' / '[' ?
 H E8 $lex_tok ;L001
 H 83 F8 02 ;Y00B
 H 0F 85 $p2n_assign ;Y00B
 H 49 8B 85 68 80 01 00 ;Y00B
 H 49 2B 85 60 80 01 00 ;Y00B
 H 48 83 F8 01 ;Y00B
-H 0F 85 $p2n_assign ;Y00B
+H 0F 85 $p2n_sym ;Y00B
 H 49 8B 8D 60 80 01 00 ;Y00B
 H 0F B6 01 ;Y00B
 H 80 F8 28 ;Y00B
-H 0F 85 $p2n_assign ;Y00B
+H 0F 84 $p2n_call ;Y00B
+:p2n_sym
+H 80 F8 5B ;Y00B '[' — astore v2 (срез 4b)
+H 0F 84 $p2n_astore ;Y00B
+H E9 $p2n_assign ;Y00B
+:p2n_call
 H 49 8B 8D 68 80 01 00 ;Y00B вызов-утверждение
 H 49 89 8D 70 80 01 00 ;Y00B
 H 31 C0 ;Y00B ext-флаг
@@ -4362,6 +4784,89 @@ H 31 C9 ;Y00B want = 0
 H 48 8B 55 F0 ;Y00B
 H 4C 8B 45 E8 ;Y00B
 H E8 $p_call_tail ;P015
+H E9 $p2n_tl ;Y00B
+; ---- v2: e[i]... = значение — astore (срез 4b, канон SPEC/11 п.8) ----
+:p2n_astore
+H E8 $pp_pcount ;P01B k пар (флаг v2 внутри)
+H 48 89 45 F8 ;Y00B k
+H 48 8B 4D F0 ;Y00B
+H 48 8B 55 E8 ;Y00B
+H E8 $astore_chk ;P01D имя: не str/func/ext/неизвестное
+H 48 8B 45 F8 ;Y00B
+H 48 83 F8 01 ;Y00B
+H 0F 87 $p2a_chain ;Y00B
+H 48 8B 4D F0 ;Y00B база = имя
+H 48 8B 55 E8 ;Y00B
+H E8 $emit_load ;E024
+H E9 $p2a_s0 ;Y00B
+:p2a_chain
+H 48 8B 4D F0 ;Y00B
+H 49 89 8D 70 80 01 00 ;Y00B курсор на имя
+H 48 8B 4D F8 ;Y00B k — глубина prim базы
+H E8 $pp_prim0 ;P013
+H 48 C7 C1 01 00 00 00 ;Y00B d = 1
+H 48 8B 55 F8 ;Y00B
+H 48 FF CA ;Y00B k-1 пар базы
+H 45 31 C0 ;Y00B
+H E8 $pp_pairs ;P01C
+:p2a_s0
+H 31 C9 ;Y00B
+H E8 $emit_sstore ;E02D S0
+H B9 5B 00 00 00 ;Y00B '['
+H E8 $want_sym1 ;P001
+H B9 01 00 00 00 ;Y00B
+H E8 $p_expr ;P010 индекс
+H B9 5D 00 00 00 ;Y00B ']'
+H E8 $want_sym1 ;P001
+H B9 01 00 00 00 ;Y00B
+H E8 $emit_sstore ;E02D S1
+H B9 3D 00 00 00 ;Y00B '='
+H E8 $want_sym1 ;P001
+H B9 01 00 00 00 ;Y00B
+H E8 $p_expr ;P010 значение
+H B9 02 00 00 00 ;Y00B
+H E8 $emit_sstore ;E02D S2
+H B9 45 00 00 00 ;Y00B "M mov r10, [rbp-"
+H E8 $out_str ;E003
+H 49 8B 85 C0 80 01 00 ;Y00B
+H 49 03 85 C8 80 01 00 ;Y00B
+H 49 03 85 D0 80 01 00 ;Y00B
+H 48 FF C0 ;Y00B S0 = s(0)
+H 48 C1 E0 03 ;Y00B
+H E8 $out_hex ;E005
+H 41 C6 04 24 5D ;Y00B
+H 49 FF C4 ;Y00B
+H E8 $emit_cmt ;E009
+H B9 47 00 00 00 ;Y00B "M mov r11, [rbp-"
+H E8 $out_str ;E003
+H 49 8B 85 C0 80 01 00 ;Y00B
+H 49 03 85 C8 80 01 00 ;Y00B
+H 49 03 85 D0 80 01 00 ;Y00B
+H 48 83 C0 02 ;Y00B S1 = s(1)
+H 48 C1 E0 03 ;Y00B
+H E8 $out_hex ;E005
+H 41 C6 04 24 5D ;Y00B
+H 49 FF C4 ;Y00B
+H E8 $emit_cmt ;E009
+H B9 73 00 00 00 ;Y00B "M shl r11, 3"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
+H B8 2B 00 00 00 ;Y00B '+'
+H E8 $emit_alu ;E020 "M add r10, r11"
+H B9 47 00 00 00 ;Y00B "M mov r11, [rbp-"
+H E8 $out_str ;E003
+H 49 8B 85 C0 80 01 00 ;Y00B
+H 49 03 85 C8 80 01 00 ;Y00B
+H 49 03 85 D0 80 01 00 ;Y00B
+H 48 83 C0 03 ;Y00B S2 = s(2)
+H 48 C1 E0 03 ;Y00B
+H E8 $out_hex ;E005
+H 41 C6 04 24 5D ;Y00B
+H 49 FF C4 ;Y00B
+H E8 $emit_cmt ;E009
+H B9 74 00 00 00 ;Y00B "M mov [r10], r11"
+H E8 $out_str ;E003
+H E8 $emit_cmt ;E009
 H E9 $p2n_tl ;Y00B
 :p2n_assign
 H B9 3D 00 00 00 ;Y00B '='
@@ -5578,7 +6083,10 @@ DB 32 20 2F 20 D1 81 D0 B3 D0 B5 D0 BD D0 B5 D1 80
 DB D0 B8 D1 80 D0 BE D0 B2 D0 B0 D0 BD D0 BE 20 D0
 DB BA D0 BE D0 BC D0 BF D0 B8 D0 BB D1 8F D1 82 D0
 DB BE D1 80 D0 BE D0 BC 20 57 41 4C 4C 20 28 53 50
-DB 45 43 2F 31 31 29
+DB 45 43 2F 31 31 29 4D 20 73 68 6C 20 72 31 30 2C
+DB 20 33 4D 20 6D 6F 76 20 72 31 30 2C 20 5B 72 31
+DB 30 5D 4D 20 73 68 6C 20 72 31 31 2C 20 33 4D 20
+DB 6D 6F 76 20 5B 72 31 30 5D 2C 20 72 31 31
 
 ; ===== K2-D008 strtab2: смещения/длины (индекс = номер) =====
 :strtab2
@@ -5695,6 +6203,10 @@ DD 74F 5 ; s_mcqo
 DD 754 A ; s_midiv
 DD 75E E ; s_mr10rdx
 DD 76C 5A ; s_hdr1v2
+DD 7C6 C ; s_shl3
+DD 7D2 10 ; s_mmr10r10
+DD 7E2 C ; s_shl11_3
+DD 7EE 10 ; s_mmr10r11
 
 ; ===== K2-D010 таблица импортов kernel32.dll =====
 DZ 1 ; выравнивание чётности RVA hint-записей (инвариант 7 SPEC/04)

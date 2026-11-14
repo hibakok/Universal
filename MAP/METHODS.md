@@ -323,6 +323,10 @@
 | K2-P017 | pa_stage | P | готов | `MAP/M2-WALL.md` |
 | K2-P018 | p_cond | P | готов | `MAP/M2-WALL.md` |
 | K2-P019 | arr_size | P | готов | `MAP/M2-WALL.md` |
+| K2-P01B | pp_pcount | P | готов | `MAP/M2-WALL.md` |
+| K2-P01C | pp_pairs | P | готов | `MAP/M2-WALL.md` |
+| K2-P01D | astore_chk | P | готов | `MAP/M2-WALL.md` |
+| K2-P01E | pp_strchk | P | готов | `MAP/M2-WALL.md` |
 | K2-S001 | pass1 | S | готов | `MAP/M2-WALL.md` |
 | K2-S002 | p1_line | S | готов | `MAP/M2-WALL.md` |
 | K2-S003 | p1_decl | S | готов | `MAP/M2-WALL.md` |

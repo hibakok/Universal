@@ -17,6 +17,10 @@
          (E6.4c-3/4, срез 4a) то же для объявлений массивов: якоря
          ARR_ANCHORS + big_arr в (1)/(3)/(9), массивные ошибки в (4),
          заголовок v2-arr в (5), круг DEMO_ARR -> «U-ARR-OK 45» (10).
+         (E6.4c-3/4b) то же для индексации e[i] и astore: якоря
+         ix_A1..A6 + B1 (cases2) в (1), фрагменты F11/F11d/F12/F15 в
+         (2), big_ix в (3)/(9), ошибки индексации в (4), заголовок
+         v2-ix в (5), круг DEMO_WALL2 -> «U-WALL2-OK 85» (T-E6-47).
 """
 import os
 import tempfile
@@ -29,6 +33,7 @@ import lab_l2_bc
 import lab_l2_cc
 import lab_l2_cases
 import lab_l2_cases2
+import lab_l2_ix
 import lab_l2_mdm
 import lab_l2_prog
 import lab_run
@@ -79,26 +84,31 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     brick_exe = kpath("L1-BRICK/brick.exe")
     pegen_exe = kpath("L0-PEGEN/pegen.exe")
 
-    # T-E6-37: якоря срезов 1-3 + 4a (массивы) + B2-полный + регресс №15
+    # T-E6-37: якоря срезов 1-3 + 4a + 4b (массивы, индексация) +
+    # B1/B2-полные (cases2) + регресс №15
     b2full = lab_l2_cases2.CASES_FULL2[1][1]
+    b1full = lab_l2_cases2.CASES_FULL2[0][1]
     d15 = b2full.replace("while i < 6 && s < 100", "while i < 6").replace(
         "if i == 5 || s == 999", "if i == 5")
     srcs = [("mdm " + n, s) for n, s in lab_l2_mdm.MDM_ANCHORS]
     srcs += [("bc " + n, s) for n, s in lab_l2_bc.BC_ANCHORS]
     srcs += [("cc " + n, s) for n, s in lab_l2_cc.CC_ANCHORS]
     srcs += [("arr " + n, s) for n, s in lab_l2_arr.ARR_ANCHORS]
+    srcs += [("ix " + n, s) for n, s in lab_l2_ix.IX_ANCHORS]
+    srcs.append(("B1 полный (cases2)", b1full))
     srcs.append(("B2 полный (cases2)", b2full))
     srcs.append(("регресс №15: if в while (bstk 32)", d15))
     bad = [n for n, s in srcs if not _eq_oracle(wall, s)[0]]
-    check("T-E6-37 wall == оракулу, якоря срезов 1-3 + 4a (%d)" % len(srcs),
-          not bad, "; ".join(bad[:3]))
+    check("T-E6-37 wall == оракулу, якоря срезов 1-3 + 4a + 4b (%d)"
+          % len(srcs), not bad, "; ".join(bad[:3]))
 
-    # T-E6-38: фрагменты F13/F14/F16 (cases2) + B2 break/continue
+    # T-E6-38: фрагменты F13/F14/F16 (срез 3) + F11/F11d/F12/F15 (4b)
+    # + B2 break/continue
     bad = []
     nfrag = 0
+    frag_ok = ("F13", "F14", "F16", "F11", "F11d", "F12", "F15")
     for want_name, src, frag in lab_l2_cases2.CASES_FRAG2:
-        if not (want_name.startswith("F13") or want_name.startswith("F14")
-                or want_name.startswith("F16")):
+        if not want_name.startswith(frag_ok):
             continue
         nfrag += 1
         r = _run_wall(wall, src)
@@ -115,9 +125,10 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     check("T-E6-38 wall фрагменты F13/F14/F16 + B2 break/continue (%d)"
           % (nfrag + 1), not bad, "; ".join(bad[:3]))
 
-    # T-E6-39: большие исходники срезов == оракулу (+ big_arr срез 4a)
+    # T-E6-39: большие исходники срезов == оракулу (+ big_arr 4a, big_ix 4b)
     bigs = [("mdm", lab_l2_mdm.big_mdm()), ("bc", lab_l2_bc.big_bc()),
-            ("cc", lab_l2_cc.big_cc()), ("arr", lab_l2_arr.big_arr())]
+            ("cc", lab_l2_cc.big_cc()), ("arr", lab_l2_arr.big_arr()),
+            ("ix", lab_l2_ix.big_ix())]
     bad = [n for n, s in bigs if not _eq_oracle(wall, s)[0]]
     check("T-E6-39 wall == оракулу, big (%d: %s)" % (
         len(bigs), "/".join(str(s.count("\n")) for _n, s in bigs)),
@@ -132,6 +143,9 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     errs += [(n, s) for n, s, _l in lab_l2_prog.ERRORS2
              if n in lab_l2_arr.ARR_ERR_NAMES]
     errs += list(lab_l2_arr.ARR_EXTRA_ERRORS)
+    errs += [(n, s) for n, s, _l in lab_l2_prog.ERRORS2
+             if n in lab_l2_ix.IX_ERR_NAMES]
+    errs += list(lab_l2_ix.IX_EXTRA_ERRORS)
     bad = []
     for name, src in errs:
         line = next((l for n, s, l in lab_l2_prog.ERRORS2
@@ -155,7 +169,8 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
             ("v2 mdm", lab_l2_mdm.MDM_ANCHORS[0][1], b"WALL v2"),
             ("v2 bc", lab_l2_bc.BC_ANCHORS[0][1], b"WALL v2"),
             ("v2 cc", lab_l2_cc.CC_ANCHORS[0][1], b"WALL v2"),
-            ("v2 arr", lab_l2_arr.ARR_ANCHORS[0][1], b"WALL v2")]
+            ("v2 arr", lab_l2_arr.ARR_ANCHORS[0][1], b"WALL v2"),
+            ("v2 ix", lab_l2_ix.IX_ANCHORS[0][1], b"WALL v2")]
     bad = []
     for name, src, marker in hdrs:
         h = (_run_wall(wall, src).files.get("t.b2") or b"").split(b"\n")[0]
@@ -178,6 +193,10 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
     _circle(check, wall, enc_exe, brick_exe, pegen_exe,
             lab_l2_arr.DEMO_ARR, lab_l2_arr.DEMO_ARR_PEG,
             b"U-ARR-OK 45\r\n", "T-E6-46 полный круг arr (U-ARR-OK 45)")
+    _circle(check, wall, enc_exe, brick_exe, pegen_exe,
+            lab_l2_prog.DEMO_WALL2, lab_l2_prog.DEMO_WALL2_PEG,
+            b"U-WALL2-OK 85\r\n",
+            "T-E6-47 полный круг wall2 (U-WALL2-OK 85)")
 
     # T-E6-45: big-выходы срезов кодируются — оракулы enc+brick
     # (достаточно: wall == оракулу — T-E6-39, а enc.exe/brick.exe ==

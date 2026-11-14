@@ -22,7 +22,7 @@ import lab_pe
 import lab_pegen
 import lab_run
 
-WALL_SHA = ("6DBB036FBB0490454F556255EC1624D38E896CF551B698F80C8076CB82553534")
+WALL_SHA = ("DAE2E28153CDCE87E29A35293EDB7D3820E5BAFE9EA93E3B6AB3756349E8C867")
 
 
 def _t_wall_exe(check, kpath, kfile, kernel_host):
@@ -100,12 +100,21 @@ def _t_wall_exe(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("big.b2") == want,
           "шагов=%d" % r.steps)
 
-    # T-E6-30: SHA-256 + PE-инварианты wall.exe
+    # T-E6-30: SHA-256 + PE-инварианты wall.exe (+ цепочка импортов:
+    # E6.4c-3/4b поймал сдвиг idata на 0x17 (ложное совпадение побайтового
+    # поиска в wall_build); имена функций в hint-записях вылавливают класс)
     data = kfile("L2-WALL/wall.exe")
     got = hashlib.sha256(data).hexdigest().upper()
     check("T-E6-30 SHA-256 wall.exe", got == WALL_SHA, got[:16] + "…")
     pe = lab_pe.load(kpath("L2-WALL/wall.exe"))
     bad = [b for b in lab_pe.check_spec04(pe) if b != "точка входа != 0x1000"]
+    if not pe["imports"] or not pe["imports"][0]["funcs"]:
+        bad.append("цепочка импортов пуста (idata мимо :idt)")
+    else:
+        names = [n for n, _r in pe["imports"][0]["funcs"]]
+        if names[:2] != ["GetStdHandle", "WriteFile"] or \
+                names[-1] != "CloseHandle" or len(names) != 7:
+            bad.append("имена импортов не kernel32-семёрка: %r" % names[:2])
     check("T-E6-30 PE инварианты SPEC/04 wall.exe", not bad,
           "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
 

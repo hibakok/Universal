@@ -250,11 +250,11 @@ M call $at_end_chk ;P002
 M mov eax, 1 ;S00C
 M mov [r13+180A0], rax ;S00C
 M ret ;S00C
-; ===== K2-S00D p1_namestmt: вызов-утверждение или присваивание =====
+; ===== K2-S00D p1_namestmt: вызов-утверждение, присваивание или astore =====
 :p1_namestmt
 M push rbp ;S00D
 M mov rbp, rsp ;S00D
-M sub rsp, 20 ;S00D
+M sub rsp, 30 ;S00D
 M mov rax, [r13+18060] ;S00D имя
 M mov [rbp-10], rax ;S00D
 M mov rax, [r13+18068] ;S00D
@@ -262,18 +262,23 @@ M sub rax, [rbp-10] ;S00D
 M mov [rbp-18], rax ;S00D
 M mov rcx, [r13+18068] ;S00D поглотить имя
 M mov [r13+18070], rcx ;S00D
-M mov rcx, [r13+18070] ;S00D '(' ?
+M mov rcx, [r13+18070] ;S00D '(' / '[' ?
 M call $lex_tok ;L001
 M cmp eax, 2 ;S00D
 M jne $p1n_assign ;S00D
 M mov rax, [r13+18068] ;S00D
 M sub rax, [r13+18060] ;S00D
 M cmp rax, 1 ;S00D
-M jne $p1n_assign ;S00D
+M jne $p1n_sym ;S00D
 M mov rcx, [r13+18060] ;S00D
 M movzx eax, byte [rcx] ;S00D
 M cmp al, 28 ;S00D
-M jne $p1n_assign ;S00D
+M je $p1n_call ;S00D
+:p1n_sym
+M cmp al, 5B ;S00D '[' — astore v2 (срез 4b)
+M je $p1n_astore ;S00D
+M jmp $p1n_assign ;S00D
+:p1n_call
 M mov rcx, [r13+18068] ;S00D вызов-утверждение
 M mov [r13+18070], rcx ;S00D
 M mov rcx, 1 ;S00D
@@ -282,6 +287,61 @@ M mov rcx, [rbp-10] ;S00D
 M mov rdx, [rbp-18] ;S00D
 M call $call_stats ;P016
 M call $at_end_chk ;P002
+M jmp $p1n_ret ;S00D
+; ---- v2: e[i]... = значение (S-стейдинг, оракул lab_l2_lay) ----
+:p1n_astore
+M call $pp_pcount ;P01B k пар (флаг v2 внутри)
+M mov [rbp-8], rax ;S00D k
+M mov rcx, [rbp-10] ;S00D
+M mov rdx, [rbp-18] ;S00D
+M call $astore_chk ;P01D имя: не str/func/ext/неизвестное
+M mov rax, [rbp-8] ;S00D
+M cmp rax, 1 ;S00D
+M ja $p1a_chain ;S00D
+M xor eax, eax ;S00D база = имя: need 0
+M jmp $p1a_last ;S00D
+:p1a_chain
+M mov rcx, [rbp-10] ;S00D
+M mov [r13+18070], rcx ;S00D курсор на имя
+M mov rcx, [rbp-8] ;S00D k — глубина prim базы
+M call $pp_prim0 ;P013
+M mov rcx, 1 ;S00D d = 1
+M mov rdx, [rbp-8] ;S00D
+M dec rdx ;S00D k-1 пар базы
+M xor r8d, r8d ;S00D c0 = 0
+M call $pp_pairs ;P01C RAX = need базы
+:p1a_last
+M mov [rbp-8], rax ;S00D need_base
+M mov ecx, 5B ;S00D '['
+M call $want_sym1 ;P001
+M mov ecx, 1 ;S00D
+M call $p_expr ;P010
+M mov [rbp-20], rax ;S00D need индекса
+M mov ecx, 5D ;S00D ']'
+M call $want_sym1 ;P001
+M mov ecx, 3D ;S00D '='
+M call $want_sym1 ;P001
+M mov ecx, 1 ;S00D
+M call $p_expr ;P010
+M mov [rbp-28], rax ;S00D need значения
+M call $at_end_chk ;P002
+M mov rax, [rbp-8] ;S00D need базы
+M cmp rax, [r13+18090] ;S00D
+M jbe $p1a_m2 ;S00D
+M mov [r13+18090], rax ;S00D
+:p1a_m2
+M mov rax, [rbp-20] ;S00D need индекса
+M cmp rax, [r13+18090] ;S00D
+M jbe $p1a_m3 ;S00D
+M mov [r13+18090], rax ;S00D
+:p1a_m3
+M mov rax, [rbp-28] ;S00D need значения
+M cmp rax, [r13+18090] ;S00D
+M jbe $p1a_m4 ;S00D
+M mov [r13+18090], rax ;S00D
+:p1a_m4
+M mov eax, 1 ;S00D
+M mov [r13+180A0], rax ;S00D флаг S-слотов (setb ИЛИ astore)
 M jmp $p1n_ret ;S00D
 :p1n_assign
 M mov ecx, 3D ;S00D '='

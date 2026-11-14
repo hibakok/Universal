@@ -6,16 +6,17 @@
 
 | Параметр | Значение |
 |---|---|
-| Файл | KERNEL/L2-WALL/wall.exe, 25600 байт (0x6400) |
-| SHA-256 | 6DBB036FBB0490454F556255EC1624D38E896CF551B698F80C8076CB82553534 |
-| Тело секции | 24952 байта (0x6178), RVA 0x1000 |
+| Файл | KERNEL/L2-WALL/wall.exe, 27648 байт (0x6C00) |
+| SHA-256 | DAE2E28153CDCE87E29A35293EDB7D3820E5BAFE9EA93E3B6AB3756349E8C867 |
+| Тело секции | 26992 байта (0x6970), RVA 0x1000 |
 | Точка входа | 0x1000 (:entry) |
-| idata / iat / intt | 0x705D / 0x7085 / 0x70C5; dll 0x7105; VirtualSize 0x7A7590 |
-| bss (DBZ) | 0x7A1418 — единая область :scalars (RVA 0x7178) |
-| М-строк в исходнике | 4699 (20 файлов .b2: корень + 19 частей !include) |
-| Меток в исходнике | 539 (лимит brick 1024 вкл. base; срез 4a: +11 — as_*,
-  d1_vscal, p2n_arrw, eln_*, el_lscal) |
-| Кирпичей | 75 карточек (MAP/M2-WALL.md) |
+| idata / iat / intt | 0x7855 / 0x787D / 0x78BD; dll 0x78FD; VirtualSize 0x7A7D88 |
+| bss (DBZ) | 0x7A1418 — единая область :scalars (RVA 0x6970) |
+| М-строк в исходнике | 5126 (21 файл .b2: корень + 20 частей !include;
+  20-я — wall_pi.b2, механика индексации среза 4b) |
+| Меток в исходнике | 580 (лимит brick 1024 вкл. base; срез 4b: +41 —
+  pw_*, ppc_*, ppp_*, ac_*, psc_*, p1n_astore/p1a_*, p2n_astore/p2a_*) |
+| Кирпичей | 79 карточек (MAP/M2-WALL.md; +P01B/P01C/P01D/P01E) |
 
 ## 2. Карта ветвей (RVA — по трассировке меток LAB/ai/label_map.py)
 
@@ -63,14 +64,24 @@
   p_mdm ................ 1E16        P01A (E6.4c-3/1): уровень * / % — тот же
                                         механизм tdepth; флаг v2 [r13+18190]
   p_unary .............. 2005        P012: унарный минус
-  p_prim ............... 2C65        P013: числа/имена/&/len/getb/скобки/вызовы
+  p_prim ............... 2C65        P013 (срез 4b): ОБЁРТКА — pp_prim0 +
+                                        постфикс [..] (pp_strchk 33E2 ->
+                                        pp_pcount 3118 -> pp_pairs 31E6;
+                                        откат r12, prim на d+k);
+                                        pp_prim0 2D3B (pp_paren 2DEC,
+                                        pp_addr 2E1A, pp_getb 2FA0,
+                                        pp_len 3093, pp_value 30EA)
                                         (pp_paren 2D16, pp_addr 2D44, pp_getb
                                         2ECA, pp_len 2FBD, pp_value 3014)
   p_args/pa_stage ...... 2753-28EC   P014/P017: стейджинг C-слотов (5-й ext -> S5)
   p_call_tail .......... 28EC-2BC5   P015: загрузки rcx/rdx/r8/r9, call $f /
                                         call [rip+$_iat_e], want -> mov r10,rax
   call_stats ........... 2BC5-2C65   P016: maxc = max(...), ext5
-  p_cond ............... 3042-3460   P018: условия if/while — цепочки && / ||
+  astore_chk/pp_strchk . 3336-3551   P01D/P01E (wall_pi.b2): имя-цель
+                                        astore (не str/func/ext) и
+                                        запрет индексации строки
+                                        (psc_open/root/close/chk)
+  p_cond ............... 3551-396F   P018: условия if/while — цепочки && / ||
                                         (E6.4c-3/3): предподсчёт m (pcd_scan
                                         307E), цикл дизъюнктов/конъюнктов
                                         (pcd_cmp 30EC..pcd_after 3358), статы
@@ -80,114 +91,119 @@
                                         выход байт-в-байт как v1
 
 эмиттеры адресов/длин/загрузок (E6.4c-3/4 — ветви массивов):
-  emit_addr ............ 3460-353F   E022: &имя — локаль/массив: lea r10,
+  emit_addr ............ 396F-3A4E   E022: &имя — локаль/массив: lea r10,
                                         [rbp-8*(база+размер)] (ea_local 3504);
                                         var/str/массив (вид 5): lea rip (ea_rip
                                         34DB)
-  emit_len ............. 353F-363C   E023: len — сначала локальный массив
+  emit_len ............ 3A4E-3B4B   E023: len — сначала локальный массив
                                         (eln_glob 3571), затем str (eln_str
                                         35E5) / глобальный массив из varr
                                         (eln_arr 35C3); печать eln_print 3615
-  emit_load ............ 363C-3781   E024: имя — локаль (el_local 3706):
+  emit_load ............ 3B4B-3CA6   E024: имя — локаль (el_local 3C15):
                                         скаляр mov / массив (el_lscal 3741
                                         — lea arrbase); var mov rip (el_var
                                         36B4); str/массив lea rip (el_str
                                         36DD)
 guard-эмиттеры (E6.4c-3/3, wall_pg.b2):
-  emit_jccd ............ 3781-381A   E036: "M <mnem> $<pfx><k>d<i>" (jcc на
+  emit_jccd ............ 3CA6-3D3F   E036: "M <mnem> $<pfx><k>d<i>" (jcc на
                                         d-метку; jcctab, суффиксы 'd'+dec(i))
-  emit_jmpt ............ 381A-386B   E037: "M jmp $<pfx><k>t" (успех дизъюнкта)
-  emit_glab ............ 386B-38F3   E038: ":<pfx><k>d<i>" / ":<pfx><k>t"
+  emit_jmpt ............ 3D3F-3D90   E037: "M jmp $<pfx><k>t" (успех дизъюнкта)
+  emit_glab ............ 3D90-3E18   E038: ":<pfx><k>d<i>" / ":<pfx><k>t"
                                         (R8=0 -> t); nlab++ (предел 500)
 
 проход 1 (статы):
-  pass1, p1_line ....... 38F3-3B29   S001/S002: цикл, диспетчер (+0C/0D —
+  pass1, p1_line ....... 3E18-4038   S001/S002: цикл, диспетчер (+0C/0D —
                                         E6.4c-3/2; ftab-скан ×80 — срез 4a)
-  p1_decl .............. 3B29-3E75   S003: var/str/ext (проверки имён);
+  p1_decl .............. 4038-4384   S003: var/str/ext (проверки имён);
                                         var a[n] (E6.4c-3/4): P019 -> вид 5,
                                         varr ×16 {idx, size} (d1_vscal 3BCA)
-  p1_funchdr ........... 3E75-4158   S004: ftab-запись ×80 (+0x48 nslots),
+  p1_funchdr ........... 4384-4667   S004: ftab-запись ×80 (+0x48 nslots),
                                         st_nslots := nparams, push {func}
-  fh_param ............. 4158-424D   S00E: параметры (larr ×32 {ptr,len,1})
-  names_find_ci ........ 424D-430C   S005: без учёта регистра (ext)
-  p1s_var .............. 430C-4466   S006: локаль (+ [n] -> размер larr,
+  fh_param ............. 4667-475C   S00E: параметры (larr ×32 {ptr,len,1})
+  names_find_ci ........ 475C-481B   S005: без учёта регистра (ext)
+  p1s_var .............. 481B-4975   S006: локаль (+ [n] -> размер larr,
                                         st_nslots += size; p1v_glob 43D6)
-  p1s_end .............. 4466-4535   S007: финализация ftab (+ nslots +0x48)
-  p1s_else/if/while .... 4535-4658   S008/S009/S00A: статы условий (зовут
+  p1s_end .............. 4975-4A44   S007: финализация ftab (+ nslots +0x48)
+  p1s_else/if/while .... 4A44-4B67   S008/S009/S00A: статы условий (зовут
                                         p_cond в режиме статов)
-  p1s_return ........... 4658-46A7   S00B: [выражение] -> maxd
-  p1s_setb ............. 46A7-4752   S00C: три выражения, st_setb=1
-  p1_namestmt .......... 4752-4828   S00D: вызов/присваивание (статы)
-  p1s_brk .............. 4828-487A   S00F (E6.4c-3/2): break/continue — скан
+  p1s_return ........... 4B67-4BB6   S00B: [выражение] -> maxd
+  p1s_setb ............. 4BB6-4C61   S00C: три выражения, st_setb=1
+  p1_namestmt .......... 4C61-4D36   S00D (срез 4b): вызов/присваивание/
+                                        astore (p1n_astore 4D10: pre-count,
+                                        astore_chk, база-цепочка, S-статы)
+  p1s_brk .............. 4D36-4D88   S00F (E6.4c-3/2): break/continue — скан
                                         bstk до while, флаг v2 (одна точка
                                         входа на оба ключевых слова)
 
 проход 2 (эмитция):
-  pass2, p2_line ....... 487A-4A4E   Y001/Y002: цикл, карта текстов строк
+  pass2, p2_line ....... 4D88-4F5C   Y001/Y002: цикл, карта текстов строк
                                         (+0C/0D — E6.4c-3/2)
-  p2_funchdr ........... 4A4E-4B9D   Y00A: раскладка из ftab ×80 (nbase :=
+  p2_funchdr ........... 4F5C-50AB   Y00A: раскладка из ftab ×80 (nbase :=
                                         nslots +0x48 — срез 4a), пролог
-  p2s_var .............. 4B9D-4BCC   Y003: last_ret=0
-  emit_jcc/jmp/iflab/wlab 4BCC-4D7F  E029-E02C: метки _if/_w (сквозной kctr);
+  p2s_var .............. 51AB-51DA   Y003: last_ret=0
+  emit_jcc/jmp/iflab/wlab 51DA-538D  E029-E02C: метки _if/_w (сквозной kctr);
                                         E029 вызывается из p_cond — последний
                                         дизъюнкт (E6.4c-3/3)
-  emit_sstore .......... 4D7F-4DD0   E02D: стейджинг S-слотов
+  emit_sstore .......... 538D-53DE   E02D: стейджинг S-слотов
   p2s_end/else/if/while  4DD0-5150   Y004-Y007: bstk {kind,k,seq,lineidx};
                                         Y006/Y007 передают p_cond pfx/e/k
                                         (guard внутри; E6.4c-3/3)
-  p2s_return ........... 5150-51B9   Y008: выражение + эпилог
+  p2s_return ........... 575E-57C7   Y008: выражение + эпилог
   p2s_break/continue ... 51B9-5213   Y00C (E6.4c-3/2): e-флаг EDX->R11, скан
                                         bstk до while, k=+8, E02A: jmp
                                         $_w<k>[e]; недостижимый путь — int3
-  p2s_setb ............. 5213-5363   Y009: S-слоты S0/S1/S2, mov [r10+r11], al
+  p2s_setb ............. 5821-5971   Y009: S-слоты S0/S1/S2, mov [r10+r11], al
   p2_namestmt .......... 5363-5561   Y00B: вызов / присваивание: локаль mov
                                         [rbp-8*(база+1)] (p2n_local 54EC);
                                         срез 4a: массив (размер > 1) — G002
                                         (p2n_arrw 5529); var -> mov rip
 
 эмиттеры:
-  out_ch/out_copy/str .. 5561-55BC   E001-E004: байты вывода, strtab2-адресация
+  out_ch/out_copy/str .. 5D01-5DB3   E001-E004: байты вывода, strtab2-адресация
   out_hex/out_hex2 ..... 55BC/5613   E005/E006: ЗАГЛАВНЫЙ hex
-  div10 ................ 5640        E007: деление на 10 бит за битом (маска!)
-  out_dec .............. 5682        E008: десятичные числа
-  emit_cmt/kadr ........ 56FC/5722   E009/E010: " ; текст", "кадр/выход имя"
-  emit_lab ............. 5782        E011: ":имя"
-  lower_copy ........... 5798        E012: scr (нижний регистр для _iat_)
-  str_dlen/str_emit .... 57D4/580A   E013/E014: декодирование экранов, DB<=16
-  emit_header .......... 593F        E015: заголовок v1/v2 (флаг [r13+18190];
+  div10 ................ 5DE0        E007: деление на 10 бит за битом (маска!)
+  out_dec .............. 5E22        E008: десятичные числа
+  emit_cmt/kadr ........ 5E9C/5EC2   E009/E010: " ; текст", "кадр/выход имя"
+  emit_lab ............. 5F22        E011: ":имя"
+  lower_copy ........... 5F38        E012: scr (нижний регистр для _iat_)
+  str_dlen/str_emit .... 5F74/5FAA   E013/E014: декодирование экранов, DB<=16
+  emit_header .......... 60DF        E015: заголовок v1/v2 (флаг [r13+18190];
                                         ставится * / % (P01A), break/continue
                                         (S00F), цепочками && / || (P018) и
                                         объявлениями массивов (P019) —
                                         E6.4c-3/1..4)
-  emit_entry ........... 59D5        E016
-  calc_framesize ....... 5A19        E017: слоты из ftab+0x48 (срез 4a)
-  emit_prologue/эпилог . 5A82/5B8E   E018/E019
-  emit_alu ............. 5BBC        E020: add/sub/and/or/xor r10, r11
-  emit_shift ........... 5C64        E021: mov rcx,r11; shl/shr r10, cl
-  emit_imul ............ 5CC3        E034 (E6.4c-3/1): imul r10, r11
-  emit_divmod .......... 5CD3        E035 (E6.4c-3/1): rax/cqo/idiv/rax|rdx
-  get_ext/emit_imports . 5D41/5D7D   E025/E026: импорты (см. данные)
-  emit_strdata/globdata  6117/624D   E027/E028: секции данных; E028 — DZ 8n
+  emit_entry ........... 6175        E016
+  calc_framesize ....... 61B9        E017: слоты из ftab+0x48 (срез 4a)
+  emit_prologue/эпилог . 6222/632E   E018/E019
+  emit_alu ............. 635C        E020: add/sub/and/or/xor r10, r11
+  emit_shift ........... 6404        E021: mov rcx,r11; shl/shr r10, cl
+  emit_imul ............ 6463        E034 (E6.4c-3/1): imul r10, r11
+  emit_divmod .......... 6473        E035 (E6.4c-3/1): rax/cqo/idiv/rax|rdx
+  get_ext/emit_imports . 64E1/651D   E025/E026: импорты (см. данные)
+  emit_strdata/globdata 68B7/69ED   E027/E028: секции данных; E028 — DZ 8n
                                         (срез 4a: 'D','Z',' ' прямым байтом
                                         + out_hex(8*size) из varr)
 
 данные (ветвь D):
-  digits ............... 6336  K2-D001 (16 Б)
-  kwtab ................ 6346  K2-D002 (14x16 Б; E6.4c-3/2: +break/+continue)
-  jcctab ............... 6426  K2-D003 ({смещ,длина}; jne je jge jg jle jl)
-  alutab ............... 6456  K2-D004
-  argtab ............... 647E  K2-D005
-  errtab ............... 649E  K2-D006 (7x20 Б)
-  strblob .............. 650E  K2-D007 (0x7C6 Б, 113 строк канона;
+  digits ............... 6AD6  K2-D001 (16 Б)
+  kwtab ................ 6AE6  K2-D002 (14x16 Б; E6.4c-3/2: +break/+continue)
+  jcctab ............... 6BC6  K2-D003 ({смещ,длина}; jne je jge jg jle jl)
+  alutab ............... 6BF6  K2-D004
+  argtab ............... 6C1E  K2-D005
+  errtab ............... 6C3E  K2-D006 (7x20 Б)
+  strblob .............. 6CAE  K2-D007 (0x832 Б, 117 строк канона;
                                 E6.4c-3/1: +imul/cqo/idiv/r10-rdx, hdr v2;
-                                срезы 3/4a — без изменений: 'd'/'t'/'DZ '
-                                прямым байтом)
-  strtab2 .............. 6CD4  K2-D008 (113x8 Б)
-  импорты .............. 705D  K2-D010: idt 0x28 (idata 705D, iat 7085),
-                                intt 70C5, dll 7105 (13+DZ2), hints:
-                                gsh 7114, wf/ep/gcl/cf/rf/ch далее (чётные
-                                RVA, инвариант 7 SPEC/04; калибровка DZ 2)
-  bss .................. 7178  K2-D011: :scalars DBZ 7A1418 — ЕДИНАЯ область
+                                срез 4b: +shl r10,3 / mov r10,[r10] /
+                                shl r11,3 / mov [r10],r11 — хвосты
+                                индексации (индексы 113..116 = 0x71..0x74);
+                                'd'/'t'/'DZ ' прямым байтом)
+  strtab2 .............. 74AC  K2-D008 (117x8 Б)
+  импорты .............. 7855  K2-D010: idt 0x28 (idata 7855, iat 787D),
+                                intt 78BD, dll 78FD (13+DZ2), hints:
+                                gsh 790C, wf 791C, ep 7928, gcl 7936,
+                                cf 7948, rf 7956, ch 7962 (чётные RVA,
+                                инвариант 7 SPEC/04; калибровка DZ 2)
+  bss .................. 7970  K2-D011: :scalars DBZ 7A1418 — ЕДИНАЯ область
                                 (bstk 3072x32 + скаляры + буферы, база R13;
                                 E6.4c-3/2: записи 24 -> 32 Б — дефект №15;
                                 E6.4c-3/1: метки буферов -> смещения r13+X

@@ -115,6 +115,17 @@ APPEND = {
     "s_hdr1v2": "; UNIVERSAL / WALL v2 / сгенерировано компилятором "
                 "WALL (SPEC/11)",
 }
+# E6.4c-3/4 (срез 4b: индексация e[i] и astore) — хвосты канона SPEC/11
+# (загрузка элемента: shl r10,3 / mov r11,r10 / mov r10,[T] / add /
+# mov r10,[r10]; запись: shl r11,3 / add / mov [r10],r11).
+# ВНИМАНИЕ: только В КОНЕЦ блоба (индексы 113..116 = 0x71..0x74;
+# правило журнала E6.4c-3/1: индексы strtab2 укоренились в коде).
+APPEND2 = {
+    "s_shl3": "M shl r10, 3",
+    "s_mmr10r10": "M mov r10, [r10]",
+    "s_shl11_3": "M shl r11, 3",
+    "s_mmr10r11": "M mov [r10], r11",
+}
 UTIL = {
     "s_usage": "U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n",
     "s_errlong": "U-L2-WALL ERR=LONG NAME\r\n",
@@ -202,6 +213,8 @@ def main():
     order = sorted(strings)
     strings.update(APPEND)
     order += [n for n in APPEND]
+    strings.update(APPEND2)
+    order += [n for n in APPEND2]
     blob = bytearray()
     for name in order:
         data = strings[name].encode("utf-8")
@@ -257,7 +270,8 @@ def main():
     A("DZ 1 ; выравнивание чётности RVA hint-записей (инвариант 7 SPEC/04)")
     # калибровка чётности (механизм E4a): рост тела/данных до dll_name
     # сдвигает hint-записи; DZ после dll_name подбирается чётным
-    DZ_DLL = 2  # E6.4c-3/1 и E6.4c-3/2 (квtab +2 записи = +0x20, чётно)
+    DZ_DLL = 2  # E6.4c-3/4b: фактические idata 0x76DD (нечётное) —
+                # hints = idata+0xB0+13+DZ_DLL = 0x779C (чётное, инвариант 7)
     A(":idt")
     A("DD $intt 0 0 $dll_name $iat ; описатель импорта")
     A("DZ 14 ; терминатор IDT")

@@ -1,0 +1,297 @@
+; UNIVERSAL / BRICK v2 / слой L2 / модуль M2-WALL — механика индексации
+; ===== K2-P01B pp_pcount: число пар [..] в остатке строки (срез 4b) =====
+; Скан от pc_cur БЕЗ потребления (паттерн P009): '[' на глубине 0 =
+; новая пара, вложенные скобки — глубина; стоп — конец строки или
+; любой токен глубины 0 вне пары. Курсор восстанавливается; RAX = k.
+; k>0 ставит флаг v2 [r13+18190] (индексация/astore — E6.4c).
+:pp_pcount
+M push rbp ;P01B
+M mov rbp, rsp ;P01B
+M sub rsp, 20 ;P01B
+M mov rax, [r13+18070] ;P01B
+M mov [rbp-8], rax ;P01B скан-позиция
+M mov [rbp-10], rax ;P01B старт (восстановить в конце)
+M xor r8d, r8d ;P01B k = 0
+M xor r9d, r9d ;P01B глубина скобок = 0
+:ppc_loop
+M mov rcx, [rbp-8] ;P01B
+M call $lex_tok ;L001
+M cmp eax, 4 ;P01B
+M je $ppc_done ;P01B конец строки
+M cmp eax, 2 ;P01B
+M jne $ppc_adv ;P01B
+M mov rax, [r13+18068] ;P01B
+M sub rax, [r13+18060] ;P01B
+M cmp rax, 1 ;P01B
+M jne $ppc_adv ;P01B
+M mov rcx, [r13+18060] ;P01B
+M movzx eax, byte [rcx] ;P01B
+M cmp al, 5B ;P01B '['
+M je $ppc_open ;P01B
+M cmp al, 5D ;P01B ']'
+M je $ppc_close ;P01B
+M test r9, r9 ;P01B
+M jz $ppc_done ;P01B символ глубины 0 — конец цепочки
+M jmp $ppc_adv ;P01B
+:ppc_open
+M test r9, r9 ;P01B
+M jnz $ppc_o2 ;P01B вложенная — не пара
+M inc r8 ;P01B k++
+:ppc_o2
+M inc r9 ;P01B глубина++
+M jmp $ppc_adv ;P01B
+:ppc_close
+M dec r9 ;P01B глубина--
+M jmp $ppc_adv ;P01B
+:ppc_adv
+M mov rax, [r13+18068] ;P01B
+M mov [rbp-8], rax ;P01B к следующему токену
+M jmp $ppc_loop ;P01B
+:ppc_done
+M mov rcx, [rbp-10] ;P01B
+M mov [r13+18070], rcx ;P01B восстановить курсор
+M test r8, r8 ;P01B
+M jz $ppc_ret ;P01B
+M mov eax, 1 ;P01B
+M mov [r13+18190], rax ;P01B флаг v2 (заголовок «WALL v2»)
+:ppc_ret
+M mov rax, r8 ;P01B RAX = k
+M mov rsp, rbp ;P01B
+M pop rbp ;P01B
+M ret ;P01B
+; ===== K2-P01C pp_pairs: цикл пар индексации (срез 4b, канон SPEC/11) =====
+; RCX = d (глубина верхнего индекса цепочки), RDX = k (число пар),
+; R8 = need базы (статы). Пара j = 1..k: T-склад t(cur-1) ПОСЛЕ базы
+; (cur убывает от d+k до d+1), индекс на cur, хвост
+; shl r10,3 / mov r11,r10 / mov r10,[T] / add r10,r11 / mov r10,[r10].
+; Статы: c = 1 + max(c, need(индекса)) — need()-оракула для index.
+:pp_pairs
+M push rbp ;P01C
+M mov rbp, rsp ;P01C
+M sub rsp, 30 ;P01C
+M mov [rbp-8], rcx ;P01C d
+M mov [rbp-10], rdx ;P01C k
+M mov rax, rdx ;P01C
+M add rax, rcx ;P01C cur = d + k
+M mov [rbp-18], rax ;P01C cur
+M mov [rbp-20], r8 ;P01C c (статы)
+M mov rax, [r13+18080] ;P01C
+M test rax, rax ;P01C
+M jz $ppp_stloop ;P01C статы: без эмита
+:ppp_eloop
+M mov ecx, 43 ;P01C "M mov [rbp-"
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P01C
+M add rax, [rbp-18] ;P01C
+M dec rax ;P01C t(cur-1): nbase + cur - 1
+M shl rax, 3 ;P01C
+M call $out_hex ;E005
+M mov ecx, 58 ;P01C "], r10"
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 5B ;P01C '['
+M call $want_sym1 ;P001
+M mov rcx, [rbp-18] ;P01C
+M call $p_expr ;P010 индекс пары
+M mov ecx, 5D ;P01C ']'
+M call $want_sym1 ;P001
+M mov ecx, 71 ;P01C "M shl r10, 3"
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 4D ;P01C "M mov r11, r10"
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov ecx, 45 ;P01C "M mov r10, [rbp-"
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;P01C
+M add rax, [rbp-18] ;P01C
+M dec rax ;P01C
+M shl rax, 3 ;P01C
+M call $out_hex ;E005
+M mov byte [r12], 5D ;P01C ']'
+M inc r12 ;P01C
+M call $emit_cmt ;E009
+M mov eax, 2B ;P01C '+'
+M call $emit_alu ;E020 "M add r10, r11"
+M mov ecx, 72 ;P01C "M mov r10, [r10]"
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov rax, [rbp-18] ;P01C
+M dec rax ;P01C cur--
+M mov [rbp-18], rax ;P01C
+M cmp rax, [rbp-8] ;P01C cur == d — все k пар
+M jne $ppp_eloop ;P01C
+M xor eax, eax ;P01C
+M jmp $ppp_ret ;P01C
+:ppp_stloop
+M mov ecx, 5B ;P01C '['
+M call $want_sym1 ;P001
+M mov rcx, [rbp-18] ;P01C
+M call $p_expr ;P010 need индекса (глубина не влияет)
+M mov rdx, rax ;P01C
+M cmp rdx, [rbp-20] ;P01C
+M jge $ppp_smax ;P01C
+M mov rdx, [rbp-20] ;P01C
+:ppp_smax
+M lea rax, [rdx+1] ;P01C c = 1 + max(c, need)
+M mov [rbp-20], rax ;P01C
+M mov ecx, 5D ;P01C ']'
+M call $want_sym1 ;P001
+M mov rax, [rbp-18] ;P01C
+M dec rax ;P01C
+M mov [rbp-18], rax ;P01C
+M cmp rax, [rbp-8] ;P01C
+M jne $ppp_stloop ;P01C
+M mov rax, [rbp-20] ;P01C RAX = need цепочки
+:ppp_ret
+M mov rsp, rbp ;P01C
+M pop rbp ;P01C
+M ret ;P01C
+; ===== K2-P01D astore_chk: имя-цель astore допустимо (срез 4b) =====
+; RCX = ptr, RDX = len. Локаль/параметр — ок; глобальные: вид 1 (var)
+; или 5 (массив); str/func/ext/неизвестное — ERR (parse()-оракула:
+; «строка неизменяема», «не переменная», «неизвестное имя»).
+; В проходе 1 (pc_mode=0) окно локалей st_locoff/loccnt [180B0/180B8]
+; копируется в lay-окно local_find (P008) — в проходе 1 local_find
+; иначе пуст (Y00A ставит [180F0/180F8] только в проходе 2).
+:astore_chk
+M push rbp ;P01D
+M mov rbp, rsp ;P01D
+M sub rsp, 20 ;P01D
+M mov [rbp-10], rcx ;P01D
+M mov [rbp-18], rdx ;P01D
+M mov rax, [r13+18080] ;P01D
+M test rax, rax ;P01D
+M jnz $ac_go ;P01D проход 2: окно уже lay
+M mov rax, [r13+180B0] ;P01D st_locoff
+M mov [r13+180F0], rax ;P01D
+M mov rax, [r13+180B8] ;P01D st_loccnt
+M mov [r13+180F8], rax ;P01D
+:ac_go
+M mov rcx, [rbp-10] ;P01D
+M mov rdx, [rbp-18] ;P01D
+M call $local_find ;P008
+M cmp rax, -1 ;P01D
+M jne $ac_ok ;P01D локаль/параметр
+M mov rcx, [rbp-10] ;P01D
+M mov rdx, [rbp-18] ;P01D
+M call $names_find ;P006
+M cmp rax, -1 ;P01D
+M je $ac_fail ;P01D неизвестное имя
+M mov rcx, rax ;P01D
+M shl rcx, 5 ;P01D
+M mov rdx, rax ;P01D
+M shl rdx, 3 ;P01D
+M add rcx, rdx ;P01D
+M lea rdx, [r13+1183D8] ;P01D
+M add rcx, rdx ;P01D
+M mov rax, [rcx+10] ;P01D вид
+M cmp rax, 1 ;P01D var
+M je $ac_ok ;P01D
+M cmp rax, 5 ;P01D массив
+M je $ac_ok ;P01D
+M jmp $ac_fail ;P01D str/func/ext
+:ac_ok
+M mov rsp, rbp ;P01D
+M pop rbp ;P01D
+M ret ;P01D
+:ac_fail
+M call $fail_format ;G002
+; ===== K2-P01E pp_strchk: база индекса — не строка (срез 4b) =====
+; RCX = C0 (курсор до prim). Оракул gen.expr(index): база-ИМЯ (после
+; снятия скобок) вида str — ERR «индексирование строки запрещено
+; (getb)»; &s, вызовы, getb/len и индексные цепочки — разрешены.
+; Семантический корень: k '(' подряд, id (не getb/len, не вызов),
+; k ')' подряд. kind 2 (str) -> fail. Вызывается из p_prim (P013)
+; в ветке '[' ДО разбора пар, в обоих проходах.
+:pp_strchk
+M push rbp ;P01E
+M mov rbp, rsp ;P01E
+M sub rsp, 30 ;P01E
+M mov [rbp-8], rcx ;P01E позиция скана
+M xor eax, eax ;P01E
+M mov [rbp-32], rax ;P01E k — ведущие '(' (в кадре: kw_lookup/lex_tok)
+;      затирают r8/r9/rdi/r11 — рабочие регистры подпрограмм
+:psc_open
+M mov rcx, [rbp-8] ;P01E
+M call $lex_tok ;L001
+M cmp eax, 2 ;P01E
+M jne $psc_root ;P01E
+M mov rax, [r13+18068] ;P01E
+M sub rax, [r13+18060] ;P01E
+M cmp rax, 1 ;P01E
+M jne $psc_root ;P01E
+M mov rcx, [r13+18060] ;P01E
+M movzx eax, byte [rcx] ;P01E
+M cmp al, 28 ;P01E '('
+M jne $psc_root ;P01E
+M mov rax, [rbp-32] ;P01E
+M inc rax ;P01E k++
+M mov [rbp-32], rax ;P01E
+M mov rax, [r13+18068] ;P01E
+M mov [rbp-8], rax ;P01E
+M jmp $psc_open ;P01E
+:psc_root
+M cmp eax, 1 ;P01E id?
+M jne $psc_ret ;P01E нет — корень не имя
+M mov rdi, [r13+18060] ;P01E ptr имени
+M mov [rbp-24], rdi ;P01E (kw_lookup/lex_tok затирают регистры)
+M mov rax, [r13+18068] ;P01E
+M sub rax, rdi ;P01E длина имени
+M mov [rbp-16], rax ;P01E
+M mov rcx, rdi ;P01E
+M mov rdx, rax ;P01E
+M call $kw_lookup ;P004
+M cmp eax, 0A ;P01E getb
+M je $psc_ret ;P01E
+M cmp eax, 0B ;P01E len
+M je $psc_ret ;P01E
+:psc_close
+M mov rax, [rbp-32] ;P01E
+M test rax, rax ;P01E
+M jz $psc_chk ;P01E скобки закрыты
+M mov rcx, [rbp-8] ;P01E
+M call $lex_tok ;L001
+M cmp eax, 2 ;P01E
+M jne $psc_ret ;P01E
+M mov rax, [r13+18068] ;P01E
+M sub rax, [r13+18060] ;P01E
+M cmp rax, 1 ;P01E
+M jne $psc_ret ;P01E
+M mov rcx, [r13+18060] ;P01E
+M movzx eax, byte [rcx] ;P01E
+M cmp al, 29 ;P01E ')'
+M jne $psc_ret ;P01E не скобка — корень сложнее
+M mov rax, [rbp-32] ;P01E
+M dec rax ;P01E
+M mov [rbp-32], rax ;P01E
+M mov rax, [r13+18068] ;P01E
+M mov [rbp-8], rax ;P01E
+M jmp $psc_close ;P01E
+:psc_chk
+M mov rcx, [rbp-24] ;P01E
+M mov rdx, [rbp-16] ;P01E
+M call $local_find ;P008
+M cmp rax, -1 ;P01E
+M jne $psc_ret ;P01E локаль — не str (str глобальны)
+M mov rcx, [rbp-24] ;P01E
+M mov rdx, [rbp-16] ;P01E
+M call $names_find ;P006
+M cmp rax, -1 ;P01E
+M je $psc_ret ;P01E неизвестное — ошибка будет позже
+M mov rcx, rax ;P01E
+M shl rcx, 5 ;P01E
+M mov rdx, rax ;P01E
+M shl rdx, 3 ;P01E
+M add rcx, rdx ;P01E
+M lea rdx, [r13+1183D8] ;P01E
+M add rcx, rdx ;P01E
+M mov rax, [rcx+10] ;P01E вид
+M cmp rax, 2 ;P01E str
+M je $psc_fail ;P01E индексирование строки запрещено
+:psc_ret
+M mov rsp, rbp ;P01E
+M pop rbp ;P01E
+M ret ;P01E
+:psc_fail
+M call $fail_format ;G002

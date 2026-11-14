@@ -83,18 +83,23 @@ M sub rax, [rbp-10] ;Y00B
 M mov [rbp-18], rax ;Y00B
 M mov rcx, [r13+18068] ;Y00B
 M mov [r13+18070], rcx ;Y00B
-M mov rcx, [r13+18070] ;Y00B '(' ?
+M mov rcx, [r13+18070] ;Y00B '(' / '[' ?
 M call $lex_tok ;L001
 M cmp eax, 2 ;Y00B
 M jne $p2n_assign ;Y00B
 M mov rax, [r13+18068] ;Y00B
 M sub rax, [r13+18060] ;Y00B
 M cmp rax, 1 ;Y00B
-M jne $p2n_assign ;Y00B
+M jne $p2n_sym ;Y00B
 M mov rcx, [r13+18060] ;Y00B
 M movzx eax, byte [rcx] ;Y00B
 M cmp al, 28 ;Y00B
-M jne $p2n_assign ;Y00B
+M je $p2n_call ;Y00B
+:p2n_sym
+M cmp al, 5B ;Y00B '[' — astore v2 (срез 4b)
+M je $p2n_astore ;Y00B
+M jmp $p2n_assign ;Y00B
+:p2n_call
 M mov rcx, [r13+18068] ;Y00B вызов-утверждение
 M mov [r13+18070], rcx ;Y00B
 M xor eax, eax ;Y00B ext-флаг
@@ -123,6 +128,89 @@ M xor ecx, ecx ;Y00B want = 0
 M mov rdx, [rbp-10] ;Y00B
 M mov r8, [rbp-18] ;Y00B
 M call $p_call_tail ;P015
+M jmp $p2n_tl ;Y00B
+; ---- v2: e[i]... = значение — astore (срез 4b, канон SPEC/11 п.8) ----
+:p2n_astore
+M call $pp_pcount ;P01B k пар (флаг v2 внутри)
+M mov [rbp-8], rax ;Y00B k
+M mov rcx, [rbp-10] ;Y00B
+M mov rdx, [rbp-18] ;Y00B
+M call $astore_chk ;P01D имя: не str/func/ext/неизвестное
+M mov rax, [rbp-8] ;Y00B
+M cmp rax, 1 ;Y00B
+M ja $p2a_chain ;Y00B
+M mov rcx, [rbp-10] ;Y00B база = имя
+M mov rdx, [rbp-18] ;Y00B
+M call $emit_load ;E024
+M jmp $p2a_s0 ;Y00B
+:p2a_chain
+M mov rcx, [rbp-10] ;Y00B
+M mov [r13+18070], rcx ;Y00B курсор на имя
+M mov rcx, [rbp-8] ;Y00B k — глубина prim базы
+M call $pp_prim0 ;P013
+M mov rcx, 1 ;Y00B d = 1
+M mov rdx, [rbp-8] ;Y00B
+M dec rdx ;Y00B k-1 пар базы
+M xor r8d, r8d ;Y00B
+M call $pp_pairs ;P01C
+:p2a_s0
+M xor ecx, ecx ;Y00B
+M call $emit_sstore ;E02D S0
+M mov ecx, 5B ;Y00B '['
+M call $want_sym1 ;P001
+M mov ecx, 1 ;Y00B
+M call $p_expr ;P010 индекс
+M mov ecx, 5D ;Y00B ']'
+M call $want_sym1 ;P001
+M mov ecx, 1 ;Y00B
+M call $emit_sstore ;E02D S1
+M mov ecx, 3D ;Y00B '='
+M call $want_sym1 ;P001
+M mov ecx, 1 ;Y00B
+M call $p_expr ;P010 значение
+M mov ecx, 2 ;Y00B
+M call $emit_sstore ;E02D S2
+M mov ecx, 45 ;Y00B "M mov r10, [rbp-"
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;Y00B
+M add rax, [r13+180C8] ;Y00B
+M add rax, [r13+180D0] ;Y00B
+M inc rax ;Y00B S0 = s(0)
+M shl rax, 3 ;Y00B
+M call $out_hex ;E005
+M mov byte [r12], 5D ;Y00B
+M inc r12 ;Y00B
+M call $emit_cmt ;E009
+M mov ecx, 47 ;Y00B "M mov r11, [rbp-"
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;Y00B
+M add rax, [r13+180C8] ;Y00B
+M add rax, [r13+180D0] ;Y00B
+M add rax, 2 ;Y00B S1 = s(1)
+M shl rax, 3 ;Y00B
+M call $out_hex ;E005
+M mov byte [r12], 5D ;Y00B
+M inc r12 ;Y00B
+M call $emit_cmt ;E009
+M mov ecx, 73 ;Y00B "M shl r11, 3"
+M call $out_str ;E003
+M call $emit_cmt ;E009
+M mov eax, 2B ;Y00B '+'
+M call $emit_alu ;E020 "M add r10, r11"
+M mov ecx, 47 ;Y00B "M mov r11, [rbp-"
+M call $out_str ;E003
+M mov rax, [r13+180C0] ;Y00B
+M add rax, [r13+180C8] ;Y00B
+M add rax, [r13+180D0] ;Y00B
+M add rax, 3 ;Y00B S2 = s(2)
+M shl rax, 3 ;Y00B
+M call $out_hex ;E005
+M mov byte [r12], 5D ;Y00B
+M inc r12 ;Y00B
+M call $emit_cmt ;E009
+M mov ecx, 74 ;Y00B "M mov [r10], r11"
+M call $out_str ;E003
+M call $emit_cmt ;E009
 M jmp $p2n_tl ;Y00B
 :p2n_assign
 M mov ecx, 3D ;Y00B '='

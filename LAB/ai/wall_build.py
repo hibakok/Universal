@@ -62,17 +62,16 @@ def main():
     assert body == oracle_body, "brick.exe != оракул"
     print("brick OK: тело %d байт, шагов %d" % (len(body), r.steps))
 
-    # 4) RVA :idt: поиск по структуре описателя (DD $intt 0 0 $dll $iat)
-    idt = None
-    for off in range(0, len(body) - 20):
-        if body[off + 4:off + 12] != b"\x00" * 8:
-            continue
-        iat_rva = int.from_bytes(body[off + 16:off + 20], "little")
-        intt_rva = int.from_bytes(body[off + 0:off + 4], "little")
-        if iat_rva == 0x1000 + off + 0x28 and intt_rva == 0x1000 + off + 0x68:
-            idt = off
-            break
-    assert idt is not None, "не найден :idt в теле"
+    # 4) RVA :idt: точная метка из карты brick (E6.4c-3/4b: прежний
+    #    побайтовый поиск по структуре описателя дал ЛОЖНОЕ совпадение
+    #    внутри strtab2 — новые смещения строк случайно удовлетворили
+    #    шаблон, idata уехал на 0x17 раньше; метка надёжна всегда)
+    sys.path.insert(0, os.path.join(UNI, "LAB", "ai"))
+    import label_map            # noqa: E402
+    import io, contextlib       # noqa: E402
+    with contextlib.redirect_stdout(io.StringIO()):
+        lbl = label_map.labels_of(brick_txt)
+    idt = lbl["idt"]                 # смещение в теле; RVA = +0x1000
     idata = 0x1000 + idt
     print("idt RVA: %X (idata %X, iat %X)" % (idata, idata, idata + 0x28))
 

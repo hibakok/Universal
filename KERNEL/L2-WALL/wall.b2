@@ -128,6 +128,7 @@ M int3 ;X002
 !include wall_pe.b2
 !include wall_pa.b2
 !include wall_pp.b2
+!include wall_pi.b2
 !include wall_pc.b2
 !include wall_pg.b2
 !include wall_p1.b2

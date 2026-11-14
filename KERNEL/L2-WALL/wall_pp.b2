@@ -1,5 +1,65 @@
-; ===== K2-P013 p_prim: первичное выражение; RCX = d =====
+; ===== K2-P013 p_prim: первичное + постфиксная индексация e[i] (срез 4b) =====
+; RCX = d. Обёртка: pp_prim0 (тело ниже, прежнее P013) разбирает
+; первичное; peek '[' -> pp_strchk (P01E, база не str) -> pp_pcount
+; (P01B, пары вперёд): k=0 — выход как v1 (байт-в-байт); k>0 — v2:
+; эмит — откат r12, prim на d+k, pp_pairs(d, k); статы — pp_pairs(d, k,
+; need_prim). Канон SPEC/11 п.8 (index); флаг v2 ставит pp_pcount.
+; Откат и повторный разбор нужны потому, что глубина базы = d+k
+; известна только после peek.
 :p_prim
+M push rbp ;P013
+M mov rbp, rsp ;P013
+M sub rsp, 30 ;P013
+M mov [rbp-8], rcx ;P013 d
+M mov rax, [r13+18070] ;P013
+M mov [rbp-10], rax ;P013 курсор до prim (C0)
+M mov [rbp-18], r12 ;P013 курсор вывода (R0 — откат эмита)
+M call $pp_prim0 ;P013 первичное
+M mov [rbp-20], rax ;P013 need prim (статы)
+M mov rcx, [r13+18070] ;P013 peek: '[' ?
+M call $lex_tok ;L001
+M cmp eax, 2 ;P013
+M jne $pw_done ;P013
+M mov rax, [r13+18068] ;P013
+M sub rax, [r13+18060] ;P013
+M cmp rax, 1 ;P013
+M jne $pw_done ;P013
+M mov rcx, [r13+18060] ;P013
+M movzx eax, byte [rcx] ;P013
+M cmp al, 5B ;P013 '['
+M jne $pw_done ;P013
+M mov rcx, [rbp-10] ;P013
+M call $pp_strchk ;P01E база-имя не строка (до пар)
+M call $pp_pcount ;P01B k (флаг v2 внутри)
+M mov [rbp-28], rax ;P013 k
+M mov rax, [r13+18080] ;P013
+M test rax, rax ;P013
+M jz $pw_stats ;P013
+M mov r12, [rbp-18] ;P013 откат вывода (эмиту не нужен prim на d)
+M mov rcx, [rbp-10] ;P013
+M mov [r13+18070], rcx ;P013 курсор на prim
+M mov rcx, [rbp-8] ;P013
+M add rcx, [rbp-28] ;P013 d + k — глубина базы
+M call $pp_prim0 ;P013 база цепочки
+M mov rcx, [rbp-8] ;P013 d
+M mov rdx, [rbp-28] ;P013 k
+M xor r8d, r8d ;P013 c0 (эмиту не нужен)
+M call $pp_pairs ;P01C
+M jmp $pw_ret ;P013
+:pw_stats
+M mov rcx, [rbp-8] ;P013 d
+M mov rdx, [rbp-28] ;P013 k
+M mov r8, [rbp-20] ;P013 c0 = need prim
+M call $pp_pairs ;P01C RAX = need цепочки
+M jmp $pw_ret ;P013
+:pw_done
+M mov rax, [rbp-20] ;P013 need prim (v1-выход без изменений)
+:pw_ret
+M mov rsp, rbp ;P013
+M pop rbp ;P013
+M ret ;P013
+; ===== K2-P013a pp_prim0: первичное выражение (тело прежнего P013) =====
+:pp_prim0
 M push rbp ;P013
 M mov rbp, rsp ;P013
 M sub rsp, 20 ;P013
