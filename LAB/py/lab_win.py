@@ -13,6 +13,8 @@ GetProcessHeap, HeapAlloc, HeapFree (бамп-распределитель от�
 С E6.4d-1 — CreateFile2 (WALL-программы слоя L2: контракт 5 аргументов
 SPEC/11 п.3 не позволяет 7-аргументный CreateFileA; имя — LPCWSTR,
 pCreateExParams — NULL, семантика disp 2/3 как у CreateFileA).
+С E6.4d-2 — GlobalAlloc (только GMEM_FIXED=0; тот же бамп-регион,
+что HeapAlloc; буферы каркаса wall.wall — вход 128 КиБ).
 Файлы живут в виртуальной ФС (dict); stdout пишется в буфер bytes.
 """
 import lab_pe
@@ -31,7 +33,7 @@ INVALID_HANDLE_VALUE = 0xFFFFFFFFFFFFFFFF
 
 KERNEL32 = ["GetStdHandle", "WriteFile", "ExitProcess", "GetCommandLineA",
             "CreateFileA", "ReadFile", "CloseHandle", "GetProcessHeap",
-            "HeapAlloc", "HeapFree", "CreateFile2"]
+            "HeapAlloc", "HeapFree", "CreateFile2", "GlobalAlloc"]
 
 
 class VFile:
@@ -238,6 +240,22 @@ class Machine:
 
     def _api_heapfree(self, cpu):
         cpu.r[0] = 1                        # успех (память не возвращается)
+
+    def _api_globalalloc(self, cpu):
+        # GlobalAlloc(uFlags, dwBytes): 2 аргумента; поддерживается только
+        # GMEM_FIXED (uFlags == 0 — единственная форма у WALL-программ,
+        # E6.4d-2): возвращается неподвижный указатель. Размещение — тем
+        # же бамп-распределителем, что и HeapAlloc (регион HEAP_BASE);
+        # исчерпание — NULL, как в Win32. Флаги игнорируются (GMEM_*
+        # кроме FIXED в наших программах не используются).
+        _flags, size = cpu.r[1], cpu.r[2]
+        size = (size + 15) & ~15            # выравнивание 16
+        if size > len(self.heap) - self.heap_pos:
+            cpu.r[0] = 0                    # нет памяти — NULL
+            return
+        ptr = HEAP_BASE + self.heap_pos
+        self.heap_pos += size
+        cpu.r[0] = ptr
 
     # --- утилиты ---
     def _new_handle(self, vf):

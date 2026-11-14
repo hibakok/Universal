@@ -14,8 +14,10 @@ arrbase/rip), `len(массив)`, лексер `[` `]`, chain_count-глуби�
 записи реестров: ntab вид 5 = массив, varr ×16 {idx, size}, larr ×32
 {ptr, len, size}, ftab ×80 (+0x48 nslots); индексация/astore — срез 4b.
 E6.4d-1: НАЧАТ самохостинг — KERNEL/L2-WALL/wall.wall (WALL v2, CLI-слой,
-поведение == wall.exe на 12 путях, T-E6-49); найден и исправлен
-ПРЕДСУЩЕСТВУЮЩИЙ дефект №16 (str_emit, DB-строки >= 13 байт).
+поведение == wall.exe, T-E6-49); найден и исправлен ПРЕДСУЩЕСТВУЮЩИЙ
+дефект №16 (str_emit, DB-строки >= 13 байт). E6.4d-2/1: буфер входа —
+GlobalAlloc(GMEM_FIXED, 131073; 8-й ext — предел SPEC/11 п.9),
+ОДИН ReadFile (схема wall.exe); CLI == wall.exe на 13 путях.
 
 ## Поток исполнения (X)
 

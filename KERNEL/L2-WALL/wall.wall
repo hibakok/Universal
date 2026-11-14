@@ -16,13 +16,21 @@
 ; CreateFileA — WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11
 ; п.3), поэтому здесь CreateFile2 (kernel32, имя LPCWSTR, параметры —
 ; NULL; документировано; см. lab_win._api_createfile2). Расширение имени
-; в UTF-16 — widen(). Чтение — ReadFile кусками по 32768 в head[4096]
-; со счётчиком: решение BIG SRC (>= 131073 байта) эквивалентно
-; wall.exe (ReadFile с лимитом 0x20001 одним вызовом). При передаче
-; &локали в DWORD-аргумент API (got) локаль предварительно обнуляется:
-; API пишет только младшие 4 байта ячейки.
-; Пределы: 7 ext (из 8), 3 функции + main, все сообщения байт-в-байт
-; из errtab/strblob wall_data.b2 (проверено dev-тестом wall_self_test).
+; в UTF-16 — widen(). Буфер входа srcbuf — динамическая память
+; GlobalAlloc(GMEM_FIXED=0, 131073) — 8-й ext, предел SPEC/11 п.9:
+; статический массив языка ограничен 4096 qword (32 КиБ) < входа
+; 128 КиБ, поэтому буфер только в куче. Чтение — ОДИН ReadFile
+; с лимитом 131073 (0x20001) в srcbuf — решение BIG SRC (>= 131073)
+; эквивалентно wall.exe (один вызов с тем же лимитом). Отказ
+; распределения (NULL) сведён в общий путь ERR=READ SRC (код 5):
+; у wall.exe аналога нет (статический bss); на практике 128 КиБ
+; из кучи не отказывают. При передаче &локали в DWORD-аргумент API
+; (got/written) локаль предварительно обнуляется: API пишет только
+; младшие 4 байта ячейки.
+; Пределы: 8 ext (предел SPEC/11 п.9 — новые ext НЕВОЗМОЖНЫ без роста
+; SPEC; вместо этого рост библиотеки L4), 3 функции + main, все
+; сообщения байт-в-байт из errtab/strblob wall_data.b2 (проверено
+; dev-тестом wall_self_test).
 
 ext GetStdHandle
 ext WriteFile
@@ -31,6 +39,7 @@ ext GetCommandLineA
 ext CreateFile2
 ext ReadFile
 ext CloseHandle
+ext GlobalAlloc
 
 var hstdout
 var cmdline
@@ -40,7 +49,7 @@ var arg1[64]
 var arg2[64]
 var w1[64]
 var w2[64]
-var head[4096]
+var srcbuf
 var outbuf[64]
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
@@ -193,9 +202,6 @@ end
 func main
   var i
   var fh
-  var total
-  var bad
-  var cont
   var rc
   var got
   var nlen1
@@ -213,31 +219,16 @@ func main
   if fh == -1
     print_error(s_osrc, len(s_osrc), 4)
   end
-  total = 0
-  bad = 0
-  cont = 1
-  while cont == 1
-    got = 0
-    rc = ReadFile(fh, head, 32768, &got, 0)
-    if rc == 0
-      bad = 1
-      cont = 0
-    else
-      total = total + got
-      if total >= 131073
-        bad = 2
-        cont = 0
-      else
-        if got == 0
-          cont = 0
-        end
-      end
-    end
-  end
-  if bad == 1
+  srcbuf = GlobalAlloc(0, 131073)
+  if srcbuf == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
-  if bad == 2
+  got = 0
+  rc = ReadFile(fh, srcbuf, 131073, &got, 0)
+  if rc == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  if got >= 131073
     print_error(s_big, len(s_big), 7)
   end
   CloseHandle(fh)

@@ -12,7 +12,7 @@
 | Размер | 27648 байт (0x6C00); тело 26998 Б (0x6976) |
 | Платформа | Windows x64, консольная подсистема, PE32+ |
 | Импорты | kernel32.dll: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFileA, ReadFile, CloseHandle |
-| Самохостинг | E6.4d-1 ВЫПОЛНЕН: каркас CLI-слоя написан НА WALL — KERNEL/L2-WALL/wall.wall (254 строки, 7 ext); компилируется wall.exe == оракулу байт-в-байт; CLI-поведение == wall.exe на 12 путях (T-E6-49). Компиляция (.b2) — шаги E6.4d-2+ |
+| Самохостинг | E6.4d-1 + E6.4d-2/1 ВЫПОЛНЕНЫ: каркас CLI-слоя написан НА WALL — KERNEL/L2-WALL/wall.wall (245 строк, 8 ext — предел SPEC/11 п.9; буфер входа — GlobalAlloc(GMEM_FIXED, 131073), ОДИН ReadFile — схема wall.exe); компилируется wall.exe == оракулу байт-в-байт; CLI-поведение == wall.exe на 13 путях (T-E6-49). Компиляция (.b2) — шаги E6.4d-2/2+ (ветвь N: проход 0) |
 
 ## Формат вызова
 
