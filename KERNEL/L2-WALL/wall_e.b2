@@ -217,10 +217,18 @@ M jmp $sd_loop ;E013
 :sd_ret
 M ret ;E013
 ; ===== K2-E014 str_emit: литерал -> строки DB <=16 + комментарий =====
+; Дефект №16 (найден E6.4d-1): буфер строки [rbp-30..rbp-15] перекрывался
+; со слотом конца [rbp-18..rbp-11] (байты 12..15 строки портили указатель
+; конца), а счётчик [rbp-8] не сбрасывался после se_doline — каждая
+; следующая DB-строка печатала растущий префикс буфера. Литералы
+; >= 13 байт давали мусорные DB-строки; корпус якорей не покрывал
+; str > 12 байт — вскрыто каркасом wall.wall (s_use 42 байта). Фикс:
+; рамка 30 -> 40, буфер [rbp-40..rbp-31] (не пересекается с локальными),
+; сброс счётчика в конце se_doline.
 :str_emit
 M push rbp ;E014
 M mov rbp, rsp ;E014
-M sub rsp, 30 ;E014
+M sub rsp, 40 ;E014
 M mov [rbp-10], rdx ;E014
 M lea rax, [rdx+r8] ;E014
 M mov [rbp-18], rax ;E014
@@ -271,7 +279,7 @@ M add rdx, 2 ;E014
 M mov [rbp-10], rdx ;E014
 :se_put
 M mov rcx, [rbp-8] ;E014
-M mov [rbp+rcx-30], al ;E014
+M mov [rbp+rcx-40], al ;E014
 M inc rcx ;E014
 M mov [rbp-8], rcx ;E014
 M cmp rcx, 10 ;E014
@@ -294,7 +302,7 @@ M xor r8d, r8d ;E014
 :sdl_loop
 M cmp r8, [rbp-8] ;E014
 M jae $sdl_cmt ;E014
-M movzx eax, byte [rbp+r8-30] ;E014
+M movzx eax, byte [rbp+r8-40] ;E014
 M call $out_hex2 ;E006
 M lea rax, [r8+1] ;E014
 M cmp rax, [rbp-8] ;E014
@@ -306,6 +314,8 @@ M inc r8 ;E014
 M jmp $sdl_loop ;E014
 :sdl_cmt
 M call $emit_cmt ;E009
+M xor eax, eax ;E014 сброс счётчика (дефект №16)
+M mov [rbp-8], rax ;E014
 M ret ;E014
 ; ===== K2-E015 emit_header: 2 строки заголовка =====
 ; Строка 1 зависит от флага v2 [r13+18190] (ненулевой = v2-конструкция;

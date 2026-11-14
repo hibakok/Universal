@@ -10,6 +10,9 @@
 GetCommandLineA, CreateFileA, ReadFile, CloseHandle; с E6.4c — куча:
 GetProcessHeap, HeapAlloc, HeapFree (бамп-распределитель отдельного
 региона; HeapFree — успешный no-op, документировано в SPEC/11).
+С E6.4d-1 — CreateFile2 (WALL-программы слоя L2: контракт 5 аргументов
+SPEC/11 п.3 не позволяет 7-аргументный CreateFileA; имя — LPCWSTR,
+pCreateExParams — NULL, семантика disp 2/3 как у CreateFileA).
 Файлы живут в виртуальной ФС (dict); stdout пишется в буфер bytes.
 """
 import lab_pe
@@ -28,7 +31,7 @@ INVALID_HANDLE_VALUE = 0xFFFFFFFFFFFFFFFF
 
 KERNEL32 = ["GetStdHandle", "WriteFile", "ExitProcess", "GetCommandLineA",
             "CreateFileA", "ReadFile", "CloseHandle", "GetProcessHeap",
-            "HeapAlloc", "HeapFree"]
+            "HeapAlloc", "HeapFree", "CreateFile2"]
 
 
 class VFile:
@@ -179,6 +182,29 @@ class Machine:
             return
         cpu.r[0] = h
 
+    def _api_createfile2(self, cpu):
+        # 5 аргументов (SPEC/11 п.3): rcx=имя (LPCWSTR), rdx=доступ,
+        # r8=share, r9=disposition, [rsp+0x20]=pCreateExParams (NULL).
+        # Семантика disp 2 (CREATE_ALWAYS) и 3 (OPEN_EXISTING) — как у
+        # _api_createfilea; имя читается как UTF-16LE (ASCII-байты).
+        name = self._cstrw(cpu.r[1])
+        norm = self._norm(name)
+        disp = cpu.r[9] & 0xFFFFFFFF
+        if disp == 3:                       # OPEN_EXISTING
+            data = self.host.get(norm)
+            if data is None and norm in self.files:
+                data = bytes(self.files[norm].data)
+            if data is None:
+                cpu.r[0] = INVALID_HANDLE_VALUE
+                return
+            cpu.r[0] = self._new_handle(VFile(data))
+        elif disp == 2:                     # CREATE_ALWAYS
+            vf = VFile()
+            self.files[norm] = vf
+            cpu.r[0] = self._new_handle(vf)
+        else:
+            cpu.r[0] = INVALID_HANDLE_VALUE
+
     def _api_readfile(self, cpu):
         h, buf, want, got = cpu.r[1], cpu.r[2], cpu.r[8], cpu.r[9]
         vf = self.handles.get(h)
@@ -227,6 +253,18 @@ class Machine:
                 break
             out.append(c)
             addr += 1
+        return out.decode("latin1")
+
+    def _cstrw(self, addr):
+        # то же, но UTF-16LE (CreateFile2): читаем слово, берём младший
+        # байт; терминатор — слово 0
+        out = bytearray()
+        while True:
+            w = self.cpu.read(addr, 2)
+            if w == 0:
+                break
+            out.append(w & 0xFF)
+            addr += 2
         return out.decode("latin1")
 
     def _norm(self, name):

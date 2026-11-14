@@ -22,7 +22,11 @@
             v2, заголовки v1/v2, круги DEMO_MDM/DEMO_BC/DEMO_CC/ARR/
             WALL2 до эмуляции, кодируемость; срез 5 (E6.4c-3/5):
             big_source2 == оракулу (T-E6-48), списки якорей/ошибок
-            v2 — структурные (все фрагменты cases2, ERRORS2 целиком).
+            v2 — структурные (все фрагменты cases2, ERRORS2 целиком);
+         12) каркас wall.wall (lab_t_wallself, E6.4d-1): компиляция
+            само-исходника каркаса wall.exe == оракулу (байт-в-байт),
+            полный круг до EXE, CLI-поведение каркаса == wall.exe
+            (12 путей); фикс дефекта №16 (str_emit, DB >= 13 байт).
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -44,6 +48,7 @@ import lab_t_exe
 import lab_t_wall
 import lab_t_wall2
 import lab_t_wall3
+import lab_t_wallself
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -67,7 +72,7 @@ SHA = {
                 "0926894C7264E4CA5",
     "L1-SPLICE/splice": "E5C974173A7028A664A44DDC572D182B7855497694217F35"
                        "EB810057AF6CD5C2",
-    "L2-WALL/wall": "DAE2E28153CDCE87E29A35293EDB7D3820E5BAFE9EA93E3B6AB3756349E8C867",
+    "L2-WALL/wall": "E4CBFA6CB77C77E26792564C57E7591C3B5FDBAFC1C62C0DF4E9991A0376FFF6",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
@@ -411,6 +416,7 @@ def main():
     lab_t_wall.run(check, kpath, kfile, kernel_host)
     lab_t_wall2.run(check, kpath, kfile, kernel_host)
     lab_t_wall3.run(check, kpath, kfile, kernel_host)
+    lab_t_wallself.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

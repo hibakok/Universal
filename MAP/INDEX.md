@@ -142,13 +142,14 @@
 | `KERNEL/L2-WALL/wall_p2.b2` | проход 2: цикл, диспетчер, заголовки | 197 |
 | `KERNEL/L2-WALL/wall_p2s.b2` | эмиттеры E029-E02D + утверждения прохода 2: if/while | 406 |
 | `KERNEL/L2-WALL/wall_p2t.b2` | эмиттеры переходов и меток | 100 |
-| `KERNEL/L2-WALL/wall_e.b2` | примитивы вывода, div10, out_dec, заголовок v1/v2 | 389 |
+| `KERNEL/L2-WALL/wall_e.b2` | примитивы вывода, div10, out_dec, заголовок v1/v2 (фикс №16 — str_emit) | 400 |
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
 | `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var DZ 8n — срез 4a) | 386 |
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
+| `KERNEL/L2-WALL/wall.wall` | само-исходник каркаса на WALL v2 (E6.4d-1): CLI-слой == wall.exe; растёт ветвями до полного компилятора | 254 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
-| `KERNEL/L2-WALL/wall.exe` | материализация: 25600 байт (0x6400), PE32+ | — |
+| `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
 | `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 194 |
 | `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 15 дефектов (+ срезы 1-3) | 260 |
 
@@ -207,6 +208,7 @@
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36) | 285 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 (T-E6-37..48; big_source2, структурные списки якорей/ошибок) | 249 |
+| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (E6.4d-1) == оракулу + полный круг + CLI == wall.exe (T-E6-49a/b/c) | 97 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 1327 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
