@@ -25,7 +25,9 @@
 ; at_end, st_setb = 1 (флаг S-слотов). K2-S00D p1_namestmt —
 ; утверждение-имя (вызов / astore / присваивание): имя сохраняется
 ; ДО потребления; заглядывание следующего токена: '(' — вызов
-; (p_args(1) + call_stats части pa — maxc/ext5, at_end); '[' — astore
+; (p_args(1) + call_stats части pa — maxc/ext5, at_end; фикс №19:
+; need вызова -> maxd, как у assign — зеркалит _scan оракула);
+; '[' — astore
 ; (pp_pcount части pp — k пар; astore_chk части pa — цель допустима;
 ; k > 1 — база-цепочка pp_prim0(k) + pp_pairs(1, k-1, 0) = need
 ; базы; последняя пара '[' выр ']' '=' выр ПОРОЗНЬ; maxd = max по
@@ -220,6 +222,7 @@ func p1_namestmt(pos, le)
   var ilen
   var k
   var nbase
+  var mx
   iptr = tokptr
   ilen = tokend - tokptr
   pcur = pos
@@ -227,8 +230,9 @@ func p1_namestmt(pos, le)
   if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
     ; вызов-утверждение: имя(аргументы)
     pcur = tokend
-    p_args(1)
+    mx = p_args(1)
     call_stats(iptr, ilen)
+    st_maxd = max2(st_maxd, mx)
     at_end(pcur, le)
     return 0
   end

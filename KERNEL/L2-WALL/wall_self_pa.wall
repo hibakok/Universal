@@ -1,54 +1,74 @@
 ; wall_self_pa.wall — аргументы, вызовы и astore-проверка каркаса wall.wall (E6.4d-3/2)
 ; Паспорт: KERNEL/L2-WALL/wall_self_pa.wall | слой L2 | роль: реинкарнация
 ; механики вызовов и проверки цели astore компилятора (K2-P014 p_args +
-; K2-P017 pa_stage + K2-P016 call_stats из wall_pa.b2; K2-P01D
-; astore_chk из wall_pi.b2) на самом языке WALL v2 — СТАТ-режим
-; прохода 1 (p_call_tail с его загрузками C-слотов и переходами —
-; эмит-механика прохода 2, не реинкарнируется до E6.4d-4+).
-; p_args: '(' уже поглощено вызывающим; пустые «()» — потребить ')';
-; иначе выр (pa_stage) и цикл ',' выр; завершение — want ')'.
-; Глобали-аккумуляторы (аналог tmp5/tmp6 [r13+181E8/181F0] wall.exe,
-; которые он делит с литералами): pc_argcnt — число аргументов,
-; pc_argmax — max need аргументов; pa_stage: argcnt++, argmax =
-; max(argmax, need). call_stats(имя): вид имени в ntab; ext (вид 3) —
-; maxc = max(maxc, min(argcnt, 4)), при argcnt == 5 — st_ext5 = 1
+; K2-P016 call_stats из wall_pa.b2; K2-P01D astore_chk из wall_pi.b2)
+; на самом языке WALL v2 — СТАТ-режим прохода 1 (p_call_tail с его
+; загрузками C-слотов и переходами И pa_stage-эмит — эмит-механика
+; прохода 2, не реинкарнируется до E6.4d-4+).
+; p_args (фикс №19, зеркалит E6.4d-4/2 wall.exe): '(' уже поглощено
+; вызывающим; пустые «()» — потребить ')'; иначе выр и цикл ',' выр;
+; завершение — want ')'. Счёт/max need — ЛОКАЛИ рамки (вложенные
+; вызовы в аргументах не затирают состояние объемлющего — как рамка
+; P014 wall.exe); глобали-интерфейсы: pc_argcnt — счёт только что
+; закрытого вызова, pc_argmax — его max need (need самого вызова),
+; pc_cbase — его база C-слотов, pc_staged — застейджено аргументов
+; самым внутренним АКТИВНЫМ вызовом (вход вложенного: base :=
+; pc_staged при pc_cact > 0), pc_cact — вложенность. Выход: max need
+; аргументов (как assign — потребность стейджинга T-слотов).
+; call_stats(имя): вид имени в ntab; ext (вид 3) — maxc =
+; max(maxc, pc_cbase + min(argcnt, 4)), при argcnt == 5 — st_ext5 = 1
 ; (S5-слот); НЕ ext (вкл. неизвестное имя — проверка в проходе 2) —
-; maxc = max(maxc, argcnt). astore_chk(имя): копия окна ст локалей в
-; окно lay (st_locoff/st_loccnt -> lay_lo/lay_hi — как проход 1
-; wall.exe; проход 2 использует уже выставленное lay-окно); локаль/
-; параметр — ок; глобаль вида 1 (var) или 5 (массив) — ок; str/func/
-; ext/неизвестное — ERR=FORMAT (неизвестное и str/func/ext поймает и
-; оракул parse — «строка неизменяема» / «не переменная» /
-; «неизвестное имя»).
+; maxc = max(maxc, pc_cbase + argcnt): вложенные вызовы считают
+; C-слоты от своей базы — одновременное использование объемлющего.
+; astore_chk(имя): копия окна ст локалей в окно lay (st_locoff/
+; st_loccnt -> lay_lo/lay_hi — как проход 1 wall.exe; проход 2
+; использует уже выставленное lay-окно); локаль/параметр — ок;
+; глобаль вида 1 (var) или 5 (массив) — ок; str/func/ext/неизвестное
+; — ERR=FORMAT (неизвестное и str/func/ext поймает и оракул parse —
+; «строка неизменяема» / «не переменная» / «неизвестное имя»).
 
-; аргументы вызова до ')' включительно; d — глубина (K2-P014)
+; аргументы вызова до ')' включительно; d — глубина (K2-P014, фикс №19)
 func p_args(d)
   var need
-  pc_argcnt = 0
-  pc_argmax = 0
+  var base
+  var cnt
+  var mx
+  var eflg
+  if pc_cact > 0
+    base = pc_staged
+  else
+    base = 0
+  end
+  pc_cact = pc_cact + 1
+  eflg = pc_extflg
+  pc_staged = 0
+  cnt = 0
+  mx = 0
   if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 41
     pcur = tokend
-    return 0
-  end
-  need = p_expr(d)
-  pa_stage(need)
-  while tok_is1(44) == 1
-    pcur = tokend
+  else
     need = p_expr(d)
-    pa_stage(need)
+    cnt = cnt + 1
+    pc_staged = cnt
+    mx = max2(mx, need)
+    while tok_is1(44) == 1
+      pcur = tokend
+      need = p_expr(d)
+      cnt = cnt + 1
+      pc_staged = cnt
+      mx = max2(mx, need)
+    end
+    pcur = want_sym1(41, pcur, ple)
   end
-  pcur = want_sym1(41, pcur, ple)
-  return 0
+  pc_argcnt = cnt
+  pc_argmax = mx
+  pc_cbase = base
+  pc_staged = base
+  pc_cact = pc_cact - 1
+  return mx
 end
 
-; стейджинг одного аргумента (после p_expr; K2-P017, стат-режим)
-func pa_stage(need)
-  pc_argcnt = pc_argcnt + 1
-  pc_argmax = max2(pc_argmax, need)
-  return 0
-end
-
-; статы вызова: ptr/len имени (K2-P016)
+; статы вызова: ptr/len имени (K2-P016, фикс №19: базы C-слотов)
 func call_stats(iptr, ilen)
   var n
   var kind
@@ -63,12 +83,13 @@ func call_stats(iptr, ilen)
     if m > 4
       m = 4
     end
+    m = m + pc_cbase
     st_maxc = max2(st_maxc, m)
     if pc_argcnt == 5
       st_ext5 = 1
     end
   else
-    st_maxc = max2(st_maxc, pc_argcnt)
+    st_maxc = max2(st_maxc, pc_cbase + pc_argcnt)
   end
   return 0
 end

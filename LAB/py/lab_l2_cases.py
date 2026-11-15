@@ -406,4 +406,92 @@ M mov rsp, rbp ; выход main
 M pop rbp ; выход main
 M ret ; выход main
 """),
+    ("F17 вложенные вызовы в аргументах (фикс №19: базы C-слотов)", """\
+func f2(a, b)
+    return a + b
+end
+
+func main
+    var r
+    r = f2(3, f2(4, 5) + 1)
+end
+""", """\
+:f2
+M push rbp ; кадр f2
+M mov rbp, rsp ; кадр f2
+M sub rsp, 50 ; кадр f2
+M mov [rbp-8], rcx ; кадр f2
+M mov [rbp-10], rdx ; кадр f2
+M mov r10, [rbp-8] ; return a + b
+M mov [rbp-18], r10 ; return a + b
+M mov r10, [rbp-10] ; return a + b
+M mov r11, r10 ; return a + b
+M mov r10, [rbp-18] ; return a + b
+M add r10, r11 ; return a + b
+M mov rax, r10 ; return a + b
+M mov rsp, rbp ; выход f2
+M pop rbp ; выход f2
+M ret ; выход f2
+:main
+M push rbp ; кадр main
+M mov rbp, rsp ; кадр main
+M sub rsp, 60 ; кадр main
+M mov r10, 3 ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-18], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, 4 ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-20], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, 5 ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-28], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov rcx, [rbp-20] ; r = f2(3, f2(4, 5) + 1)
+M mov rdx, [rbp-28] ; r = f2(3, f2(4, 5) + 1)
+M call $f2 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, rax ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-10], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, 1 ; r = f2(3, f2(4, 5) + 1)
+M mov r11, r10 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, [rbp-10] ; r = f2(3, f2(4, 5) + 1)
+M add r10, r11 ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-20], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov rcx, [rbp-18] ; r = f2(3, f2(4, 5) + 1)
+M mov rdx, [rbp-20] ; r = f2(3, f2(4, 5) + 1)
+M call $f2 ; r = f2(3, f2(4, 5) + 1)
+M mov r10, rax ; r = f2(3, f2(4, 5) + 1)
+M mov [rbp-8], r10 ; r = f2(3, f2(4, 5) + 1)
+M mov rsp, rbp ; выход main
+M pop rbp ; выход main
+M ret ; выход main
+"""),
+    ("F18 call-утверждение с bin-аргументом (фикс №19: maxd)", """\
+func f2(a, b)
+    return a + b
+end
+
+func main
+    var x
+    x = 2
+    f2(x, 1 + 2)
+end
+""", """\
+:main
+M push rbp ; кадр main
+M mov rbp, rsp ; кадр main
+M sub rsp, 50 ; кадр main
+M mov r10, 2 ; x = 2
+M mov [rbp-8], r10 ; x = 2
+M mov r10, [rbp-8] ; f2(x, 1 + 2)
+M mov [rbp-18], r10 ; f2(x, 1 + 2)
+M mov r10, 1 ; f2(x, 1 + 2)
+M mov [rbp-10], r10 ; f2(x, 1 + 2)
+M mov r10, 2 ; f2(x, 1 + 2)
+M mov r11, r10 ; f2(x, 1 + 2)
+M mov r10, [rbp-10] ; f2(x, 1 + 2)
+M add r10, r11 ; f2(x, 1 + 2)
+M mov [rbp-20], r10 ; f2(x, 1 + 2)
+M mov rcx, [rbp-18] ; f2(x, 1 + 2)
+M mov rdx, [rbp-20] ; f2(x, 1 + 2)
+M call $f2 ; f2(x, 1 + 2)
+M mov rsp, rbp ; выход main
+M pop rbp ; выход main
+M ret ; выход main
+"""),
 ]

@@ -6,7 +6,9 @@
        ошибки конструкций v2; DEMO_WALL / DEMO_WALL_PEG — программа
        полного круга v1 («U-WALL-OK 37»); DEMO_WALL2 / DEMO_WALL2_PEG —
        полный круг v2 (массивы, * / %, break/continue, && / ||, куча
-       HeapAlloc; «U-WALL2-OK 85»); big_source() / big_source2() —
+       HeapAlloc; «U-WALL2-OK 85»); DEMO_NEST / DEMO_NEST_PEG — полный
+       круг фикса №19 (вложенные вызовы в аргументах + call-утверждения
+       с выражениями; «U-NEST-OK 4C»); big_source() / big_source2() —
        большие детерминированные исходники стресс-теста.
 Функция: эталоны секций 9 батареи (T-E6-20..24 и T-E6-31..35).
 """
@@ -210,6 +212,77 @@ end
 DEMO_WALL2_PEG = """\
 ; UNIVERSAL / PEG v1 / обёртка WALL v2 (SPEC/11)
 !module walldemo2
+!entry 1200
+!idata 1000 28
+!iat 1028 48
+!stackcom 4000
+!heapcom 4000
+"""
+
+# Полный круг фикс №19 (E6.4d-4/2): вложенные вызовы в аргументах и
+# call-утверждения с выражениями-аргументами. Печатает "U-NEST-OK 4C":
+# s = f2(3, g2(4)) = 8; + f2(1, f2(2, 3)) = 6 -> 14; call-утверждение
+# f2(s, 1 + 2) -> w2 = 17 -> s = 31; + f2(f2(1, 2), 3) = 6 -> 37;
+# + g2(g2(s)) = 39 -> 76 = 0x4C. При старом (ломаном) стейджинге
+# C-слотов внешний вызов получал аргументы вложенного — «U-NEST-OK 54».
+DEMO_NEST = """\
+; UNIVERSAL / WALL v1 / демонстрация: вложенные вызовы в аргументах
+; (фикс №19: базы C-слотов) и call-утверждения с выражениями.
+; Печатает "U-NEST-OK 4C" и выходит.
+
+ext GetStdHandle
+ext WriteFile
+ext ExitProcess
+
+str msg = 'U-NEST-OK '
+
+var out
+var w2
+
+func f2(a, b)
+    w2 = a + b
+    return a + b
+end
+
+func g2(a)
+    return a + 1
+end
+
+func main
+    var s
+    var h
+    s = 0
+    s = f2(3, g2(4))
+    s = s + f2(1, f2(2, 3))
+    f2(s, 1 + 2)
+    s = s + w2
+    s = s + f2(f2(1, 2), 3)
+    s = s + g2(g2(s))
+    h = GetStdHandle(-11)
+    WriteFile(h, msg, len(msg), &out, 0)
+    setb(&out, 0, hexnib(s >> 4))
+    setb(&out, 1, hexnib(s & 15))
+    setb(&out, 2, 13)
+    setb(&out, 3, 10)
+    WriteFile(h, &out, 4, &out, 0)
+    ExitProcess(0)
+end
+
+func hexnib(n)
+    var t
+    t = n & 15
+    if t < 10
+        t = t + 48
+    else
+        t = t + 55
+    end
+    return t
+end
+"""
+
+DEMO_NEST_PEG = """\
+; UNIVERSAL / PEG v1 / обёртка WALL v1 (SPEC/11)
+!module walldemo3
 !entry 1200
 !idata 1000 28
 !iat 1028 48

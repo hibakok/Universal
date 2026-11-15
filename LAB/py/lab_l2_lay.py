@@ -41,7 +41,13 @@ class Layout:
 
     Базовые слоты: параметры (по 1) + локали в порядке объявления
     (скаляр 1 слот, массив a[n] — n слотов; a[0] — самый глубокий).
-    Адрес элемента i: rbp - 8*(p + n - i), где p — первый слот массива."""
+    Адрес элемента i: rbp - 8*(p + n - i), где p — первый слот массива.
+
+    Вложенные вызовы (фикс №19): C-слоты нумеруются с базы — base
+    вложенного вызова = base объемлющего + число уже застейдженных
+    им аргументов; maxc = max по вызовам (base + n / base + min(n,4)).
+    Стейт: cact (число активных вызовов), ccur (base+staged самого
+    внутреннего активного — читается _call при входе)."""
 
     def __init__(self, fn, names, funcparams, gsizes):
         self.fn = fn
@@ -61,6 +67,8 @@ class Layout:
         self.nbase = idx
         self.maxd = self.maxc = 0
         self.setb = self.ext5 = self.astore = False
+        self.cact = 0                      # фикс №19: вложенность вызовов
+        self.ccur = 0                      # base+staged внутреннего активного
         self._scan(fn["body"])
         ns = (3 if (self.setb or self.astore) else 0) + \
             (1 if self.ext5 else 0)
@@ -73,11 +81,17 @@ class Layout:
     def _call(self, name, args):
         kind = self.names.get(name)
         n = len(args)
-        self.maxc = max(self.maxc, min(n, 4) if kind == "ext" else n)
+        # фикс №19: база вложенного вызова = base+staged объемлющего
+        base = self.ccur if self.cact > 0 else 0
+        self.cact += 1
+        self.maxc = max(self.maxc, base + (min(n, 4) if kind == "ext"
+                                           else n))
         if kind == "ext" and n == 5:
             self.ext5 = True
-        for a in args:
+        for i, a in enumerate(args, 1):
+            self.ccur = base + i - 1      # вложенные в аргументе i
             self._scan_expr(a)
+        self.cact -= 1
 
     def _scan_expr(self, e):
         """обход выражения: вызовы (в т.ч. вложенные) дают C-слоты"""
@@ -117,6 +131,8 @@ class Layout:
                     self._upd(need(st[1]))
             elif t == "call":
                 self._call(st[1], st[2])
+                # фикс №19: need аргументов call-УТВЕРЖДЕНИЯ (как assign)
+                self._upd(need(("call", st[1], st[2])))
             elif t == "setb":
                 self.setb = True
                 for e in (st[1], st[2], st[3]):

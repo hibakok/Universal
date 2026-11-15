@@ -159,7 +159,7 @@
 | `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
-| `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
+| `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
 | `KERNEL/L2-WALL/BYTECODE.md` | сводка образа, карта ветвей, данные | 263 |
 | `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 16 дефектов (+ срезы 1-3, E6.4d-1..2/1) | 486 |
 | `KERNEL/L2-WALL/VERIFY-E6D.md` | журнал верификации самохостинга E6.4d-2/2..3/1 (VERIFY.md у лимита 500) | 481 |
@@ -201,15 +201,15 @@
 | `LAB/py/lab_splice_cases.py` | эталоны SPLICE: 14 якорей, 13 ошибок, большой случай | 135 |
 | `LAB/py/lab_l2.py` | оракул WALL v1/v2, фронт: parse + семантика (v2: массивы, astore) | 349 |
 | `LAB/py/lab_l2_lex.py` | оракул WALL: лексер + разбор выражений/условий (v2: * / %, [i], && ||) | 270 |
-| `LAB/py/lab_l2_gen.py` | оракул WALL v1/v2, бэк: канон-эмиттер .b2 (guard, astore, imul/idiv; MAXLABELS 2000 — E6.4d-3/3-1) | 412 |
-| `LAB/py/lab_l2_lay.py` | оракул WALL: раскладка кадров (массивы, maxd/maxc/S) | 160 |
+| `LAB/py/lab_l2_gen.py` | оракул WALL v1/v2, бэк: канон-эмиттер .b2 (guard, astore, imul/idiv; MAXLABELS 2000 — E6.4d-3/3-1; базы C-слотов вложенных вызовов — фикс №19, E6.4d-4/2) | 426 |
+| `LAB/py/lab_l2_lay.py` | оракул WALL: раскладка кадров (массивы, maxd/maxc/S; базы C-слотов + maxd call-утверждений — фикс №19) | 176 |
 | `LAB/py/lab_l2_err.py` | ошибка компиляции WallError (лист-кирпич) | 14 |
-| `LAB/py/lab_l2_cases.py` | якоря WALL v1: 4 полных + 6 фрагментных (вручную) | 409 |
+| `LAB/py/lab_l2_cases.py` | якоря WALL v1: 4 полных + 8 фрагментных (вручную; F17/F18 — фикс №19) | 497 |
 | `LAB/py/lab_l2_cases2.py` | якоря WALL v2: 2 полных + 7 фрагментных (вручную, E6.4c) | 440 |
 | `LAB/py/lab_l2_mdm.py` | эталоны WALL срез 1: 9 якорей + 5 ошибок + big_mdm + DEMO_MDM (E6.4c-3/3b) | 205 |
 | `LAB/py/lab_l2_bc.py` | эталоны WALL срез 2: 7 якорей + BC_ERR_NAMES/«break 1» + big_bc + DEMO_BC | 260 |
 | `LAB/py/lab_l2_cc.py` | эталоны WALL срез 3: 11 якорей + 10 ошибок + big_cc + DEMO_CC | 281 |
-| `LAB/py/lab_l2_prog.py` | эталоны WALL: 26+13 ошибок, демо-круги v1/v2, big_source 1/2 | 330 |
+| `LAB/py/lab_l2_prog.py` | эталоны WALL: 26+13 ошибок, демо-круги v1/v2/nest, big_source 1/2 | 403 |
 | `LAB/py/lab_enc_cases.py` | эталоны ENC: 117 якорей, 27 ошибок, демо-круг | 264 |
 | `LAB/py/lab_x86.py` | декодер подмножества x86-64 (SPEC/05; E6.4c: imul/idiv/cqo) | 330 |
 | `LAB/py/lab_cpu.py` | эмулятор: регистры, флаги, поток, умножение/деление (#DE); ускорение 1.45x — E6.4d-3/3-1 | 447 |
@@ -220,17 +220,18 @@
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36; пределы enc 1 МиБ (E6.4d-4) и brick 512 КиБ/2048 меток — E6.4f) | 286 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall2.py` | секция 10 батареи: инструмент wall.exe (T-E6-25..30 + T-E6-50 — предел меток выхода 2000, граница 2000/2001; E6.4d-3/3-1) | 166 |
-| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 (T-E6-37..48; big_source2, структурные списки якорей/ошибок) | 249 |
-| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 (ВСЕ статы тел прохода 1) == оракулу parse (T-E6-49a/b/c/d, корпус 178: 161 сравнимо / 56 код-0 / 17 вне класса; E6.4d-3/3) | 205 |
+| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 + фикс №19 (T-E6-37..48, 51; big_source2, DEMO_NEST-круг) | 258 |
+| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 (ВСЕ статы тел прохода 1) == оракулу parse (T-E6-49a/b/c/d, корпус 180: 163 сравнимо / 58 код-0 / 17 вне класса — F17/F18 вошли автоматически, фикс №19) | 205 |
 | `LAB/py/lab_t_wallself_corpus.py` | корпус секции 12: пул источников T-E6-49d (v1/v2/E1/E2 + микроканарейки E6.4d-2/3..3/2 + big 1/2; только ASCII) | 184 |
 | `LAB/py/lab_t_wallself_model.py` | модель класса эквивалентности каркаса (E6.4d-3/2..3/3): _expect_line по строкам _lex — perr/cerr, стек блоков bstk (func/if/else/while), kw-патологии str/ext (_kw_falls) | 225 |
-| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 2286 |
+| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 2542 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1; исторический — границы в духе своей эпохи) | 267 |
 | `LAB/ai/enc_build_lim2.py` | (частное) пересборка M1-ENC + dev-тесты предела 1 МиБ (E6.4d-4; максимум 0xFFFFF — dev-only) | 284 |
 | `LAB/ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты | 228 |
 | `LAB/ai/splice_build_lim.py` | (частное) пересборка M1-SPLICE + dev-тесты пределов 256 КиБ (E6.4e-2) | 344 |
-| `LAB/ai/wall_build.py` | (частное) пересборка M2-WALL (idata — точная метка :idt, срез 4b) | 116 |
+| `LAB/ai/wall_build.py` | (частное) пересборка M2-WALL (idata — точная метка :idt, срез 4b; сборка после фикса №19 — E6.4d-4/2) | 116 |
+| `LAB/ai/bytecode_rows.py` | (частное) перенос адресов карты ветвей BYTECODE.md §2 при пересборке (якорь-метки; фикс №19) | 165 |
 | `LAB/ai/wall_test.py` | (частное) dev-тест wall.exe v1 (E6.4b) | 100 |
 | `LAB/ai/wall_test_v2.py` | (частное) dev-тест среза 1: * / %, v1/v2, «U-MDM-OK 52» (эталоны — lab_l2_mdm.py) | 183 |
 | `LAB/ai/wall_test_bc.py` | (частное) dev-тест среза 2: break/continue, дефект №15, «U-BC-OK 25» (эталоны — lab_l2_bc.py) | 179 |
@@ -342,3 +343,21 @@ LAB — измерительный прибор (Python только здесь)
   ~90 с); .b2 каркаса теперь 47% предела enc. Спецификация
   SPEC/09 + реестры M1-ENC/M1-ENC-S/CARD/BYTECODE/VERIFY/T-L1-ENC
   синхронизированы.**
+  **E6.4d-4/2 ВЫПОЛНЕН: дефект №19 закрыт полностью** — вложенные
+  вызовы в аргументах и call-утверждения с выражениями: канон SPEC/11
+  п.5/8 — БАЗЫ C-слотов (аргумент i вложенного вызова — C(base+i),
+  base = base_объемлющего + его застейджено; maxc = max(base+n)),
+  maxd call-утверждений = need (как присваивание); оракул
+  lab_l2_lay/lab_l2_gen; wall.exe: P014 рамочные счётчики + pc_cact/
+  pc_staged/pc_cbase (скаляры 18050/181F8/18078 — реюз мёртвых
+  tok_kind/pc_d/tmp7), P017 эмит C(base+cnt+1), P015 загрузки с
+  pc_cbase, P016 maxc с базой, P013a need из рамки, S00D maxd;
+  каркас wall_self_pa/p1s/pp + wall.wall глобалы (локали рамки p_args);
+  якоря F17/F18 + DEMO_NEST («U-NEST-OK 4C» — семантическая канарейка:
+  старый оракул печатал «54»); T-E6-51 круг; корпус T-E6-49d
+  178 -> 180 (F17/F18 автоматически, сравнимо 161 -> 163); батарея
+  131 -> 132/132; wall.exe 27648 -> 28160 Б (тело +0x10C), SHA
+  E04BA41B…; 59 старых исходников — байт-в-байт (совместимость);
+  инструмент LAB/ai/bytecode_rows.py — перенос адресов BYTECODE.md §2
+  (пойман дрейф карты от частичных обновлений прошлых сессий —
+  устаревшие строки исправлены, полный аудит — очередь).**

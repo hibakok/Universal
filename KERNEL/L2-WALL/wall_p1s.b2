@@ -283,9 +283,15 @@ M mov rcx, [r13+18068] ;S00D вызов-утверждение
 M mov [r13+18070], rcx ;S00D
 M mov rcx, 1 ;S00D
 M call $p_args ;P014
+M mov [rbp-20], rax ;S00D need (max need аргументов — фикс №19)
 M mov rcx, [rbp-10] ;S00D
 M mov rdx, [rbp-18] ;S00D
 M call $call_stats ;P016
+M mov rax, [rbp-20] ;S00D
+M cmp [r13+18090], rax ;S00D st_maxd (фикс №19)
+M jge $p1c_md ;S00D
+M mov [r13+18090], rax ;S00D
+:p1c_md
 M call $at_end_chk ;P002
 M jmp $p1n_ret ;S00D
 ; ---- v2: e[i]... = значение (S-стейдинг, оракул lab_l2_lay) ----

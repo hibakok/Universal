@@ -28,6 +28,11 @@
          T-E6-40 — ERRORS2 целиком первыми + экстра срезов без
          дубликатов (было 42 записи с 2 повторами — фильтры
          BC/ARR/IX_ERR_NAMES удалены, полнота ERRORS2 — по построению).
+         E6.4d-4/2 (фикс №19): якоря F17/F18 (вложенные вызовы в
+         аргументах + call-утверждения с выражениями) вошли в T-E6-26
+         (якоря v1) и корпус T-E6-49d автоматически (+2 записи);
+         новый T-E6-51 — полный круг DEMO_NEST (семантическая канарейка
+         баз C-слотов: старый стейджинг печатал бы «U-NEST-OK 54»).
 """
 import os
 import tempfile
@@ -213,6 +218,10 @@ def _t_wall_v2(check, kpath, kfile, kernel_host):
             lab_l2_prog.DEMO_WALL2, lab_l2_prog.DEMO_WALL2_PEG,
             b"U-WALL2-OK 85\r\n",
             "T-E6-47 полный круг wall2 (U-WALL2-OK 85)")
+    _circle(check, wall, enc_exe, brick_exe, pegen_exe,
+            lab_l2_prog.DEMO_NEST, lab_l2_prog.DEMO_NEST_PEG,
+            b"U-NEST-OK 4C\r\n",
+            "T-E6-51 полный круг nest (U-NEST-OK 4C)")
 
     # T-E6-45: big-выходы срезов кодируются — оракулы enc+brick
     # (достаточно: wall == оракулу — T-E6-39, а enc.exe/brick.exe ==

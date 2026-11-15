@@ -41,6 +41,8 @@ class Gen:
         self.k = 0            # счётчик меток _if/_w
         self.wstack = []      # v2: стек k объемлющих while (break/continue)
         self.nlab = 0         # контроль лимита меток brick
+        self.cact = 0         # фикс №19: число активных вызовов
+        self.ccur = 0         # base+staged внутреннего активного вызова
 
     def m(self, cmt, text):
         self.out.append("M %s ; %s" % (text, cmt))
@@ -374,17 +376,25 @@ class Gen:
             raise WallError("%r — функция, не значение" % name, no)
 
     def call(self, name, args, no, d, lay, want, src):
+        """Вызов (SPEC/11 п.5/8, фикс №19): аргумент i стейджится в
+        C-слот (base+i), base = base объемлющего + его staged на
+        момент старта этого вызова (ccur при входе); вложенные вызовы
+        в аргументах не затирают чужие C-слоты; загрузки после
+        стейджинга — с той же базой."""
         kind = self.names.get(name)
+        base = self.ccur if self.cact > 0 else 0
+        self.cact += 1
         if kind == "func":
             if len(args) != self.fp[name]:
                 raise WallError("функция %s ожидает %d аргументов, получено %d"
                                 % (name, self.fp[name], len(args)), no)
             for i, a in enumerate(args, 1):
+                self.ccur = base + i - 1
                 self.expr(a, d, lay, src)
-                self.m(src, "mov [rbp-%s], r10" % _hex(lay.c(i)))
+                self.m(src, "mov [rbp-%s], r10" % _hex(lay.c(base + i)))
             for i in range(len(args)):
                 self.m(src, "mov %s, [rbp-%s]"
-                       % (ARGREG[i], _hex(lay.c(i + 1))))
+                       % (ARGREG[i], _hex(lay.c(base + i + 1))))
             self.m(src, "call $%s" % name)
             if want:
                 self.m(src, "mov r10, rax")
@@ -392,14 +402,15 @@ class Gen:
             if len(args) > 5:
                 raise WallError("ext-вызов %s: больше 5 аргументов" % name, no)
             for i, a in enumerate(args, 1):
+                self.ccur = base + i - 1
                 self.expr(a, d, lay, src)
                 if i <= 4:
-                    self.m(src, "mov [rbp-%s], r10" % _hex(lay.c(i)))
+                    self.m(src, "mov [rbp-%s], r10" % _hex(lay.c(base + i)))
                 else:
                     self.m(src, "mov [rbp-%s], r10" % _hex(lay.s(3)))
             for i in range(min(len(args), 4)):
                 self.m(src, "mov %s, [rbp-%s]"
-                       % (ARGREG[i], _hex(lay.c(i + 1))))
+                       % (ARGREG[i], _hex(lay.c(base + i + 1))))
             if len(args) == 5:
                 self.m(src, "mov r10, [rbp-%s]" % _hex(lay.s(3)))
                 self.m(src, "mov [rsp+20], r10")
@@ -407,6 +418,9 @@ class Gen:
             if want:
                 self.m(src, "mov r10, rax")
         elif kind is None:
+            self.cact -= 1
             raise WallError("неизвестное имя %r" % name, no)
         else:
+            self.cact -= 1
             raise WallError("%r — не функция" % name, no)
+        self.cact -= 1

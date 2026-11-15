@@ -179,6 +179,7 @@ M mov [r13+18088], rax ;P013
 :pp_call_args
 M mov rcx, [rbp-8] ;P013
 M call $p_args ;P014
+M mov [rbp-20], rax ;P013 need вызова (рамка — фикс №19)
 M mov rax, [r13+18080] ;P013
 M test rax, rax ;P013
 M jz $pp_call_st ;P013
@@ -192,7 +193,7 @@ M mov rcx, [rbp-18] ;P013
 M mov rdx, [rbp-10] ;P013
 M call $call_stats ;P016
 :pp_call_need
-M mov rax, [r13+181F0] ;P013
+M mov rax, [rbp-20] ;P013
 M jmp $pp_ret ;P013
 :pp_getb
 M mov ecx, 28 ;P013

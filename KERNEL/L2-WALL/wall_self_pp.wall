@@ -11,7 +11,9 @@
 ; wall.exe: emit_addr — проход 2); имя: getb(выр, выр) — need =
 ; max + 1; len(имя) — 0; вызов имя(аргументы) — pc_extflg по виду
 ; имени (ext — вид 3 ntab), p_args + call_stats части pa, need =
-; pc_argmax; прочее имя-значение — 0 (имя НЕ проверяется: emit_load —
+; возврат p_args (max need аргументов, фикс №19 — счёт в локaлях
+; рамки p_args, вложенные вызовы в аргументах не затирают объемлющего);
+; прочее имя-значение — 0 (имя НЕ проверяется: emit_load —
 ; проход 2); литерал-строка в выражении — ERR=FORMAT (pp_fail).
 ; p_prim: обёртка индексации — prim0, заглядывание '[': pp_strchk
 ; (база-имя не str — иначе ERR), pp_pcount (k пар вперёд, k > 0 ставит
@@ -83,9 +85,9 @@ func pp_prim0(d)
       if n != -1 && getq(tabmem + n * 40 + 16) == 3
         pc_extflg = 1
       end
-      p_args(d)
+      need = p_args(d)
       call_stats(iptr, ilen)
-      return pc_argmax
+      return need
     end
     ; имя-значение (проверка имени — проход 2, emit_load)
     return 0

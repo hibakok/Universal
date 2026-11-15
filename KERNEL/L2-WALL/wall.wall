@@ -116,6 +116,9 @@ var ple
 var pc_argcnt
 var pc_argmax
 var pc_extflg
+var pc_cact
+var pc_cbase
+var pc_staged
 var lay_lo
 var lay_hi
 var lf_size

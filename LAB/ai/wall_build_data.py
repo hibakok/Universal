@@ -148,8 +148,13 @@ SCALARS = [
     ("hstdout", 8), ("written", 8), ("srclen", 8), ("wa_len", 8),
     ("curline", 8), ("lineidx", 8), ("nlentries", 8), ("nlines_v", 8),
     ("lastnonempty", 8), ("textend", 8),
-    ("tok_kind", 8), ("tok_val", 8), ("tok_ptr", 8), ("tok_end", 8),
-    ("pc_cur", 8), ("pc_d", 8), ("pc_mode", 8), ("pc_extflg", 8),
+    # фикс №19 (E6.4d-4/2): pc_cact (было tok_kind — не использовался) —
+    # вложенность вызовов p_args; pc_cbase (было pc_d — не использовался)
+    # — база C-слотов только что закрытого вызова (для P015/P016);
+    # счёт/max need — в рамке P014
+    ("pc_cact", 8), ("tok_val", 8), ("tok_ptr", 8), ("tok_end", 8),
+    ("pc_cur", 8),
+    ("pc_cbase", 8), ("pc_mode", 8), ("pc_extflg", 8),
     ("st_maxd", 8), ("st_maxc", 8), ("st_setb", 8), ("st_ext5", 8),
     ("st_locoff", 8), ("st_loccnt", 8),
     ("lay_nbase", 8), ("lay_maxd", 8), ("lay_maxc", 8),
@@ -167,7 +172,9 @@ SCALARS = [
     ("cur_nameptr", 8), ("cur_namelen", 8), ("cur_fidx", 8),
     ("strbase", 8),
     ("tmp2", 8), ("tmp3", 8), ("tmp4", 8), ("tmp5", 8), ("tmp6", 8),
-    ("tmp7", 8), ("tmp8", 8),
+    # фикс №19: pc_staged (было tmp7) — стейджинг самого внутреннего
+    # АКТИВНОГО вызова (вход-база/выход-восстановление — рамка P014)
+    ("pc_staged", 8), ("tmp8", 8),
 ]
 BSTK_SIZE = 3072 * 32  # дефект №15: 4 поля × 8 Б = 32 Б/запись (было 24 —
                     # push if затирал lineidx объемлющего while); площадь
