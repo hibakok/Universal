@@ -84,7 +84,7 @@ H C6 01 00 ; K1-G001 mov byte [rcx],0 (NUL-сентинел)
 H B9 01 00 00 00 ; K1-G001 mov ecx,1 (пассаж 1: метки и длины)
 H E8 $assemble_pass ; K1-G001 call assemble_pass
 H 89 05 $outlen ; K1-G001 mov [rip+outlen],eax (файловая длина)
-H 3D 00 00 01 00 ; K1-G001 cmp eax,0x10000 (предел imagebuf)
+H 3D 00 00 02 00 ; K1-G001 cmp eax,0x20000 (предел тела 128 КиБ, E6.4g-2)
 H 72 $ok4:1 ; K1-G001 jb ok4
 H B9 07 00 00 00 ; K1-G001 mov ecx,7 (ERR=BIG OUT)
 H E8 $print_error ; K1-G001 call print_error

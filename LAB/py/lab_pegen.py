@@ -80,8 +80,8 @@ def wrap(body, peg_text):
     """Тело секции + PEG -> EXE (bytes). Формулы — SPEC/07."""
     p = parse_peg(peg_text)
     imgsize = len(body)
-    if imgsize > 0x10000:
-        raise ValueError("образ больше 64 КиБ")
+    if imgsize > 0x20000:
+        raise ValueError("образ больше 128 КиБ (E6.4g-3; было 64 КиБ)")
     vsize = imgsize + p["bss"]
     raw_size = _align(imgsize, 0x200)
     hdr = bytearray(SKELETON)

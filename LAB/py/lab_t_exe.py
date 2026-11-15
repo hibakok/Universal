@@ -1,14 +1,15 @@
-"""lab_t_exe.py — секции 7-8b батареи: инструменты enc.exe, splice.exe
-и brick.exe.
+"""lab_t_exe.py — секции 7-8b батареи: инструменты enc.exe, splice.exe,
+brick.exe и pegen.exe.
 
 Вход:  run(check, kpath, kfile, kernel_host) — колбэк и хелперы батареи.
 Выход: заполняет PASS/FAIL через check; секции описаны в TESTS/T-L1-ENC.md,
-       TESTS/T-L1-SPLICE.md и TESTS/T-L1-BRICK.md.
+       TESTS/T-L1-SPLICE.md, TESTS/T-L1-BRICK.md и TESTS/T-L0-PEGEN.md.
 Функция: T-E6-05..11 (enc == оракулу, самохостинг на разрезе),
          T-E6-12..18 (splice: якоря, отвержение, разрезы репозитория,
-         самохостинг собственного include) и T-E6-36 (brick: пределы
-         1 МиБ / 2048 меток, E6.4g-1). Выделено из lab_verify.py по
-         лимиту 500 строк (методология LAB).
+         самохостинг собственного include), T-E6-36 (brick: пределы
+         1 МиБ / 2048 меток / тело 128 КиБ — E6.4g-1/E6.4g-2) и
+         T-E6-53 (pegen: предел образа 128 КиБ — E6.4g-3). Выделено из
+         lab_verify.py по лимиту 500 строк (методология LAB).
 """
 import os
 import tempfile
@@ -16,6 +17,7 @@ import tempfile
 import lab_brick
 import lab_enc
 import lab_enc_cases
+import lab_pegen
 import lab_run
 import lab_splice
 import lab_splice_cases
@@ -252,7 +254,7 @@ def _t_splice(check, kpath, kfile, kernel_host):
 
 # ------------------------------------------------------------------ 8b
 def _t_brick(check, kpath, kfile, kernel_host):
-    """Инструмент brick.exe: пределы E6.4f-2 (512 КиБ / 2048 меток)."""
+    """Инструмент brick.exe: пределы E6.4g-1/E6.4g-2/E6.4f-2."""
     brick_exe = kpath("L1-BRICK/brick.exe")
 
     # T-E6-36: пределы 1 МиБ и 2048 меток (E6.4g-1: подъём 512 КиБ ->
@@ -271,17 +273,71 @@ def _t_brick(check, kpath, kfile, kernel_host):
     line1m = b";" + b"A" * (0x100000 - 2) + b"\n"
     r3 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": line1m})
-    check("T-E6-36 пределы brick 1 МиБ/2048 меток (512К+20 и 1025 меток"
-          " приняты / 1М отвергнут)",
+    # E6.4g-2: предел ТЕЛА 64 КиБ -> 128 КиБ (мотив: тело каркаса
+    # wall.wall после среза B 60967/64К = 93%, срез C добавит ~10-15 КБ;
+    # jb — принят < 0x20000): 0x10000 (старый предел — отверг бы) и
+    # 0x1FFFF (максимум) приняты; 0x20000 отвергнут ERR=BIG OUT (код 10)
+    src64 = b"DZ 10000\n"
+    want64 = lab_brick.assemble(src64)
+    r4 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": src64})
+    src127 = b"DZ 1FFFF\n"
+    want127 = lab_brick.assemble(src127)
+    r5 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": src127})
+    src128 = b"DZ 20000\n"
+    r6 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": src128})
+    check("T-E6-36 пределы brick 1 МиБ/2048 меток/тело 128 КиБ"
+          " (512К+20 и 1025 меток и тела 64К/128К-1 приняты /"
+          " 1М и тело 128К отвергнуты)",
           r1.exit_code == 0 and r1.files.get("t.bin") == b"" and
           r2.exit_code == 0 and r2.files.get("t.bin") == want1025 and
           r3.exit_code == 7 and
-          r3.stdout == b"U-L1-BRICK ERR=BIG SRC\r\n",
+          r3.stdout == b"U-L1-BRICK ERR=BIG SRC\r\n" and
+          r4.exit_code == 0 and r4.files.get("t.bin") == want64 and
+          r5.exit_code == 0 and r5.files.get("t.bin") == want127 and
+          r6.exit_code == 10 and
+          r6.stdout == b"U-L1-BRICK ERR=BIG OUT\r\n",
+          "шагов=%d+%d+%d+%d+%d+%d" % (r1.steps, r2.steps, r3.steps,
+                                        r4.steps, r5.steps, r6.steps))
+
+
+# ------------------------------------------------------------------ 8c
+def _t_pegen_lim(check, kpath, kfile, kernel_host):
+    """Инструмент pegen.exe: предел образа 128 КиБ (E6.4g-3)."""
+    pegen_exe = kpath("L0-PEGEN/pegen.exe")
+    peg = kfile("L0-PEGEN/pegen.peg").decode("latin1")
+
+    # T-E6-53: предел образа 64 КиБ -> 128 КиБ (мотив: тело каркаса
+    # wall.wall после среза C ~71-77 КБ — круг упал бы на шаге pegen
+    # ERR=BIG IMAGE; найден при разборе плана E6.4g-2 — поднимался
+    # только BIG OUT brick; jbe — принят и ровно 0x20000):
+    # 0x10001 (старый предел — отверг бы) и 0x20000 (максимум)
+    # приняты и == оракулу wrap; 0x20001 отвергнут ERR=BIG IMAGE
+    img65 = b"\x41" * 0x10001
+    want65 = lab_pegen.wrap(img65, peg)
+    r1 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
+                        {"a.bin": img65, "p.peg": peg.encode()})
+    img128 = b"\x42" * 0x20000
+    want128 = lab_pegen.wrap(img128, peg)
+    r2 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
+                        {"a.bin": img128, "p.peg": peg.encode()})
+    img129 = b"\x43" * 0x20001
+    r3 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
+                        {"a.bin": img129, "p.peg": peg.encode()})
+    check("T-E6-53 предел образа pegen 128 КиБ (64К+1 и 128К приняты =="
+          " оракулу / 128К+1 отвергнут)",
+          r1.exit_code == 0 and r1.files.get("o.exe") == want65 and
+          r2.exit_code == 0 and r2.files.get("o.exe") == want128 and
+          r3.exit_code == 6 and
+          r3.stdout == b"U-L0-PEGEN ERR=BIG IMAGE\r\n",
           "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
 
 
 def run(check, kpath, kfile, kernel_host):
-    """Исполнить секции 7-8b (инструменты enc/splice/brick)."""
+    """Исполнить секции 7-8c (инструменты enc/splice/brick/pegen)."""
     _t_enc_exe(check, kpath, kfile, kernel_host)
     _t_splice(check, kpath, kfile, kernel_host)
     _t_brick(check, kpath, kfile, kernel_host)
+    _t_pegen_lim(check, kpath, kfile, kernel_host)

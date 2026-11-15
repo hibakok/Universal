@@ -37,11 +37,11 @@
 @00B7 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok1
 @00BD B9 02 00 00 00 E8 77 02 00 00 ; K0-G041 mov ecx,2 (ERR=OPEN IMAGE) + call print_error
 @00C7 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл образа) + mov rcx,r12
-@00CD 48 8D 15 98 0E 01 00 41 B8 01 00 01 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8d,0x10001 (вместимость)
+@00CD 48 8D 15 98 0E 01 00 41 B8 01 00 02 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8d,0x20001 (вместимость, E6.4g-3)
 @00DA 4C 8D 0D 4F 0E 00 00 E8 CF 01 00 00 ; K0-G041 lea r9,[rip+imgsize] + call read_whole_dst
 @00E6 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok2
 @00EC B9 03 00 00 00 E8 48 02 00 00 ; K0-G041 mov ecx,3 (ERR=READ IMAGE) + call print_error
-@00F6 48 3D 00 00 01 00 76 0A ; K0-G041 cmp rax,0x10000 (предел образа) + jbe ok3
+@00F6 48 3D 00 00 02 00 76 0A ; K0-G041 cmp rax,0x20000 (предел образа 128 КиБ, E6.4g-3) + jbe ok3
 @00FE B9 04 00 00 00 E8 36 02 00 00 ; K0-G041 mov ecx,4 (ERR=BIG IMAGE) + call print_error
 @0108 4C 89 E1 E8 96 01 00 00 ; K0-G041 mov rcx,r12 + call close_file
 @0110 48 8D 0D E9 0C 00 00 E8 1D 01 00 00 ; K0-G041 lea rcx,[rip+fname_peg] + call open_file_read
@@ -72,7 +72,7 @@
 @01F1 E8 48 01 00 00 44 8B 05 67 0D 00 00 ; K0-G041 call print_error + mov r8d,[rip+srd]
 @01FD 44 2B 05 2C 0D 00 00 45 85 C0 ; K0-G041 sub r8d,[rip+imgsize] + test r8d,r8d
 @0207 74 1E 4C 89 E1 ; K0-G041 jz ok10 + mov rcx,r12
-@020C 48 8D 15 69 0D 02 00 E8 C5 00 00 00 ; K0-G041 lea rdx,[rip+zeropad] + call write_all
+@020C 48 8D 15 69 0D 03 00 E8 C5 00 00 00 ; K0-G041 lea rdx,[rip+zeropad] + call write_all
 @0218 48 85 C0 74 0A ; K0-G041 test rax,rax + jz ok10b
 @021D B9 09 00 00 00 E8 17 01 00 00 ; K0-G041 mov ecx,9 (ERR=WRITE OUT) + call print_error
 @0227 4C 89 E1 E8 77 00 00 00 ; K0-G041 mov rcx,r12 + call close_file

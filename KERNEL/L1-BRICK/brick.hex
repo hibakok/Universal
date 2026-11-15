@@ -80,7 +80,7 @@
 @012F B9 01 00 00 00 ; K1-G001 mov ecx,1 (пассаж 1: метки и длины)
 @0134 E8 0D 01 00 00 ; K1-G001 call assemble_pass
 @0139 89 05 6D 0A 00 00 ; K1-G001 mov [rip+outlen],eax (файловая длина)
-@013F 3D 00 00 01 00 ; K1-G001 cmp eax,0x10000 (предел imagebuf)
+@013F 3D 00 00 02 00 ; K1-G001 cmp eax,0x20000 (предел тела 128 КиБ, E6.4g-2)
 @0144 72 0A ; K1-G001 jb ok4
 @0146 B9 07 00 00 00 ; K1-G001 mov ecx,7 (ERR=BIG OUT)
 @014B E8 67 06 00 00 ; K1-G001 call print_error

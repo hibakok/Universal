@@ -74,7 +74,9 @@ pegen.exe <image.bin> <ctrl.peg> <out.exe>
 
 ## Ограничения v1
 
-- image.bin ≤ 0x10000 байт (предел 4-значных смещений ATOM v1);
+- image.bin ≤ 0x20000 байт (E6.4g-3 — мотив: тело каркаса wall.wall
+  после среза C ~71-77 КБ; было 64 КиБ 0x10000 — предел imagebuf;
+  jbe — принят и ровно 0x20000);
 - ctrl.peg < 0x10000 байт; имя файла ≤ 127 байт;
 - имя модуля ≤ 31 байта (заглушка ≤ 0x40 байт сsuffix-ом);
 - семантика значений не проверяется (ответственность .peg-файла —
@@ -89,7 +91,7 @@ pegen.exe <image.bin> <ctrl.peg> <out.exe>
 | 3 | `U-L0-PEGEN ERR=LONG NAME` | имя длиннее 127 байт |
 | 4 | `U-L0-PEGEN ERR=OPEN IMAGE` | image.bin не открыт |
 | 5 | `U-L0-PEGEN ERR=READ IMAGE` | ошибка чтения image.bin |
-| 6 | `U-L0-PEGEN ERR=BIG IMAGE` | image.bin больше 64 КиБ |
+| 6 | `U-L0-PEGEN ERR=BIG IMAGE` | image.bin больше 128 КиБ (E6.4g-3; было 64 КиБ) |
 | 7 | `U-L0-PEGEN ERR=OPEN PEG` | ctrl.peg не открыт |
 | 8 | `U-L0-PEGEN ERR=READ PEG` | ошибка чтения/размер ctrl.peg |
 | 9 | `U-L0-PEGEN ERR=FORMAT` | плохой формат PEG (в т.ч. нет обязательных директив) |
