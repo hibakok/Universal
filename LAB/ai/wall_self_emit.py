@@ -1,19 +1,23 @@
-"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3b, срез B).
+"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-1, срез C-1).
 
-Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B).
+Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1).
 Выход: [OK]/[FAIL] строки; код возврата 0/1.
 Функция: сборка каркаса полным кругом (wall.exe -> enc -> brick -> pegen,
          эмуляция LAB) и прогон EXE каркаса на матрице источников.
-         Срез B (функции): на классе источников, тела которых содержат
+         Срез C-1 (секции данных — K2-E009/E013/E014/E027/E028) замыкает
+         хвост выхода: на классе источников, тела которых содержат
          только var / голый return / end, выход каркаса обязан быть
-         байт-в-байт равен выходу оракула ЦЕЛИКОМ (если нет глобальных
-         str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции «; --- данные: ...»
-         (секции данных — срез C). Матрица покрывает: 0..8 ext (все
-         ветви импортов), 0..4 параметра (ARGREG rcx/rdx/r8/r9),
-         локальные массивы (nslots/framesize), v1/v2 (заголовок),
-         многозначные счётчики, пустую str, var-локали. Источник с
-         статами-выражениями (вне класса среза B) — регресс: код 0,
-         stdout пуст, отсутствие краха (bstk-механика).
+         байт-в-байт равен выходу оракула ЦЕЛИКОМ — ВКЛЮЧАЯ глобальные
+         str/var (секции данных: «:имя» + DB-строки <= 16 / «DZ 0» /
+         «DZ 8n»; до C-1 — только точный префикс до секции данных).
+         Матрица покрывает: 0..8 ext (все ветви импортов), 0..4
+         параметра (ARGREG rcx/rdx/r8/r9), локальные массивы
+         (nslots/framesize), v1/v2 (заголовок), многозначные счётчики,
+         пустую str («DZ 0»), экраны всех 6 видов, границу DB-строки
+         16/17 байтов, длинную str (класс дефекта №16), var-only,
+         отступы/«;»-хвосты объявлений (комментарий — строка карты
+         текстов). Источник со статами-выражениями (вне класса) —
+         регресс: код 0, stdout пуст, отсутствие краха (bstk-механика).
 Запуск: python3 LAB/ai/wall_self_emit.py  (из корня репозитория)
 """
 import os
@@ -63,35 +67,23 @@ def build_skeleton():
     b2 = r.files["s.b2"]
     h = {"s.b2": b2}
     r2 = lab_run.run_kv(ENC, ["s.b2", "s.brick"], h)
+    if r2.exit_code != 0:
+        return None, None
     h["s.brick"] = r2.files["s.brick"]
     r3 = lab_run.run_kv(BRICK, ["s.brick", "s.bin"], h)
+    if r3.exit_code != 0:
+        return None, None
     h["s.bin"] = r3.files["s.bin"]
     h["s.peg"] = lab_l2_prog.DEMO_WALL_PEG.encode()
     r4 = lab_run.run_kv(PEGEN, ["s.bin", "s.peg", "s.exe"], h)
-    if not (r2.exit_code == 0 and r3.exit_code == 0 and
-            r4.exit_code == 0 and r4.files.get("s.exe")):
-        return None, b2
+    if r4.exit_code != 0 or "s.exe" not in r4.files:
+        return None, None
     return r4.files["s.exe"], b2
 
 
-def oracle_full_prefix(src):
-    """(полный выход оракула; префикс среза B — до секции данных).
-
-    Секции данных («; --- данные: ...») — срез C: префикс среза B
-    кончается на последней строке последнего эпилога функции.
-    """
-    out = lab_l2.compile_wall(src)
-    lines = out.split("\n")
-    cut = None
-    for i, ln in enumerate(lines):
-        if ln.startswith("; --- данные:"):
-            cut = i
-            break
-    if cut is None:
-        enc = out.encode()
-        return enc, enc
-    prefix = ("\n".join(lines[:cut]) + "\n").encode()
-    return out.encode(), prefix
+def oracle_full(src):
+    """Полный выход оракула (срез C-1: сравнение ЦЕЛИКОМ, без префикса)."""
+    return lab_l2.compile_wall(src).encode("utf-8")
 
 
 SRC_8EXT = """\
@@ -128,10 +120,13 @@ end
 
 
 def _multi():
-    """Многозначные счётчики: 12 функций, 15 str, 12 var, ~130 строк."""
+    """Многозначные счётчики: 12 функций, 15 str, 22 var, ~130 строк."""
     parts = []
     parts.append("\n".join("var v%d" % i for i in range(10)))
+    parts.append("\n".join("var w%d[3]" % i for i in range(6)))
     parts.append("\n".join("str m%d = 'X%d'" % (i, i) for i in range(12)))
+    parts.append("\n".join("str n%d = 'Y%d,Z%d'" % (i, i, i)
+                           for i in range(3)))
     parts.append("\n".join("ext E%d" % i for i in range(6)))
     for i in range(11):
         parts.append("func f%d(x)\nend" % i)
@@ -150,19 +145,32 @@ def main():
         return 1
 
     cases = [
-        ("0 ext, 2 функции, голый return (полный)",
+        ("0 ext, 2 функции, голый return",
          "func add(a, b)\nend\nfunc main\n  return\nend\n"),
-        ("1 параметр + 0 параметров (полный)",
+        ("1 параметр + 0 параметров",
          "func work(x)\nend\nfunc main\n  var i\n  return\nend\n"),
-        ("4 параметра (r9, полный)",
+        ("4 параметра (r9)",
          "func q(a, b, c, d)\nend\nfunc main\n  return\nend\n"),
-        ("8 ext (полные hints, префикс: 10 var)",
+        ("8 ext + 10 var (полные hints + DZ-секция)",
          "\n".join("var v%d" % i for i in range(10)) + "\n" + SRC_8EXT),
-        ("локальные массивы (v2, framesize, полный)", SRC_LOCAL_ARR),
-        ("v2 глобальный массив + str (заголовок v2, префикс)",
+        ("локальные массивы (v2, framesize)", SRC_LOCAL_ARR),
+        ("v2 глобальный массив + str",
          "var a[3]\nvar s\nstr m = 'HI'\nfunc main\n  return\nend\n"),
-        ("многозначные счётчики (12 функций, префикс)", _multi()),
-        ("пустая str (префикс)", "str e = ''\nfunc main\n  return\nend\n"),
+        ("многозначные счётчики (12 функций, 15 str, 22 var)", _multi()),
+        ("пустая str (DZ 0)", "str e = ''\nfunc main\n  return\nend\n"),
+        ("str-only: экраны всех 6 видов",
+         "str s = 'a\\nb\\rc\\td\\0e\\\\f'\nfunc main\n  return\nend\n"),
+        ("граница DB-строки: 16/17 байтов",
+         "str a = '0123456789ABCDEF'\n"
+         "str b = '0123456789ABCDEFG'\nfunc main\n  return\nend\n"),
+        ("длинная str 42 Б — 3 строки DB (класс дефекта №16)",
+         "str u = 'U-L2-WALL CMDS: WALL <SRC.WALL> "
+         "<OUT.B2>'\nfunc main\n  return\nend\n"),
+        ("var-only: скаляр + массив",
+         "var g\nvar a[3]\nvar z[1]\nfunc main\n  return\nend\n"),
+        ("отступы и «;»-хвосты объявлений (карта текстов)",
+         "  var g ; комментарий\n\tstr s = 'ab' ; ещё\n"
+         "  func main\n    return\n  end\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")
@@ -171,32 +179,31 @@ def main():
     bad = []
     for name, src in cases:
         src_b = src.encode("utf-8")
-        out, prefix = oracle_full_prefix(src)
+        out = oracle_full(src)
         rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                              {"t.wall": src_b}).run()
         got = rs.files.get("t.b2", b"")
         if rs.exit_code != 0 or rs.stdout != b"":
             bad.append("%s (код=%s out=%r)" % (name, rs.exit_code,
                                                rs.stdout[:40]))
-        elif got != prefix:
-            bad.append("%s (префикс: получено %d Б, нужно %d Б)"
-                       % (name, len(got), len(prefix)))
+        elif got != out:
+            bad.append("%s (получено %d Б, нужно %d Б)"
+                       % (name, len(got), len(out)))
             if got:
-                n = min(len(got), len(prefix))
+                n = min(len(got), len(out))
                 for i in range(n):
-                    if got[i] != prefix[i]:
+                    if got[i] != out[i]:
                         print("   первое расхождение @%d:\n"
                               "   получено: %r\n   нужно:    %r"
                               % (i, got[max(0, i - 30):i + 30],
-                                 prefix[max(0, i - 30):i + 30]))
+                                 out[max(0, i - 30):i + 30]))
                         break
-        full = "ПОЛНЫЙ" if out == prefix else "префикс"
-        print("   %-44s %d Б / %d Б (%s; шагов=%d)"
-              % (name, len(got), len(prefix), full, rs.steps))
-    check("T-E6-52/dev: пролог+функции == оракулу (%d источников)"
-          % len(cases), not bad, "; ".join(bad[:3]))
+        else:
+            print("   %-56s %d Б (шагов=%d)" % (name, len(got), rs.steps))
+    check("T-E6-52+54/dev: функции+секции данных == оракулу "
+          "(%d источников)" % len(cases), not bad, "; ".join(bad[:3]))
 
-    # регресс: статы-выражения вне класса среза B — код 0, без краха
+    # регресс: статы-выражения вне класса среза — код 0, без краха
     src = ("func main\n  var i\n  i = 0\n  while i < 3\n    i = i + 1\n"
            "    if i == 2\n      i = 5\n    end\n  end\n  return 0\n"
            "end\n")

@@ -9,7 +9,7 @@
 | Назначение | Компилятор языка WALL v1/v2 (SPEC/11): исходник `.wall` -> текст BRICK v2 (`.b2`). Три прохода: полная лексика строк + карта текстов; разбор + таблицы имён + статистика кадров; эмитция канона SPEC/11 п.8. С E6.4c-3/1 понимает операторы `* / %`; с E6.4c-3/2 — `break`/`continue` (только в while); с E6.4c-3/3 — цепочки условий `&&` / `||` (guard-канон п.8, m=1 — выход дословно как v1); с E6.4c-3/4a — объявления массивов `var a[n]`, базы адресов, `len(массив)`; с E6.4c-3/4b — постфиксная qword-индексация `e[i]` (цепочки `p[0][1]`, индексация любого первичного) и astore `имя[выр] = выр` (S0/S1/S2-стейдинг; база — выражение). Выход байт-в-байт равен оракулу `LAB/py/lab_l2*.py` (правило R8, как enc в E6.2) |
 | Вход | командная строка Windows: `wall.exe <вход.wall> <выход.b2>` |
 | Выход | текст .b2 — детерминированный (канон эмиттера SPEC/11 п.8); коды 0 / 2 (мало аргументов) / 3 (имя > 127) / 4 (не открыт вход) / 5 (чтение) / 6 (`ERR=FORMAT AT=<строка>`) / 7 (вход > 128 КиБ) / 8 (выход не создан) / 9 (запись) |
-| Версия | E6.4d-4/3b (срез B прохода 2): ЭМИТЦИЯ ФУНКЦИЙ — цикл строк по карте текстов (p2_line — диспетчер kw формы wall.exe), заголовки func (p2_funchdr: ftab-раскладка + пролог E018 + push bstk), закрытие end (p2s_end: эпилог E019, если не last_ret), локали var (p2s_var), return (p2s_return), механика bstk для if/while/else + предел nlab 2000; НОВАЯ часть wall_self_f.wall — кадры E010/E011/E017/E018/E019; выход каркаса == оракулу байт-в-байт на классе «тела из var/голого return/end» — ЦЕЛИКОМ или префикс до секции данных (T-E6-52; dev wall_self_emit 9/9). До этого E6.4d-4/3a (срез A — пролог эмитции) + E6.4g-1 (предел brick 1 МиБ); E6.4d-4/2: фикс №19 — вложенные вызовы в аргументах (базы C-слотов: аргумент i вложенного — C(base+i), base = base_объемлющего + его застейджено; maxc = max(base+n)) + maxd call-утверждений (need, как присваивание); P014 — счёт в рамке, скаляры pc_cact/pc_staged/pc_cbase (реюз мёртвых tok_kind/pc_d/tmp7), P017/P015/P016 с базами, P013a need из рамки, S00D maxd; каркас wall_self_pa/p1s/pp синхронно (E6.4d-4/1: предел enc 1 МиБ; E6.4d-3/3-1: nlab 2000) |
+| Версия | E6.4d-4/3c-1 (срез C часть 1: СЕКЦИИ ДАННЫХ прохода 2): emit_cmt/E009 (« ; » + текст строки + LF; глобали cmt_ptr/cmt_len — аналог 181A0/A8), str_dlen/E013, str_emit/E014 + se_doline + esc_code (литерал -> DB-строки <= 16 + комментарий; буфер — локальный массив — класс дефекта №16 невозможен конструктивно) в wall_self_e.wall; НОВАЯ часть wall_self_d.wall — set_cmt + emit_strdata/E027 (:имя + DZ 0 / DB-строки) + emit_globdata/E028 (:имя + DZ 8n); pass2 печатает заголовки секций только при непустой секции; класс срезов A+B стал давать ПОЛНЫЙ выход оракула и при глобальных str/var (T-E6-52 полный выход + НОВЫЙ T-E6-54; dev wall_self_emit 3/3 = 13 источников). До этого E6.4d-4/3b (срез B — эмитция ФУНКЦИЙ: p2_line/p2_funchdr/p2s_end/var/return + механика bstk if/while/else + предел nlab 2000; НОВАЯ часть wall_self_f.wall — кадры E010/E011/E017/E018/E019), E6.4d-4/3a (срез A — пролог эмитции) + E6.4g-1..3 (пределы конвейера; потолок тела 128 КиБ сквозной); E6.4d-4/2: фикс №19 — вложенные вызовы в аргументах (базы C-слотов), maxd call-утверждений; каркас wall_self_pa/p1s/pp синхронно (E6.4d-4/1: предел enc 1 МиБ; E6.4d-3/3-1: nlab 2000) |
 | Размер | 28160 байт (0x6E00); тело 27262 Б (0x6A5E; +0x10C — фикс №19) |
 | Платформа | Windows x64, консольная подсистема, PE32+ |
 | Импорты | kernel32.dll: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFileA, ReadFile, CloseHandle |
@@ -104,9 +104,10 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
 | `wall_self_pd.wall` | часть каркаса: объявления (E6.4d-2/3) — p1_decl (S003): var/str/ext, порядок проверок == wall.exe; заголовки func (E6.4d-2/4) — p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab (окно дублей — local_find) | 
 | `wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 — p1s_var (S006), p1s_end (S007); E6.4d-3/2: p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D: вызов/astore/присваивание); E6.4d-3/3: p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F break/continue) |
 | `wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8 x 512 симв. = 256 Б; таблица off/len строк в комментариях; генератор LAB/ai/wall_self_data.py, источник — wall_data.b2) |
-| `wall_self_e.wall` | часть каркаса: примитивы вывода (E6.4d-4/3a) — blob_dec + init_blob (декодер блоба в sblob = outmem+0), out_ch/copy/str/line, out_hex/hex2/dec, lower_copy, get_ext (E001..E008/E012/E025) |
+| `wall_self_e.wall` | часть каркаса: примитивы вывода и данных (E6.4d-4/3a, 3c-1) — blob_dec + init_blob (декодер блоба в sblob = outmem+0), out_ch/copy/str/line, out_hex/hex2/dec, lower_copy, get_ext (E001..E008/E012/E025), emit_cmt (E009), str_dlen (E013), str_emit + se_doline + esc_code (E014) |
+| `wall_self_d.wall` | часть каркаса: СЕКЦИИ ДАННЫХ (E6.4d-4/3c-1) — set_cmt (строка №ln -> cmt_ptr/cmt_len из карты smem), emit_strdata (E027: :имя + nlab++ + «DZ 0»/DB-строки), emit_globdata (E028: :имя + nlab++ + «DZ 8n» + emit_cmt) |
 | `wall_self_f.wall` | часть каркаса: КАДРЫ ФУНКЦИЙ (E6.4d-4/3b) — emit_kadr/emit_vyhod (E010), emit_lab (E011), calc_framesize (E017: ftab[curf], align16 через (v+15)/16*16, +0x30), emit_prologue (E018: параметры ARGREG[i] rcx/rdx/r8/r9 if-цепочкой), emit_epilogue (E019) |
-| `wall_self_y.wall` | часть каркаса: проход 2, срезы A+B (E6.4d-4/3a..3b) — pass2 (Y001: пролог + цикл строк по smem + предел nlab 2000), emit_header (E015), emit_imports (E026), emit_entry (E016) + p2_line (Y002 — диспетчер kw), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (Y003/Y004/Y006/Y007/Y005/Y008 — эмитция функций + МЕХАНИКА bstk для if/while/else) |
+| `wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1 (E6.4d-4/3a..3c-1) — pass2 (Y001: пролог + цикл строк по smem + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab 2000), emit_header (E015), emit_imports (E026), emit_entry (E016) + p2_line (Y002 — диспетчер kw + cmt_ptr/cmt_len текущей строки), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (Y003/Y004/Y006/Y007/Y005/Y008 — эмитция функций + МЕХАНИКА bstk для if/while/else) |
 | `wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/3) — p1_line (S002: kw-плечи var/end/else/if/while/return/setb/break/continue + namestmt), pass1 (S001) + пост-проверка main, set_lastline (N004) |
 | `wall.b2` | корень: поток X/C/G + 20 `!include` частей |
 | `wall_svc.b2` | ветви H/G/U/C/F — печать, ошибки, командная строка, файлы (реинкарнации K1-* из enc) |
@@ -199,14 +200,18 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
   E6.4d-4/3b — ФУНКЦИИ: wall_self_y.wall (p2_line Y002 +
   p2_funchdr Y00A + p2s_var/end/return Y003/Y004/Y008 +
   механика bstk if/while/else Y005/Y006/Y007) + НОВАЯ часть
-  wall_self_f.wall (кадры E010/E011/E017/E018/E019). Выход каркаса
-  == оракулу байт-в-байт на классе «тела из var/голого
-  return/end» — ЦЕЛИКОМ (без глобальных str/var) или точный
-  префикс до секции данных (T-E6-52; dev wall_self_emit 9/9);
-  статы-выражения — код 0 без эмитции (вне класса; bstk-механика
-  сохраняет стек блоков). Секции данных (E027/E028), статы и
-  выражения (E009, E02A-E02D, E036-E038, плечи P010..P018
-  в режиме эмитции) — срезы C+.
+  wall_self_f.wall (кадры E010/E011/E017/E018/E019).
+  E6.4d-4/3c-1 — СЕКЦИИ ДАННЫХ: emit_cmt E009 + str_dlen E013 +
+  str_emit E014 (+se_doline, esc_code) в wall_self_e.wall; НОВАЯ
+  часть wall_self_d.wall (set_cmt + emit_strdata E027 +
+  emit_globdata E028); глобали cmt_ptr/cmt_len корня; p2_line
+  ставит их текущей строкой. Выход каркаса == оракулу байт-в-байт
+  на классе «тела из var/голого return/end» — ЦЕЛИКОМ, ВКЛЮЧАЯ
+  глобальные str/var (T-E6-52 + T-E6-54; dev wall_self_emit 3/3
+  = 13 источников); статы-выражения — код 0 без эмитции (вне
+  класса; bstk-механика сохраняет стек блоков). Статы и выражения
+  (E020-E024, E02A-E02D, E034-E038, плечи P010..P018 в режиме
+  эмитции) — срезы C-2+.
 
 ## Примеры
 

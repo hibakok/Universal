@@ -66,9 +66,17 @@
 ; B: тела только с var/голым return/end — выход == оракулу
 ; байт-в-байт (при глобальных str/var — точный префикс до секции
 ; данных); прочие статы дают код 0 без эмитции (вне класса).
-; Выходной .b2 при успехе — ПРОЛОГ эмитции (срез A: заголовок/
-; импорты/вход; срез B: функции) — срезы C+: статы, выражения,
-; секции данных.
+; E6.4d-4/3c-1: проход 2, срез C часть 1 — СЕКЦИИ ДАННЫХ (хвост
+; выхода): примитивы emit_cmt E009 + str_dlen E013 + str_emit E014
+; (часть wall_self_e.wall) и НОВАЯ часть wall_self_d.wall —
+; emit_strdata E027 (строки: «:имя» + DB <= 16 / «DZ 0») +
+; emit_globdata E028 (глобальные var: «:имя» + «DZ 8n»); глобали
+; cmt_ptr/cmt_len (текст строки для комментариев — ставит p2_line
+; текущей строки и set_cmt строки объявления); класс срезов A+B
+; стал давать ПОЛНЫЙ выход оракула и при глобальных str/var.
+; Выходной .b2 при успехе — пролог эмитции (срез A: заголовок/
+; импорты/вход; срез B: функции) + секции данных (срез C-1:
+; строки/глобальные var) — остальные статы/выражения — срезы C+.
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
 ; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
 ; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
@@ -159,6 +167,8 @@ var st_fbase
 var st_ifcnt
 var st_fptr
 var st_flen
+var cmt_ptr
+var cmt_len
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -185,6 +195,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_p1.wall
 !include wall_self_p1s.wall
 !include wall_self_e.wall
+!include wall_self_d.wall
 !include wall_self_f.wall
 !include wall_self_y.wall
 

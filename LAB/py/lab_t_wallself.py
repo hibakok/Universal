@@ -67,13 +67,20 @@
          p2s_end/var/return + механика bstk if/while/else + кадры
          E010/E011/E017/E018/E019): на классе источников, тела
          которых — только var / голый return / end, выход каркаса
-         обязан быть байт-в-байт равен выходу оракула ЦЕЛИКОМ
-         (без глобальных str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции
-         «; --- данные: ...» (секции данных — срез C). Матрица:
+         обязан быть байт-в-байт равен выходу оракула. Матрица:
          0/8 ext, 0..4 параметра (ARGREG), v2 (заголовок + локальные
          массивы), многозначные счётчики. Прочие статы тел — код 0
          без эмитции (вне класса; bstk-механика — регресс
          T-E6-49d).
+         E6.4d-4/3c-1 (срез C часть 1 — СЕКЦИИ ДАННЫХ): T-E6-52
+         переведён на ПОЛНЫЙ выход (8 ext + 10 var — без префикса) +
+         НОВЫЙ T-E6-54: секции данных == оракулу (пустая str «DZ 0»,
+         экраны всех 6 видов, граница DB-строки 16/17, длинная str
+         42 Б — класс дефекта №16, var-only скаляры/массивы «DZ 8»/
+         «DZ 8n», отступы/«;»-хвосты — комментарий из карты текстов);
+         эмиттеры K2-E009/E013/E014 (часть wall_self_e.wall) +
+         K2-E027/E028 (НОВАЯ часть wall_self_d.wall); статы-выражения
+         — срезы C+.
 """
 import os
 import tempfile
@@ -220,11 +227,12 @@ def run(check, kpath, kfile, kernel_host):
           % (len(corpus) - skipped, len(corpus), zeros, skipped),
           not bad, "; ".join(bad[:3]))
 
-    # T-E6-52: эмитция пролога+функций (срезы A+B прохода 2,
-    # E6.4d-4/3a..3b) — выход каркаса == выходу оракула на классе
-    # «тела из var/голого return/end»: ЦЕЛИКОМ (без глобальных
-    # str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции «; --- данные: ...»
-    # (секции данных — срез C); статы/выражения/данные — срезы C+
+    # T-E6-52: эмитция пролога+функций+секций данных (срезы A+B+C-1
+    # прохода 2, E6.4d-4/3a..3c-1) — выход каркаса == выходу оракула
+    # ЦЕЛИКОМ на классе «тела из var/голого return/end» — ВКЛЮЧАЯ
+    # глобальные str/var (срез C-1 замкнул хвост: до него — точный
+    # префикс до секции «; --- данные: ...»; статы-выражения —
+    # срезы C+)
     src_8ext = ("ext GetStdHandle\next WriteFile\next ExitProcess\n"
                 "ext GetCommandLineA\next CreateFile2\next ReadFile\n"
                 "ext CloseHandle\next GlobalAlloc\nfunc f0(a, b, c, d)\n"
@@ -232,7 +240,7 @@ def run(check, kpath, kfile, kernel_host):
     emit_cases = [
         ("0 ext, полный выход",
          "func add(a, b)\nend\nfunc main\n  return\nend\n"),
-        ("8 ext + 4 параметра (префикс: 10 var)",
+        ("8 ext + 10 var (полный: импорты + DZ-секция)",
          "\n".join("var v%d" % i for i in range(10)) + "\n" + src_8ext),
         ("v2: локальные массивы, полный выход",
          "func work(x)\n  var a[4]\n  var t[2]\n  return\nend\n"
@@ -241,24 +249,53 @@ def run(check, kpath, kfile, kernel_host):
     bad = []
     for name, src in emit_cases:
         sb = src.encode("utf-8")
-        out = lab_l2.compile_wall(src)
-        lines = out.split("\n")
-        cut = None
-        for i, ln in enumerate(lines):
-            if ln.startswith("; --- данные:"):
-                cut = i
-                break
-        if cut is None:
-            prefix = out.encode("utf-8")
-        else:
-            prefix = ("\n".join(lines[:cut]) + "\n").encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
         rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                              {"t.wall": sb}).run()
         got = rs.files.get("t.b2", b"")
         if not (rs.exit_code == 0 and rs.stdout == b"" and
-                got == prefix):
+                got == out):
             bad.append("%s (%d Б, нужно %d Б, код=%s)"
-                       % (name, len(got), len(prefix), rs.exit_code))
-    check("T-E6-52 эмитция пролога+функций == оракулу (3 источника)",
-          not bad, "; ".join(bad[:3]))
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-52 эмитция пролога+функций+данных == оракулу "
+          "(3 источника)", not bad, "; ".join(bad[:3]))
+
+    # T-E6-54: СЕКЦИИ ДАННЫХ (срез C-1, E6.4d-4/3c-1) — K2-E009
+    # emit_cmt / E013 str_dlen / E014 str_emit / E027 emit_strdata /
+    # E028 emit_globdata: «:имя» + DB-строки <= 16 байтов (экраны
+    # \n \r \t \0 \\ ') / «DZ 0» / «DZ 8n»; комментарий — текст строки
+    # объявления из карты текстов (без пробелов по краям и «;»-хвоста);
+    # заголовки секций — только при непустой секции; выход ЦЕЛИКОМ ==
+    # оракулу
+    data_cases = [
+        ("пустая str (DZ 0)",
+         "str e = ''\nfunc main\n  return\nend\n"),
+        ("экраны всех 6 видов",
+         "str s = 'a\\nb\\rc\\td\\0e\\\\f'\nfunc main\n  "
+         "return\nend\n"),
+        ("граница DB-строки 16/17 байтов",
+         "str a = '0123456789ABCDEF'\n"
+         "str b = '0123456789ABCDEFG'\nfunc main\n  return\nend\n"),
+        ("длинная str 42 Б — 3 строки DB (дефект №16)",
+         "str u = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>'\n"
+         "func main\n  return\nend\n"),
+        ("var-only: скаляры и массивы (DZ 8 / DZ 8n)",
+         "var g\nvar a[3]\nvar z[1]\nfunc main\n  return\nend\n"),
+        ("отступы и «;»-хвосты (карта текстов в комментариях)",
+         "  var g ; комментарий\n\tstr s = 'ab' ; ещё\n"
+         "  func main\n    return\n  end\n"),
+    ]
+    bad = []
+    for name, src in data_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == out):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-54 секции данных каркаса == оракулу (%d источников)"
+          % len(data_cases), not bad, "; ".join(bad[:3]))
     os.unlink(path)

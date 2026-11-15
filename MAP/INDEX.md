@@ -13,7 +13,7 @@
 | `DOCS/00-MANIFEST.md` | миссия, требования, границы проекта | 57 |
 | `DOCS/01-METHODOLOGY.md` | кирпичи, ветви, слои, 10 правил | 93 |
 | `DOCS/02-AI-NAVIGATION.md` | протокол навигации, таблица типовых задач | 104 |
-| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 500 |
+| `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 495 |
 | `DOCS/03a-HISTORY.md` | детальная история выполненных этапов (вынесено из ROADMAP, E6.4c-3/4b) | 107 |
 | `DOCS/04-RULES-OF-CHANGE.md` | регламент изменений и коммитов | 59 |
 
@@ -50,7 +50,7 @@
 | `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 23; E033 imul — E6.4c) | 310 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
 | `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
-| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (79) | 430 |
+| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (107) | 500 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 32 |
 
 ## KERNEL/ — ядро
@@ -158,9 +158,10 @@
 | `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/3) — p1_line (S002: func -> S004, fcur -> S006/S007/S008/S009/S00A/S00B/S00C/S00F/S00D), pass1 (S001) + пост-проверка main + сброс ifseq, set_lastline | 151 |
 | `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
 | `KERNEL/L2-WALL/wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8x512 симв. = 256 Б; таблица off/len в комментариях; ГЕНЕРАТОР LAB/ai/wall_self_data.py — не редактировать) | 142 |
-| `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода (E6.4d-4/3a) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) | 173 |
+| `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода и данных (E6.4d-4/3a, 3c-1) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) + emit_cmt (E009), str_dlen (E013), str_emit+se_doline+esc_code (E014) | 280 |
+| `KERNEL/L2-WALL/wall_self_d.wall` | часть каркаса: СЕКЦИИ ДАННЫХ (E6.4d-4/3c-1) — set_cmt (строка №ln -> cmt_ptr/cmt_len из smem), emit_strdata (E027: :имя + DZ 0 / DB-строки <= 16), emit_globdata (E028: :имя + DZ 8n + комментарий) | 92 |
 | `KERNEL/L2-WALL/wall_self_f.wall` | часть каркаса: КАДРЫ ФУНКЦИЙ (E6.4d-4/3b) — emit_kadr/emit_vyhod (E010), emit_lab (E011), calc_framesize (E017), emit_prologue (E018 — ARGREG[i] if-цепочкой), emit_epilogue (E019) | 121 |
-| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B (E6.4d-4/3a..3b) — pass2 (Y001: пролог + цикл строк по smem + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (эмитция функций + МЕХАНИКА bstk) | 357 |
+| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1 (E6.4d-4/3a..3c-1) — pass2 (Y001: пролог + цикл строк по smem + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: + cmt_ptr/cmt_len текущей строки), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (эмитция функций + МЕХАНИКА bstk) | 373 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
@@ -188,7 +189,7 @@
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17, T-E6-36 | 153 |
 | `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11b (E6.2; рост ISA E6.4c; предел 256 КиБ E6.4e-1) | 120 |
 | `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18, T-E6-16b (E6.3, E6.4e-2) | 97 |
-| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + инструмент v1 + срезы 1-3 + 4a/4b/5 + секция 11 (E6.4c-3/3b..5) + шаг 3/3-1 | 492 |
+| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + инструмент + срезы + секция 11 + самохостинг (E6.4d-1..4/3c-1) | 500 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
@@ -249,7 +250,7 @@
 | `LAB/ai/wall_syntax_check.py` | (частное) быстрая проверка каркаса: splice-оракул + компиляция оракулом (E6.4d-2/2) | 41 |
 | `LAB/ai/wall_self_test.py` | (частное) dev-прогон секции 12 вне CI (T-E6-49a/b/c; единый источник — lab_t_wallself.py) | 57 |
 | `LAB/ai/wall_self_data.py` | (частное) генератор wall_self_blob.wall: strblob wall_data.b2 (2046 Б) + 2 нуля -> 8 hex-литерал + таблица off/len (E6.4d-4/3a) | 101 |
-| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции срезов A+B: сборка каркаса + матрица 9 источников (0..8 ext, 0..4 параметра, массивы, v1/v2, вне-класс без краха) — выход == оракулу ЦЕЛИКОМ/префикс до секции данных (E6.4d-4/3a..3b) | 218 |
+| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции срезов A+B+C-1: сборка каркаса + матрица 13 источников (0..8 ext, 0..4 параметра, массивы, v1/v2, секции данных: пустая str, экраны, граница 16/17, длинная 42 Б, var-only, отступы/«;»-хвосты; вне-класс без краха) — выход == оракулу ЦЕЛИКОМ (E6.4d-4/3a..3c-1) | 223 |
 | `LAB/ai/brick_build_lim2.py` | (частное) пересборка brick 512 КиБ -> 1 МиБ (E6.4g-1): 2 imm32 + 2 disp32, brick.hex/peg/exe, dev 11/11 | 425 |
 | `LAB/ai/brick_build_lim3.py` | (частное) пересборка brick: предел ТЕЛА 64 -> 128 КиБ (E6.4g-2): 1 imm32 BIG OUT, hex/exe (peg/bss не тронуты), dev 11/11 | 403 |
 | `LAB/ai/pegen_build_lim.py` | (частное) пересборка pegen: предел ОБРАЗА 64 -> 128 КиБ (E6.4g-3): 2 imm32 + disp32 lea zeropad, hex/peg/exe, dev 7/7 | 281 |
@@ -276,9 +277,9 @@ LAB — измерительный прибор (Python только здесь)
   +P01B/P01C/P01D/P01E индексация E6.4c-3/4b).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **134** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+- Тестов: **135** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..48 + T-E6-10b + T-E6-16b,
-  T-E6-49a/b/c/d + T-E6-53; автоматических в батарее — 131).
+  T-E6-49a/b/c/d + T-E6-53 + T-E6-54; автоматических в батарее — 132).
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
   (E6.4d-1: каркас CLI на WALL, дефект №16 str_emit исправлен),
   под-шаги 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел
@@ -435,6 +436,22 @@ LAB — измерительный прибор (Python только здесь)
   134/134. Попутно исправлены устаревшие значения: CARD M1-BRICK
   (imagebuf 0x80010 -> 0x100010, labtab 0x4000/1023 -> 0x8000/2047
   — дрейф с E6.4g-1/E6.4f-2), BYTECODE M0-PEGEN (SizeOfImage 0x22000
-  -> факт 0x23000, bss-старт 0xD80 -> 0xD7A). Следующий шаг — срез C
-  (E6.4d-4/3c: эмиттеры статов/выражений E009/E014/E020-E024/
-  E02A-E02D/E034-E038, секции данных E027/E028).**
+  -> факт 0x23000, bss-старт 0xD80 -> 0xD7A).**
+  **E6.4d-4/3c-1 ВЫПОЛНЕН: срез C часть 1 — СЕКЦИИ ДАННЫХ прохода 2
+  каркаса** (срез C разбит: 1 — данные, 2 — выражения, 3 — guard-
+  статы): emit_cmt/E009 + str_dlen/E013 + str_emit/E014+se_doline+
+  esc_code (wall_self_e.wall; глобали cmt_ptr/cmt_len — аналог
+  181A0/A8, буфер DB — локальный массив: класс дефекта №16 невозможен
+  конструктивно) + НОВАЯ часть wall_self_d.wall (set_cmt,
+  emit_strdata/E027, emit_globdata/E028); pass2 — заголовки секций
+  только при непустой секции (как Y001 wall.exe); p2_line ставит
+  cmt-глобали текущей строки. КЛАСС СРЕЗОВ A+B СТАЛ ДАВАТЬ ПОЛНЫЙ
+  ВЫХОД ОРАКУЛА и при глобальных str/var (до C-1 — префикс до секции
+  данных). T-E6-52 переведён на полный выход + НОВЫЙ T-E6-54 (6
+  источников: пустая str, экраны 6 видов, граница DB 16/17, длинная
+  42 Б, var-only, отступы/«;»-хвосты); батарея 134 -> 135/135; dev
+  wall_self_emit 3/3 (13 источников ЦЕЛИКОМ). Замеры: каркас 3236
+  строк/116261 Б; .b2 810157 (77% enc 1 МиБ); .brick 769916 (73%);
+  тело 64561/128К (49%); метки 699/2000; EXE 65536. Следующий шаг —
+  срез C часть 2: выражения в режиме эмитции (E020-E024/E034/E035,
+  плечи P010..P018, Y008-выражение + Y00B).**

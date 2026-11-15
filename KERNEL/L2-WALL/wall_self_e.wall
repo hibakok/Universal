@@ -1,9 +1,10 @@
-; wall_self_e.wall — примитивы вывода каркаса wall.wall (E6.4d-4/3a)
+; wall_self_e.wall — примитивы вывода каркаса wall.wall (E6.4d-4/3a..3c-1)
 ; Паспорт: KERNEL/L2-WALL/wall_self_e.wall | слой L2 | роль: реинкарнация
 ; ветви E (примитивы вывода) компилятора WALL на самом языке WALL v2 —
 ; K2-E001 out_ch / E002 out_copy / E003 out_str / E004 out_line /
-; E005 out_hex / E006 out_hex2 / E008 out_dec / E012 lower_copy /
-; E025 get_ext (из wall_e.b2/wall_ed.b2) + НОВЫЕ механизмы, которых в
+; E005 out_hex / E006 out_hex2 / E008 out_dec / E009 emit_cmt /
+; E012 lower_copy / E013 str_dlen / E014 str_emit (+se_doline, esc_code)
+; / E025 get_ext (из wall_e.b2/wall_ed.b2) + НОВЫЕ механизмы, которых в
 ; wall.exe нет: blob_dec (декодер hex-блоба — str-литералы WALL не
 ; держат байты >= 0x80, см. wall_self_blob.wall) и init_blob.
 ; Отличия от wall.exe (эквивалентность ВЫХОДА сохранена — байт-в-байт):
@@ -170,4 +171,110 @@ func get_ext(i)
   ext_nlen = getq(tabmem + 40 * e + 8)
   lower_copy(scrbuf, srcbuf + ext_nptr, ext_nlen)
   return ext_nlen
+end
+
+; « ; » + текст строки исходника + LF (K2-E009): строка — глобали
+; cmt_ptr/cmt_len (смещение в srcbuf / длина; для текущей строки
+; ставит p2_line части wall_self_y.wall, для строки объявления —
+; set_cmt части wall_self_d.wall; аналог [r13+181A0/181A8] wall.exe)
+func emit_cmt
+  out_str(25, 3)
+  out_copy(srcbuf + cmt_ptr, cmt_len)
+  out_ch(10)
+  return 0
+end
+
+; длина литералы после декодирования экранов (K2-E013): '\' + любой
+; символ — один байт, прочий символ — один байт; вернуть число байтов
+; (проверку <= 512 сделал проход 0 — slen при накоплении; у wall.exe
+; она здесь же в проходе 1, выход тот же: литерал не переходит границу
+; строк)
+func str_dlen(a, n)
+  var i
+  var c
+  i = 0
+  c = 0
+  while i < n
+    if getb(a, i) == 92
+      i = i + 2
+    else
+      i = i + 1
+    end
+    c = c + 1
+  end
+  return c
+end
+
+; код экрана (разложение цепочки se_esc K2-E014 на ранние возвраты):
+; n -> 0A, r -> 0D, t -> 09, 0 -> 00, \ -> 5C, прочее -> 27 (ветка
+; se_e5 wall.exe; для источников каркаса недостижимо — проход 0
+; допускает только эти шесть экранов)
+func esc_code(c)
+  if c == 110
+    return 10
+  end
+  if c == 114
+    return 13
+  end
+  if c == 116
+    return 9
+  end
+  if c == 48
+    return 0
+  end
+  if c == 92
+    return 92
+  end
+  return 39
+end
+
+; литерал (смещение a в srcbuf, n байтов текста) -> строки DB <= 16
+; + комментарий строки объявления (K2-E014): буфер — локальный массив
+; (16 qword-ячеек), счётчик k — локаль, сброс — после se_doline
+; вызывающим (дефект №16 wall.exe — перекрытие буфера и указателя —
+; в каркасе невозможен конструктивно); пустой литерал ничего не
+; печатает («DZ 0» выводит вызывающий emit_strdata)
+func str_emit(a, n)
+  var buf[16]
+  var cur
+  var c
+  var k
+  cur = 0
+  k = 0
+  while cur < n
+    c = getb(a, cur)
+    if c == 92
+      cur = cur + 2
+      c = esc_code(getb(a, cur - 1))
+    else
+      cur = cur + 1
+    end
+    buf[k] = c
+    k = k + 1
+    if k == 16
+      se_doline(buf, k)
+      k = 0
+    end
+  end
+  if k > 0
+    se_doline(buf, k)
+  end
+  return 0
+end
+
+; строка «DB xx .. xx»: k байтов из буфера buf (адрес) + комментарий
+; (часть K2-E014; пробел между байтами, кроме последнего)
+func se_doline(buf, k)
+  var i
+  out_str(29, 3)
+  i = 0
+  while i < k
+    out_hex2(buf[i])
+    if i + 1 < k
+      out_ch(32)
+    end
+    i = i + 1
+  end
+  emit_cmt()
+  return 0
 end

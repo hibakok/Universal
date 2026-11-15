@@ -1,0 +1,92 @@
+; wall_self_d.wall — секции данных каркаса wall.wall (E6.4d-4/3c-1)
+; Паспорт: KERNEL/L2-WALL/wall_self_d.wall | слой L2 | роль: реинкарнация
+; эмиттеров СЕКЦИЙ ДАННЫХ канона SPEC/11 п.8 компилятора WALL на самом
+; языке WALL v2 — K2-E027 emit_strdata (секция строк: «:имя» + строки
+; «DB xx .. xx» <= 16 байтов литералы, пустая литерала — «DZ 0») и
+; K2-E028 emit_globdata (секция глобальных var: «:имя» + «DZ <8n hex>»)
+; из wall_ed.b2. Заголовки секций («; --- данные: строки ---» /
+; «; --- данные: глобальные переменные (нулевые ячейки) ---» — блоб
+; s_secstr/s_secglob) печатает pass2 части wall_self_y.wall и ТОЛЬКО
+; при непустой секции (как Y001 wall.exe: out_line 0x61/0x5F).
+; Комментарий каждой строки — текст СТРОКИ ОБЪЯВЛЕНИЯ (set_cmt по
+; ntab+32 -> карта текстов smem; карта хранит строку без пробелов/
+; табов по краям и без «;»-хвоста — как srcmap оракула).
+; Таблицы (куча tabmem, записи — как у wall.exe): sarr + 1835008
+; (24 Б: ntab-индекс, смещение литералы, длина), varr + 1310720
+; (16 Б: ntab-индекс, размер n скаляров), ntab + 0 (40 Б: ptr, len,
+; kind, meta, строка объявления). Смещения — ДЕСЯТИЧНЫЕ литералы.
+; Отличия от wall.exe (выход байт-в-байт совпадает):
+; 1) пара (ptr, len) для emit_cmt — глобали cmt_ptr/cmt_len + set_cmt
+;    (у wall.exe — [181A0/181A8] из таблицы текстов 183C8 напрямую;
+;    каркас читает карту smem — записи те же);
+; 2) «DZ » перед 8n — три out_ch (как побайтовая запись 44/5A/20
+;    wall.exe), «DZ 0» — строка блоба s_dz0 (strtab 0xB wall.exe).
+
+; строка исходника №ln -> cmt_ptr/cmt_len (для emit_cmt): запись
+; карты текстов smem (16 Б: смещение, длина)
+func set_cmt(ln)
+  cmt_ptr = getq(smem + 16 * ln)
+  cmt_len = getq(smem + 16 * ln + 8)
+  return 0
+end
+
+; секция строк (K2-E027): для каждой str — «:имя» (nlab++), пустая
+; литерала -> «DZ 0» + комментарий, иначе str_emit (строки DB <= 16);
+; комментарий — текст строки объявления
+func emit_strdata
+  var i
+  var e
+  var np
+  var nl
+  var a
+  var n
+  var dl
+  i = 0
+  while i < scount
+    e = getq(tabmem + 1835008 + 24 * i)
+    a = getq(tabmem + 1835008 + 24 * i + 8)
+    n = getq(tabmem + 1835008 + 24 * i + 16)
+    np = getq(tabmem + 40 * e)
+    nl = getq(tabmem + 40 * e + 8)
+    set_cmt(getq(tabmem + 40 * e + 32))
+    emit_lab(srcbuf + np, nl)
+    nlab = nlab + 1
+    dl = str_dlen(srcbuf + a, n)
+    if dl == 0
+      out_str(105, 4)
+      emit_cmt()
+    else
+      str_emit(srcbuf + a, n)
+    end
+    i = i + 1
+  end
+  return 0
+end
+
+; секция глобальных var (K2-E028): для каждой — «:имя» (nlab++) +
+; «DZ » + 8n hex + комментарий (скаляр n = 1 -> «DZ 8», массив —
+; 8n; n хранит varr со среза 4)
+func emit_globdata
+  var i
+  var e
+  var np
+  var nl
+  var n
+  i = 0
+  while i < vcount
+    e = getq(tabmem + 1310720 + 16 * i)
+    n = getq(tabmem + 1310720 + 16 * i + 8)
+    np = getq(tabmem + 40 * e)
+    nl = getq(tabmem + 40 * e + 8)
+    set_cmt(getq(tabmem + 40 * e + 32))
+    emit_lab(srcbuf + np, nl)
+    nlab = nlab + 1
+    out_ch(68)
+    out_ch(90)
+    out_ch(32)
+    out_hex(8 * n)
+    emit_cmt()
+    i = i + 1
+  end
+  return 0
+end
