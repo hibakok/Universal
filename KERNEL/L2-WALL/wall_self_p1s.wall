@@ -1,11 +1,11 @@
-; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4, E6.4d-3/1..3/2)
+; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4, E6.4d-3/1..3/3)
 ; Паспорт: KERNEL/L2-WALL/wall_self_p1s.wall | слой L2 | роль: реинкарнация
 ; ветви статов прохода 1 (K2-S006..S00F, wall_p1s.b2) на самом языке
 ; WALL v2. E6.4d-2/4: K2-S007 p1s_end — закрытие блока end:
 ; at_end, при fdepth == 0 — лишний end (ERR=FORMAT текущей строки);
 ; pop bstk (запись 32 Б {kind, k, ifseq, lineidx} — дефект №15; в
-; каркасе до E6.4d-3/3 записи kind 1 — func (пушит S004 части pd) и
-; kind 2/4 — if/while (будут пушить S009/S00A));
+; каркасе записи kind 1 — func (пушит S004 части pd), kind 2/3/4 —
+; if/else/while (пушат/мутируют S009/S00A/S008 — E6.4d-3/3));
 ; kind 1 — финальная запись ftab[curf]: maxd, maxc, flags (бит 0 —
 ; st_setb, бит 1 — st_ext5), loccnt, nslots — и fcur = 0 (функция
 ; закрыта); kind 2/3 (if/while/else) — проход 1 у wall.exe больше
@@ -30,14 +30,22 @@
 ; k > 1 — база-цепочка pp_prim0(k) + pp_pairs(1, k-1, 0) = need
 ; базы; последняя пара '[' выр ']' '=' выр ПОРОЗНЬ; maxd = max по
 ; базе/индексу/значению; st_setb = 1); иначе — присваивание: '='
-; p_expr(1), maxd, at_end. Прочие статы (S008 else, S009 if, S00A
-; while, S00F break/continue — bstk-механика) — следующий под-шаг
-; E6.4d-3/3; у wall.exe их kw-индексы (5/6/7/C/D) идут в собственные
-; плечи kwstmt ДО namestmt — в каркасе до E6.4d-3/3 они проваливаются
-; в p1_namestmt (kw-имя как обычное имя) и на классе корпуса дают
-; ERR=FORMAT той же строки; патологические «KW = выр» / «KW(арг)»
-; namestmt принимает — источники вне класса (см. _expect_line и
-; VERIFY-E6D).
+; p_expr(1), maxd, at_end. E6.4d-3/3: K2-S009 p1s_if (p_cond части
+; pc, ifseq++, ifarr[ifseq] = 0, push bstk {2, 0, ifseq}), K2-S00A
+; p1s_while (p_cond, push {4, 0, 0}), K2-S008 p1s_else (at_end;
+; верхняя запись bstk kind 2? -> kind 3 + ifarr[seq] = 1, иначе
+; ERR=FORMAT; запись мутируется на месте — pop/push нет, как wall.exe
+; S008), K2-S00F p1s_brk (break/continue — одна точка входа,
+; поведение прохода 1 идентично; at_end; скан bstk сверху до записи
+; kind 4 (while) — иначе ERR=FORMAT; v2flag = 1). Пуш S009/S00A не
+; пишет lineidx (+24) — как wall.exe (поле заполняет проход 2
+; Y006/Y007). ifarr — окно tabmem+4685888, 32768 qword (ёмкость ==
+; байтовой ifarr wall.exe r13+578418 DBZ 8000; проверки переполнения
+; нет, как у wall.exe: вход <= 128 КиБ -> < 19 тыс. if). kw-статы
+; str/ext в теле — по-прежнему namestmt (их нет в kw-плечах
+; wall.exe): обычные формы ERR=FORMAT той же строки, патологии
+; «str = выр» / «ext(арг)» принимает — источники вне класса (модель
+; _kw_falls).
 ; bstk — в куче tabmem+4587584, 3072x32 (как bstk wall.exe 0x18000/32;
 ; ёмкость 3072 записей — дефект №15: площадь та же, записи шире).
 
@@ -70,6 +78,76 @@ func p1s_var(pos, le)
   lcount = lcount + 1
   st_loccnt = st_loccnt + 1
   st_nslots = st_nslots + size
+  return 0
+end
+
+; if условие (K2-S009); pos — курсор за ключевым словом if. Push
+; {kind=2, k=0, ifseq} (k — сквозной счётчик if/while — вычисляет
+; проход 2 Y006; lineidx не пишется — как wall.exe S009)
+func p1s_if(pos, le)
+  pcur = pos
+  ple = le
+  p_cond()
+  at_end(pcur, le)
+  ifseq = ifseq + 1
+  stq(tabmem + 4685888 + ifseq * 8, 0)
+  stq(tabmem + 4587584 + fdepth * 32, 2)
+  stq(tabmem + 4587584 + fdepth * 32 + 8, 0)
+  stq(tabmem + 4587584 + fdepth * 32 + 16, ifseq)
+  fdepth = fdepth + 1
+  return 0
+end
+
+; while условие (K2-S00A); pos — курсор за ключевым словом while.
+; Push {kind=4, k=0, ifseq=0} (lineidx не пишется — как wall.exe S00A)
+func p1s_while(pos, le)
+  pcur = pos
+  ple = le
+  p_cond()
+  at_end(pcur, le)
+  stq(tabmem + 4587584 + fdepth * 32, 4)
+  stq(tabmem + 4587584 + fdepth * 32 + 8, 0)
+  stq(tabmem + 4587584 + fdepth * 32 + 16, 0)
+  fdepth = fdepth + 1
+  return 0
+end
+
+; else (K2-S008); pos — курсор за ключевым словом else. Верхняя запись
+; bstk мутируется на месте: kind 2 (if) -> 3 (else), ifarr[seq] = 1
+; (флаг наличия else-ветви — читает проход 2 Y005/Y006); fdepth
+; не меняется
+func p1s_else(pos, le)
+  var kind
+  var seq
+  at_end(pos, le)
+  if fdepth == 0
+    fail_format(curline)
+  end
+  kind = getq(tabmem + 4587584 + (fdepth - 1) * 32)
+  if kind != 2
+    fail_format(curline)
+  end
+  seq = getq(tabmem + 4587584 + (fdepth - 1) * 32 + 16)
+  stq(tabmem + 4685888 + seq * 8, 1)
+  stq(tabmem + 4587584 + (fdepth - 1) * 32, 3)
+  return 0
+end
+
+; break/continue (K2-S00F, только в while); pos — курсор за ключевым
+; словом; одна точка входа — поведение прохода 1 идентично (как
+; wall.exe S00F). Скан bstk сверху до ближайшей записи kind 4 (while)
+func p1s_brk(pos, le)
+  var i
+  at_end(pos, le)
+  i = fdepth
+  while i > 0
+    if getq(tabmem + 4587584 + (i - 1) * 32) == 4
+      v2flag = 1
+      return 0
+    end
+    i = i - 1
+  end
+  fail_format(curline)
   return 0
 end
 

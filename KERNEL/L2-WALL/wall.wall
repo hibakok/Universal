@@ -33,11 +33,16 @@
 ; P01A/P012; pp — первичные + индексация P013/P013a/P01B/P01C/P01E;
 ; pa — аргументы/вызовы/astore-проверка P014/P017/P016/P01D) и статы
 ; тел S00B return / S00C setb / S00D namestmt (часть p1s) + плечи
-; диспетчера (часть p1) — класс источников расширен на тела с
-; выражениями: присваивания, вызовы-утверждения, astore, return,
-; setb; прочие статы (S008 else / S009 if / S00A while / S00F
-; break/continue — bstk-механика) — E6.4d-3/3 (см. VERIFY-E6D
-; и _expect_line секции 12 батареи).
+; диспетчера (часть p1).
+; E6.4d-3/3: статы bstk-группы — S009 p1s_if + S00A p1s_while
+; (условие — p_cond P018 СТАТ-плечо в НОВОЙ части pc: сравнения
+; ==/!=/</<=/>/>=, конъюнкты '&&' / дизъюнкты '||' с v2flag, maxd =
+; 1 + max(need_l, need_r) на каждое сравнение; m-скан и guard-эмит
+; — проход 2) + S008 p1s_else (bstk kind 2 -> 3, ifarr[seq] = 1) +
+; S00F p1s_brk break/continue (скан bstk до while, v2flag); пуш
+; bstk {2/4, 0, ifseq}; ifarr — окно tabmem+4685888 32768 qword
+; (ёмкость == ifarr wall.exe 0x8000 байт; проверки переполнения нет,
+; как у wall.exe); сброс ifseq в pass1 (как [r13+18118] S001).
 ; Выходной .b2 при успехе пока ПУСТ — эмитция прохода 2 последует
 ; (шаги E6.4d-3+).
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
@@ -94,6 +99,7 @@ var scount
 var vcount
 var ecount
 var fdepth
+var ifseq
 var seenfunc
 var fcur
 var lcount
@@ -133,6 +139,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_ph.wall
 !include wall_self_pp.wall
 !include wall_self_pa.wall
+!include wall_self_pc.wall
 !include wall_self_pd.wall
 !include wall_self_p1.wall
 !include wall_self_p1s.wall
@@ -175,9 +182,11 @@ func main
   end
   ; таблицы прохода 1: ntab 32768x40 + varr 32768x16 + sarr 16384x24
   ; + ftab 16384x80 + earr 8x8 + larr 32768x32 (параметры/локали — S004)
-  ; + bstk 3072x32 (стек блоков — S004/S007) = 4685888 (смещения —
-  ; wall_self_pe.wall / wall_self_pd.wall / wall_self_p1s.wall)
-  tabmem = GlobalAlloc(0, 4685888)
+  ; + bstk 3072x32 (стек блоков — S004/S007/S009/S00A)
+  ; + ifarr 32768x8 (флаги else по ifseq — S008/S009; E6.4d-3/3)
+  ; = 4948032 (смещения — wall_self_pe.wall / wall_self_pd.wall /
+  ; wall_self_p1s.wall)
+  tabmem = GlobalAlloc(0, 4948032)
   if tabmem == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end

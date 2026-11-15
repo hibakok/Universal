@@ -1,26 +1,30 @@
-; wall_self_p1.wall — каркас прохода 1 каркаса wall.wall (E6.4d-2/3..3/2)
+; wall_self_p1.wall — каркас прохода 1 каркаса wall.wall (E6.4d-2/3..3/3)
 ; Паспорт: KERNEL/L2-WALL/wall_self_p1.wall | слой L2 | роль: реинкарнация
 ; K2-S001 pass1 + K2-S002 p1_line (wall_p1.b2) и K2-N004 set_lastline
 ; (wall_n.b2) на самом языке WALL v2. Цикл строк идёт по карте текстов
 ; smem (записи 1..nlentries — {смещение, длина}, читатели getq/getb),
 ; а не повторным разбиением, как line_next у wall.exe: записи те же
 ; (проход 0), curline = номер записи до разбора строки. Диспетчер
-; (E6.4d-3/2 — форма wall.exe): пустая строка — пропуск; не-имя —
+; (E6.4d-3/3 — форма wall.exe): пустая строка — пропуск; не-имя —
 ; ERR=FORMAT; func — p1_funchdr части pd (раньше fcur — quirk
 ; wall.exe: «func g» внутри тела — новый заголовок); тело функции
 ; (fcur): kw-плечи в порядке kwstmt wall.exe — var (0) — p1s_var,
-; end (4) — p1s_end, return (8) — p1s_return, setb (9) — p1s_setb,
-; ПРОЧЕЕ имя — p1_namestmt (части p1s; вкл. kw else/if/while/break/
-; continue — их плечи S008/S009/S00A/S00F — шаг E6.4d-3/3); между
+; end (4) — p1s_end, else (5) — p1s_else, if (6) — p1s_if, while
+; (7) — p1s_while, return (8) — p1s_return, setb (9) — p1s_setb,
+; break (0C) / continue (0D) — p1s_brk (одна точка входа, как
+; wall.exe S00F), ПРОЧЕЕ имя — p1_namestmt (части p1s; str/ext в
+; теле — их нет в kw-плечах wall.exe); между
 ; func (seenfunc) — ERR=FORMAT (плече hdrfail); объявления (до
 ; func) — p1_decl части pd. Пост-проверки: незакрытый блок
 ; (fdepth/fcur) и ровно одна main без параметров (ftab; main
 ; с параметрами — ошибка в строке заголовка main; имя сравнивается
 ; по смещению в srcbuf — getb(srcbuf, np+k), np — СМЕЩЕНИЕ из ftab).
 ; v2flag — флаг v2 (массивы/* / % / индексация; ставят arr_size,
-; p_mdm части ph, pp_pcount части pp), обнуляется здесь; читается
-; проходом 2 (шаги E6.4d-3+). lcount — счётчик larr (параметры;
-; обнуляется здесь, как [r13+18138] wall.exe).
+; p_mdm части ph, pp_pcount части pp, p_cond при && / || и p1s_brk
+; — E6.4d-3/3), обнуляется здесь; читается проходом 2 (шаги
+; E6.4d-3+). lcount — счётчик larr (параметры; обнуляется здесь,
+; как [r13+18138] wall.exe); ifseq — счётчик if (обнуляется здесь,
+; как [r13+18118] wall.exe S001; ставит p1s_if).
 
 ; curline := последняя непустая | nlentries (K2-N004)
 func set_lastline
@@ -54,11 +58,26 @@ func p1_line(pos, le)
     if kwi == 4
       return p1s_end(tokend, le)
     end
+    if kwi == 5
+      return p1s_else(tokend, le)
+    end
+    if kwi == 6
+      return p1s_if(tokend, le)
+    end
+    if kwi == 7
+      return p1s_while(tokend, le)
+    end
     if kwi == 8
       return p1s_return(tokend, le)
     end
     if kwi == 9
       return p1s_setb(tokend, le)
+    end
+    if kwi == 12
+      return p1s_brk(tokend, le)
+    end
+    if kwi == 13
+      return p1s_brk(tokend, le)
     end
     return p1_namestmt(tokend, le)
   end
@@ -88,6 +107,7 @@ func pass1
   seenfunc = 0
   fcur = 0
   v2flag = 0
+  ifseq = 0
   i = 1
   while i <= nlentries
     curline = i

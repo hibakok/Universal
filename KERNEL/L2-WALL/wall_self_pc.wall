@@ -1,0 +1,94 @@
+; wall_self_pc.wall — условие if/while каркаса wall.wall (E6.4d-3/3)
+; Паспорт: KERNEL/L2-WALL/wall_self_pc.wall | слой L2 | роль: реинкарнация
+; условия if/while (K2-P018 p_cond из wall_pc.b2) на самом языке WALL v2 —
+; СТАТ-плечо прохода 1 (плечо pc_mode == 0 у wall.exe): разбор условия
+; + статистика maxd БЕЗ эмитции. Не реинкарнируются до E6.4d-4+ (эмит-
+; механика прохода 2): m-скан числа '||' (нужен только для d/t-меток
+; guard-канона SPEC/11 п.8), инверсия jcc по оператору, эмиттеры
+; E003/E005/E009/E029/E036/E037/E038.
+; Грамматика (SPEC/11 п.2, == оракул P.cond/conj/cmp): дизъюнкты по
+; '||', внутри дизъюнкта — сравнения по '&&'; сравнение — левый
+; операнд p_expr(2), оператор == != < <= > >=, правый p_expr(2)
+; (операнды на глубине 2 — T1-склад эмитции; в стат-режиме глубина на
+; need не влияет). Статы на КАЖДОЕ сравнение: st_maxd = max(st_maxd,
+; 1 + max(need_l, need_r)) — как pcd_maxl wall.exe. '&&' / '||'
+; (строго 2-символьные токены) — потребление, v2flag = 1 (заголовок
+; «WALL v2» — значение 1, у wall.exe код байта; читается «не ноль») и
+; следующее сравнение; односимвольные '&' / '|' и любые прочие токены
+; — конец условия (хвост поймает at_end вызывающего: wall.exe
+; pcd_fin). Курсор — глобали pcur/ple (вызывающий поглотил ключевое
+; слово if/while и установил pcur/ple — как S009/S00A wall.exe).
+; Проверка оператора (порядок == wall.exe pc_eq/pc_ne/pc_lt/pc_gt):
+; '=' / '!' — ровно 2 символа и второй '='; '<' / '>' — 1 символ либо
+; 2 с '='; прочее (вкл. '<<' '>>' '&' '|') — ERR=FORMAT.
+
+; условие if/while: сравнения по '&&', дизъюнкты по '||' (K2-P018,
+; стат-плечо); курсор pcur/ple за ключевым словом if/while
+func p_cond
+  var needl
+  var needr
+  var k
+  var ln
+  var c0
+  var c1
+  var t
+  var more
+  more = 1
+  while more == 1
+    needl = p_expr(2)
+    ; оператор сравнения: == != < <= > >= (иначе ERR=FORMAT)
+    k = tok_next(pcur, ple)
+    if k != 2
+      fail_format(curline)
+    end
+    ln = tokend - tokptr
+    c0 = getb(srcbuf, tokptr)
+    c1 = 0
+    if ln == 2
+      c1 = getb(srcbuf, tokptr + 1)
+    end
+    if c0 == 61 || c0 == 33
+      ; '=' / '!' — только '==' / '!='
+      if ln != 2 || c1 != 61
+        fail_format(curline)
+      end
+    else
+      if c0 == 60 || c0 == 62
+        ; '<' / '>' — 1 символ либо '<=' / '>='
+        if ln == 2 && c1 != 61
+          fail_format(curline)
+        end
+      else
+        fail_format(curline)
+      end
+    end
+    pcur = tokend
+    needr = p_expr(2)
+    ; maxd = max(maxd, 1 + max(need_l, need_r)) — как pcd_maxl wall.exe
+    ; (вложенные вызовы в аргументах wall.exe не разбирает — дефект №19,
+    ; поэтому два max2 порознь)
+    needr = max2(needl, needr)
+    st_maxd = max2(st_maxd, needr + 1)
+    ; '&&' / '||' — следующее сравнение; прочее — конец условия
+    more = 0
+    t = tok_next(pcur, ple)
+    if t == 2 && tokend - tokptr == 2
+      c0 = getb(srcbuf, tokptr)
+      c1 = getb(srcbuf, tokptr + 1)
+      if c0 == 38 && c1 == 38
+        ; '&&' — следующий конъюнкт
+        v2flag = 1
+        pcur = tokend
+        more = 1
+      else
+        if c0 == 124 && c1 == 124
+          ; '||' — следующий дизъюнкт
+          v2flag = 1
+          pcur = tokend
+          more = 1
+        end
+      end
+    end
+  end
+  return 0
+end

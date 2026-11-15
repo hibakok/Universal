@@ -153,9 +153,10 @@
 | `KERNEL/L2-WALL/wall_self_ph.wall` | часть каркаса: уровни выражений стат-режимом (E6.4d-3/2) — p_expr (P010), p_mul (P011), p_mdm (P01A), p_unary (P012); курсор pcur/ple | 77 |
 | `KERNEL/L2-WALL/wall_self_pp.wall` | часть каркаса: первичные + индексация (E6.4d-3/2) — p_prim (P013), pp_prim0 (P013a), pp_pcount (P01B), pp_pairs (P01C), pp_strchk (P01E) | 215 |
 | `KERNEL/L2-WALL/wall_self_pa.wall` | часть каркаса: вызовы/astore-проверка (E6.4d-3/2) — p_args (P014), pa_stage (P017), call_stats (P016), astore_chk (P01D); аккумуляторы pc_argcnt/pc_argmax | 95 |
+| `KERNEL/L2-WALL/wall_self_pc.wall` | часть каркаса: условие if/while (E6.4d-3/3) — p_cond (P018 стат-плечо: сравнения, '&&'/'||', maxd, v2flag) | 94 |
 | `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab; окно дублей — local_find | 208 |
-| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/2) — p1_line (S002: func -> S004, fcur -> S006/S007/S00B/S00C/S00D), pass1 (S001) + пост-проверка main, set_lastline | 131 |
-| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/2) — p1s_var (S006), p1s_end (S007), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D: вызов/astore/присваивание); статы S008/S009/S00A/S00F — E6.4d-3/3 | 184 |
+| `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/3) — p1_line (S002: func -> S004, fcur -> S006/S007/S008/S009/S00A/S00B/S00C/S00F/S00D), pass1 (S001) + пост-проверка main + сброс ifseq, set_lastline | 151 |
+| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 27648 байт (0x6C00), PE32+ | — |
@@ -220,9 +221,9 @@
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall2.py` | секция 10 батареи: инструмент wall.exe (T-E6-25..30 + T-E6-50 — предел меток выхода 2000, граница 2000/2001; E6.4d-3/3-1) | 166 |
 | `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 (T-E6-37..48; big_source2, структурные списки якорей/ошибок) | 249 |
-| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 (статы тел: var/return/setb/имена; выражения стат-режимом) == оракулу parse (T-E6-49a/b/c/d, корпус 153: 129 сравнимо / 38 код-0 / 24 вне класса; E6.4d-3/2) | 200 |
+| `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 (ВСЕ статы тел прохода 1) == оракулу parse (T-E6-49a/b/c/d, корпус 178: 161 сравнимо / 56 код-0 / 17 вне класса; E6.4d-3/3) | 205 |
 | `LAB/py/lab_t_wallself_corpus.py` | корпус секции 12: пул источников T-E6-49d (v1/v2/E1/E2 + микроканарейки E6.4d-2/3..3/2 + big 1/2; только ASCII) | 184 |
-| `LAB/py/lab_t_wallself_model.py` | модель класса эквивалентности каркаса (E6.4d-3/2): _expect_line по строкам _lex — perr/cerr + kw-патологии (_kw_falls) | 185 |
+| `LAB/py/lab_t_wallself_model.py` | модель класса эквивалентности каркаса (E6.4d-3/2..3/3): _expect_line по строкам _lex — perr/cerr, стек блоков bstk (func/if/else/while), kw-патологии str/ext (_kw_falls) | 225 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 2286 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1) | 267 |
@@ -306,10 +307,23 @@ LAB — измерительный прибор (Python только здесь)
   попутно ускорен эмулятор LAB lab_cpu 1.45x — кэш инструкций
   хранит обработчик, горячий цикл развёрнут из step(), _cond —
   таблица _CC вместо словаря на каждый jcc; батарея 131/131,
-  время батареи 3м40с -> 2м52с даже с новым T-E6-50). Далее
-  E6.4d-3/3: статы S009 if + S00A while + p_cond (P018) + S008
-  else + S00F break/continue (bstk-механика), затем проход 2.
-  Плоский каркас 1940 строк / 65517 Б, .b2 452396 Б (86% предела
-  enc 512К), .brick 424995, тело 40080/65536 (61%), меток выхода
-  493/2000, меток исходника 495/2048, EXE 40960 (см.
-  `DOCS/03-ROADMAP.md`, журнал 19-26, VERIFY-E6D2.md).
+  время батареи 3м40с -> 2м52с даже с новым T-E6-50). **E6.4d-3/3
+  ВЫПОЛНЕН (проходы 0/1 ПОЛНЫ): статы bstk-группы на WALL — S009
+  p1s_if + S00A p1s_while (условие p_cond P018 СТАТ-плечо — НОВАЯ
+  часть wall_self_pc.wall: сравнения ==/!=/</<=/>/>=, конъюнкты
+  '&&' / дизъюнкты '||' с v2flag, maxd = 1+max(need_l,need_r) на
+  каждое сравнение; m-скан и guard-эмит — проход 2) + S008
+  p1s_else (bstk kind 2 -> 3 + ifarr, мутация на месте) + S00F
+  p1s_brk break/continue (скан bstk до while, v2flag); плечи
+  диспетчера kw 5/6/7/C/D + сброс ifseq в pass1; ifarr — окно
+  tabmem+4685888 32768 qword (ёмкость == wall.exe 0x8000), tabmem
+  4685888 -> 4948032; корпус T-E6-49d 153 -> 178 (сравнимо 129 ->
+  161, код-0 38 -> 56, вне класса 24 -> 17 — только cerr/quirk/
+  kw-патологии str/ext); ПОЙМАН латентный дефект №19: wall.exe не
+  разбирает вложенные вызовы в аргументах (оракул принимает) —
+  каркас обходит (max2 порознь), починка wall.exe в очереди.
+  Плоский каркас 2140 строк / 73634 Б, .b2 493526 Б (94% предела
+  enc 512К — ГЛАВНЫЙ РИСК: проход 2 не поместится, сначала подъём
+  enc до 1 МиБ либо WALL v3), .brick 463458, тело 43747/65536
+  (67%), меток выхода 530/2000, меток исходника 530/2048, EXE
+  44544 (см. `DOCS/03-ROADMAP.md`, журнал 19-27, VERIFY-E6D2.md).**
