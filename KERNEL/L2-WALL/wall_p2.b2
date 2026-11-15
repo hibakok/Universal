@@ -40,9 +40,11 @@ M mov ecx, 5F ;Y001
 M call $out_line ;E004
 M call $emit_globdata ;E028
 :p2_nostglob
-; ---- предел меток brick ----
+; ---- предел меток выхода nlab: 500 -> 2000 (E6.4d-3/3-1; ёмкость
+;      brick 2048 вкл. base -> запас 48; мотив: каркас wall.wall
+;      на 493, статы if/while добавят ~30) ----
 M mov rax, [r13+18108] ;Y001
-M cmp rax, 1F4 ;Y001
+M cmp rax, 7D0 ;Y001
 M jbe $p2_ret ;Y001
 M xor eax, eax ;Y001
 M mov [r13+18020], rax ;Y001

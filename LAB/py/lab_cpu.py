@@ -17,6 +17,28 @@ M32 = (1 << 32) - 1
 BYTE, WORD, DWORD, QWORD = 8, 16, 32, 64
 NBYTES = {BYTE: 1, WORD: 2, DWORD: 4, QWORD: 8}
 
+# Таблица условий jcc (E6.4d-3/3-1: ускорение — прежде _cond строил
+# словарь на КАЖДЫЙ условный переход; семантика та же, значения
+# zf/cf/sf/of передаются позиционно)
+_CC = {
+    "o": lambda zf, cf, sf, of: of,
+    "no": lambda zf, cf, sf, of: 1 - of,
+    "b": lambda zf, cf, sf, of: cf,
+    "ae": lambda zf, cf, sf, of: 1 - cf,
+    "z": lambda zf, cf, sf, of: zf,
+    "nz": lambda zf, cf, sf, of: 1 - zf,
+    "be": lambda zf, cf, sf, of: cf | zf,
+    "a": lambda zf, cf, sf, of: (1 - cf) & (1 - zf),
+    "s": lambda zf, cf, sf, of: sf,
+    "ns": lambda zf, cf, sf, of: 1 - sf,
+    "p": lambda zf, cf, sf, of: 0,
+    "np": lambda zf, cf, sf, of: 1,
+    "l": lambda zf, cf, sf, of: sf ^ of,
+    "ge": lambda zf, cf, sf, of: 1 - (sf ^ of),
+    "le": lambda zf, cf, sf, of: zf | (sf ^ of),
+    "g": lambda zf, cf, sf, of: (1 - zf) & (1 - (sf ^ of)),
+}
+
 
 class ExitProcess(Exception):
     """ExitProcess(код) от заглушки Win32."""
@@ -145,24 +167,46 @@ class CPU:
         return res
 
     # --- исполнение ---
+    def _decode(self, rip):
+        # декодировать rip и разрешить обработчик ОДИН раз (кэш хранит
+        # (имя, длина, args, функцию) — прежде getattr на каждом шаге)
+        name, length, args = lab_x86.decode(self.fetch, rip)
+        full = (name, length, args, getattr(self, "_op_" + name))
+        self.cache[rip] = full
+        return full
+
     def step(self):
         rip = self.rip
         ins = self.cache.get(rip)
         if ins is None:
-            ins = lab_x86.decode(self.fetch, rip)
-            self.cache[rip] = ins
-        name, length, args = ins
+            ins = self._decode(rip)
+        name, length, args, fn = ins
         if self.trace is not None:
             self.trace.append(rip)
         self.steps += 1
         self.rip = rip + length
-        getattr(self, "_op_" + name)(*args)
+        fn(*args)
         return name
 
     def run(self, max_steps=100_000_000):
+        # Горячий цикл развёрнут из step() (та же семантика: счётчик
+        # шагов, трасса, порядок rip/вызова — ускорение E6.4d-3/3-1;
+        # step() сохранён для внешних трассировщиков LAB/ai)
+        cache_get = self.cache.get
+        trace = self.trace
+        steps = self.steps
         while True:
-            self.step()
-            if self.steps > max_steps:
+            rip = self.rip
+            ins = cache_get(rip)
+            if ins is None:
+                ins = self._decode(rip)
+            if trace is not None:
+                trace.append(rip)
+            steps += 1
+            self.steps = steps
+            self.rip = rip + ins[1]
+            ins[3](*ins[2])
+            if steps > max_steps:
                 raise RuntimeError("предел шагов (зависание?) @ rip=%X"
                                    % self.rip)
 
@@ -351,13 +395,9 @@ class CPU:
 
     # --- переходы ---
     def _cond(self, cc):
-        zf, cf, sf, of = self.zf, self.cf, self.sf, self.of
-        return {"o": of, "no": 1 - of, "b": cf, "ae": 1 - cf,
-                "z": zf, "nz": 1 - zf, "be": cf | zf,
-                "a": (1 - cf) & (1 - zf), "s": sf, "ns": 1 - sf,
-                "p": 0, "np": 1, "l": sf ^ of, "ge": 1 - (sf ^ of),
-                "le": zf | (sf ^ of),
-                "g": (1 - zf) & (1 - (sf ^ of))}[cc]
+        # Ускорение E6.4d-3/3-1: прежде строился словарь 16 условий на
+        # каждый jcc; теперь таблица _CC (значения идентичны)
+        return _CC[cc](self.zf, self.cf, self.sf, self.of)
 
     def _op_jmp(self, target):
         self.rip = target[1]

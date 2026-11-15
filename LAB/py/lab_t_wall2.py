@@ -1,13 +1,15 @@
 """lab_t_wall2.py — секция 10 батареи: инструмент wall.exe (E6.4b).
 
 Вход:  колбэки check/kpath/kfile из lab_verify, оракулы LAB.
-Выход: проверки T-E6-25..30 (печать через check).
+Выход: проверки T-E6-25..30 + T-E6-50 (печать через check).
 Функция: (1) справка; (2) все якоря компиляции — wall.exe == оракулу
          байт-в-байт (4 полных + 6 фрагментных, каждый исходник);
          (3) отвержение 26 некорректных программ с кодами и строками;
          (4) полный круг wall -> enc -> brick -> pegen -> эмуляция
          ("U-WALL-OK 37"); (5) big_source (1203 строки) == оракулу;
-         (6) SHA-256 + PE-инварианты wall.exe.
+         (6) SHA-256 + PE-инварианты wall.exe; (7) предел меток
+         выхода nlab <= 2000 — точная граница 2000/2001 (T-E6-50,
+         E6.4d-3/3-1).
 """
 import hashlib
 import os
@@ -22,7 +24,7 @@ import lab_pe
 import lab_pegen
 import lab_run
 
-WALL_SHA = ("E4CBFA6CB77C77E26792564C57E7591C3B5FDBAFC1C62C0DF4E9991A0376FFF6")
+WALL_SHA = ("8541FD9DC6F48ABE6DC821F18BD53C39A7FA4AE36AB1AFC3CF5D0171480881AD")
 
 
 def _t_wall_exe(check, kpath, kfile, kernel_host):
@@ -117,6 +119,47 @@ def _t_wall_exe(check, kpath, kfile, kernel_host):
             bad.append("имена импортов не kernel32-семёрка: %r" % names[:2])
     check("T-E6-30 PE инварианты SPEC/04 wall.exe", not bad,
           "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
+
+    # T-E6-50: предел меток выхода nlab <= 2000 (E6.4d-3/3-1: 500 ->
+    # 2000; ёмкость brick 2048 вкл. base -> запас 48; мотив: каркас
+    # wall.wall на 493 метках, статы if/while/break/continue добавят
+    # ~30). Граница точная, обе стороны через инструмент + оракул:
+    # 2000 меток (var i + 997 пустых while: 2 метки на while — _w<k> и
+    # _w<k>e; служебные _idt/_iat/_intt/_entry/main + var i) — принят,
+    # выход == оракулу байт-в-байт; 2001 (+ str s) — отвергнут
+    # ERR=FORMAT AT=0000 (строка 0 — единственная ошибка строки 0,
+    # оракул «больше 2000 меток»). Генератор на while, а не на str:
+    # метки _w<k> не попадают в ntab — квадратичного скана таблицы
+    # имён нет (12 млн шагов против 37 у эквивалента на str).
+    def _mk_wlabs(n, extra_str=False):
+        lines = ["var i"]
+        if extra_str:
+            lines.append("str s = 'x'")
+        lines.append("func main")
+        for _ in range(n):
+            lines.append("    while i < 3")
+            lines.append("    end")
+        lines.append("end")
+        return "\n".join(lines) + "\n"
+
+    src_ok = _mk_wlabs(997)                 # ровно 2000 меток
+    r1 = lab_run.run_kv(wall, ["t.wall", "t.b2"],
+                        {"t.wall": src_ok.encode()})
+    want = lab_l2.compile_wall(src_ok).encode()
+    ok1 = r1.exit_code == 0 and r1.files.get("t.b2") == want
+    src_no = _mk_wlabs(997, True)           # 2001 метка
+    r2 = lab_run.run_kv(wall, ["t.wall", "t.b2"],
+                        {"t.wall": src_no.encode()})
+    try:
+        lab_l2.compile_wall(src_no)
+        orcl_rej = False                    # оракул обязан отвергнуть
+    except lab_l2.WallError:
+        orcl_rej = True
+    ok2 = orcl_rej and r2.exit_code == 6 and \
+        r2.stdout == b"U-L2-WALL ERR=FORMAT AT=0000\r\n"
+    check("T-E6-50 предел меток выхода 2000 (граница 2000/2001)",
+          ok1 and ok2, "код=%s/%s шагов=%d+%d" % (r1.exit_code, r2.exit_code,
+                                                r1.steps, r2.steps))
 
 
 def run(check, kpath, kfile, kernel_host):

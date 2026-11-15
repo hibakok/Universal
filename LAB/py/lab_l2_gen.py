@@ -26,7 +26,8 @@ IMP_ALL = 0xB8
 HINT_SLOT = 34          # 2 (hint) + 31 (имя) + 1 (NUL), выравнивание чётно
 HINT_SLOTS = 8
 ENTRY_RVA_OFF = 0x200   # смещение :_entry в теле (RVA 0x1200)
-MAXLABELS = 500
+MAXLABELS = 2000        # E6.4d-3/3-1: 500 -> 2000 (ёмкость brick 2048
+                        # вкл. base -> запас 48; мотив: каркас wall.wall)
 
 
 class Gen:
