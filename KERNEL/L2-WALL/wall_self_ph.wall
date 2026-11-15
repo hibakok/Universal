@@ -1,31 +1,213 @@
-; wall_self_ph.wall — уровни выражений каркаса wall.wall (E6.4d-3/2)
+; wall_self_ph.wall — уровни выражений каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/1)
 ; Паспорт: KERNEL/L2-WALL/wall_self_ph.wall | слой L2 | роль: реинкарнация
 ; уровней выражений компилятора (K2-P010 p_expr / K2-P011 p_mul /
-; K2-P01A p_mdm / K2-P012 p_unary из wall_ph.b2) на самом языке WALL
-; v2 — СТАТ-режим прохода 1 (плечо pc_mode == 0 у wall.exe): разбор
-; выражения + возврат need (потребность T-слотов, >= 0) БЕЗ эмитции.
-; Курсор разбора — глобали pcur/ple (позиция/конец текста строки из
-; карты smem; аналог pc_cur [r13+18070] / R15 wall.exe): чтение токена
-; — tok_next(pcur, ple) (заглядывание, pcur не двигается), потребление
-; — pcur = tokend (аналог pc_cur := tok_end). Уровни (SPEC/11 п.2,
-; приоритет по убыванию): p_expr '+' '-' '|' '^' (лево-цепочка);
-; p_mul '&' '<<' '>>'; p_mdm '*' '/' '%' (v2 — ставит флаг v2flag);
-; p_unary унарный '-' (рекурсия на той же глубине, need без изменений);
-; первичное — p_prim части pp. Стат-механика цепочек wall.exe: каждый
-; операнд разбирается на d+1, после каждой операции need = max(need,
-; need_операнда) + 1 — в стат-режиме tdepth/chain_count не считаются
-; (это эмит-механика прохода 2), глубина d передаётся вниз для будущей
-; реинкарнации эмитции и на need не влияет (как у wall.exe).
+; K2-P01A p_mdm / K2-P012 p_unary из wall_ph.b2) + их сканера цепочек
+; (K2-P009 chain_count из wall_pe.b2 — у wall.exe в части pe; здесь с
+; единственными пользователями: уровнями) на самом языке WALL v2.
+; ДВА режима (глобаль pc_mode, ставят pass1/pass2): 0 — СТАТ прохода 1
+; (разбор + возврат need — потребности T-слотов, БЕЗ эмитции) и 1 —
+; ЭМИТ прохода 2 (need не считается — генерируется код канона SPEC/11
+; п.8, значение выражения — в r10).
+; Курсор разбора — глобали pcur/ple (аналог pc_cur [r13+18070] / R15
+; wall.exe): чтение токена — tok_next(pcur, ple) (заглядывание),
+; потребление — pcur = tokend. Уровни (SPEC/11 п.2, приоритет по
+; убыванию): p_expr '+' '-' '|' '^'; p_mul '&' '<<' '>>'; p_mdm '*' '/'
+; '%' (v2 — ставит флаг v2flag); p_unary унарный '-'; первичное —
+; p_prim части pp.
+; Стат-механика цепочек wall.exe: каждый операнд на d+1, после операции
+; need = max(need, need_операнда) + 1.
+; Эмит-механика (K2-P009/P010/P011/P01A wall.exe): chain_count(lvl)
+; ПРЕДВАРИТЕЛЬНО считает K — число операций уровня в остатке строки
+; (скан без потребления); первый операнд разбирается на d+K, T-склад —
+; на tdepth = d+K-1, правые операнды — на tdepth+1, после каждой
+; операции tdepth убывает — раскладка T-слотов t(d+K-1)..t(d) байт-в-
+; байт как оракул lab_l2_gen (реализация без AST). Т-склад/загрузка —
+; emit_tstore/emit_tload, операция — emit_alu/emit_shift/emit_imul/
+; emit_divmod части wall_self_g.wall.
 ; Отличия от wall.exe (эквивалентность сохранена): v2flag ставится
 ; значением 1 (wall.exe — кодом операции; читается только «не ноль»);
-; проверка оператора уровня вжата в условие цикла (tok_is1 == 1 из
-; части pe; wall.exe — отдельные cmp в плече pe_loop), max — хелпер
-; max2 (экономия меток выхода: каркас ограничен nlab <= 500 wall.exe).
+; проверка оператора p_mul свёрнута в хелпер mul_peek (0 '&' / 1 '<<' /
+; 2 '>>' / -1 — не оператор; стат-плечо использует его же — условие
+; цикла прежде было встроенной дизъюнкцией конъюнкций, разбор тот же);
+; max — хелпер max2 (экономия меток выхода).
+
+; число операций уровня lvl в остатке строки от pcur (K2-P009): скан
+; БЕЗ потребления (локальный курсор sp, pcur не двигается). lvl 0 —
+; аддитивные '+' '-' '|' '^'; 1 — конъюнкция '&' '<<' '>>'; 2 — v2
+; '*' '/' '%'. Завершители на глубине 0: ')' ']' ',' — конец
+; аргумента/индекса; '<' '>' — сравнение (в т.ч. внутри скобок — как
+; wall.exe); двухсимвольные со вторым '=' (== != <= >=) и цепочки '&&'
+; '||' — конец ЛЮБОЙ цепочки (правый операнд сравнения/конъюнкта не
+; считается в цепочку левого — дефект E6.4b); операторы уровней СТАРШЕ
+; вызываемого завершают цепочку: для lvl 0 двухсимвольные не считаются
+; ('<<' '>>' — уровень 1), для lvl 1 '+' '-' '|' '^' — конец, для lvl 2
+; '&' '+' '-' '|' '^' и '<<' '>>' — конец. '(' '[' — глубина (на
+; глубине > 0 операторы не считаются). Дефект №20 (E6.4d-4/3c-2/1,
+; найден сравнением wall.exe с оракулом): унарный '-' ломал счёт —
+; уровень 0 считал его операцией, уровни 1/2 — терминатором; T-адреса
+; расходились с каноном. Фикс (синхронно с wall.exe): флаг oper «конец
+; операнда» — 1 после числа/имени/')'/']' (группа закрыта), 0 в начале
+; и после оператора; оператор в унарной позиции (oper == 0) — не
+; считается и НЕ завершает цепочку. Возврат — K.
+func chain_count(lvl)
+  var sp
+  var k
+  var depth
+  var t
+  var c
+  var c2
+  var oper
+  sp = pcur
+  k = 0
+  depth = 0
+  oper = 0
+  t = tok_next(sp, ple)
+  while t != 4
+    if t != 2
+      ; число/имя/литерал — конец операнда
+      oper = 1
+    else
+      c = getb(srcbuf, tokptr)
+      if tokend - tokptr == 1
+        ; односимвольный токен
+        if c == 40 || c == 91
+          depth = depth + 1
+        else
+          if c == 41 || c == 93
+            if depth == 0
+              break
+            end
+            depth = depth - 1
+            oper = 1
+          else
+            if c == 60 || c == 62
+              break
+            else
+              if depth == 0
+                if oper == 0
+                  ; унарная позиция (дефект №20): не оператор и не
+                  ; терминатор — просто мимо
+                  c = 0
+                else
+                  oper = 0
+                  if lvl == 0
+                    if c == 43 || c == 45 || c == 124 || c == 94
+                      k = k + 1
+                    else
+                      if c == 44
+                        break
+                      end
+                    end
+                  else
+                    if lvl == 1
+                      if c == 38
+                        k = k + 1
+                      else
+                        if c == 43 || c == 45 || c == 124 || c == 94 || c == 44
+                          break
+                        end
+                      end
+                    else
+                      if c == 42 || c == 47 || c == 37
+                        k = k + 1
+                      else
+                        if c == 38 || c == 43 || c == 45 || c == 124 || c == 94 || c == 44
+                          break
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      else
+        ; двухсимвольный токен
+        if depth == 0
+          if oper != 0
+            oper = 0
+            c2 = getb(srcbuf, tokptr + 1)
+            if c2 == 61
+              break
+            end
+            if c == 38 || c == 124
+              break
+            end
+            if lvl == 2
+              if c == 60 || c == 62
+                break
+              end
+            else
+              if lvl == 1
+                if c == 60 && c2 == 60
+                  k = k + 1
+                else
+                  if c == 62 && c2 == 62
+                    k = k + 1
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    sp = tokend
+    t = tok_next(sp, ple)
+  end
+  return k
+end
+
+; текущий токен — оператор уровня & << >>? (хелпер p_mul): 0 '&' /
+; 1 '<<' / 2 '>>' / -1 — не оператор; заглядывание, pcur не двигается
+; (t == 2 гарантирует символ — иначе литерал '&' ложно совпал бы)
+func mul_peek
+  var t
+  var c
+  t = tok_next(pcur, ple)
+  if t != 2
+    return -1
+  end
+  if tokend - tokptr == 1
+    if getb(srcbuf, tokptr) == 38
+      return 0
+    end
+    return -1
+  end
+  c = getb(srcbuf, tokptr)
+  if c == 60 && getb(srcbuf, tokptr + 1) == 60
+    return 1
+  end
+  if c == 62 && getb(srcbuf, tokptr + 1) == 62
+    return 2
+  end
+  return -1
+end
 
 ; аддитивный уровень '+' '-' '|' '^'; d — глубина (K2-P010)
 func p_expr(d)
   var need
   var sub
+  var k
+  var tdepth
+  var op
+  if pc_mode != 0
+    ; эмит: первый операнд на d+K, T-склад на tdepth = d+K-1 (убывает)
+    k = chain_count(0)
+    need = p_mul(d + k)
+    tdepth = d + k - 1
+    while tok_is1(43) == 1 || tok_is1(45) == 1 || tok_is1(124) == 1 || tok_is1(94) == 1
+      op = getb(srcbuf, tokptr)
+      pcur = tokend
+      emit_tstore(tdepth)
+      p_mul(tdepth + 1)
+      emit_tload(tdepth)
+      emit_alu(op)
+      tdepth = tdepth - 1
+    end
+    return need
+  end
   need = p_mul(d + 1)
   while tok_is1(43) == 1 || tok_is1(45) == 1 || tok_is1(124) == 1 || tok_is1(94) == 1
     pcur = tokend
@@ -35,20 +217,44 @@ func p_expr(d)
   return need
 end
 
-; мультипликативный уровень '&' '<<' '>>'; d — глубина (K2-P011).
-; Проверка оператора вжата в условие цикла (дизъюнкция конъюнкций:
-; t==2 гарантирует символ — иначе литерал '&' ложно совпал бы)
+; мультипликативный уровень '&' '<<' '>>'; d — глубина (K2-P011)
 func p_mul(d)
   var need
   var sub
-  var t
+  var kind
+  var k
+  var tdepth
+  if pc_mode != 0
+    k = chain_count(1)
+    need = p_mdm(d + k)
+    tdepth = d + k - 1
+    kind = mul_peek()
+    while kind >= 0
+      pcur = tokend
+      emit_tstore(tdepth)
+      p_mdm(tdepth + 1)
+      emit_tload(tdepth)
+      if kind == 0
+        emit_alu(38)
+      else
+        if kind == 1
+          emit_shift(0)
+        else
+          emit_shift(1)
+        end
+      end
+      tdepth = tdepth - 1
+      kind = mul_peek()
+    end
+    return need
+  end
   need = p_mdm(d + 1)
-  t = tok_next(pcur, ple)
-  while t == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 38 || t == 2 && tokend - tokptr == 2 && getb(srcbuf, tokptr) == 60 && getb(srcbuf, tokptr + 1) == 60 || t == 2 && tokend - tokptr == 2 && getb(srcbuf, tokptr) == 62 && getb(srcbuf, tokptr + 1) == 62
+  kind = mul_peek()
+  while kind >= 0
     pcur = tokend
     sub = p_mdm(d + 1)
     need = max2(need, sub) + 1
-    t = tok_next(pcur, ple)
+    kind = mul_peek()
   end
   return need
 end
@@ -57,6 +263,33 @@ end
 func p_mdm(d)
   var need
   var sub
+  var op
+  var k
+  var tdepth
+  if pc_mode != 0
+    k = chain_count(2)
+    need = p_unary(d + k)
+    tdepth = d + k - 1
+    while tok_is1(42) == 1 || tok_is1(47) == 1 || tok_is1(37) == 1
+      op = getb(srcbuf, tokptr)
+      v2flag = 1
+      pcur = tokend
+      emit_tstore(tdepth)
+      p_unary(tdepth + 1)
+      emit_tload(tdepth)
+      if op == 42
+        emit_imul()
+      else
+        if op == 47
+          emit_divmod(0)
+        else
+          emit_divmod(1)
+        end
+      end
+      tdepth = tdepth - 1
+    end
+    return need
+  end
   need = p_unary(d + 1)
   while tok_is1(42) == 1 || tok_is1(47) == 1 || tok_is1(37) == 1
     v2flag = 1
@@ -67,11 +300,18 @@ func p_mdm(d)
   return need
 end
 
-; унарный минус / первичное; d — глубина (K2-P012)
+; унарный минус / первичное; d — глубина (K2-P012): рекурсия на той же
+; глубине; эмит — «M neg r10» после операнда
 func p_unary(d)
+  var need
   if tok_is1(45) == 1
     pcur = tokend
-    return p_unary(d)
+    need = p_unary(d)
+    if pc_mode != 0
+      out_str(1258, 9)
+      emit_cmt()
+    end
+    return need
   end
   return p_prim(d)
 end

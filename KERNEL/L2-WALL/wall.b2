@@ -69,8 +69,8 @@ M call $print_error ;G003
 :ok1
 M mov r12, rax ;G004
 M mov rcx, r12 ;G004
-M lea rdx, [r13+580418] ;G004
-M mov r8d, 20001 ;G004
+M lea rdx, [r13+7A1418] ;G004
+M mov r8d, 40001 ;G004
 M lea r9, [r13+18010] ;G004
 M call $read_whole_dst ;F004
 M cmp rax, -1 ;G004
@@ -78,7 +78,7 @@ M jnz $ok2 ;G004
 M mov ecx, 3 ;G004
 M call $print_error ;G003
 :ok2
-M cmp rax, 20001 ;G004
+M cmp rax, 40001 ;G004
 M jb $ok3 ;G004
 M mov ecx, 4 ;G004
 M call $print_error ;G003
@@ -86,7 +86,7 @@ M call $print_error ;G003
 M mov rcx, r12 ;G004
 M call $close_file ;F003
 M mov rax, [r13+18010] ;G004
-M lea rcx, [r13+580418] ;G004
+M lea rcx, [r13+7A1418] ;G004
 M add rcx, rax ;G004
 M mov byte [rcx], 0 ;G004
 M mov [r13+18048], rcx ;G004

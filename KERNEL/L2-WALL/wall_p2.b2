@@ -14,7 +14,7 @@ M mov [r13+18178], rax ;Y001
 M mov [r13+18110], rax ;Y001
 M mov eax, 1 ;Y001
 M mov [r13+18080], rax ;Y001
-M lea rsi, [r13+580418] ;Y001
+M lea rsi, [r13+7A1418] ;Y001
 M call $emit_header ;E015
 M call $emit_imports ;E026
 M call $emit_entry ;E016

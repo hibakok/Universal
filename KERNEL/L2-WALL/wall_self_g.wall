@@ -1,0 +1,238 @@
+; wall_self_g.wall — эмиттеры выражений каркаса wall.wall (E6.4d-4/3c-2/1)
+; Паспорт: KERNEL/L2-WALL/wall_self_g.wall | слой L2 | роль: реинкарнация
+; эмиттеров ОПЕРАЦИЙ и ЗАГРУЗОК выражений компилятора WALL (K2-E020
+; emit_alu / K2-E021 emit_shift / K2-E034 emit_imul / K2-E035 emit_divmod
+; из wall_ep.b2; K2-E022 emit_addr / K2-E023 emit_len / K2-E024 emit_load
+; из wall_pc.b2) на самом языке WALL v2 — режим эмитции прохода 2
+; (pc_mode == 1). Каждая строка канона SPEC/11 п.8: «M <команда> ; <текст
+; строки исходника>» — текст в cmt_ptr/cmt_len (ставит p2_line текущей
+; строки; для объявлений — set_cmt), «M »-префикс и хвосты — строки блоба
+; sblob по смещениям (таблица — wall_self_blob.wall; ДЕСЯТИЧНЫЕ литералы;
+; аналоги strtab-индексов wall.exe: 39->s_m 1148/2, 43->s_movm 1267/11,
+; 44->s_movr10 1278/11, 45->s_movr10m 1289/16, 4C->s_mr10rax 1388/14,
+; 4D->s_mr11 1402/14, 50->s_mrcxr11 1444/14, 58->s_r10 1514/6, байт
+; 5D — out_ch(93)).
+; НОВЫЕ кирпичи каркаса (в wall.exe — инлайн-последовательности в хвостах
+; операций p_expr/p_mul/p_mdm из wall_ph.b2, здесь — отдельные методы,
+; 3 уровня x 2 последовательности): emit_tstore (T-склад левого:
+; «M mov [rbp-X], r10», X = 8*(nbase+tdepth)) и emit_tload (загрузка
+; левого: «M mov r11, r10» + «M mov r10, [rbp-X]»). nbase/maxd/maxc
+; текущей функции — глобали st_p2nbase/st_p2maxd/st_p2maxc (ставит
+; p2_funchdr из ftab: +72/+24/+32; аналог [180C0/180C8/180D0] wall.exe).
+; Отличия от wall.exe (выход байт-в-байт совпадает):
+; 1) alutab-таблица не нужна: мнемоники add/sub/and/or/xor — константы
+;    вызовов alu_tail (if-цепочка по байту операции; срез 4a — базы
+;    индексации по имени, как se_doline);
+; 2) emit_addr/emit_len/emit_load получают имя парой (iptr, ilen) —
+;    смещение в srcbuf + длина (конвенция каркаса), а не (RCX, RDX);
+;    размер локали — глобаль lf_size (ставит local_find; аналог RDX
+;    wall.exe после P008);
+; 3) sarr/varr — записи {ntab_idx, ...} с tabmem+1835008/1310720
+;    (24/16 Б), мета ntab — индекс записи (как у wall.exe).
+
+; «M mov [rbp-X], r10» — сохранить левый операнд в T-склад глубины
+; tdepth (X = 8*(st_p2nbase + tdepth); канон t(d) SPEC/11 п.5)
+func emit_tstore(tdepth)
+  out_str(1267, 11)
+  out_hex(8 * (st_p2nbase + tdepth))
+  out_str(1514, 6)
+  emit_cmt()
+  return 0
+end
+
+; «M mov r11, r10» + «M mov r10, [rbp-X]» — загрузка левого из T-склада
+; (после эмитции правого операнда; X = 8*(st_p2nbase + tdepth))
+func emit_tload(tdepth)
+  out_str(1402, 14)
+  emit_cmt()
+  out_str(1289, 16)
+  out_hex(8 * (st_p2nbase + tdepth))
+  out_ch(93)
+  emit_cmt()
+  return 0
+end
+
+; хвост «M <mnem> r10, r11» — мнемоника по смещению блоба (a, n)
+func alu_tail(a, n)
+  out_str(1148, 2)
+  out_copy(outmem + a, n)
+  out_str(3, 9)
+  emit_cmt()
+  return 0
+end
+
+; «M add/sub/and/or/xor r10, r11» — байт операции op (K2-E020):
+; 43 '+' / 45 '-' / 38 '&' / 124 '|' / 94 '^'; прочее — ERR=FORMAT
+; (у wall.exe int3 — недостижимо: уровни уже отфильтровали оператор)
+func emit_alu(op)
+  if op == 43
+    return alu_tail(0, 3)
+  end
+  if op == 45
+    return alu_tail(1789, 3)
+  end
+  if op == 38
+    return alu_tail(12, 3)
+  end
+  if op == 124
+    return alu_tail(1507, 2)
+  end
+  if op == 94
+    return alu_tail(1852, 3)
+  end
+  fail_format(curline)
+  return 0
+end
+
+; «M mov rcx, r11» + «M shl/shr r10, cl» (K2-E021): dir 0 — '<<',
+; 1 — '>>' (через cl — канон SPEC/11 п.8 форм сдвига)
+func emit_shift(dir)
+  out_str(1444, 14)
+  emit_cmt()
+  out_str(1148, 2)
+  if dir == 0
+    out_str(1783, 3)
+  else
+    out_str(1786, 3)
+  end
+  out_str(1775, 8)
+  emit_cmt()
+  return 0
+end
+
+; «M imul r10, r11» (K2-E034, v2 — операция '*')
+func emit_imul
+  out_str(1856, 15)
+  emit_cmt()
+  return 0
+end
+
+; «M mov rax, r10 / M cqo / M idiv r11 / M mov r10, rax|rdx» (K2-E035,
+; v2 — '/' и '%'): m 0 — частное (rax), 1 — остаток (rdx)
+func emit_divmod(m)
+  out_str(1416, 14)
+  emit_cmt()
+  out_str(1871, 5)
+  emit_cmt()
+  out_str(1876, 10)
+  emit_cmt()
+  if m == 0
+    out_str(1388, 14)
+  else
+    out_str(1886, 14)
+  end
+  emit_cmt()
+  return 0
+end
+
+; &имя (K2-E022): локаль/параметр -> «M lea r10, [rbp-X]» (X =
+; 8*(база+размер); скаляр (размер 1) -> 8*(база+1) = local() оракула,
+; массив -> arrbase); глобаль var/str/массив (вид 1/2/5) -> «M lea
+; r10, [rip+$имя]»; func/ext/неизвестное — ERR=FORMAT
+func emit_addr(iptr, ilen)
+  var base
+  var n
+  var kind
+  base = local_find(iptr, ilen)
+  if base != -1
+    out_str(1092, 16)
+    out_hex(8 * (base + lf_size))
+    out_ch(93)
+    emit_cmt()
+    return 0
+  end
+  n = names_find(iptr, ilen)
+  if n == -1
+    fail_format(curline)
+  end
+  kind = getq(tabmem + 40 * n + 16)
+  if kind == 1 || kind == 2 || kind == 5
+    out_str(1108, 17)
+    out_copy(srcbuf + iptr, ilen)
+    out_ch(93)
+    emit_cmt()
+    return 0
+  end
+  fail_format(curline)
+  return 0
+end
+
+; len(имя) (K2-E023): локальный массив -> размер (lf_size); локальный
+; скаляр / не-массив — ERR=FORMAT; str (вид 2) -> декодированная длина
+; литералы (str_dlen по sarr); глобальный массив (вид 5) -> размер из
+; varr; вывод — «M mov r10, <hex>»
+func emit_len(iptr, ilen)
+  var base
+  var n
+  var kind
+  var meta
+  base = local_find(iptr, ilen)
+  if base != -1
+    if lf_size <= 1
+      fail_format(curline)
+    end
+    n = lf_size
+  else
+    n = names_find(iptr, ilen)
+    if n == -1
+      fail_format(curline)
+    end
+    kind = getq(tabmem + 40 * n + 16)
+    meta = getq(tabmem + 40 * n + 24)
+    if kind == 2
+      n = str_dlen(srcbuf + getq(tabmem + 1835008 + 24 * meta + 8), getq(tabmem + 1835008 + 24 * meta + 16))
+    else
+      if kind == 5
+        n = getq(tabmem + 1310720 + 16 * meta + 8)
+      else
+        fail_format(curline)
+      end
+    end
+  end
+  out_str(1278, 11)
+  out_hex(n)
+  emit_cmt()
+  return 0
+end
+
+; имя-значение (K2-E024): локальный массив (размер > 1) -> «M lea r10,
+; [rbp-X]» (адрес a[0], X = 8*(база+размер)); скаляр -> «M mov r10,
+; [rbp-X]» (X = 8*(база+1)); глобаль var (вид 1) -> «M mov r10,
+; [rip+$имя]»; str/массив (вид 2/5) -> «M lea r10, [rip+$имя]»;
+; func/ext/неизвестное — ERR=FORMAT
+func emit_load(iptr, ilen)
+  var base
+  var n
+  var kind
+  base = local_find(iptr, ilen)
+  if base != -1
+    if lf_size > 1
+      out_str(1092, 16)
+      out_hex(8 * (base + lf_size))
+    else
+      out_str(1289, 16)
+      out_hex(8 * (base + 1))
+    end
+    out_ch(93)
+    emit_cmt()
+    return 0
+  end
+  n = names_find(iptr, ilen)
+  if n == -1
+    fail_format(curline)
+  end
+  kind = getq(tabmem + 40 * n + 16)
+  if kind == 1
+    out_str(1305, 17)
+  else
+    if kind == 2 || kind == 5
+      out_str(1108, 17)
+    else
+      fail_format(curline)
+    end
+  end
+  out_copy(srcbuf + iptr, ilen)
+  out_ch(93)
+  emit_cmt()
+  return 0
+end

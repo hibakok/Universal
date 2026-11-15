@@ -53,12 +53,12 @@
          Вложенная func — quirk wall.exe: инструменты принимают её
          как заголовок (плечо kw==3 раньше fcur; проверено: каркас ==
          wall.exe), оракул падает «не разобрано» — источник вне класса.
-         Границы BIG SRC: 131073 (отказ) и 131072 (оба инструмента
-         дают нет main); буфер входа, карта текстов и таблицы прохода 1
-         — GlobalAlloc (куча эмулятора 16 МиБ с E6.4d-4/3a: +outmem
-         2103264 = блоб канона 2048 + scr 64 + outbuf 2 МиБ; было
-         8 МиБ — 98% занято); tabmem 4948032 = таблицы + bstk 3072x32
-         + ifarr 32768x8.
+         Границы BIG SRC (E6.4g-4: 256 КиБ): 262145 (отказ) и 262144
+         (оба инструмента дают нет main); буфер входа, карта текстов и
+         таблицы прохода 1 — GlobalAlloc (куча эмулятора 16 МиБ с
+         E6.4d-4/3a: +outmem 2103264 = блоб канона 2048 + scr 64 +
+         outbuf 2 МиБ; srcbuf — 262145 с E6.4g-4); tabmem 4948032 =
+         таблицы + bstk 3072x32 + ifarr 32768x8.
          E6.4d-4/3a (срез A прохода 2): T-E6-52 — эмитция ПРОЛОГА
          (части wall_self_blob/e/y: блоб канона hex-литералами, out_*,
          emit_header/imports/entry).
@@ -81,6 +81,23 @@
          эмиттеры K2-E009/E013/E014 (часть wall_self_e.wall) +
          K2-E027/E028 (НОВАЯ часть wall_self_d.wall); статы-выражения
          — срезы C+.
+         E6.4d-4/3c-2/1 (срез C часть 2 шаг 1 — ВЫРАЖЕНИЯ эмит-
+         режимом): НОВЫЙ T-E6-55 — return <выражение> == оракулу
+         (числа/имена load-addr-len/скобки/унарный '-'/все операции
+         + - | ^ & << >> * / %; длинные цепочки K=5, вложенные смеси
+         уровней, v1/v2); глобаль pc_mode (0 — стат прохода 1,
+         1 — эмит прохода 2), chain_count K2-P009 + эмит-плечи
+         p_expr/p_mul/p_mdm/p_unary (часть wall_self_ph.wall) +
+         эмиттеры K2-E020/E021/E022/E023/E024/E034/E035 (НОВАЯ часть
+         wall_self_g.wall); p2_funchdr ставит st_p2maxd/st_p2maxc/
+         st_p2nbase + окно lay из ftab; p2s_return Y008 — выражение +
+         «M mov rax, r10». E6.4g-4: предел входа wall.exe и каркаса
+         128 КиБ -> 256 КиБ (filebuf wall.exe перенесён в хвост bss
+         после outbuf; оракул синхронизирован; границы BIG SRC
+         262144/262145). Дефект №20 (закрыт): chain_count считал
+         унарный '-' операцией (уровень 0) / терминатором (1/2) —
+         T-адреса расходились с оракулом; фикс — флаг «конец
+         операнда» в wall.exe и каркасе синхронно.
 """
 import os
 import tempfile
@@ -100,21 +117,21 @@ USAGE = b"U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n"
 
 def _cases():
     """Матрица CLI-путей: (имя, args, host, argv0)."""
-    # 131072 = граница чтения BIG SRC (131073 — отказ): 1 + 131064 + 1
-    # + 6 байт; строки: гигантский комментарий, var g, пустая запись
+    # 262144 = граница чтения BIG SRC (262145 — отказ; E6.4g-4):
+    # 1 + 262136 + 1 + 6 байт; строки: гигантский комментарий, var g
     src_ok = b"var g\n"
-    big_ok = b";" + b"x" * 131064 + b"\n" + b"var g\n"
+    big_ok = b";" + b"x" * 262136 + b"\n" + b"var g\n"
     return [
         ("справка (0 аргументов)", [], {}, None),
         ("справка (1 аргумент)", ["t.wall"], {}, None),
         ("вход отсутствует", ["t.wall", "t.b2"], {}, None),
         ("длинное имя arg1", ["x" * 128, "t.b2"], {}, None),
         ("длинное имя arg2", ["t.wall", "x" * 128], {}, None),
-        ("BIG SRC (>131073)", ["t.wall", "t.b2"],
-         {"t.wall": b"\n" * 200000}, None),
-        ("BIG SRC (граница 131073)", ["t.wall", "t.b2"],
-         {"t.wall": b"\n" * 131073}, None),
-        ("граница 131072: оба дают нет main", ["t.wall", "t.b2"],
+        ("BIG SRC (>262145)", ["t.wall", "t.b2"],
+         {"t.wall": b"\n" * 300000}, None),
+        ("BIG SRC (граница 262145)", ["t.wall", "t.b2"],
+         {"t.wall": b"\n" * 262145}, None),
+        ("граница 262144: оба дают нет main", ["t.wall", "t.b2"],
          {"t.wall": big_ok}, None),
         ("нет main: объявления (var)", ["t.wall", "t.b2"],
          {"t.wall": src_ok}, None),
@@ -298,4 +315,57 @@ def run(check, kpath, kfile, kernel_host):
                        % (name, len(got), len(out), rs.exit_code))
     check("T-E6-54 секции данных каркаса == оракулу (%d источников)"
           % len(data_cases), not bad, "; ".join(bad[:3]))
+
+    # T-E6-55: ВЫРАЖЕНИЯ (срез C-2/1, E6.4d-4/3c-2/1) — pc_mode/
+    # chain_count (дефект №20: унарный '-' в цепочке — флаг «конец
+    # операнда», синхронный фикс wall.exe) / эмит-плечи p_expr-p_unary
+    # + эмиттеры E020/E021/E022/E023/E024/E034/E035 (часть
+    # wall_self_g.wall): return <выражение> из чисел/имён (load/addr/
+    # len)/скобок/унарного '-' и операций + - | ^ & << >> * / % —
+    # выход ЦЕЛИКОМ == оракулу
+    expr_cases = [
+        ("return число", "func main\n  return 42\nend\n"),
+        ("return параметры + операции",
+         "func add(a, b)\n  return a + b\nend\nfunc main\n  return 0\nend\n"),
+        ("все 5 ALU + сдвиги + v2 * / %",
+         "func f(a, b, c, d)\n"
+         "  return a + b - c | d ^ a & b << 1 >> 2 * 3 / 4 % 5\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("скобки и приоритеты",
+         "func f(a, b, c, d)\n  return (a + b) * (c - d) / 2\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("унарный минус в цепочке (дефект №20)",
+         "func f(a, b)\n  return -a + -3 - --b * 2\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("глобальные var + массив (load)",
+         "var g\nvar h[3]\nfunc main\n  return g + 1\nend\n"),
+        ("&локальный массив и &глобаль (addr)",
+         "var g\nfunc f(x)\n  var a[4]\n  return &a\nend\n"
+         "func main\n  return &g\nend\n"),
+        ("len str + глобальный + локальный массив",
+         "str s = 'abc'\nvar h[5]\nfunc f(x)\n  var a[7]\n"
+         "  return len(s) + len(h) + len(a)\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("длинная цепочка K=5 + вложенная смесь",
+         "func f(a, b, c, d)\n  return a + b + c + d + 1 + 2\nend\n"
+         "func g(a, b, c, d)\n"
+         "  return ((a + b) * 2 - (c << 1)) % 7 ^ (d & (a - b))\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("v1 без v2-конструкций (заголовок v1)",
+         "func f(a, b)\n  return a & b | a ^ b\nend\n"
+         "func main\n  return 1 + 2\nend\n"),
+    ]
+    bad = []
+    for name, src in expr_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == out):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-55 выражения return == оракулу (%d источников)"
+          % len(expr_cases), not bad, "; ".join(bad[:3]))
     os.unlink(path)

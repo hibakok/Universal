@@ -7,18 +7,20 @@
 | Параметр | Значение |
 |---|---|
 | Файл | KERNEL/L2-WALL/wall.exe, 28160 байт (0x6E00) |
-| SHA-256 | E04BA41BBC14680CFEE2D80B7E4951756C00FA3F6A4AFA66BF279F529067BA91 |
-| Тело секции | 27262 байта (0x6A5E), RVA 0x1000 |
+| SHA-256 | 81DB0498DAD4CAE41AE0765D49F62CA108E2228CA1E7861DB2ABED43B4D084AC |
+| Тело секции | 27326 байта (0x6A9E), RVA 0x1000 (E6.4g-4+№20:
+  +0x3F — флаг «конец операнда» в chain_count; +1 калибровка DZ 3) |
 | Точка входа | 0x1000 (:entry) |
-| idata / iat / intt | 0x7963 / 0x798B / 0x79CB; dll 0x7A0B; VirtualSize 0x7A7E76 (E6.4d-4/2: фикс №19 — рост P014/P017/P015/P016/P013a/S00D на 0x10C, адреса данных сдвинуты; калибровка wall.peg из карты меток brick, wall_build.py) |
-| bss (DBZ) | 0x7A1418 — единая область :scalars (начало в теле 0x6976) |
-| М-строк в исходнике | 5189 (21 файл .b2: корень + 20 частей !include;
-  20-я — wall_pi.b2, механика индексации среза 4b; +61 в E6.4d-4/2 —
-  фикс №19: рамочные счётчики P014, pa_stage-эмит с базами, загрузки
-  P015 с pc_cbase, call_stats с базами, S00D maxd) |
-| Меток в исходнике | 584 (лимит brick 2048 вкл. base; фикс №19: +5
-  pa_top/pa_base/pa_l1/pa_l2/p1c_md, −1 pas_st; срез 4b: +41 —
-  pw_*, ppc_*, ppp_*, ac_*, psc_*, p1n_astore/p1a_*, p2n_astore/p2a_*) |
+| idata / iat / intt | 0x79A2 / 0x79CA / 0x7A0A; dll 0x7A4A; VirtualSize 0x7E8ED6 (E6.4g-4: filebuf в хвосте bss — рост vsize на 0x41000; №20: адреса данных сдвинуты на +0x3F; калибровка wall.peg из карты меток brick, wall_build.py) |
+| bss (DBZ) | 0x7E2418 — единая область :scalars (E6.4g-4: filebuf
+  256 КиБ перенесён в хвост — r13+7A1418 DBZ 41000) |
+| М-строк в исходнике | 5217 (21 файл .b2: корень + 20 частей !include;
+  E6.4g-4+№20: +28 — флаг «конец операнда» chain_count (5 инструкций
+  инициализации/гейтов + cc_setoper); +61 в E6.4d-4/2 — фикс №19) |
+| Меток в исходнике | 585 (лимит brick 2048 вкл. base; №20: +1
+  cc_setoper; фикс №19: +5 pa_top/pa_base/pa_l1/pa_l2/p1c_md, −1
+  pas_st; срез 4b: +41 — pw_*, ppc_*, ppp_*, ac_*, psc_*,
+  p1n_astore/p1a_*, p2n_astore/p2a_*) |
 | Кирпичей | 79 карточек (MAP/M2-WALL.md; +P01B/P01C/P01D/P01E) |
 
 ## 2. Карта ветвей (RVA — по трассировке меток LAB/ai/label_map.py)
@@ -208,8 +210,8 @@ guard-эмиттеры (E6.4c-3/3, wall_pg.b2):
                                 индексации (индексы 113..116 = 0x71..0x74);
                                 'd'/'t'/'DZ ' прямым байтом)
   strtab2 .............. 75BA  K2-D008 (117x8 Б)
-  импорты .............. 7963  K2-D010: idt 0x28 (idata 7963, iat 798B),
-                                intt 79C5, dll 7A0B (13+DZ2), hints:
+  импорты .............. 79A2  K2-D010: idt 0x28 (idata 79A2, iat 79CA),
+                                intt 7A0A, dll 7A4A (13+DZ3 — №20), hints:
                                 gsh 7A1A, wf 7A2A, ep 7A36, gcl 7A44,
                                 cf 7A56, rf 7A64, ch 7A70 (чётные RVA,
                                 инвариант 7 SPEC/04; калибровка DZ 2)
@@ -217,7 +219,9 @@ guard-эмиттеры (E6.4c-3/3, wall_pg.b2):
                                 (bstk 3072x32 + скаляры + буферы, база R13;
                                 E6.4c-3/2: записи 24 -> 32 Б — дефект №15;
                                 E6.4c-3/1: метки буферов -> смещения r13+X
-                                (fname_in r13+18208 … outbuf r13+5A1418);
+                                (fname_in r13+18208 … outbuf r13+5A1418;
+                                E6.4g-4: filebuf r13+7A1418 DBZ 41000 —
+                                256 КиБ, перенесён из r13+580418 в хвост);
                                 флаг v2 — [r13+18190]; st_nslots —
                                 [r13+180D8] (E6.4c-3/4, бывший lay_setb))
 ```

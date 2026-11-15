@@ -265,6 +265,14 @@ M ret ;P008
 ; сравнения == != <= >= и цепочки && || — конец ЛЮБОЙ цепочки (правый
 ; операнд сравнения/конъюнкта не считается в цепочку левого — дефект
 ; E6.4b, пойман E6.4c-3/1; && / || — E6.4c-3/3).
+; Дефект №20 (E6.4d-4/3c-2/1, найден сравнением с оракулом): унарный
+; '-' ломал счёт — на уровне 0 считался операцией, на уровнях 1/2 —
+; терминатором цепочки; T-адреса расходились с каноном (оракулом),
+; при малом maxd — наложение на C-слоты. Фикс: флаг [rbp-18] «конец
+; операнда» (1 после числа/имени/')'/']'; 0 в начале/после оператора);
+; оператор в унарной позиции (флаг 0) — не считается и НЕ завершает
+; цепочку (advance); '(' '[' сбрасывать не нужно — внутренности
+; закрыты глубинным гейтом, а ')' ']' ставят флаг сами.
 :chain_count
 M push rbp ;P009
 M mov rbp, rsp ;P009
@@ -274,13 +282,15 @@ M mov rax, [r13+18070] ;P009
 M mov [rbp-10], rax ;P009
 M xor r8d, r8d ;P009
 M xor r9d, r9d ;P009
+M xor edi, edi ;P009
+M mov [rbp-18], rdi ;P009 oper=0 (начало = ждём операнд)
 :cc_loop
 M mov rcx, [rbp-10] ;P009
 M call $lex_tok ;L001
 M cmp eax, 4 ;P009
 M je $cc_done ;P009
 M cmp eax, 2 ;P009
-M jne $cc_adv ;P009
+M jne $cc_setoper ;P009 число/имя — конец операнда
 M mov rax, [r13+18068] ;P009
 M sub rax, [r13+18060] ;P009
 M cmp rax, 1 ;P009
@@ -301,6 +311,10 @@ M cmp al, 3E ;P009
 M je $cc_done ;P009
 M test r9d, r9d ;P009
 M jnz $cc_adv ;P009
+M cmp qword [rbp-18], 0 ;P009
+M je $cc_adv ;P009 унарная позиция (дефект №20)
+M xor edi, edi ;P009
+M mov [rbp-18], rdi ;P009 бинарный оператор: oper=0
 M mov rdi, [rbp-8] ;P009
 M cmp rdi, 1 ;P009
 M je $cc_mul ;P009
@@ -354,6 +368,10 @@ M jmp $cc_adv ;P009
 :cc_sym2
 M test r9d, r9d ;P009
 M jnz $cc_adv ;P009
+M cmp qword [rbp-18], 0 ;P009
+M je $cc_adv ;P009 унарная позиция (дефект №20)
+M xor edi, edi ;P009
+M mov [rbp-18], rdi ;P009 бинарный оператор: oper=0
 M mov rdx, [r13+18060] ;P009
 M movzx eax, byte [rdx] ;P009
 M movzx edx, byte [rdx+1] ;P009
@@ -404,9 +422,15 @@ M jmp $cc_adv ;P009
 M test r9d, r9d ;P009
 M jz $cc_done ;P009
 M dec r9d ;P009
+M mov eax, 1 ;P009
+M mov [rbp-18], rax ;P009 группа закрыта: oper=1
 M jmp $cc_adv ;P009
 :cc_op
 M inc r8 ;P009
+M jmp $cc_adv ;P009
+:cc_setoper
+M mov eax, 1 ;P009
+M mov [rbp-18], rax ;P009
 M jmp $cc_adv ;P009
 :cc_adv
 M mov rax, [r13+18068] ;P009

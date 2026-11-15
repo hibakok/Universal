@@ -1,4 +1,4 @@
-; wall_self_y.wall — проход 2 каркаса wall.wall (E6.4d-4/3a..3c-1)
+; wall_self_y.wall — проход 2 каркаса wall.wall (E6.4d-4/3a..3c-2/1)
 ; Паспорт: KERNEL/L2-WALL/wall_self_y.wall | слой L2 | роль: реинкарнация
 ; ветви Y (эмитция, SPEC/11 п.8) компилятора WALL на WALL v2 —
 ; K2-Y001 pass2 + эмиттеры K2-E015 emit_header / K2-E026 emit_imports /
@@ -9,22 +9,29 @@
 ; сброс last_ret), K2-Y004 p2s_end (закрытие func: эпилог E019, если
 ; не last_ret), K2-Y006/Y007/Y005 (if/while/else — МЕХАНИКА bstk:
 ; счётчики, push/mutation записей; guard-эмитция p_cond и метки
-; E029-E02D — срез C) и K2-Y008 p2s_return (эпилог сразу; выражение
-; «M mov r10 / M mov rax, r10» — срез C). Строки канона — по
+; E029-E02D — срез C-3) и K2-Y008 p2s_return (срез C-2/1: выражение —
+; p_expr(1) эмит-режимом + «M mov rax, r10» + эпилог E019 сразу;
+; голый return — только эпилог). Строки канона — по
 ; смещениям блоба sblob (таблица off/len — wall_self_blob.wall;
 ; ДЕСЯТИЧНЫЕ литералы). Канон кадров (пролог/эпилог) — эмиттеры части
 ; wall_self_f.wall.
 ; Срез C-1 (E6.4d-4/3c-1) замыкает хвост выхода: СЕКЦИИ ДАННЫХ —
 ; заголовки s_secstr/s_secglob только при непустой секции + вызовы
 ; emit_strdata/emit_globdata (K2-E027/E028 — часть wall_self_d.wall;
-; как Y001 wall.exe: после цикла строк, до предела nlab) — класс
-; срезов A+B (тела из var/голого return/end) даёт выход == оракулу
-; ЦЕЛИКОМ и при глобальных str/var (до C-1 — только точный ПРЕФИКС
-; до секции «; --- данные: ...»). Источники с прочими статами тел (присваивания,
-; вызовы, if/while с телами, return с выражением, setb, astore,
-; break/continue) компилируются с кодом 0, но их статы пока НЕ
-; эмитятся (вне класса среза; bstk-механика сохраняет целостность
-; стека блоков). Счётчик меток выхода nlab (предел 2000, строка 0)
+; как Y001 wall.exe: после цикла строк, до предела nlab)
+; Срез C-2/1 (E6.4d-4/3c-2/1): КЛАСС ПОЛНОГО ВЫХОДА РАСШИРЕН на
+; return <выражение> из чисел/имён (load/addr/len) / скобок / унарного
+; '-' и операций + - | ^ & << >> * / % (p_expr/p_mul/p_mdm/p_unary
+; эмит-плечами, chain_count — часть wall_self_ph.wall; pass2 ставит
+; pc_mode = 1, pass1 — 0). Источники с прочими статами тел (присваивания,
+; вызовы, if/while с телами, setb, astore, break/continue) и выражениями
+; с getb/индексацией/вызовами компилируются с кодом 0, но их эмитция
+; неполна (вне класса среза; bstk-механика сохраняет целостность
+; стека блоков). p2_funchdr ставит раскладку текущей функции из ftab в
+; глобали st_p2maxd/st_p2maxc/st_p2nbase (аналог 180C8/180D0/180C0
+; wall.exe — потребители: адреса T/C/S-слотов эмиттеров) и окно локалей
+; lay_lo/lay_hi (аналог 180F0/180F8 — local_find в emit_addr/len/load).
+; Счётчик меток выхода nlab (предел 2000, строка 0)
 ; проверяется в конце прохода — как Y001 wall.exe.
 
 ; проход 2: сброс счётчиков; пролог; цикл строк по smem; предел nlab
@@ -41,6 +48,7 @@ func pass2
   st_infunc = 0
   st_lret = 0
   st_fbase = 0
+  pc_mode = 1
   emit_header()
   emit_imports()
   emit_entry()
@@ -131,6 +139,15 @@ func p2_funchdr(pos, le)
   fidx = names_find(nptr, nln)
   fidx = getq(tabmem + 40 * fidx + 24)
   curf = fidx
+  ; раскладка текущей функции из ftab (ставит Y00A wall.exe в
+  ; 180C8/180D0/180C0/180F0/180F8): maxd/maxc/nbase — адреса T/C/S-
+  ; слотов эмиттеров, окно lay — local_find (emit_addr/emit_len/
+  ; emit_load части wall_self_g.wall)
+  st_p2maxd = getq(tabmem + 2228224 + curf * 80 + 24)
+  st_p2maxc = getq(tabmem + 2228224 + curf * 80 + 32)
+  st_p2nbase = getq(tabmem + 2228224 + curf * 80 + 72)
+  lay_lo = getq(tabmem + 2228224 + curf * 80 + 48)
+  lay_hi = getq(tabmem + 2228224 + curf * 80 + 56)
   st_fptr = nptr
   st_flen = nln
   emit_prologue()
@@ -225,11 +242,19 @@ func p2s_else(pos, le)
   return 0
 end
 
-; return в проходе 2 (K2-Y008, срез B): эпилог E019 сразу — как для
-; голого return, так и после выражения (эмитция «M mov r10 / M mov
-; rax, r10» — срез C); верхний уровень тела: last_ret = 1 (эпилог
-; конца функции не дублируется — канон SPEC/11 п.8)
+; return в проходе 2 (K2-Y008, срез C-2/1): выражение — p_expr(1)
+; эмит-режимом (канон: значение в r10) + «M mov rax, r10» с комментарием
+; текущей строки, затем эпилог E019 (как для голого return, так и после
+; выражения); верхний уровень тела: last_ret = 1 (эпилог конца функции
+; не дублируется — канон SPEC/11 п.8)
 func p2s_return(pos, le)
+  pcur = pos
+  ple = le
+  if tok_next(pcur, ple) != 4
+    p_expr(1)
+    out_str(1416, 14)
+    emit_cmt()
+  end
   emit_epilogue()
   if st_bcnt == st_fbase + 1
     st_lret = 1

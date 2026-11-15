@@ -12,8 +12,10 @@ larr ×32 {ptr, len, size}, ftab ×80 (+0x48 nslots); индексация
 E6.4d — самохостинг wall.wall (каркас на WALL v2, разрез SPEC/10);
 проходы 0/1 полны (дефекты №18/№19 пойманы; №19 закрыт
 E6.4d-4/2); проход 2 — срезы A (пролог), B (функции), C-1 (секции
-данных); эпики пределов: enc 1 МиБ, brick 1 МиБ/2048, тело 128 КиБ
-(brick+pegen сквозной), nlab 2000, эмулятор 1.45x. Детали —
+данных), C-2/1 (return-выражения эмит-режимом; дефект №20 chain_count
+закрыт синхронно в wall.exe и каркасе); эпики пределов: enc 1 МиБ,
+brick 1 МиБ/2048, тело 128 КиБ (brick+pegen сквозной), вход 256 КиБ
+(E6.4g-4 — filebuf в хвосте bss), nlab 2000, эмулятор 1.45x. Детали —
 LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
 
 
@@ -102,15 +104,22 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   правые на tdepth+1, T-склад на tdepth, tdepth убывает; декремент
   inline в каждом хвосте операции). Операция * -> E034, / и % ->
   E035 (EAX 0/1); ставит флаг v2 [r13+18190] (заголовок «WALL v2»).
-  Состоит из: P012, P009, E034, E035.
+  Состоит из: P012, P009, E034, E035. Реинкарнация на WALL
+  (E6.4d-4/3c-2/1): p_mdm(d) части wall_self_ph.wall (оба плеча).
 - **K2-P010 p_expr** — аддитивное выражение; RCX=d; статы: RAX=need;
   эмит: код. Первый операнд на d+K, правые на tdepth+1, T-склад на
   tdepth (nbase+tdepth), tdepth убывает. Состоит из: P01A, P009, E009,
-  E020.
+  E020. Реинкарнация на WALL (E6.4d-4/3c-2/1): p_expr(d) части
+  wall_self_ph.wall — оба плеча (pc_mode 0/1; emit_tstore/emit_tload
+  части wall_self_g.wall).
 - **K2-P011 p_mul** — конъюнкция (& << >>); операнды через P01A
   (v2: уровень * / % ниже конъюнкции — SPEC/11 п.2). '&' -> E020,
-  '<<'/'>>' -> E021 (через cl). Состоит из: P01A, P009.
+  '<<'/'>>' -> E021 (через cl). Состоит из: P01A, P009. Реинкарнация
+  на WALL (E6.4d-4/3c-2/1): p_mul(d) части wall_self_ph.wall +
+  НОВЫЙ хелпер mul_peek (0 '&' / 1 '<<' / 2 '>>' / -1; оба плеча).
 - **K2-P012 p_unary** — унарный '-' (глубина та же) / P013.
+  Реинкарнация на WALL (E6.4d-4/3c-2/1): p_unary(d) части
+  wall_self_ph.wall — эмит-плечо «M neg r10» (s_mneg 1258/9).
 - **K2-P013 p_prim (срез 4b)** — обёртка: pp_prim0 (P013a) разбирает
   первичное (число mov r10,hex; имя -> E024; &имя -> E022; len -> E023;
   getb — T-склад + movzx; скобки прозрачны; имя( — вызов P014+P015),
@@ -419,25 +428,37 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   Реинкарнация на WALL (E6.4d-4/3b): emit_epilogue() части
   wall_self_f.wall — s_mrsp/s_mpop/s_mret + emit_vyhod.
 - **K2-E020 emit_alu** — байт операции -> «M add/sub/and/or/xor r10, r11»
-  (alutab, смещения блоба).
+  (alutab, смещения блоба). Реинкарнация на WALL (E6.4d-4/3c-2/1):
+  emit_alu(op) + alu_tail(a, n) части wall_self_g.wall — if-цепочка
+  по байту (43/45/38/124/94), alutab каркасу не нужна.
 - **K2-E021 emit_shift** — «M mov rcx, r11» + «M shl/shr r10, cl».
+  Реинкарнация на WALL (E6.4d-4/3c-2/1): emit_shift(dir) части
+  wall_self_g.wall (s_mrcxr11 1444/14 + s_shl/s_shr + s_shcl).
 - **K2-E034 emit_imul (E6.4c-3/1)** — «M imul r10, r11» + комментарий
-  (v2: хвост операции `*`).
+  (v2: хвост операции `*`). Реинкарнация на WALL (E6.4d-4/3c-2/1):
+  emit_imul() части wall_self_g.wall (s_mimul 1856/15).
 - **K2-E035 emit_divmod (E6.4c-3/1)** — EAX = 0 '/' / 1 '%':
   «M mov rax, r10 / M cqo / M idiv r11 / M mov r10, rax|rdx» +
-  комментарии (канон SPEC/11 п.8 форм v2).
+  комментарии (канон SPEC/11 п.8 форм v2). Реинкарнация на WALL
+  (E6.4d-4/3c-2/1): emit_divmod(m) части wall_self_g.wall.
 - **K2-E022 emit_addr** — &имя: локаль -> lea r10,[rbp-X] (X =
   8*(база+размер); срез 4: массив — arrbase, скаляр — эквивалент
   прежней формулы); var/str/массив (вид 5, срез 4) -> lea
-  r10,[rip+$имя]; иначе G002.
+  r10,[rip+$имя]; иначе G002. Реинкарнация на WALL
+  (E6.4d-4/3c-2/1): emit_addr(iptr, ilen) части wall_self_g.wall
+  (размер локали — глобаль lf_size от local_find).
 - **K2-E023 emit_len** — len(имя): срез 4 — сначала local_find
   (локальный массив -> константа размера; локальный скаляр -> G002,
   как оракул); затем str_dlen -> «M mov r10, hex»; глобальный
-  массив (вид 5) -> размер из varr.
+  массив (вид 5) -> размер из varr. Реинкарнация на WALL
+  (E6.4d-4/3c-2/1): emit_len(iptr, ilen) части wall_self_g.wall
+  (sarr +1835008 x24 / varr +1310720 x16 — конвенция каркаса).
 - **K2-E024 emit_load** — имя: локаль -> mov r10,[rbp-X]; var ->
   mov r10,[rip+$имя]; str -> lea r10,[rip+$имя]; func/ext -> G002.
   Срез 4: локальный массив (размер > 1) -> lea r10,[rbp-arrbase]
   (адрес a[0]); глобальный вид 5 -> lea r10,[rip+$имя] (как str).
+  Реинкарнация на WALL (E6.4d-4/3c-2/1): emit_load(iptr, ilen)
+  части wall_self_g.wall.
 - **K2-E025 get_ext** — earr[i] -> (RDX,R8) имя + scr + RAX длина.
   Реинкарнация на WALL (E6.4d-4/3a): get_ext(i) части
   wall_self_e.wall — оригинал в глобалях ext_nptr/ext_nlen

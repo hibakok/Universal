@@ -48,7 +48,7 @@ M ret ;N001
 M xor eax, eax ;N002
 M mov [r13+18028], rax ;N002
 M mov [r13+18040], rax ;N002
-M lea rsi, [r13+580418] ;N002
+M lea rsi, [r13+7A1418] ;N002
 :p0_loop
 M call $line_next ;N002
 M mov [r13+181D0], rax ;N002

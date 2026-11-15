@@ -30,8 +30,8 @@ MAXENAME = 31          # имя ext: слот hint = 2 + 31 + 1 (SPEC/11 п.6)
 def parse(text):
     """текст -> (программа-AST, таблица имён, карта строк исходника)."""
     lines = _lex(text)
-    if len(text.encode("latin1", "replace")) > 128 * 1024:
-        raise WallError("исходник больше 128 КиБ", 0)
+    if len(text.encode("latin1", "replace")) > 256 * 1024:   # E6.4g-4
+        raise WallError("исходник больше 256 КиБ", 0)
     srcmap = {no: txt for no, _t, txt in lines}
     # число строк: разбиение + без пустого хвостового элемента (SPEC/11 п.3)
     nlines = len(lines)

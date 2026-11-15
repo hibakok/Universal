@@ -108,6 +108,7 @@ func pass1
   fcur = 0
   v2flag = 0
   ifseq = 0
+  pc_mode = 0
   i = 1
   while i <= nlentries
     curline = i

@@ -74,16 +74,32 @@
 ; cmt_ptr/cmt_len (текст строки для комментариев — ставит p2_line
 ; текущей строки и set_cmt строки объявления); класс срезов A+B
 ; стал давать ПОЛНЫЙ выход оракула и при глобальных str/var.
+; E6.4d-4/3c-2/1: проход 2, срез C часть 2 шаг 1 — ВЫРАЖЕНИЯ
+; эмит-режимом (глобаль pc_mode: 0 — стат прохода 1 / 1 — эмит
+; прохода 2): НОВАЯ часть wall_self_g.wall — эмиттеры E020 emit_alu
+; / E021 emit_shift / E022 emit_addr / E023 emit_len / E024
+; emit_load / E034 emit_imul / E035 emit_divmod + emit_tstore/
+; emit_tload (T-склад уровней); wall_self_ph.wall — chain_count P009
+; + mul_peek + эмит-плечи p_expr/p_mul/p_mdm/p_unary (механика
+; tdepth = d+K-1 без AST — как wall.exe); wall_self_pp.wall — эмит-
+; плечи pp_prim0 (число / имя / &имя / len); p2_funchdr ставит
+; раскладку из ftab (st_p2maxd/st_p2maxc/st_p2nbase + окно lay);
+; p2s_return Y008 — выражение + «M mov rax, r10». Класс полного
+; выхода: тела из var / return <выражение из чисел, имён (load/
+; addr/len), скобок, унарного '-' и операций + - | ^ & << >>
+; * / %> / end; прочие статы и выражения (вызовы, getb, индексация)
+; — код 0, эмитция неполна (срезы C-2/2+).
 ; Выходной .b2 при успехе — пролог эмитции (срез A: заголовок/
 ; импорты/вход; срез B: функции) + секции данных (срез C-1:
 ; строки/глобальные var) — остальные статы/выражения — срезы C+.
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
 ; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
 ; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
-; документировано). Куча — GlobalAlloc(GMEM_FIXED=0): srcbuf 131073
-; (буфер входа; ОДИН ReadFile с лимитом 131073 — решение BIG SRC
-; эквивалентно wall.exe) и smem 1048592 (карта текстов прохода 0;
-; ёмкость 65537 записей — максимум строк входа 128 КиБ, как sm_arr).
+; документировано). Куча — GlobalAlloc(GMEM_FIXED=0): srcbuf 262145
+; (буфер входа 256 КиБ — E6.4g-4, поднят синхронно с wall.exe, чей
+; filebuf перенесён в хвост bss; ОДИН ReadFile с лимитом 262145 —
+; решение BIG SRC эквивалентно wall.exe) и smem 1048592 (карта текстов
+; прохода 0; ёмкость 65537 записей — как sm_arr wall.exe).
 ; Отказ распределения (NULL) сведён в общий путь ERR=READ SRC (код 5):
 ; у wall.exe аналога нет (статический bss); практически недостижим.
 ; При передаче &глобали в DWORD-аргумент API (srclen/written) глобаль
@@ -144,6 +160,7 @@ var st_setb
 var st_ext5
 var pcur
 var ple
+var pc_mode
 var pc_argcnt
 var pc_argmax
 var pc_extflg
@@ -169,6 +186,9 @@ var st_fptr
 var st_flen
 var cmt_ptr
 var cmt_len
+var st_p2nbase
+var st_p2maxd
+var st_p2maxc
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -197,6 +217,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_e.wall
 !include wall_self_d.wall
 !include wall_self_f.wall
+!include wall_self_g.wall
 !include wall_self_y.wall
 
 func main
@@ -218,16 +239,16 @@ func main
   if fh == -1
     print_error(s_osrc, len(s_osrc), 4)
   end
-  srcbuf = GlobalAlloc(0, 131073)
+  srcbuf = GlobalAlloc(0, 262145)
   if srcbuf == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
   srclen = 0
-  rc = ReadFile(fh, srcbuf, 131073, &srclen, 0)
+  rc = ReadFile(fh, srcbuf, 262145, &srclen, 0)
   if rc == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
-  if srclen >= 131073
+  if srclen >= 262145
     print_error(s_big, len(s_big), 7)
   end
   CloseHandle(fh)

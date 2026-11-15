@@ -1,23 +1,22 @@
-"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-1, срез C-1).
+"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-2/1, срез C-2/1).
 
-Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1).
+Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1+C-2/1).
 Выход: [OK]/[FAIL] строки; код возврата 0/1.
 Функция: сборка каркаса полным кругом (wall.exe -> enc -> brick -> pegen,
          эмуляция LAB) и прогон EXE каркаса на матрице источников.
-         Срез C-1 (секции данных — K2-E009/E013/E014/E027/E028) замыкает
-         хвост выхода: на классе источников, тела которых содержат
-         только var / голый return / end, выход каркаса обязан быть
-         байт-в-байт равен выходу оракула ЦЕЛИКОМ — ВКЛЮЧАЯ глобальные
-         str/var (секции данных: «:имя» + DB-строки <= 16 / «DZ 0» /
-         «DZ 8n»; до C-1 — только точный префикс до секции данных).
-         Матрица покрывает: 0..8 ext (все ветви импортов), 0..4
-         параметра (ARGREG rcx/rdx/r8/r9), локальные массивы
-         (nslots/framesize), v1/v2 (заголовок), многозначные счётчики,
-         пустую str («DZ 0»), экраны всех 6 видов, границу DB-строки
-         16/17 байтов, длинную str (класс дефекта №16), var-only,
-         отступы/«;»-хвосты объявлений (комментарий — строка карты
-         текстов). Источник со статами-выражениями (вне класса) —
-         регресс: код 0, stdout пуст, отсутствие краха (bstk-механика).
+         Срез C-2/1 (ВЫРАЖЕНИЯ эмит-режимом: pc_mode/chain_count/
+         p_expr-p_mul-p_mdm-p_unary эмит-плечи + emit_alu/shift/imul/
+         divmod/addr/len/load) расширяет класс ПОЛНОГО выхода на
+         return <выражение> из чисел / имён (load/addr/len) / скобок /
+         унарного '-' и операций + - | ^ & << >> * / % (вход — E6.4g-4:
+         сборка требует предел входа wall.exe 256 КиБ — исходник каркаса
+         перешёл 128 КиБ). Матрица: старые 13 источников срезов A+B+C-1
+         + новые 14 return-выражений (число/параметры/все 10 операций/
+         цепочки K>1/скобки/унарный/globals var+массив/&локали и
+;         &глобали/len str+varr+larr/глубокая вложенность). Источник со
+         статами вне класса — регресс: код 0, stdout пуст, отсутствие
+         краха (bstk-механика; эмитция неполна — вызовы/getb/индексация
+         — срезы C-2/2+).
 Запуск: python3 LAB/ai/wall_self_emit.py  (из корня репозитория)
 """
 import os
@@ -171,6 +170,44 @@ def main():
         ("отступы и «;»-хвосты объявлений (карта текстов)",
          "  var g ; комментарий\n\tstr s = 'ab' ; ещё\n"
          "  func main\n    return\n  end\n"),
+        # ---- срез C-2/1: return <выражение> (полный выход) ----
+        ("C2: return число", "func main\n  return 42\nend\n"),
+        ("C2: return параметр + параметр",
+         "func add(a, b)\n  return a + b\nend\nfunc main\n  return 0\nend\n"),
+        ("C2: все 5 ALU-операций в цепочке",
+         "func f(a, b, c, d)\n  return a + b - c | d ^ a & b\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: сдвиги << >>",
+         "func f(a, b)\n  return a << 2 >> 3 & b\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: v2 * / % (заголовок v2)",
+         "func f(a, b, c, d)\n  return a * b / c % d + 1\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: скобки и приоритеты",
+         "func f(a, b, c, d)\n  return (a + b) * (c - d)\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: унарный минус (в т.ч. двойной)",
+         "func f(a)\n  return -a + -3 - --a\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: глобальные var + массив",
+         "var g\nvar h[3]\nfunc main\n  return g + 1\nend\n"),
+        ("C2: &локальный массив и &глобаль",
+         "var g\nfunc f(x)\n  var a[4]\n  return &a\nend\n"
+         "func main\n  return &g\nend\n"),
+        ("C2: len str + глобальный + локальный массив",
+         "str s = 'abc'\nvar h[5]\nfunc f(x)\n  var a[7]\n"
+         "  return len(s) + len(h) + len(a)\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: длинная левая цепочка (K=5)",
+         "func f(a, b, c, d)\n  return a + b + c + d + 1 + 2\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: вложенная смесь уровней",
+         "func f(a, b, c, d)\n"
+         "  return ((a + b) * 2 - (c << 1)) % 7 ^ (d & (a - b))\nend\n"
+         "func main\n  return 0\nend\n"),
+        ("C2: деление без скобок (уровни ниже)",
+         "func f(a, b, c)\n  return a & b + c / 2\nend\n"
+         "func main\n  return 0\nend\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")
@@ -200,7 +237,7 @@ def main():
                         break
         else:
             print("   %-56s %d Б (шагов=%d)" % (name, len(got), rs.steps))
-    check("T-E6-52+54/dev: функции+секции данных == оракулу "
+    check("T-E6-52+54+55/dev: функции+данные+выражения == оракулу "
           "(%d источников)" % len(cases), not bad, "; ".join(bad[:3]))
 
     # регресс: статы-выражения вне класса среза — код 0, без краха

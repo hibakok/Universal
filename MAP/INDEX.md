@@ -160,8 +160,9 @@
 | `KERNEL/L2-WALL/wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8x512 симв. = 256 Б; таблица off/len в комментариях; ГЕНЕРАТОР LAB/ai/wall_self_data.py — не редактировать) | 142 |
 | `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода и данных (E6.4d-4/3a, 3c-1) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) + emit_cmt (E009), str_dlen (E013), str_emit+se_doline+esc_code (E014) | 280 |
 | `KERNEL/L2-WALL/wall_self_d.wall` | часть каркаса: СЕКЦИИ ДАННЫХ (E6.4d-4/3c-1) — set_cmt (строка №ln -> cmt_ptr/cmt_len из smem), emit_strdata (E027: :имя + DZ 0 / DB-строки <= 16), emit_globdata (E028: :имя + DZ 8n + комментарий) | 92 |
+| `KERNEL/L2-WALL/wall_self_g.wall` | часть каркаса: ЭМИТТЕРЫ ВЫРАЖЕНИЙ (E6.4d-4/3c-2/1) — emit_tstore/emit_tload (T-склад уровней: «M mov [rbp-X], r10» / «M mov r11, r10» + «M mov r10, [rbp-X]»), emit_alu (E020) + alu_tail, emit_shift (E021), emit_imul (E034), emit_divmod (E035), emit_addr (E022), emit_len (E023), emit_load (E024) — строки блоба по смещениям, nbase — глобаль st_p2nbase | 238 |
 | `KERNEL/L2-WALL/wall_self_f.wall` | часть каркаса: КАДРЫ ФУНКЦИЙ (E6.4d-4/3b) — emit_kadr/emit_vyhod (E010), emit_lab (E011), calc_framesize (E017), emit_prologue (E018 — ARGREG[i] if-цепочкой), emit_epilogue (E019) | 121 |
-| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1 (E6.4d-4/3a..3c-1) — pass2 (Y001: пролог + цикл строк по smem + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: + cmt_ptr/cmt_len текущей строки), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (эмитция функций + МЕХАНИКА bstk) | 373 |
+| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1+C-2/1 (E6.4d-4/3a..3c-2/1) — pass2 (Y001: пролог + цикл строк по smem + pc_mode=1 + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: cmt_ptr/cmt_len текущей строки), p2_funchdr (Y00A: + st_p2maxd/maxc/nbase + окно lay из ftab), p2s_var/end/if/while/else (эмитция функций + МЕХАНИКА bstk) и p2s_return (Y008: выражение p_expr(1) эмит-режимом + «M mov rax, r10» + эпилог) | 398 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
@@ -277,9 +278,10 @@ LAB — измерительный прибор (Python только здесь)
   +P01B/P01C/P01D/P01E индексация E6.4c-3/4b).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **135** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+- Тестов: **136** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..48 + T-E6-10b + T-E6-16b,
-  T-E6-49a/b/c/d + T-E6-53 + T-E6-54; автоматических в батарее — 132).
+  T-E6-49a/b/c/d + T-E6-53 + T-E6-54 + T-E6-55; автоматических в
+  батарее — 133).
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
   (E6.4d-1: каркас CLI на WALL, дефект №16 str_emit исправлен),
   под-шаги 2/1 (буфер входа GlobalAlloc 131073, 8-й ext — предел

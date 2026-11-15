@@ -1,11 +1,14 @@
-; wall_self_pp.wall — первичные выражения и индексация каркаса wall.wall (E6.4d-3/2)
+; wall_self_pp.wall — первичные выражения и индексация каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/1)
 ; Паспорт: KERNEL/L2-WALL/wall_self_pp.wall | слой L2 | роль: реинкарнация
 ; первичных выражений и механики индексации компилятора (K2-P013 p_prim
 ; + K2-P013a pp_prim0 из wall_pp.b2; K2-P01B pp_pcount + K2-P01C
 ; pp_pairs + K2-P01E pp_strchk из wall_pi.b2) на самом языке WALL v2 —
-; СТАТ-режим прохода 1 (без эмитции; откат r12 и перепознание базы на
-; d+k — эмит-механика прохода 2, в стат-режиме база уже разобрана и
-; need базы передаётся в pp_pairs как c0).
+; СТАТ-режим прохода 1 (плечо pc_mode == 0) и ЭМИТ-режим прохода 2
+; (плечо pc_mode != 0 — срез C-2/1: число «M mov r10, <hex>», имя
+; emit_load, &имя emit_addr, len(имя) emit_len — эмиттеры части
+; wall_self_g.wall; скобки прозрачны; откат r12 и перепознание базы
+; на d+k, эмитция пар pp_pairs и вызовов — срезы C-2/2+; в стат-режиме
+; база уже разобрана и need базы передаётся в pp_pairs как c0).
 ; pp_prim0: число (need 0, потребление); '(' выр ')' (need внутреннего);
 ; '&'имя (стат-режим: только want_id — имя НЕ проверяется, как у
 ; wall.exe: emit_addr — проход 2); имя: getb(выр, выр) — need =
@@ -54,6 +57,12 @@ func pp_prim0(d)
   k = tok_next(pcur, ple)
   if k == 0
     pcur = tokend
+    if pc_mode != 0
+      ; «M mov r10, <hex>» + комментарий (значение — tokval лексера)
+      out_str(1278, 11)
+      out_hex(tokval)
+      emit_cmt()
+    end
     return 0
   end
   if k == 1
@@ -71,10 +80,15 @@ func pp_prim0(d)
       return need
     end
     if n == 11
-      ; len(имя)
+      ; len(имя): спан имени — ДО want_sym1(')') (он затирает его)
       pcur = want_sym1(40, pcur, ple)
       pcur = want_id(pcur, ple)
+      iptr = tokptr
+      ilen = tokend - tokptr
       pcur = want_sym1(41, pcur, ple)
+      if pc_mode != 0
+        emit_len(iptr, ilen)
+      end
       return 0
     end
     ; вызов в выражении?
@@ -89,7 +103,10 @@ func pp_prim0(d)
       call_stats(iptr, ilen)
       return need
     end
-    ; имя-значение (проверка имени — проход 2, emit_load)
+    ; имя-значение: проверка имени и загрузка — emit_load (проход 2)
+    if pc_mode != 0
+      emit_load(iptr, ilen)
+    end
     return 0
   end
   if k == 2 && tokend - tokptr == 1
@@ -102,9 +119,14 @@ func pp_prim0(d)
       return need
     end
     if k == 38
-      ; &имя (проверка имени — проход 2, emit_addr)
+      ; &имя: спан имени — ДО эмиттера (emit_addr — проход 2)
       pcur = tokend
       pcur = want_id(pcur, ple)
+      iptr = tokptr
+      ilen = tokend - tokptr
+      if pc_mode != 0
+        emit_addr(iptr, ilen)
+      end
       return 0
     end
   end
