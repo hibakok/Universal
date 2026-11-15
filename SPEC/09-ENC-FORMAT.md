@@ -207,7 +207,8 @@ modrm = `mod<<6 | reg<<3 | rm`; reg-поле: операнд-источник (8
 0 успех; 2 меньше двух аргументов (`U-L1-ENC CMDS: ENC <SRC.B2>
 <OUT.BRICK>`); 3 `ERR=LONG NAME`; 4 `ERR=OPEN SRC`; 5 `ERR=READ SRC`;
 6 `ERR=FORMAT AT=XXXX` (XXXX — hex-номер строки M-ошибки с 1);
-7 `ERR=BIG SRC` (>512 КиБ; E6.4e-1 — 256 КиБ, E6.4f-1 — 512 КиБ);
+7 `ERR=BIG SRC` (>1 МиБ; E6.4e-1 — 256 КиБ, E6.4f-1 — 512 КиБ,
+  E6.4d-4 — 1 МиБ);
 8 `ERR=OPEN OUT`; 9 `ERR=WRITE OUT`.
 
 ## Пример

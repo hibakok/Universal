@@ -12,18 +12,19 @@
 | Свойство | Значение |
 |---|---|
 | Размер файла | 12288 байт (0x3000) |
-| SHA-256 | `4BB73143583151EA698F0B4DB57B63418DA59C8460EF9F26B91ACC8293FCE4C1` |
+| SHA-256 | `EEF6C66EA6E1B5DB9B07C5D1A200F9C059987AE4DABBD3626509677264861C4D` |
 | Точка входа | RVA 0x1000 (тело 0x0000, K1-X011) |
 | Код | 0x2468 байта (тело 0x0000..0x2467), ~1560 инструкций (все — канонические кодировки SPEC/09) |
 | Данные | 0x866 байта @ тело 0x2468 (таблицы, строки, импорты) |
-| Виртуальные нули | 0xC8558 байт @ тело 0x2CCE (ячейки, opbuf, filebuf, outbuf; E6.4e-1: filebuf/outbuf удвоены) |
+| Виртуальные нули | 0x3205B8 байт @ тело 0x2CCE (ячейки, opbuf, filebuf, outbuf; E6.4d-4: filebuf 0x100100 + outbuf 0x220080; E6.4f-1 — 0x190578/0x80100/0x110040; E6.4e-1 — удвоение до 0x40100/0x88020) |
 | Смещение → RVA | RVA = телесное смещение + 0x1000 |
 
 ## 1. Заголовки
 
-Генерируются pegen из `enc.peg`: SizeOfImage = 0x6B000, VirtualSize =
-0x69EE4 (= filelen 0x2CCE + `!bss 67216`; конвенция этапа E6.2 — значение
-!bss задаёт полный виртуальный конец секции), SizeOfRawData = 0x2E00,
+Генерируются pegen из `enc.peg`: SizeOfImage = 0x327000, VirtualSize =
+0x325F54 (= filelen 0x2CCE + `!bss 0x323286`; конвенция этапа E6.2 —
+значение !bss задаёт полный виртуальный конец секции: 0x2CCE + DBZ
+0x3205B8), SizeOfRawData = 0x2E00,
 DD[1] = RVA 0x3BB3 (размер 0x28), DD[12] = RVA 0x3BDB (размер 0x40),
 фиксации стека/кучи = 0x4000. Инварианты SPEC/04 выполняются
 (hint-записи — на чётных RVA: 0x3C6A, 0x3C7A, 0x3C86, 0x3C94, 0x3CA6,
@@ -47,8 +48,9 @@ DD[1] = RVA 0x3BB3 (размер 0x28), DD[12] = RVA 0x3BDB (размер 0x40),
              hstdout/written/srclen/curline/wa_len (RVA 0x3CCE..),
              fname_in/fname_out (0x80), opbuf (0x80), linebuf (0x40),
              ячейки разбора/кодирования (~70 x 8), seg_a/seg_b (0x20),
-             filebuf (0x80100), outbuf (0x110040)
-тело 0x193246 конец полезной секции; VirtualSize (PE) = 0x195F14
+             filebuf (0x100100), outbuf (0x220080)
+тело 0x323286 конец полезной секции (0x2CCE + DBZ 0x3205B8);
+VirtualSize (PE) = 0x325F54
 ```
 
 ## 3. Карта кирпичей (тело / RVA)

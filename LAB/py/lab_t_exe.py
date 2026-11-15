@@ -113,16 +113,16 @@ def _t_enc_exe(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("t.brick") == want,
           "строк=%d шагов=%d" % (len(lines), r.steps))
 
-    # T-E6-10b: предел входа 512 КиБ (E6.4f-1): 0x40020 байт одной
-    # строкой приняты (старый предел 0x40000 из E6.4e-1 отверг бы),
-    # 0x80000 отвергнуты ERR=BIG SRC (код 7); выход проходной строки
-    # == вход
-    line260 = b";" + b"A" * (0x40020 - 2) + b"\n"
-    r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line260})
-    line512 = b";" + b"A" * (0x80000 - 2) + b"\n"
-    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line512})
-    check("T-E6-10b предел входа 512 КиБ (260К принят / 512К отвергнут)",
-          r1.exit_code == 0 and r1.files.get("t.brick") == line260 and
+    # T-E6-10b: предел входа 1 МиБ (E6.4d-4): 0x80020 байт одной
+    # строкой приняты (старый предел 0x80000 из E6.4f-1 отверг бы),
+    # 0x100000 отвергнуты ERR=BIG SRC (код 7); выход проходной строки
+    # == вход (максимум 0xFFFFF — dev LAB/ai/enc_build_lim2.py)
+    line520 = b";" + b"A" * (0x80020 - 2) + b"\n"
+    r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line520})
+    line1024 = b";" + b"A" * (0x100000 - 2) + b"\n"
+    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line1024})
+    check("T-E6-10b предел входа 1 МиБ (520К принят / 1М отвергнут)",
+          r1.exit_code == 0 and r1.files.get("t.brick") == line520 and
           r2.exit_code == 7 and r2.stdout == b"U-L1-ENC ERR=BIG SRC\r\n",
           "шагов=%d+%d" % (r1.steps, r2.steps))
 
