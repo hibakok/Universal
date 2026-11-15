@@ -1,0 +1,161 @@
+; wall_self_y.wall — проход 2 каркаса wall.wall, срез A (E6.4d-4/3a)
+; Паспорт: KERNEL/L2-WALL/wall_self_y.wall | слой L2 | роль: реинкарнация
+; НАЧАЛА ветви Y (эмитция, SPEC/11 п.8) компилятора WALL на WALL v2 —
+; K2-Y001 pass2 (срез A: только пролог — заголовок/импорты/вход) +
+; эмиттеры K2-E015 emit_header / K2-E026 emit_imports / K2-E016
+; emit_entry (из wall_p2.b2/wall_e.b2). Строки канона — по смещениям
+; блоба sblob (таблица off/len — wall_self_blob.wall; ДЕСЯТИЧНЫЕ
+; литералы). Счётчик меток выхода nlab — глобаль (предел 2000 и
+; секции данных — следующие срезы прохода 2).
+; Срез A покрывает ФИКСИРОВАННЫЙ пролог выхода: 2 строки заголовка
+; (v1/v2 по флагу v2flag; счётчики nlines/fcount/ecount/scount/vcount),
+; область импортов 0x200 (SPEC/11 п.6: описатель/терминатор IDT, IAT
+; по earr, INTT, dll, hints 8x34 с именами ext, выравнивания DZ),
+; секцию кода и вход :_entry + 3 M-строки. Канарейка: выход каркаса ==
+; ПРЕФИКСУ выхода оракула/wall.exe (до конца строки входа int3);
+; статы/функции/данные — срезы B+.
+
+; проход 2: сброс счётчиков; пролог выхода (срез A)
+func pass2
+  outcur = 0
+  nlab = 0
+  emit_header()
+  emit_imports()
+  emit_entry()
+  return 0
+end
+
+; 2 строки заголовка (K2-E015): версия — по флагу v2flag; счётчики
+func emit_header
+  if v2flag == 0
+    out_line(804, 90)
+  else
+    out_line(1900, 90)
+  end
+  out_str(713, 20)
+  out_dec(nlines)
+  out_str(733, 29)
+  out_dec(fcount)
+  out_str(762, 7)
+  out_dec(ecount)
+  out_str(769, 7)
+  out_dec(scount)
+  out_str(776, 28)
+  out_dec(vcount)
+  out_ch(10)
+  return 0
+end
+
+; область импортов 0x200 (K2-E026, SPEC/11 п.6)
+func emit_imports
+  var i
+  var j
+  var n
+  out_line(1647, 92)
+  out_line(1137, 5)
+  nlab = nlab + 1
+  if ecount > 0
+    out_line(914, 70)
+  else
+    out_line(984, 38)
+  end
+  out_line(1022, 32)
+  out_line(1132, 5)
+  nlab = nlab + 1
+  i = 0
+  while i < ecount
+    get_ext(i)
+    out_str(908, 6)
+    out_copy(scrbuf, ext_nlen)
+    out_ch(10)
+    nlab = nlab + 1
+    out_str(95, 10)
+    out_copy(scrbuf, ext_nlen)
+    out_ch(10)
+    i = i + 1
+  end
+  out_str(92, 3)
+  n = 9 - ecount
+  if n > 0
+    out_str(1855, 1)
+    while n > 1
+      out_ch(32)
+      out_str(1855, 1)
+      n = n - 1
+    end
+  end
+  out_ch(10)
+  out_line(1142, 6)
+  nlab = nlab + 1
+  out_str(92, 3)
+  i = 0
+  while i < 9
+    if i > 0
+      out_ch(32)
+    end
+    if i < ecount
+      get_ext(i)
+      out_str(901, 7)
+      out_copy(scrbuf, ext_nlen)
+    else
+      out_str(1855, 1)
+    end
+    i = i + 1
+  end
+  out_ch(10)
+  if ecount > 0
+    out_line(1087, 5)
+    nlab = nlab + 1
+    out_line(32, 60)
+    out_line(109, 31)
+    i = 0
+    while i < 8
+      if i < ecount
+        get_ext(i)
+        out_str(894, 7)
+        out_copy(scrbuf, ext_nlen)
+        out_ch(10)
+        nlab = nlab + 1
+        out_str(29, 3)
+        j = 0
+        while j < 34
+          if j >= 2
+            if j - 2 < ext_nlen
+              out_hex2(getb(srcbuf + ext_nptr, j - 2))
+            else
+              out_hex2(0)
+            end
+          else
+            out_hex2(0)
+          end
+          j = j + 1
+          if j < 34
+            out_ch(32)
+          end
+        end
+        out_str(1509, 4)
+        out_copy(srcbuf + ext_nptr, ext_nlen)
+        out_str(1513, 1)
+        out_ch(10)
+      else
+        out_line(663, 50)
+      end
+      i = i + 1
+    end
+    out_line(224, 58)
+  else
+    out_line(140, 84)
+  end
+  return 0
+end
+
+; секция кода + вход (K2-E016, SPEC/11 п.7)
+func emit_entry
+  out_line(1536, 16)
+  out_line(1125, 7)
+  nlab = nlab + 1
+  out_line(288, 85)
+  out_line(373, 40)
+  out_line(413, 81)
+  return 0
+end

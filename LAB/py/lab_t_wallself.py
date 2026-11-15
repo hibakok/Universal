@@ -55,8 +55,17 @@
          wall.exe), оракул падает «не разобрано» — источник вне класса.
          Границы BIG SRC: 131073 (отказ) и 131072 (оба инструмента
          дают нет main); буфер входа, карта текстов и таблицы прохода 1
-         — GlobalAlloc (куча эмулятора 8 МиБ; с E6.4d-3/3 tabmem
-         4948032 = таблицы + bstk 3072x32 + ifarr 32768x8).
+         — GlobalAlloc (куча эмулятора 16 МиБ с E6.4d-4/3a: +outmem
+         2103264 = блоб канона 2048 + scr 64 + outbuf 2 МиБ; было
+         8 МиБ — 98% занято); tabmem 4948032 = таблицы + bstk 3072x32
+         + ifarr 32768x8.
+         E6.4d-4/3a (срез A прохода 2): T-E6-52 — эмитция ПРОЛОГА
+         (части wall_self_blob/e/y: блоб канона hex-литералами, out_*,
+         emit_header/imports/entry): выход каркаса обязан быть точным
+         префиксом выхода оракула — от заголовка до конца строки int3
+         входа включительно (статы/функции/данные — срезы B+). Матрица:
+         0 ext (DZ148, нулевые IAT/INTT), 3 ext (DEMO_WALL), v2
+         (заголовок WALL v2 по v2flag).
 """
 import os
 import tempfile
@@ -201,5 +210,37 @@ def run(check, kpath, kfile, kernel_host):
     check("T-E6-49d проход 0+1: статы тел (все статы прохода 1) == "
           "оракулу parse (%d из %d, код-0 %d, вне класса %d)"
           % (len(corpus) - skipped, len(corpus), zeros, skipped),
+          not bad, "; ".join(bad[:3]))
+
+    # T-E6-52: эмитция пролога (срез A прохода 2, E6.4d-4/3a) — выход
+    # каркаса == ТОЧНЫЙ ПРЕФИКС выхода оракула: от заголовка до конца
+    # строки int3 входа (label :_entry + 3 M-строки); статы/функции/
+    # секции данных — срезы B+
+    v2_src = ("var a[3]\nvar s\nfunc main\n  var i\n  i = 0\n"
+              "  s = 0\n  while i < 3\n    a[i] = i * 5 + i % 2\n"
+              "    if a[i] > 6 && s != 2 || a[i] == 1\n"
+              "      s = s + a[i]\n    end\n    i = i + 1\n  end\n"
+              "  s = a[0] + a[1] + a[2]\n  s = s / 2\n  return 0\n"
+              "end\n")
+    emit_cases = [
+        ("0 ext", "var g\nfunc main\n  g = 1\n  return 0\nend\n"),
+        ("3 ext (DEMO_WALL)", lab_l2_prog.DEMO_WALL),
+        ("v2 (заголовок v2)", v2_src),
+    ]
+    bad = []
+    for name, src in emit_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode()
+        lines = out.decode("utf-8").split("\n")
+        ient = lines.index(":_entry")
+        prefix = ("\n".join(lines[:ient + 4]) + "\n").encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == prefix):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(prefix), rs.exit_code))
+    check("T-E6-52 эмитция пролога == префикс оракула (3 источника)",
           not bad, "; ".join(bad[:3]))
     os.unlink(path)

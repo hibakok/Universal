@@ -475,6 +475,6 @@
 |---|---|
 | Ветвь | D — данные |
 | Файл | KERNEL/L1-BRICK/brick.hex, @0B94.. (DBZ в brick.brick) |
-| Функция | Ячейки (hstdout, written, srclen, outlen, curline, labcnt), fname_in/out (0x80), linebuf (0x40), labtab (0x8000 — 2048 записей, E6.4f-2), filebuf (0x80008 — 512 КиБ + сентинел, E6.4f-2), imagebuf (0x80010 — запас пассажа 1 для 512 КиБ, E6.4f-2) |
+| Функция | Ячейки (hstdout, written, srclen, outlen, curline, labcnt), fname_in/out (0x80), linebuf (0x40), labtab (0x8000 — 2048 записей, E6.4f-2), filebuf (0x100008 — 1 МиБ + сентинел, E6.4g-1), imagebuf (0x100010 — запас пассажа 1 для 1 МиБ, E6.4g-1) |
 | Тест | T-M6-01..17 |
 | Статус | готов |

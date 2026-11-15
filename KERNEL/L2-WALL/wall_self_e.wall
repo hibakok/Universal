@@ -1,0 +1,173 @@
+; wall_self_e.wall — примитивы вывода каркаса wall.wall (E6.4d-4/3a)
+; Паспорт: KERNEL/L2-WALL/wall_self_e.wall | слой L2 | роль: реинкарнация
+; ветви E (примитивы вывода) компилятора WALL на самом языке WALL v2 —
+; K2-E001 out_ch / E002 out_copy / E003 out_str / E004 out_line /
+; E005 out_hex / E006 out_hex2 / E008 out_dec / E012 lower_copy /
+; E025 get_ext (из wall_e.b2/wall_ed.b2) + НОВЫЕ механизмы, которых в
+; wall.exe нет: blob_dec (декодер hex-блоба — str-литералы WALL не
+; держат байты >= 0x80, см. wall_self_blob.wall) и init_blob.
+; Отличия от wall.exe (эквивалентность ВЫХОДА сохранена — байт-в-байт):
+; 1) курсор вывода — глобаль outcur (смещение в outbuf), а не r12:
+;    язык не имеет статических регистров; каждый байт — setb в кучу;
+; 2) out_str принимает (off, len) — смещение в блобе sblob (outmem+0),
+;    а НЕ индекс strtab2: таблица индексов каркасу не нужна (смещения
+;    известны на авторском уровне — таблица в wall_self_blob.wall);
+; 3) out_dec использует операторы / и % (idiv в ISA с E6.4c) вместо
+;    битового div10 E007 — цифры те же, код проще;
+; 4) out_hex собирает цифры в ЛОКАЛЬНЫЙ массив buf (16 qword), а не в
+;    стековый буфер [rsp+0F] — язык не адресует стек напрямую;
+; 5) lower_copy/get_ext: scr — окно outmem+2048 (64 Б, имена ext <= 31),
+;    оригинал имени — в глобалах ext_nptr/ext_nlen (аналог RDX/R8);
+; 6) sblob = outmem+0 (2048 Б), outbuf = outmem+2112 (2 МиБ) — окна
+;    одной области outmem (GlobalAlloc в main корня; куча — не bss).
+
+; декодер: n байт из hex-литералы src (2 ЗАГЛАВНЫЕ цифры/байт) в блоб
+; по смещению off (байт off+i области outmem = sblob)
+func blob_dec(off, src, n)
+  var i
+  var c
+  var v
+  i = 0
+  while i < n
+    c = getb(src, 2 * i)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = c * 16
+    c = getb(src, 2 * i + 1)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = v + c
+    setb(outmem, off + i, v)
+    i = i + 1
+  end
+  return 0
+end
+
+; запуск декодера блоба: 8 литерал по 256 байт (sd0..sd7, всего 2048)
+func init_blob
+  blob_dec(0, &sd0, 256)
+  blob_dec(256, &sd1, 256)
+  blob_dec(512, &sd2, 256)
+  blob_dec(768, &sd3, 256)
+  blob_dec(1024, &sd4, 256)
+  blob_dec(1280, &sd5, 256)
+  blob_dec(1536, &sd6, 256)
+  blob_dec(1792, &sd7, 256)
+  return 0
+end
+
+; один байт c в вывод (K2-E001)
+func out_ch(c)
+  setb(outbuf, outcur, c)
+  outcur = outcur + 1
+  return 0
+end
+
+; n байт из памяти a в вывод (K2-E002)
+func out_copy(a, n)
+  var i
+  i = 0
+  while i < n
+    setb(outbuf, outcur + i, getb(a, i))
+    i = i + 1
+  end
+  outcur = outcur + n
+  return 0
+end
+
+; строка канона: смещение off в блобе sblob, длина n (K2-E003)
+func out_str(off, n)
+  out_copy(outmem + off, n)
+  return 0
+end
+
+; строка канона + LF (K2-E004)
+func out_line(off, n)
+  out_copy(outmem + off, n)
+  out_ch(10)
+  return 0
+end
+
+; v -> ЗАГЛАВНЫЙ hex без ведущих нулей (K2-E005; ноль -> "0")
+func out_hex(v)
+  var buf[16]
+  var n
+  if v == 0
+    out_ch(48)
+    return 0
+  end
+  n = 0
+  while v > 0
+    buf[n] = getb(s_hexd, v & 15)
+    n = n + 1
+    v = v >> 4
+  end
+  while n > 0
+    n = n - 1
+    out_ch(buf[n])
+  end
+  return 0
+end
+
+; v -> ровно 2 ЗАГЛАВНЫЕ hex-цифры (K2-E006)
+func out_hex2(v)
+  out_ch(getb(s_hexd, (v >> 4) & 15))
+  out_ch(getb(s_hexd, v & 15))
+  return 0
+end
+
+; v -> десятичное (K2-E008; ноль -> "0"; v >= 0 — счётчики/размеры)
+func out_dec(v)
+  var buf[20]
+  var n
+  if v == 0
+    out_ch(48)
+    return 0
+  end
+  n = 0
+  while v > 0
+    buf[n] = v % 10
+    n = n + 1
+    v = v / 10
+  end
+  while n > 0
+    n = n - 1
+    out_ch(buf[n] + 48)
+  end
+  return 0
+end
+
+; имя (a, n байт) -> dst в нижнем регистре (K2-E012); вернуть n
+func lower_copy(dst, a, n)
+  var k
+  var c
+  k = 0
+  while k < n
+    c = getb(a, k)
+    if c >= 65 && c <= 90
+      c = c + 32
+    end
+    setb(dst, k, c)
+    k = k + 1
+  end
+  return n
+end
+
+; earr[i] -> имя ext: оригинал (смещение в srcbuf) в ext_nptr/
+; ext_nlen — конвенция каркаса (ntab.ptr — смещение в srcbuf,
+; как names_find), копия в нижнем регистре в scr (окно outmem+2048);
+; вернуть длину (K2-E025)
+func get_ext(i)
+  var e
+  e = getq(tabmem + 3538944 + 8 * i)
+  ext_nptr = getq(tabmem + 40 * e)
+  ext_nlen = getq(tabmem + 40 * e + 8)
+  lower_copy(scrbuf, srcbuf + ext_nptr, ext_nlen)
+  return ext_nlen
+end

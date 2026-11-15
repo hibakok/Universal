@@ -157,6 +157,9 @@
 | `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab; окно дублей — local_find | 208 |
 | `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/3) — p1_line (S002: func -> S004, fcur -> S006/S007/S008/S009/S00A/S00B/S00C/S00F/S00D), pass1 (S001) + пост-проверка main + сброс ifseq, set_lastline | 151 |
 | `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
+| `KERNEL/L2-WALL/wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8x512 симв. = 256 Б; таблица off/len в комментариях; ГЕНЕРАТОР LAB/ai/wall_self_data.py — не редактировать) | 142 |
+| `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода (E6.4d-4/3a) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) | 173 |
+| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срез A (E6.4d-4/3a) — pass2 (Y001-начало), emit_header (E015), emit_imports (E026), emit_entry (E016) | 161 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
@@ -243,6 +246,10 @@
 | `LAB/ai/label_map.py` | (частное) карта меток wall.brick (RVA) для BYTECODE.md | 80 |
 | `LAB/ai/enc_part1..3.txt` | (частное) кодовые части enc.b2 для правок по секциям | — |
 | `LAB/ai/wall_syntax_check.py` | (частное) быстрая проверка каркаса: splice-оракул + компиляция оракулом (E6.4d-2/2) | 41 |
+| `LAB/ai/wall_self_test.py` | (частное) dev-прогон секции 12 вне CI (T-E6-49a/b/c; единый источник — lab_t_wallself.py) | 57 |
+| `LAB/ai/wall_self_data.py` | (частное) генератор wall_self_blob.wall: strblob wall_data.b2 (2046 Б) + 2 нуля -> 8 hex-литерал + таблица off/len (E6.4d-4/3a) | 101 |
+| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции пролога: сборка каркаса + матрица 7 источников — выход == префикс оракула (E6.4d-4/3a) | 200 |
+| `LAB/ai/brick_build_lim2.py` | (частное) пересборка brick 512 КиБ -> 1 МиБ (E6.4g-1): 2 imm32 + 2 disp32, brick.hex/peg/exe, dev 11/11 | 425 |
 
 LAB — измерительный прибор (Python только здесь); подробности —
 `LAB/README.md`. Система UNIVERSAL от LAB не зависит. Батарея также
@@ -266,7 +273,7 @@ LAB — измерительный прибор (Python только здесь)
   +P01B/P01C/P01D/P01E индексация E6.4c-3/4b).
 - Модулей: **9** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL).
-- Тестов: **132** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+- Тестов: **133** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..48 + T-E6-10b + T-E6-16b,
   T-E6-49a/b/c/d; автоматических в батарее — 130).
 - Этап: **E6.4d — самохостинг wall.wall (язык v2 полный)**: шаг 1
@@ -361,3 +368,28 @@ LAB — измерительный прибор (Python только здесь)
   инструмент LAB/ai/bytecode_rows.py — перенос адресов BYTECODE.md §2
   (пойман дрейф карты от частичных обновлений прошлых сессий —
   устаревшие строки исправлены, полный аудит — очередь).**
+  **E6.4g-1 ВЫПОЛНЕН: предел brick 512 КиБ -> 1 МиБ** (мотив:
+  .brick каркаса с эмитцией 666962 Б = 127% старого): 2 imm32
+  (вместимость/BIG SRC 0x100000) + 2 disp32 (imagebuf +0x80000) +
+  DBZ filebuf 0x100008/imagebuf 0x100010; метки 2048/labtab не
+  тронуты (613/2048); тело 0xB98/файл 0xE00 не изменились; bss
+  0x208178, SHA AD3886E7… -> 86DADEF9…; dev brick_build_lim2.py
+  11/11; T-E6-36 перепечатан; SPEC/08/CARD/BYTECODE/VERIFY/
+  MAP-M1-BRICK синхронизированы.**
+  **E6.4d-4/3a ВЫПОЛНЕН: проход 2 каркаса, срез A — ПРОЛОГ
+  эмитции** (части wall_self_blob/e/y.wall): примитивы вывода
+  (out_ch/copy/str/line, out_hex/hex2/dec — реинкарнации
+  K2-E001..E008; курсор — глобаль outcur; out_str (off,len) блоба
+  без strtab2; out_dec через / %), блоб канона 2048 Б hex-литералами
+  sd0..sd7 (генератор LAB/ai/wall_self_data.py; кириллица >= 0x80
+  невыразима в str-литерале), пролог pass2/emit_header/imports/
+  entry (Y001-начало/E015/E026/E016); область вывода outmem
+  2103264 (блоб+scr+outbuf 2 МиБ); куча эмулятора 8 -> 16 МиБ.
+  Выход каркаса == ТОЧНЫЙ ПРЕФИКС оракула до строки int3 входа
+  (T-E6-52 — 3 источника; dev wall_self_emit 7/7: 0/1/3/8 ext,
+  v2, многозначные счётчики, пустая str); поймана конвенция
+  ntab.ptr (смещение в srcbuf — не адрес). Батарея 132 -> 133/133.
+  Замеры: каркас 2674 строк/95281 Б; .b2 700619 (67% enc); .brick
+  666962 (64% brick 1 МиБ); тело 54348/64К (83%); метки 613/2048;
+  EXE 55296. Риски срезов B+: .b2 ~95% enc 1 МиБ (подъём до 2 МиБ),
+  тело ~64К (подъём предела тела ИЛИ WALL v3 qword-доступ).**

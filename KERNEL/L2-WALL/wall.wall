@@ -43,8 +43,19 @@
 ; bstk {2/4, 0, ifseq}; ifarr — окно tabmem+4685888 32768 qword
 ; (ёмкость == ifarr wall.exe 0x8000 байт; проверки переполнения нет,
 ; как у wall.exe); сброс ifseq в pass1 (как [r13+18118] S001).
-; Выходной .b2 при успехе пока ПУСТ — эмитция прохода 2 последует
-; (шаги E6.4d-3+).
+; E6.4d-4/3a: проход 2, срез A — ПРОЛОГ эмитции (части blob/e/y):
+; блоб канона SPEC/11 п.8 (wall_self_blob.wall — hex-литералы sd0..sd7,
+; 2048 Б; кириллица байтов >= 0x80 невыразима в str-литерале) декодируется
+; blob_dec в окно sblob = outmem+0 области outmem; примитивы вывода
+; (wall_self_e.wall: out_ch/copy/str/line, out_hex/hex2/dec, lower_copy,
+; get_ext — реинкарнации K2-E001..E008/E012/E025; курсор — глобаль outcur,
+; не r12) и пролог прохода 2 (wall_self_y.wall: pass2 + emit_header/
+; emit_imports/emit_entry — K2-Y001(начало)/E015/E026/E016): 2 строки
+; заголовка (v1/v2 по v2flag, счётчики), область импортов 0x200 (SPEC/11
+; п.6), секция кода + :_entry. Статы/функции/секции данных — срезы B+;
+; канарейка: выход == префиксу оракула до конца строки int3 (T-E6-52).
+; Выходной .b2 при успехе — ПРОЛОГ эмитции (срез A: заголовок/импорты/
+; вход; срезы B+ — статы, функции, секции данных, предел nlab).
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
 ; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
 ; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
@@ -84,7 +95,6 @@ var curline
 var nlentries
 var nlines
 var lastnonempty
-var outbuf[64]
 var fmtbuf[8]
 var tabmem
 var tokptr
@@ -122,6 +132,13 @@ var pc_staged
 var lay_lo
 var lay_hi
 var lf_size
+var outmem
+var outbuf
+var outcur
+var scrbuf
+var nlab
+var ext_nptr
+var ext_nlen
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -136,6 +153,7 @@ str s_sym2 = '==!=<=>=<<>>&&||'
 str s_sym1 = '()=,-+<>|&^![]*/%'
 str s_kws = 'var str ext func end else if while return setb getb len break continue'
 
+!include wall_self_blob.wall
 !include wall_self_c.wall
 !include wall_self_n.wall
 !include wall_self_pe.wall
@@ -146,6 +164,8 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_pd.wall
 !include wall_self_p1.wall
 !include wall_self_p1s.wall
+!include wall_self_e.wall
+!include wall_self_y.wall
 
 func main
   var i
@@ -193,13 +213,24 @@ func main
   if tabmem == 0
     print_error(s_rsrc, len(s_rsrc), 5)
   end
+  ; область вывода эмитции (E6.4d-4/3a): sblob 2048 (блоб канона —
+  ; декодируется init_blob) + scr 64 (нижний регистр имён ext) +
+  ; outbuf 2097152 (2 МиБ — максимум вывода big_source x3, как wall.exe)
+  outmem = GlobalAlloc(0, 2103264)
+  if outmem == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  scrbuf = outmem + 2048
+  outbuf = outmem + 2112
+  init_blob()
   pass0()
   pass1()
+  pass2()
   fh = CreateFile2(w2, 1073741824, 0, 2, 0)
   if fh == -1
     print_error(s_oout, len(s_oout), 8)
   end
-  rc = WriteFile(fh, outbuf, 0, &written, 0)
+  rc = WriteFile(fh, outbuf, outcur, &written, 0)
   if rc == 0
     print_error(s_wout, len(s_wout), 9)
   end
