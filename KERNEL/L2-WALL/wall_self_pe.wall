@@ -1,6 +1,6 @@
-; wall_self_pe.wall — хелперы разбора каркаса wall.wall (E6.4d-2/3)
+; wall_self_pe.wall — хелперы разбора каркаса wall.wall (E6.4d-2/3, E6.4d-3/2)
 ; Паспорт: KERNEL/L2-WALL/wall_self_pe.wall | слой L2 | роль: реинкарнация
-; ветвей P/L прохода 1 компилятора на самом языке WALL v2 (K2-P001..P007,
+; ветвей P/L прохода 1 компилятора на самом языке WALL v2 (K2-P001..P008,
 ; K2-P019 из wall_pe.b2 + K2-L001 из wall_l.b2): лексер одного токена
 ; (tok_next), поиск ключевого слова (kw_lookup, s_kws — порядок 14 записей
 ; == kwtab wall_data.b2: 0 var, 1 str, 2 ext, 3 func, 4 end, 5 else,
@@ -30,6 +30,30 @@
 ;    str <= 14563; проверок переполнения нет, как у wall.exe, кроме
 ;    ext <= 8 — SPEC/11 п.6); доступ — stq/getq побайтово (qword-доступа
 ;    по произвольному адресу в языке нет, как в проходе 0).
+
+; максимум двух (хелпер экономии меток: каждый if — метка в выходе
+; .b2, а каркас ограничен wall.exe nlab <= 500)
+func max2(a, b)
+  if a > b
+    return a
+  end
+  return b
+end
+
+; текущий токен (заглядывание от pcur, без потребления) — односимволь-
+; ный символ c? 1 — да (tokptr/tokend — спан токена), 0 — нет
+func tok_is1(c)
+  if tok_next(pcur, ple) != 2
+    return 0
+  end
+  if tokend - tokptr != 1
+    return 0
+  end
+  if getb(srcbuf, tokptr) != c
+    return 0
+  end
+  return 1
+end
 
 ; чтение qword по адресу a (младший байт первый; парный stq из части n)
 func getq(a)
@@ -284,6 +308,45 @@ func names_find_ci(ptr, ln)
         return i
       end
     end
+    i = i + 1
+  end
+  return -1
+end
+
+; поиск локали/параметра в окне lay (K2-P008): larr-записи {ptr, len,
+; size} 32 Б от tabmem+3539008; окно задают глобали lay_lo/lay_hi
+; (аналог [r13+180F0/180F8] wall.exe; в проходе 1 окно пусто — его
+; заполняет astore_chk копией st_locoff/st_loccnt; проход 2 будет
+; ставить своё — Y00A). Возврат — базовый слот (сумма размеров
+; пропущенных записей; a[0] — самый глубокий) | -1; размер найденной
+; записи — в глобали lf_size (для будущей эмитции astore, RDX wall.exe)
+func local_find(ptr, ln)
+  var i
+  var wend
+  var base
+  var p
+  var l
+  var k
+  i = lay_lo
+  wend = lay_lo + lay_hi
+  base = 0
+  while i < wend
+    l = getq(tabmem + 3539008 + i * 32 + 8)
+    if l == ln
+      p = getq(tabmem + 3539008 + i * 32)
+      k = 0
+      while k < ln
+        if getb(srcbuf, p + k) != getb(srcbuf, ptr + k)
+          break
+        end
+        k = k + 1
+      end
+      if k == ln
+        lf_size = getq(tabmem + 3539008 + i * 32 + 16)
+        return base
+      end
+    end
+    base = base + getq(tabmem + 3539008 + i * 32 + 16)
     i = i + 1
   end
   return -1

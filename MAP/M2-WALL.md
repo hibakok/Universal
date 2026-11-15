@@ -46,7 +46,33 @@ maxd/maxc/flags/loccnt/nslots, fcur=0); табmem 4685888 (+larr 32768x32
 попутно эпик E6.4f — пределы конвейера 512 КиБ (enc E6.4f-1, brick
 E6.4f-2/2048 меток: .b2 каркаса 288470 > 256 КиБ). Кирпичи S004/S00E/
 S007 — реинкарнации K2-S004/S00E/S007 (карточки ниже) в WALL-код;
-журнал — VERIFY-E6D.md.
+журнал — VERIFY-E6D.md. E6.4d-3/1: локальные var НА WALL — S006
+p1s_var части wall_self_p1s (имя, [n] 1..4096, дубликат в окне,
+конфликт с глобальными, larr/st_nslots); корпус T-E6-49d 104 -> 118
+(86 сравнимо / 11 код-0 / 32 вне класса); стенд LAB/ai починен
+(wall_trace/label_map). E6.4d-3/2: ВЫРАЖЕНИЯ стат-режимом НА WALL —
+НОВЫЕ части wall_self_ph (уровни P010/P011/P01A/P012, курсор —
+глобали pcur/ple), wall_self_pp (первичные + индексация P013/P013a/
+P01B/P01C/P01E), wall_self_pa (вызовы P014/P017/P016 + astore_chk
+P01D; аккумуляторы pc_argcnt/pc_argmax/pc_extflg); local_find P008 +
+max2/tok_is1 (экономия меток выхода — каркас у предела nlab 500:
+493) — в wall_self_pe; статы S00B p1s_return + S00C p1s_setb +
+S00D p1_namestmt (вызов/astore/присваивание) в wall_self_p1s,
+диспетчер — kw-плечи var/end/return/setb + namestmt (форма wall.exe);
+окна дублей p1s_var/fh_param переведены на local_find; ПОЙМАН
+латентный дефект №18: s_sym2 каркаса была без «>>» (с E6.4d-2/2
+лексер каркаса дробил «>>» на два «>» — наружу вышло только с
+появлением выражений); класс источников: тела с var/return/setb/
+присваиваниями/вызовами/astore; правило cerr (ошибки только прохода
+2 — вне класса: каркас без эмитции даёт 0, wall.exe 6) + модель
+kw-патологий «KW = выр»/«KW(арг)» (_kw_falls); корпус T-E6-49d
+118 -> 153 (129 сравнимо / 38 код-0 / 24 вне класса); тестовая
+модель вынесена в lab_t_wallself_model.py + lab_t_wallself_corpus.py
+(правило 500 строк). Замеры: плоский 1940 строк / 65517 Б; .b2
+452396 (86% enc 512К); .brick 424995 (81%); тело 40080/64К (61%);
+метки выхода 493/500 (!), исходника 495/2048; EXE 40960. Кирпичи
+S006/S00B/S00C/S00D + P008/P010..P01E — реинкарнации (карточки
+ниже); журнал — VERIFY-E6D.md.
 
 ## Поток исполнения (X)
 
@@ -233,13 +259,25 @@ S007 — реинкарнации K2-S004/S00E/S007 (карточки ниже) 
 - **K2-S009 p1s_if** — p_cond (статы), ifseq1++, ifarr[seq]=0,
   push {if, 0, seq}.
 - **K2-S00A p1s_while** — p_cond (статы), push {while, 0, 0}.
-- **K2-S00B p1s_return** — [выражение] -> статы maxd.
+- **K2-S00B p1s_return** — [выражение] -> статы maxd. Реинкарнация
+  на WALL (E6.4d-3/2): p1s_return части wall_self_p1s.wall —
+  выражение есть -> p_expr(1) (уровни — wall_self_ph) + maxd,
+  иначе сразу at_end (плечо p1r_noexpr wall.exe).
 - **K2-S00C p1s_setb** — три выражения (статы), st_setb=1.
+  Реинкарнация на WALL (E6.4d-3/2): p1s_setb части
+  wall_self_p1s.wall — '(' выр ',' выр ',' выр ')' + at_end +
+  st_setb=1; maxd — max2 после каждого p_expr(1).
 - **K2-S00D p1_namestmt** — вызов-утверждение (P014+P016),
   присваивание (статы maxd) или astore (срез 4b: после имени '[' ->
   pp_pcount -> astore_chk -> база (k=1: need 0; k>1: pp_prim0(k) +
   pp_pairs(1, k-1)) -> пара/значение через p_expr(1) -> maxd = max
-  трёх need -> st_setb=1 (S-слоты)).
+  трёх need -> st_setb=1 (S-слоты)). Реинкарнация на WALL
+  (E6.4d-3/2): p1_namestmt части wall_self_p1s.wall — имя в
+  tokptr/tokend ДО потребления; peek '(' -> p_args(1)+call_stats
+  (wall_self_pa) + at_end; peek '[' -> astore (pp_pcount/
+  astore_chk/база-цепочка — wall_self_pp/pa; maxd — max2 порознь);
+  иначе '=' p_expr(1) + at_end; в стат-режиме st_maxd — max2
+  (порядок обновлений не наблюдаем).
 - **K2-S00E fh_param** — параметр: chk_name, дубликат в окне/глобальных,
   larr+ (×32 Б: {ptr, len, size=1} — срез 4).
 - **K2-S00F p1s_brk (E6.4c-3/2)** — вход: ключевое слово break/continue

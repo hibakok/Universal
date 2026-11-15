@@ -12,7 +12,7 @@
 | Размер | 27648 байт (0x6C00); тело 26998 Б (0x6976) |
 | Платформа | Windows x64, консольная подсистема, PE32+ |
 | Импорты | kernel32.dll: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFileA, ReadFile, CloseHandle |
-| Самохостинг | E6.4d-1, E6.4d-2/1..2/4, E6.4d-3/1 ВЫПОЛНЕНЫ: каркас написан НА WALL v2 — ядро KERNEL/L2-WALL/wall.wall (корень с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall — проход 0, wall_self_pe/pd/p1/p1s.wall — проход 1; 8 ext — предел SPEC/11 п.9; буфер входа GlobalAlloc 131073 + карта текстов GlobalAlloc 1048592 + таблицы прохода 1 GlobalAlloc 4685888 — ntab/varr/sarr/ftab/earr/larr/bstk одной областью tabmem, смещения в коде; пределы конвейера подняты эпиком E6.4f: enc 512 КиБ, brick 512 КиБ/2048 меток — .b2 каркаса 304886 Б / 58%). Проход 0 (2/2): разбиение LF/CRLF/CR + полная лексика + карта текстов — ошибки лексера ERR=FORMAT AT=XXXX (код 6) == wall.exe == оракул _lex. Проход 1 (2/3): читатели карты (getq/getb), диспетчер p1_line + kwtab (s_kws), объявления var/str/ext (p1_decl: ntab/varr/sarr/earr, порядок проверок == wall.exe) и пост-проверка main. E6.4d-2/4: заголовки func (p1_funchdr + fh_param: имя, <= 4 параметров, дубликаты параметров/имени, larr, bstk push kind 1, ftab-запись 80 Б) и закрытие func плечом end (p1s_end: финальная запись ftab, fcur=0). E6.4d-3/1: локальные var (p1s_var: имя, [n] 1..4096, at_end, дубликат в окне [st_locoff, st_locoff+st_loccnt), конфликт с глобальными, larr-запись {ptr, len, size}, st_loccnt++, st_nslots += size — порядок == wall.exe == оракул) — класс источников расширен на тела с var-объявлениями (корректный var — код 0; ошибки — на строке); прочие статы — ERR=FORMAT до следующих под-шагов; успешный разбор даёт код 0 (выход .b2 пуст — эмитция прохода 2 — шаги E6.4d-3+); вложенная func — quirk wall.exe: каркас == wall.exe (принимают заголовок), оракул расходится; журнал — VERIFY-E6D.md |
+| Самохостинг | E6.4d-1, E6.4d-2/1..2/4, E6.4d-3/1, E6.4d-3/2 ВЫПОЛНЕНЫ: каркас написан НА WALL v2 — ядро KERNEL/L2-WALL/wall.wall (корень с разрезом SPEC/10: wall_self_c.wall — сервис, wall_self_n.wall — проход 0, wall_self_pe.wall — хелперы (+ local_find P008, max2/tok_is1 — экономия меток), wall_self_ph/pp/pa.wall — выражения стат-режимом (E6.4d-3/2: уровни P010/P011/P01A/P012; первичные + индексация P013/P013a/P01B/P01C/P01E; вызовы P014/P017/P016 + astore_chk P01D), wall_self_pd/p1/p1s.wall — проход 1; 8 ext — предел SPEC/11 п.9; буфер входа GlobalAlloc 131073 + карта текстов GlobalAlloc 1048592 + таблицы GlobalAlloc 4685888 — ntab/varr/sarr/ftab/earr/larr/bstk одной областью tabmem, смещения в коде; курсор выражений — глобали pcur/ple, аккумуляторы вызовов pc_argcnt/pc_argmax/pc_extflg, окно lay_lo/lay_hi (local_find); пределы конвейера эпика E6.4f: enc 512 КиБ, brick 512 КиБ/2048 меток — .b2 каркаса 452396 Б / 86%). Проход 0 (2/2): разбиение LF/CRLF/CR + полная лексика + карта текстов — лексер == wall.exe == оракул _lex (ПОЙМАН латентный дефект №18: s_sym2 без «>>» — E6.4d-3/2). Проход 1: читатели карты (getq/getb), диспетчер p1_line + kwtab (s_kws), объявления var/str/ext (p1_decl), пост-проверка main; заголовки func (p1_funchdr S004 + fh_param S00E) и закрытие end (p1s_end S007); локальные var (p1s_var S006); E6.4d-3/2: ВЫРАЖЕНИЯ стат-режимом (need/maxd/maxc без эмитции: уровни, первичные, индексация, вызовы, getb/len, &имя) и статы тел S00B return / S00C setb / S00D namestmt (вызов-утверждение, astore — pp_pcount/astore_chk/база-цепочка, присваивание) — класс источников: тела с var/return/setb/присваиваниями/вызовами/astore (корпус T-E6-49d: 153 источника — 129 сравнимо / 38 код-0 / 24 вне класса; правило cerr — ошибки только прохода 2 вне класса; kw-патологии «KW = выр»/«KW(арг)» — модель _kw_falls); прочие статы (S008 else / S009 if / S00A while / S00F break/continue — bstk-механика) — ERR=FORMAT до E6.4d-3/3; успешный разбор даёт код 0 (выход .b2 пуст — эмитция прохода 2 — шаги E6.4d-4+); вложенная func — quirk wall.exe: каркас == wall.exe (принимают заголовок), оракул расходится; журнал — VERIFY-E6D.md (до 3/1) + VERIFY-E6D2.md (3/2+) |
 
 ## Формат вызова
 
@@ -92,13 +92,16 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
 
 | Файл | Назначение |
 |---|---|
-| `wall.wall` | само-исходник каркаса на WALL v2 — КОРЕНЬ с разрезом (E6.4d-2/2): ext/var/str + main (CLI, чтение, alloc srcbuf+smem, pass0, запись); сборка через splice | 
+| `wall.wall` | само-исходник каркаса на WALL v2 — КОРЕНЬ с разрезом (E6.4d-2/2): ext/var/str + main (CLI, чтение, alloc srcbuf+smem+tabmem, pass0, запись); сборка через splice | 
 | `wall_self_c.wall` | часть каркаса: сервис — print_error, skip0/read_arg (K2-C001/C003), widen (UTF-16) | 
 | `wall_self_n.wall` | часть каркаса: проход 0 (E6.4d-2/2) — stq, fail_format (G002+H001), lex_line (N003+L001), pass0 (N001+N002) | 
-| `wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3) — getq, tok_next (L001), kw_lookup (P004), chk_name (P005), names_find/find_ci/add (P006/P007+S005), arr_size (P019), at_end/want_id/want_sym1 (P002/P003/P001) | 
-| `wall_self_pd.wall` | часть каркаса: объявления (E6.4d-2/3) — p1_decl (S003): var/str/ext, порядок проверок == wall.exe; заголовки func (E6.4d-2/4) — p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab | 
-| `wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4) — p1s_end (S007): закрытие func, финальная запись ftab; прочие статы S006+ — шаг E6.4d-3 | 
-| `wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3) — p1_line (S002), pass1 (S001) + пост-проверка main, set_lastline (N004) |
+| `wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3, E6.4d-3/2) — getq, tok_next (L001), kw_lookup (P004), chk_name (P005), names_find/find_ci/add (P006/P007+S005), local_find (P008 — окна lay/st), max2 + tok_is1 (экономия меток выхода), arr_size (P019), at_end/want_id/want_sym1 (P002/P003/P001) | 
+| `wall_self_ph.wall` | часть каркаса: уровни выражений стат-режимом (E6.4d-3/2) — p_expr (P010), p_mul (P011), p_mdm (P01A), p_unary (P012); курсор — глобали pcur/ple | 
+| `wall_self_pp.wall` | часть каркаса: первичные + индексация (E6.4d-3/2) — p_prim (P013), pp_prim0 (P013a: число/скобки/&имя/getb/len/вызов/имя), pp_pcount (P01B), pp_pairs (P01C — статы), pp_strchk (P01E) | 
+| `wall_self_pa.wall` | часть каркаса: вызовы и astore-проверка (E6.4d-3/2) — p_args (P014), pa_stage (P017), call_stats (P016 — maxc/ext5), astore_chk (P01D — окно lay ← st) | 
+| `wall_self_pd.wall` | часть каркаса: объявления (E6.4d-2/3) — p1_decl (S003): var/str/ext, порядок проверок == wall.exe; заголовки func (E6.4d-2/4) — p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab (окно дублей — local_find) | 
+| `wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 — p1s_var (S006), p1s_end (S007); E6.4d-3/2: p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D: вызов/astore/присваивание); статы S008/S009/S00A/S00F — E6.4d-3/3 | 
+| `wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/2) — p1_line (S002: kw-плечи var/end/return/setb + namestmt), pass1 (S001) + пост-проверка main, set_lastline (N004) |
 | `wall.b2` | корень: поток X/C/G + 20 `!include` частей |
 | `wall_svc.b2` | ветви H/G/U/C/F — печать, ошибки, командная строка, файлы (реинкарнации K1-* из enc) |
 | `wall_n.b2` | ветвь N — разбиение строк, проход 0, карта текстов |
@@ -163,16 +166,19 @@ lineidx} — с E6.4c-3/2 (дефект №15): ранее 24 байта, из-�
 - Вход ≤ 256 КиБ и метки исходника ≤ 2048 записей labtab (пределы
   конвейера эпика E6.4f: enc E6.4f-1 512 КиБ, brick E6.4f-2 512 КиБ/
   2048 меток; до этого E6.4e: 256 КиБ/1024): плоский wall.b2 = 138126 Б,
-  меток исходника 528; каркас wall.wall (E6.4d-2/4): плоский текст
-  42489 Б, .b2 288470 (55% предела enc), .brick 270052 (52%), тело
-  28895/64К, метки 388/2048. Меток в ВЫХОДЕ ≤ 500 (nlab; цепочки
+  меток исходника 528; каркас wall.wall (E6.4d-3/2): плоский текст
+  1940 строк / 65517 Б, .b2 452396 (86% предела enc), .brick 424995
+  (81%), тело 40080/64К (61%), метки выхода 493/500 (предел nlab
+  wall.exe — поднять перед E6.4d-3/3), метки исходника 495/2048.
+  Меток в ВЫХОДЕ ≤ 500 (nlab; цепочки
   с m>1 добавляют m: (m-1) d-метка + 1 t-метка) — проверяется,
-  ERR=FORMAT строка 0.
+  ERR=FORMAT строка 0; КАРКАС ПОДХОДИТ К ПРЕДЕЛУ (493): подъём
+  nlab по образцу E6.4e/E6.4f — первый шаг E6.4d-3/3.
 - Выход ≤ 2 МиБ (outbuf); большие программы потребуют потоковой записи.
 - Индексация выражений-вызовов `(f(x))[0]`, `getb(...)[0]` и
   `(s)[0]`-скобочные базы поддержаны обёрткой (откат+перепознание).
-- Самохостинг на WALL — E6.4d (язык v2 готов: WALL v2 полный).
-- Самохостинг на WALL — E6.4d (нужен весь v2).
+- Самохостинг на WALL — E6.4d в работе: проходы 0/1 почти полны
+  (остались статы if/while/else/break/continue), проход 2 — впереди.
 
 ## Примеры
 

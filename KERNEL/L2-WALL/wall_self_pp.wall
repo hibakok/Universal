@@ -1,0 +1,215 @@
+; wall_self_pp.wall — первичные выражения и индексация каркаса wall.wall (E6.4d-3/2)
+; Паспорт: KERNEL/L2-WALL/wall_self_pp.wall | слой L2 | роль: реинкарнация
+; первичных выражений и механики индексации компилятора (K2-P013 p_prim
+; + K2-P013a pp_prim0 из wall_pp.b2; K2-P01B pp_pcount + K2-P01C
+; pp_pairs + K2-P01E pp_strchk из wall_pi.b2) на самом языке WALL v2 —
+; СТАТ-режим прохода 1 (без эмитции; откат r12 и перепознание базы на
+; d+k — эмит-механика прохода 2, в стат-режиме база уже разобрана и
+; need базы передаётся в pp_pairs как c0).
+; pp_prim0: число (need 0, потребление); '(' выр ')' (need внутреннего);
+; '&'имя (стат-режим: только want_id — имя НЕ проверяется, как у
+; wall.exe: emit_addr — проход 2); имя: getb(выр, выр) — need =
+; max + 1; len(имя) — 0; вызов имя(аргументы) — pc_extflg по виду
+; имени (ext — вид 3 ntab), p_args + call_stats части pa, need =
+; pc_argmax; прочее имя-значение — 0 (имя НЕ проверяется: emit_load —
+; проход 2); литерал-строка в выражении — ERR=FORMAT (pp_fail).
+; p_prim: обёртка индексации — prim0, заглядывание '[': pp_strchk
+; (база-имя не str — иначе ERR), pp_pcount (k пар вперёд, k > 0 ставит
+; v2flag), pp_pairs (статы: k пар '['выр']', c = 1 + max(c, need) на
+; пару). pp_pcount: скан БЕЗ потребления (локальный курсор sp, pcur не
+; трогает — у wall.exe сохранение/восстановление pc_cur): '[' на
+; глубине 0 — новая пара, вложенные — глубина; стоп — конец строки или
+; ОДНОСИМВОЛЬНЫЙ токен глубины 0 вне пары (двухсимвольные и не-символы
+; — мимо, как ppc_adv wall.exe). pp_strchk: семантический корень базы
+; — k ведущих '(', имя (не getb/len), k ')'; локаль (окно lay — в
+; проходе 1 пусто, заполняет astore_chk) — ок; имя вида str (вид 2)
+; — ERR=FORMAT; неизвестное/прочее — ок (ошибка будет позже).
+; Экономия меток (nlab <= 500): проверки «токен = символ c» свёрнуты
+; в одно условие через &&, max — хелпер max2 части pe.
+
+; первичное + постфиксная индексация e[i]...; d — глубина (K2-P013)
+func p_prim(d)
+  var c0
+  var need
+  var k
+  c0 = pcur
+  need = pp_prim0(d)
+  if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 91
+    pp_strchk(c0)
+    k = pp_pcount()
+    need = pp_pairs(d, k, need)
+  end
+  return need
+end
+
+; первичное выражение; d — глубина (K2-P013a)
+func pp_prim0(d)
+  var iptr
+  var ilen
+  var k
+  var need
+  var n
+  k = tok_next(pcur, ple)
+  if k == 0
+    pcur = tokend
+    return 0
+  end
+  if k == 1
+    iptr = tokptr
+    ilen = tokend - tokptr
+    pcur = tokend
+    n = kw_lookup(iptr, ilen)
+    if n == 10
+      ; getb(выр, выр)
+      pcur = want_sym1(40, pcur, ple)
+      need = p_expr(d + 1)
+      pcur = want_sym1(44, pcur, ple)
+      need = max2(need, p_expr(d + 1)) + 1
+      pcur = want_sym1(41, pcur, ple)
+      return need
+    end
+    if n == 11
+      ; len(имя)
+      pcur = want_sym1(40, pcur, ple)
+      pcur = want_id(pcur, ple)
+      pcur = want_sym1(41, pcur, ple)
+      return 0
+    end
+    ; вызов в выражении?
+    if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
+      pcur = tokend
+      pc_extflg = 0
+      n = names_find(iptr, ilen)
+      if n != -1 && getq(tabmem + n * 40 + 16) == 3
+        pc_extflg = 1
+      end
+      p_args(d)
+      call_stats(iptr, ilen)
+      return pc_argmax
+    end
+    ; имя-значение (проверка имени — проход 2, emit_load)
+    return 0
+  end
+  if k == 2 && tokend - tokptr == 1
+    k = getb(srcbuf, tokptr)
+    if k == 40
+      ; (выр)
+      pcur = tokend
+      need = p_expr(d)
+      pcur = want_sym1(41, pcur, ple)
+      return need
+    end
+    if k == 38
+      ; &имя (проверка имени — проход 2, emit_addr)
+      pcur = tokend
+      pcur = want_id(pcur, ple)
+      return 0
+    end
+  end
+  ; литерал-строка, двухсимвольный символ или иное — не выражение
+  fail_format(curline)
+  return 0
+end
+
+; число пар [..] в остатке строки (скан без потребления; K2-P01B);
+; k > 0 ставит v2flag; возврат — k
+func pp_pcount
+  var sp
+  var k
+  var depth
+  var t
+  var c
+  sp = pcur
+  k = 0
+  depth = 0
+  t = tok_next(sp, ple)
+  while t != 4
+    if t == 2 && tokend - tokptr == 1
+      c = getb(srcbuf, tokptr)
+      if c == 91
+        if depth == 0
+          k = k + 1
+        end
+        depth = depth + 1
+      else
+        if c == 93
+          depth = depth - 1
+        else
+          if depth == 0
+            break
+          end
+        end
+      end
+    end
+    sp = tokend
+    t = tok_next(sp, ple)
+  end
+  if k > 0
+    v2flag = 1
+  end
+  return k
+end
+
+; цикл пар индексации (статы; K2-P01C): d — глубина верхнего индекса,
+; k — число пар, c — need базы; на пару: '[' выр ']', c = 1 + max(c,
+; need); возврат — need цепочки
+func pp_pairs(d, k, c)
+  var cur
+  cur = d + k
+  while cur > d
+    pcur = want_sym1(91, pcur, ple)
+    c = max2(c, p_expr(cur)) + 1
+    pcur = want_sym1(93, pcur, ple)
+    cur = cur - 1
+  end
+  return c
+end
+
+; база индекса — не строка (K2-P01E); c0 — позиция ДО prim
+func pp_strchk(c0)
+  var sp
+  var kk
+  var iptr
+  var ilen
+  var n
+  var t
+  sp = c0
+  kk = 0
+  t = tok_next(sp, ple)
+  while t == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
+    kk = kk + 1
+    sp = tokend
+    t = tok_next(sp, ple)
+  end
+  if t != 1
+    return 0
+  end
+  iptr = tokptr
+  ilen = tokend - tokptr
+  n = kw_lookup(iptr, ilen)
+  if n == 10 || n == 11
+    return 0
+  end
+  sp = tokend
+  t = tok_next(sp, ple)
+  while kk > 0 && t == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 41
+    kk = kk - 1
+    sp = tokend
+    t = tok_next(sp, ple)
+  end
+  if kk > 0
+    ; скобки не закрылись — корень сложнее имени
+    return 0
+  end
+  if local_find(iptr, ilen) != -1
+    return 0
+  end
+  n = names_find(iptr, ilen)
+  if n == -1
+    return 0
+  end
+  if getq(tabmem + n * 40 + 16) == 2
+    fail_format(curline)
+  end
+  return 0
+end

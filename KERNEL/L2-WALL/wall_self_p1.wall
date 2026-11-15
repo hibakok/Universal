@@ -1,23 +1,25 @@
-; wall_self_p1.wall — каркас прохода 1 каркаса wall.wall (E6.4d-2/3..2/4, E6.4d-3/1)
+; wall_self_p1.wall — каркас прохода 1 каркаса wall.wall (E6.4d-2/3..3/2)
 ; Паспорт: KERNEL/L2-WALL/wall_self_p1.wall | слой L2 | роль: реинкарнация
 ; K2-S001 pass1 + K2-S002 p1_line (wall_p1.b2) и K2-N004 set_lastline
 ; (wall_n.b2) на самом языке WALL v2. Цикл строк идёт по карте текстов
 ; smem (записи 1..nlentries — {смещение, длина}, читатели getq/getb),
 ; а не повторным разбиением, как line_next у wall.exe: записи те же
-; (проход 0), curline = номер записи до разбора строки. Диспетчер —
-; финальная форма wall.exe (E6.4d-3/1): пустая строка — пропуск;
-; не-имя — ERR=FORMAT; func — p1_funchdr части pd (ЗАГОЛОВКИ РЕАЛИЗОВАНЫ;
-; плече раньше fcur — quirk wall.exe: «func g» внутри тела — новый
-; заголовок); тело функции (fcur) — var — локальное объявление
-; (p1s_var части p1s: E6.4d-3/1 РЕАЛИЗОВАНО), end закрывает func
-; (p1s_end части p1s: финальная запись ftab, fcur = 0), прочие статы —
-; ERR=FORMAT (S008+ — следующие под-шаги E6.4d-3); между func
-; (seenfunc) — ERR=FORMAT; объявления (до func) — p1_decl части pd. Пост-проверки: незакрытый блок
+; (проход 0), curline = номер записи до разбора строки. Диспетчер
+; (E6.4d-3/2 — форма wall.exe): пустая строка — пропуск; не-имя —
+; ERR=FORMAT; func — p1_funchdr части pd (раньше fcur — quirk
+; wall.exe: «func g» внутри тела — новый заголовок); тело функции
+; (fcur): kw-плечи в порядке kwstmt wall.exe — var (0) — p1s_var,
+; end (4) — p1s_end, return (8) — p1s_return, setb (9) — p1s_setb,
+; ПРОЧЕЕ имя — p1_namestmt (части p1s; вкл. kw else/if/while/break/
+; continue — их плечи S008/S009/S00A/S00F — шаг E6.4d-3/3); между
+; func (seenfunc) — ERR=FORMAT (плече hdrfail); объявления (до
+; func) — p1_decl части pd. Пост-проверки: незакрытый блок
 ; (fdepth/fcur) и ровно одна main без параметров (ftab; main
 ; с параметрами — ошибка в строке заголовка main; имя сравнивается
 ; по смещению в srcbuf — getb(srcbuf, np+k), np — СМЕЩЕНИЕ из ftab).
-; v2flag — флаг v2 (массивы/статы; ставит arr_size), обнуляется здесь;
-; читается проходом 2 (шаги E6.4d-3+). lcount — счётчик larr (параметры;
+; v2flag — флаг v2 (массивы/* / % / индексация; ставят arr_size,
+; p_mdm части ph, pp_pcount части pp), обнуляется здесь; читается
+; проходом 2 (шаги E6.4d-3+). lcount — счётчик larr (параметры;
 ; обнуляется здесь, как [r13+18138] wall.exe).
 
 ; curline := последняя непустая | nlentries (K2-N004)
@@ -52,7 +54,13 @@ func p1_line(pos, le)
     if kwi == 4
       return p1s_end(tokend, le)
     end
-    fail_format(curline)
+    if kwi == 8
+      return p1s_return(tokend, le)
+    end
+    if kwi == 9
+      return p1s_setb(tokend, le)
+    end
+    return p1_namestmt(tokend, le)
   end
   if seenfunc != 0
     fail_format(curline)

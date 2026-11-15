@@ -1,15 +1,15 @@
-; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4, E6.4d-3/1)
+; wall_self_p1s.wall — утверждения прохода 1 каркаса wall.wall (E6.4d-2/4, E6.4d-3/1..3/2)
 ; Паспорт: KERNEL/L2-WALL/wall_self_p1s.wall | слой L2 | роль: реинкарнация
 ; ветви статов прохода 1 (K2-S006..S00F, wall_p1s.b2) на самом языке
 ; WALL v2. E6.4d-2/4: K2-S007 p1s_end — закрытие блока end:
 ; at_end, при fdepth == 0 — лишний end (ERR=FORMAT текущей строки);
 ; pop bstk (запись 32 Б {kind, k, ifseq, lineidx} — дефект №15; в
-; каркасе до E6.4d-3 записи только kind 1 — func, пушит S004 части pd);
+; каркасе до E6.4d-3/3 записи kind 1 — func (пушит S004 части pd) и
+; kind 2/4 — if/while (будут пушить S009/S00A));
 ; kind 1 — финальная запись ftab[curf]: maxd, maxc, flags (бит 0 —
 ; st_setb, бит 1 — st_ext5), loccnt, nslots — и fcur = 0 (функция
 ; закрыта); kind 2/3 (if/while/else) — проход 1 у wall.exe больше
-; ничего не делает (стат-статистику копят выражения/статы, шаг
-; E6.4d-3).
+; ничего не делает.
 ; E6.4d-3/1: K2-S006 p1s_var — локальное объявление var имя [n]:
 ; want_id + chk_name, опциональный [n] (arr_size P019: 1..4096,
 ; ставит v2flag), at_end, дубликат в окне текущей функции
@@ -18,52 +18,48 @@
 ; larr-запись 32 Б {ptr, len, size} под индексом lcount, lcount++,
 ; st_loccnt++, st_nslots += size — порядок проверок == wall.exe ==
 ; оракул parse (имя, [n], at_end, дубликат, глобаль).
-; Прочие статы (S008 else, S009 if, S00A while, S00B return, S00C
-; setb, S00D namestmt, S00F break/continue) — следующие под-шаги
-; E6.4d-3; до них диспетчер p1_line части p1 даёт на них ERR=FORMAT
-; текущей строки (класс эквивалентности задокументирован в VERIFY-E6D
-; и _expect_line батареи).
+; E6.4d-3/2: K2-S00B p1s_return — return [выр]: выражение есть —
+; p_expr(1) (уровни — часть ph) и maxd = max(maxd, need); нет — сразу
+; at_end (плечо p1r_noexpr). K2-S00C p1s_setb — setb(выр, выр, выр):
+; три p_expr(1) c maxd-обновлением между want_sym1 '(' ',' ',' ')',
+; at_end, st_setb = 1 (флаг S-слотов). K2-S00D p1_namestmt —
+; утверждение-имя (вызов / astore / присваивание): имя сохраняется
+; ДО потребления; заглядывание следующего токена: '(' — вызов
+; (p_args(1) + call_stats части pa — maxc/ext5, at_end); '[' — astore
+; (pp_pcount части pp — k пар; astore_chk части pa — цель допустима;
+; k > 1 — база-цепочка pp_prim0(k) + pp_pairs(1, k-1, 0) = need
+; базы; последняя пара '[' выр ']' '=' выр ПОРОЗНЬ; maxd = max по
+; базе/индексу/значению; st_setb = 1); иначе — присваивание: '='
+; p_expr(1), maxd, at_end. Прочие статы (S008 else, S009 if, S00A
+; while, S00F break/continue — bstk-механика) — следующий под-шаг
+; E6.4d-3/3; у wall.exe их kw-индексы (5/6/7/C/D) идут в собственные
+; плечи kwstmt ДО namestmt — в каркасе до E6.4d-3/3 они проваливаются
+; в p1_namestmt (kw-имя как обычное имя) и на классе корпуса дают
+; ERR=FORMAT той же строки; патологические «KW = выр» / «KW(арг)»
+; namestmt принимает — источники вне класса (см. _expect_line и
+; VERIFY-E6D).
 ; bstk — в куче tabmem+4587584, 3072x32 (как bstk wall.exe 0x18000/32;
 ; ёмкость 3072 записей — дефект №15: площадь та же, записи шире).
 
 ; локальное объявление: var имя ['[' n ']'] (K2-S006); pos — курсор
-; за ключевым словом var (его лекснул диспетчер p1_line части p1)
+; за ключевым словом var (его лекснул диспетчер p1_line части p1).
+; Дубликат в окне — local_find по копии окна st в lay (предикат тот же,
+; что у инлайн-скана p1v_scan wall.exe: длина + побайтовое сравнение;
+; экономия меток выхода)
 func p1s_var(pos, le)
   var nptr
   var nln
   var size
-  var i
-  var wend
-  var p
-  var l
-  var k
-  var hit
   pos = want_id(pos, le)
   chk_name(0)
   nptr = tokptr
   nln = tokend - tokptr
   size = arr_size(pos, le)
   at_end(aspos, le)
-  i = st_locoff
-  wend = st_locoff + st_loccnt
-  while i < wend
-    p = getq(tabmem + 3539008 + i * 32)
-    l = getq(tabmem + 3539008 + i * 32 + 8)
-    if l == nln
-      k = 0
-      hit = 1
-      while k < nln
-        if getb(srcbuf, p + k) != getb(srcbuf, nptr + k)
-          hit = 0
-          break
-        end
-        k = k + 1
-      end
-      if hit == 1
-        fail_format(curline)
-      end
-    end
-    i = i + 1
+  lay_lo = st_locoff
+  lay_hi = st_loccnt
+  if local_find(nptr, nln) != -1
+    fail_format(curline)
   end
   if names_find(nptr, nln) != -1
     fail_format(curline)
@@ -102,5 +98,87 @@ func p1s_end(pos, le)
     stq(tabmem + 2228224 + curf * 80 + 72, st_nslots)
     fcur = 0
   end
+  return 0
+end
+
+; return [выр] (K2-S00B); pos — курсор за ключевым словом return
+func p1s_return(pos, le)
+  var need
+  pcur = pos
+  ple = le
+  if tok_next(pcur, ple) != 4
+    need = p_expr(1)
+    st_maxd = max2(st_maxd, need)
+  end
+  at_end(pcur, le)
+  return 0
+end
+
+; setb(выр, выр, выр) (K2-S00C); pos — курсор за ключевым словом setb
+func p1s_setb(pos, le)
+  var need
+  pcur = pos
+  ple = le
+  pcur = want_sym1(40, pcur, ple)
+  need = p_expr(1)
+  st_maxd = max2(st_maxd, need)
+  pcur = want_sym1(44, pcur, ple)
+  need = p_expr(1)
+  st_maxd = max2(st_maxd, need)
+  pcur = want_sym1(44, pcur, ple)
+  need = p_expr(1)
+  st_maxd = max2(st_maxd, need)
+  pcur = want_sym1(41, pcur, ple)
+  at_end(pcur, le)
+  st_setb = 1
+  return 0
+end
+
+; утверждение-имя: вызов / astore / присваивание (K2-S00D); pos —
+; курсор ЗА именем (имя — в tokptr/tokend на входе, как tok_ptr/
+; tok_end wall.exe)
+func p1_namestmt(pos, le)
+  var iptr
+  var ilen
+  var k
+  var nbase
+  iptr = tokptr
+  ilen = tokend - tokptr
+  pcur = pos
+  ple = le
+  if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
+    ; вызов-утверждение: имя(аргументы)
+    pcur = tokend
+    p_args(1)
+    call_stats(iptr, ilen)
+    at_end(pcur, le)
+    return 0
+  end
+  if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 91
+    ; astore: имя[выр]... = выр
+    k = pp_pcount()
+    astore_chk(iptr, ilen)
+    nbase = 0
+    if k > 1
+      ; база-цепочка: перепознание prim на глубине k + пары 1..k-1
+      pcur = iptr
+      pp_prim0(k)
+      nbase = pp_pairs(1, k - 1, 0)
+    end
+    ; последняя пара и значение — порознь (S-стейджинг)
+    pcur = want_sym1(91, pcur, ple)
+    st_maxd = max2(st_maxd, p_expr(1))
+    pcur = want_sym1(93, pcur, ple)
+    pcur = want_sym1(61, pcur, ple)
+    st_maxd = max2(st_maxd, p_expr(1))
+    at_end(pcur, le)
+    st_maxd = max2(st_maxd, nbase)
+    st_setb = 1
+    return 0
+  end
+  ; присваивание: имя = выр
+  pcur = want_sym1(61, pcur, ple)
+  st_maxd = max2(st_maxd, p_expr(1))
+  at_end(pcur, le)
   return 0
 end

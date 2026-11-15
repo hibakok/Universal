@@ -62,7 +62,7 @@
 | Понять формат PE | `SPEC/04-PE-MINIMAL.md`, `KERNEL/L0-SEED/BYTECODE.md` |
 | Понять используемые инструкции | `SPEC/05-X86-SUBSET.md` |
 | Узнать, что делать дальше | `DOCS/03-ROADMAP.md` (текущий этап + критерии готовности) |
-| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (130 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC/SPLICE/WALL v1+v2, круги, самохостинг E5/E6.2/E6.3, инструменты enc/splice/brick/wall + каркас wall.wall с проходом 0 (секции 11-12); ~110 с; CI GitHub делает это на каждый пуш) |
+| Проверить ВСЁ репозиторий сразу | `LAB/README.md` -> `python3 LAB/py/lab_verify.py` (130 проверок: SHA, PE, эмуляция, оракулы ATOM/BRICK/PEG/ENC/SPLICE/WALL v1+v2, круги, самохостинг E5/E6.2/E6.3, инструменты enc/splice/brick/wall + каркас wall.wall с проходами 0/1 (секции 11-12); ~110 с; CI GitHub делает это на каждый пуш) |
 | Узнать, что делал ИИ-разработчик и что дальше | `LAB/ai/JOURNAL.md` (журнал сессий, планы этапов) |
 | Проверить семя | `KERNEL/L0-SEED/VERIFY.md`, `TESTS/T-L0-SEED.md` |
 | Проверить семя-2 | `KERNEL/L0-SEED2/VERIFY.md`, `TESTS/T-L0-SEED2.md` |

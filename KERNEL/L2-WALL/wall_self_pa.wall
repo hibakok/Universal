@@ -1,0 +1,95 @@
+; wall_self_pa.wall — аргументы, вызовы и astore-проверка каркаса wall.wall (E6.4d-3/2)
+; Паспорт: KERNEL/L2-WALL/wall_self_pa.wall | слой L2 | роль: реинкарнация
+; механики вызовов и проверки цели astore компилятора (K2-P014 p_args +
+; K2-P017 pa_stage + K2-P016 call_stats из wall_pa.b2; K2-P01D
+; astore_chk из wall_pi.b2) на самом языке WALL v2 — СТАТ-режим
+; прохода 1 (p_call_tail с его загрузками C-слотов и переходами —
+; эмит-механика прохода 2, не реинкарнируется до E6.4d-4+).
+; p_args: '(' уже поглощено вызывающим; пустые «()» — потребить ')';
+; иначе выр (pa_stage) и цикл ',' выр; завершение — want ')'.
+; Глобали-аккумуляторы (аналог tmp5/tmp6 [r13+181E8/181F0] wall.exe,
+; которые он делит с литералами): pc_argcnt — число аргументов,
+; pc_argmax — max need аргументов; pa_stage: argcnt++, argmax =
+; max(argmax, need). call_stats(имя): вид имени в ntab; ext (вид 3) —
+; maxc = max(maxc, min(argcnt, 4)), при argcnt == 5 — st_ext5 = 1
+; (S5-слот); НЕ ext (вкл. неизвестное имя — проверка в проходе 2) —
+; maxc = max(maxc, argcnt). astore_chk(имя): копия окна ст локалей в
+; окно lay (st_locoff/st_loccnt -> lay_lo/lay_hi — как проход 1
+; wall.exe; проход 2 использует уже выставленное lay-окно); локаль/
+; параметр — ок; глобаль вида 1 (var) или 5 (массив) — ок; str/func/
+; ext/неизвестное — ERR=FORMAT (неизвестное и str/func/ext поймает и
+; оракул parse — «строка неизменяема» / «не переменная» /
+; «неизвестное имя»).
+
+; аргументы вызова до ')' включительно; d — глубина (K2-P014)
+func p_args(d)
+  var need
+  pc_argcnt = 0
+  pc_argmax = 0
+  if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 41
+    pcur = tokend
+    return 0
+  end
+  need = p_expr(d)
+  pa_stage(need)
+  while tok_is1(44) == 1
+    pcur = tokend
+    need = p_expr(d)
+    pa_stage(need)
+  end
+  pcur = want_sym1(41, pcur, ple)
+  return 0
+end
+
+; стейджинг одного аргумента (после p_expr; K2-P017, стат-режим)
+func pa_stage(need)
+  pc_argcnt = pc_argcnt + 1
+  pc_argmax = max2(pc_argmax, need)
+  return 0
+end
+
+; статы вызова: ptr/len имени (K2-P016)
+func call_stats(iptr, ilen)
+  var n
+  var kind
+  var m
+  kind = 0
+  n = names_find(iptr, ilen)
+  if n != -1
+    kind = getq(tabmem + n * 40 + 16)
+  end
+  if kind == 3
+    m = pc_argcnt
+    if m > 4
+      m = 4
+    end
+    st_maxc = max2(st_maxc, m)
+    if pc_argcnt == 5
+      st_ext5 = 1
+    end
+  else
+    st_maxc = max2(st_maxc, pc_argcnt)
+  end
+  return 0
+end
+
+; имя-цель astore допустимо (K2-P01D): ptr/len имени
+func astore_chk(iptr, ilen)
+  var n
+  var kind
+  lay_lo = st_locoff
+  lay_hi = st_loccnt
+  if local_find(iptr, ilen) != -1
+    return 0
+  end
+  n = names_find(iptr, ilen)
+  if n == -1
+    fail_format(curline)
+  end
+  kind = getq(tabmem + n * 40 + 16)
+  if kind == 1 || kind == 5
+    return 0
+  end
+  fail_format(curline)
+  return 0
+end

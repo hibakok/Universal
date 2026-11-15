@@ -1,0 +1,77 @@
+; wall_self_ph.wall — уровни выражений каркаса wall.wall (E6.4d-3/2)
+; Паспорт: KERNEL/L2-WALL/wall_self_ph.wall | слой L2 | роль: реинкарнация
+; уровней выражений компилятора (K2-P010 p_expr / K2-P011 p_mul /
+; K2-P01A p_mdm / K2-P012 p_unary из wall_ph.b2) на самом языке WALL
+; v2 — СТАТ-режим прохода 1 (плечо pc_mode == 0 у wall.exe): разбор
+; выражения + возврат need (потребность T-слотов, >= 0) БЕЗ эмитции.
+; Курсор разбора — глобали pcur/ple (позиция/конец текста строки из
+; карты smem; аналог pc_cur [r13+18070] / R15 wall.exe): чтение токена
+; — tok_next(pcur, ple) (заглядывание, pcur не двигается), потребление
+; — pcur = tokend (аналог pc_cur := tok_end). Уровни (SPEC/11 п.2,
+; приоритет по убыванию): p_expr '+' '-' '|' '^' (лево-цепочка);
+; p_mul '&' '<<' '>>'; p_mdm '*' '/' '%' (v2 — ставит флаг v2flag);
+; p_unary унарный '-' (рекурсия на той же глубине, need без изменений);
+; первичное — p_prim части pp. Стат-механика цепочек wall.exe: каждый
+; операнд разбирается на d+1, после каждой операции need = max(need,
+; need_операнда) + 1 — в стат-режиме tdepth/chain_count не считаются
+; (это эмит-механика прохода 2), глубина d передаётся вниз для будущей
+; реинкарнации эмитции и на need не влияет (как у wall.exe).
+; Отличия от wall.exe (эквивалентность сохранена): v2flag ставится
+; значением 1 (wall.exe — кодом операции; читается только «не ноль»);
+; проверка оператора уровня вжата в условие цикла (tok_is1 == 1 из
+; части pe; wall.exe — отдельные cmp в плече pe_loop), max — хелпер
+; max2 (экономия меток выхода: каркас ограничен nlab <= 500 wall.exe).
+
+; аддитивный уровень '+' '-' '|' '^'; d — глубина (K2-P010)
+func p_expr(d)
+  var need
+  var sub
+  need = p_mul(d + 1)
+  while tok_is1(43) == 1 || tok_is1(45) == 1 || tok_is1(124) == 1 || tok_is1(94) == 1
+    pcur = tokend
+    sub = p_mul(d + 1)
+    need = max2(need, sub) + 1
+  end
+  return need
+end
+
+; мультипликативный уровень '&' '<<' '>>'; d — глубина (K2-P011).
+; Проверка оператора вжата в условие цикла (дизъюнкция конъюнкций:
+; t==2 гарантирует символ — иначе литерал '&' ложно совпал бы)
+func p_mul(d)
+  var need
+  var sub
+  var t
+  need = p_mdm(d + 1)
+  t = tok_next(pcur, ple)
+  while t == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 38 || t == 2 && tokend - tokptr == 2 && getb(srcbuf, tokptr) == 60 && getb(srcbuf, tokptr + 1) == 60 || t == 2 && tokend - tokptr == 2 && getb(srcbuf, tokptr) == 62 && getb(srcbuf, tokptr + 1) == 62
+    pcur = tokend
+    sub = p_mdm(d + 1)
+    need = max2(need, sub) + 1
+    t = tok_next(pcur, ple)
+  end
+  return need
+end
+
+; уровень '*' '/' '%' (v2); d — глубина (K2-P01A); ставит v2flag
+func p_mdm(d)
+  var need
+  var sub
+  need = p_unary(d + 1)
+  while tok_is1(42) == 1 || tok_is1(47) == 1 || tok_is1(37) == 1
+    v2flag = 1
+    pcur = tokend
+    sub = p_unary(d + 1)
+    need = max2(need, sub) + 1
+  end
+  return need
+end
+
+; унарный минус / первичное; d — глубина (K2-P012)
+func p_unary(d)
+  if tok_is1(45) == 1
+    pcur = tokend
+    return p_unary(d)
+  end
+  return p_prim(d)
+end

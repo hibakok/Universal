@@ -28,9 +28,15 @@
 ; ftab, fcur = 0).
 ; E6.4d-3/1: локальные объявления в телах (S006 p1s_var части p1s:
 ; имя, [n] 1..4096, дубликат в окне [st_locoff, st_locoff+
-; st_loccnt), конфликт с глобальными, larr, st_nslots) — класс
-; источников расширен на тела с var; прочие статы — ERR=FORMAT
-; текущей строки до следующих под-шагов E6.4d-3 (см. VERIFY-E6D
+; st_loccnt), конфликт с глобальными, larr, st_nslots).
+; E6.4d-3/2: выражения в СТАТ-режиме (части ph — уровни P010/P011/
+; P01A/P012; pp — первичные + индексация P013/P013a/P01B/P01C/P01E;
+; pa — аргументы/вызовы/astore-проверка P014/P017/P016/P01D) и статы
+; тел S00B return / S00C setb / S00D namestmt (часть p1s) + плечи
+; диспетчера (часть p1) — класс источников расширен на тела с
+; выражениями: присваивания, вызовы-утверждения, astore, return,
+; setb; прочие статы (S008 else / S009 if / S00A while / S00F
+; break/continue — bstk-механика) — E6.4d-3/3 (см. VERIFY-E6D
 ; и _expect_line секции 12 батареи).
 ; Выходной .b2 при успехе пока ПУСТ — эмитция прохода 2 последует
 ; (шаги E6.4d-3+).
@@ -99,6 +105,14 @@ var st_maxd
 var st_maxc
 var st_setb
 var st_ext5
+var pcur
+var ple
+var pc_argcnt
+var pc_argmax
+var pc_extflg
+var lay_lo
+var lay_hi
+var lf_size
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -109,13 +123,16 @@ str s_oout = 'U-L2-WALL ERR=OPEN OUT\r\n'
 str s_wout = 'U-L2-WALL ERR=WRITE OUT\r\n'
 str s_fmt = 'U-L2-WALL ERR=FORMAT AT='
 str s_hexd = '0123456789ABCDEF'
-str s_sym2 = '==!=<=>=<<>&&||'
+str s_sym2 = '==!=<=>=<<>>&&||'
 str s_sym1 = '()=,-+<>|&^![]*/%'
 str s_kws = 'var str ext func end else if while return setb getb len break continue'
 
 !include wall_self_c.wall
 !include wall_self_n.wall
 !include wall_self_pe.wall
+!include wall_self_ph.wall
+!include wall_self_pp.wall
+!include wall_self_pa.wall
 !include wall_self_pd.wall
 !include wall_self_p1.wall
 !include wall_self_p1s.wall

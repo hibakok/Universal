@@ -182,15 +182,12 @@ func p1_funchdr(pos, le)
 end
 
 ; один параметр заголовка: имя; дубликаты — ERR (K2-S00E); возврат —
-; курсор за именем (tokend)
+; курсор за именем (tokend). Дубликат в окне [st_locoff, lcount) —
+; local_find по копии окна в lay (предикат тот же, что у инлайн-скана
+; S00E wall.exe: длина + побайтовое сравнение; экономия меток выхода)
 func fh_param(pos, le)
   var nptr
   var nln
-  var i
-  var p
-  var l
-  var k
-  var hit
   pos = want_id(pos, le)
   chk_name(0)
   nptr = tokptr
@@ -198,25 +195,10 @@ func fh_param(pos, le)
   if names_find(nptr, nln) != -1
     fail_format(curline)
   end
-  i = st_locoff
-  while i < lcount
-    p = getq(tabmem + 3539008 + i * 32)
-    l = getq(tabmem + 3539008 + i * 32 + 8)
-    if l == nln
-      k = 0
-      hit = 1
-      while k < nln
-        if getb(srcbuf, p + k) != getb(srcbuf, nptr + k)
-          hit = 0
-          break
-        end
-        k = k + 1
-      end
-      if hit == 1
-        fail_format(curline)
-      end
-    end
-    i = i + 1
+  lay_lo = st_locoff
+  lay_hi = lcount - st_locoff
+  if local_find(nptr, nln) != -1
+    fail_format(curline)
   end
   stq(tabmem + 3539008 + lcount * 32, nptr)
   stq(tabmem + 3539008 + lcount * 32 + 8, nln)
