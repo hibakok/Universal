@@ -61,11 +61,19 @@
          + ifarr 32768x8.
          E6.4d-4/3a (срез A прохода 2): T-E6-52 — эмитция ПРОЛОГА
          (части wall_self_blob/e/y: блоб канона hex-литералами, out_*,
-         emit_header/imports/entry): выход каркаса обязан быть точным
-         префиксом выхода оракула — от заголовка до конца строки int3
-         входа включительно (статы/функции/данные — срезы B+). Матрица:
-         0 ext (DZ148, нулевые IAT/INTT), 3 ext (DEMO_WALL), v2
-         (заголовок WALL v2 по v2flag).
+         emit_header/imports/entry).
+         E6.4d-4/3b (срез B прохода 2): T-E6-52 — эмитция ФУНКЦИЙ
+         (части wall_self_y/f: цикл строк p2_line + p2_funchdr +
+         p2s_end/var/return + механика bstk if/while/else + кадры
+         E010/E011/E017/E018/E019): на классе источников, тела
+         которых — только var / голый return / end, выход каркаса
+         обязан быть байт-в-байт равен выходу оракула ЦЕЛИКОМ
+         (без глобальных str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции
+         «; --- данные: ...» (секции данных — срез C). Матрица:
+         0/8 ext, 0..4 параметра (ARGREG), v2 (заголовок + локальные
+         массивы), многозначные счётчики. Прочие статы тел — код 0
+         без эмитции (вне класса; bstk-механика — регресс
+         T-E6-49d).
 """
 import os
 import tempfile
@@ -212,28 +220,38 @@ def run(check, kpath, kfile, kernel_host):
           % (len(corpus) - skipped, len(corpus), zeros, skipped),
           not bad, "; ".join(bad[:3]))
 
-    # T-E6-52: эмитция пролога (срез A прохода 2, E6.4d-4/3a) — выход
-    # каркаса == ТОЧНЫЙ ПРЕФИКС выхода оракула: от заголовка до конца
-    # строки int3 входа (label :_entry + 3 M-строки); статы/функции/
-    # секции данных — срезы B+
-    v2_src = ("var a[3]\nvar s\nfunc main\n  var i\n  i = 0\n"
-              "  s = 0\n  while i < 3\n    a[i] = i * 5 + i % 2\n"
-              "    if a[i] > 6 && s != 2 || a[i] == 1\n"
-              "      s = s + a[i]\n    end\n    i = i + 1\n  end\n"
-              "  s = a[0] + a[1] + a[2]\n  s = s / 2\n  return 0\n"
-              "end\n")
+    # T-E6-52: эмитция пролога+функций (срезы A+B прохода 2,
+    # E6.4d-4/3a..3b) — выход каркаса == выходу оракула на классе
+    # «тела из var/голого return/end»: ЦЕЛИКОМ (без глобальных
+    # str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции «; --- данные: ...»
+    # (секции данных — срез C); статы/выражения/данные — срезы C+
+    src_8ext = ("ext GetStdHandle\next WriteFile\next ExitProcess\n"
+                "ext GetCommandLineA\next CreateFile2\next ReadFile\n"
+                "ext CloseHandle\next GlobalAlloc\nfunc f0(a, b, c, d)\n"
+                "end\nfunc main\n  return\nend\n")
     emit_cases = [
-        ("0 ext", "var g\nfunc main\n  g = 1\n  return 0\nend\n"),
-        ("3 ext (DEMO_WALL)", lab_l2_prog.DEMO_WALL),
-        ("v2 (заголовок v2)", v2_src),
+        ("0 ext, полный выход",
+         "func add(a, b)\nend\nfunc main\n  return\nend\n"),
+        ("8 ext + 4 параметра (префикс: 10 var)",
+         "\n".join("var v%d" % i for i in range(10)) + "\n" + src_8ext),
+        ("v2: локальные массивы, полный выход",
+         "func work(x)\n  var a[4]\n  var t[2]\n  return\nend\n"
+         "func main\n  var i\n  var a[12]\n  return\nend\n"),
     ]
     bad = []
     for name, src in emit_cases:
         sb = src.encode("utf-8")
-        out = lab_l2.compile_wall(src).encode()
-        lines = out.decode("utf-8").split("\n")
-        ient = lines.index(":_entry")
-        prefix = ("\n".join(lines[:ient + 4]) + "\n").encode("utf-8")
+        out = lab_l2.compile_wall(src)
+        lines = out.split("\n")
+        cut = None
+        for i, ln in enumerate(lines):
+            if ln.startswith("; --- данные:"):
+                cut = i
+                break
+        if cut is None:
+            prefix = out.encode("utf-8")
+        else:
+            prefix = ("\n".join(lines[:cut]) + "\n").encode("utf-8")
         rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                              {"t.wall": sb}).run()
         got = rs.files.get("t.b2", b"")
@@ -241,6 +259,6 @@ def run(check, kpath, kfile, kernel_host):
                 got == prefix):
             bad.append("%s (%d Б, нужно %d Б, код=%s)"
                        % (name, len(got), len(prefix), rs.exit_code))
-    check("T-E6-52 эмитция пролога == префикс оракула (3 источника)",
+    check("T-E6-52 эмитция пролога+функций == оракулу (3 источника)",
           not bad, "; ".join(bad[:3]))
     os.unlink(path)

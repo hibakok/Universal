@@ -13,86 +13,18 @@ DZ 8n / локально n слотов, a[0] самый глубокий), ба
 arrbase/rip), `len(массив)`, лексер `[` `]`, chain_count-глубина;
 записи реестров: ntab вид 5 = массив, varr ×16 {idx, size}, larr ×32
 {ptr, len, size}, ftab ×80 (+0x48 nslots); индексация/astore — срез 4b.
-E6.4d-1: НАЧАТ самохостинг — KERNEL/L2-WALL/wall.wall (WALL v2, CLI-слой,
-поведение == wall.exe, T-E6-49); найден и исправлен ПРЕДСУЩЕСТВУЮЩИЙ
-дефект №16 (str_emit, DB-строки >= 13 байт). E6.4d-2/1: буфер входа —
-GlobalAlloc(GMEM_FIXED, 131073; 8-й ext — предел SPEC/11 п.9),
-ОДИН ReadFile (схема wall.exe); CLI == wall.exe на 13 путях.
-E6.4d-2/2: каркас разрезан на части (wall.wall — корень + wall_self_c
-+ wall_self_n, SPEC/10); проход 0 НА WALL — реинкарнации N001 (разбиение
-строк — цикл pass0), N002+N003+L001 (lex_line: полная лексика, ошибки
-FORMAT с номерами строк == оракул _lex), G002+H001 (fail_format:
-префикс+4 hex+CRLF) и qword-запись stq (карта текстов smem — GlobalAlloc
-1048592, запись 16*i с 1, как sm_arr); лексер каркаса == оракулу на 65
-исходниках (T-E6-49d), CLI — 19 путей. E6.4d-2/3: проход 1 НА WALL —
-части wall_self_pe (getq; tok_next L001; kw_lookup P004 + kwtab s_kws;
-chk_name P005; names_find/_ci/add P006/P007/S005; arr_size P019;
-at_end/want_id/want_sym1 P002/P003/P001), wall_self_pd (S003 p1_decl:
-var/str/ext, порядок проверок == wall.exe) и wall_self_p1 (S002
-p1_line-диспетчер финальной формы, S001 pass1 + пост-проверка main,
-N004 set_lastline); таблицы ntab/varr/sarr/ftab/earr — GlobalAlloc
-одной областью tabmem (ёмкости >= максимума входа 128 КиБ);
-разбор == оракулу parse на классе без обработки func; журнал —
-VERIFY-E6D.md. E6.4d-2/4: заголовки func НА WALL — wall_self_pd
-+ S004 p1_funchdr (ftab-запись 80 Б, bstk push kind 1, seenfunc/
-fcur=1; quirk «func раньше fcur» сохранён) + S00E fh_param (окно
-дубликатов [st_locoff, lcount), larr {ptr, len, size 1}); НОВАЯ часть
-wall_self_p1s — S007 p1s_end (закрытие func: финальная запись ftab
-maxd/maxc/flags/loccnt/nslots, fcur=0); табmem 4685888 (+larr 32768x32
-@3539008, +bstk 3072x32 @4587584); латентный дефект main-скана
-(getb(srcbuf, np+k) — было getb(np, k)) исправлен; класс T-E6-49d
-расширен: 68 из 104 сравнимо (7 код-0 — впервые успех); quirk «func
-в теле» закрыт эмпирически (каркас == wall.exe AT=0004, оракул 0002);
-попутно эпик E6.4f — пределы конвейера 512 КиБ (enc E6.4f-1, brick
-E6.4f-2/2048 меток: .b2 каркаса 288470 > 256 КиБ). Кирпичи S004/S00E/
-S007 — реинкарнации K2-S004/S00E/S007 (карточки ниже) в WALL-код;
-журнал — VERIFY-E6D.md. E6.4d-3/1: локальные var НА WALL — S006
-p1s_var части wall_self_p1s (имя, [n] 1..4096, дубликат в окне,
-конфликт с глобальными, larr/st_nslots); корпус T-E6-49d 104 -> 118
-(86 сравнимо / 11 код-0 / 32 вне класса); стенд LAB/ai починен
-(wall_trace/label_map). E6.4d-3/2: ВЫРАЖЕНИЯ стат-режимом НА WALL —
-НОВЫЕ части wall_self_ph (уровни P010/P011/P01A/P012, курсор —
-глобали pcur/ple), wall_self_pp (первичные + индексация P013/P013a/
-P01B/P01C/P01E), wall_self_pa (вызовы P014/P017/P016 + astore_chk
-P01D; аккумуляторы pc_argcnt/pc_argmax/pc_extflg); local_find P008 +
-max2/tok_is1 (экономия меток выхода — каркас был у предела nlab 500:
-493; с E6.4d-3/3-1 предел 2000 — экономия меток остаётся
-нужной: метки исходника каркаса 495/2048) — в wall_self_pe; статы S00B p1s_return + S00C p1s_setb +
-S00D p1_namestmt (вызов/astore/присваивание) в wall_self_p1s,
-диспетчер — kw-плечи var/end/return/setb + namestmt (форма wall.exe);
-окна дублей p1s_var/fh_param переведены на local_find; ПОЙМАН
-латентный дефект №18: s_sym2 каркаса была без «>>» (с E6.4d-2/2
-лексер каркаса дробил «>>» на два «>» — наружу вышло только с
-появлением выражений); класс источников: тела с var/return/setb/
-присваиваниями/вызовами/astore; правило cerr (ошибки только прохода
-2 — вне класса: каркас без эмитции даёт 0, wall.exe 6) + модель
-kw-патологий «KW = выр»/«KW(арг)» (_kw_falls); корпус T-E6-49d
-118 -> 153 (129 сравнимо / 38 код-0 / 24 вне класса); тестовая
-модель вынесена в lab_t_wallself_model.py + lab_t_wallself_corpus.py
-(правило 500 строк). **E6.4d-3/3 (статы bstk-группы — проходы 0/1
-ПОЛНЫ): корпус 178 (161 / 56 / 17 — вне класса только cerr-ошибки,
-quirk вложенной func, kw-патологии str/ext); модель — стек блоков
-func/if/else/while; дефект №19 (вложенные вызовы в аргументах —
-wall.exe против оракула) пойман.** Замеры: плоский 2140 строк /
-73634 Б; .b2 493526 (94% enc — проход 2 требует E6.4d-4: подъём
-enc 1 МиБ); .brick 463458 (88%); тело 43747/64К (67%);
-метки выхода 530/2000 (предел поднят E6.4d-3/3-1: 500 -> 2000 —
-запас на статы 3/3 и проход 2; было 493/500 у предела), исходника
-495/2048; EXE 40960. Кирпичи
-S006/S00B/S00C/S00D + P008/P010..P01E — реинкарнации (карточки
-ниже); журнал — VERIFY-E6D.md.
+E6.4d — самохостинг wall.wall (каркас на WALL v2, разрез SPEC/10).
+Протокол сессий и детали — LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка:
+E6.4d-1 CLI-слой (7 ext, дефект №16 закрыт); E6.4d-2/1 буфер входа
+GlobalAlloc 131073; E6.4d-2/2..2/4 проход 0 (лексика + карта smem) и
+проход 1 (читатели, объявления, заголовки func S004/S00E, end S007);
+E6.4d-3/1..3/3 проход 1 ПОЛОН (локали S006, выражения стат-режимом —
+части ph/pp/pa, статы S00B/S00C/S00D и bstk-группы S009/S00A/S008/
+S00F + p_cond P018 стат-плечо в части pc; корпус T-E6-49d 180 —
+161/56/17; дефекты №18 и №19 пойманы — №19 закрыт E6.4d-4/2);
+попутно эпики E6.4f (пределы 512 КиБ) и E6.4d-4/1 (enc 1 МиБ),
+E6.4g-1 (brick 1 МиБ), E6.4d-3/3-1 (nlab 2000, эмулятор 1.45x).
 
-E6.4d-4/3a: проход 2, срез A — ПРОЛОГ эмитции каркасом:
-части wall_self_blob.wall (блоб канона 2048 Б hex-литералами sd0..sd7,
-генератор LAB/ai/wall_self_data.py), wall_self_e.wall (примитивы
-вывода — реинкарнации K2-E001/E002/E003/E004/E005/E006/E008/E012/
-E025 + НОВЫЕ blob_dec/init_blob; курсор — глобаль outcur; out_str —
-(off,len) блоба sblob, без strtab2; out_dec — через / %) и
-wall_self_y.wall (pass2-Y001 начало + E015/E026/E016); выход ==
-точный префикс оракула до строки int3 входа (T-E6-52, dev
-wall_self_emit 7/7); область вывода outmem 2103264 (блоб+scr+outbuf
-2 МиБ); попутно E6.4g-1 — предел brick 1 МиБ (кириллица канона
-байтами >= 0x80 в str-литералах невыразима — SPEC/11 п.2).
 
 ## Поток исполнения (X)
 
@@ -346,38 +278,68 @@ wall_self_emit 7/7); область вывода outmem 2103264 (блоб+scr+ou
 ## Проход 2 — эмитция (Y)
 
 - **K2-Y001 pass2** — сброс; emit_header/imports/entry; цикл строк;
-  СРЕЗ A НА WALL ВЫПОЛНЕН (E6.4d-4/3a): pass2 части wall_self_y.wall —
-  сброс outcur/nlab + пролог (заголовок/импорты/вход); цикл строк,
-  секции данных и проверка nlab — срезы B+. НОВЫЕ кирпичи каркаса:
-  blob_dec (hex-декодер 2 симв./байт -> outmem) и init_blob (8
-  литерал по 256 Б) части wall_self_e.wall — механизма wall.exe не
-  имеют (кириллица канона невыразима в str-литерале SPEC/11 п.2).
   секции данных (E027/E028); предел меток выхода nlab ≤ 2000
   (строка 0; E6.4d-3/3-1: 500 -> 2000, cmp rax,7D0; ёмкость brick
   2048 вкл. base -> запас 48; граница 2000/2001 — T-E6-50).
+  СРЕЗ A+B НА WALL ВЫПОЛНЕН (E6.4d-4/3a..3b): pass2 части
+  wall_self_y.wall — сброс outcur/nlab/счётчиков + пролог
+  (заголовок/импорты/вход) + ЦИКЛ СТРОК по карте текстов smem
+  (записи 1..nlentries — как проход 1 каркаса) + предел nlab
+  (fail_format строки 0); секции данных — срез C. НОВЫЕ кирпичи
+  каркаса: blob_dec/init_blob (E6.4d-4/3a, части wall_self_e.wall;
+  кириллица канона невыразима в str-литерале SPEC/11 п.2) и
+  глобали состояния прохода 2: st_bcnt/st_fbase/st_infunc/
+  st_lret/st_ifcnt/st_fptr/st_flen (аналоги 18158/18180/18178/
+  18110/18100/181B0/181B8; сброс в pass2, как Y001 wall.exe).
 - **K2-Y002 p2_line** — карта текстов -> srctxt; диспетчер как S002
-  (break/continue -> Y00C, E6.4c-3/2).
+  (break/continue -> Y00C, E6.4c-3/2). СРЕЗ B НА WALL ВЫПОЛНЕН
+  (E6.4d-4/3b): p2_line(pos, le) части wall_self_y.wall — цикл
+  строк — записи smem (не line_next: записи те же, как в проходе 1
+  каркаса); диспетчер kw — форма wall.exe Y002: k==4 -> пропуск;
+  не-имя -> fail_format (стенка, недостижимо — у wall.exe int3);
+  func — раньше проверки «в функции» (quirk вложенной func —
+  зеркально); вне функции строки пропускаются; srctxt (181A0/A8)
+  — только для статов-эмиттеров (срез C).
 - **K2-Y003 p2s_var** — верхний уровень: last_ret=0 (строка не эмитится).
+  СРЕЗ B НА WALL ВЫПОЛНЕН (E6.4d-4/3b): p2s_var части
+  wall_self_y.wall — if st_bcnt == st_fbase+1: st_lret = 0.
 - **K2-Y004 p2s_end** — pop: func -> эпилог (если !last_ret); while ->
   jmp $_w<k> (E02A, srctxt из строки while) + :_w<ke> (E02C); if/else ->
-  :_if<ke> (E02B).
+  :_if<ke> (E02B). СРЕЗ B НА WALL ВЫПОЛНЕН ЧАСТИЧНО (E6.4d-4/3b):
+  p2s_end части wall_self_y.wall — pop bstk (st_bcnt), kind 1:
+  emit_epilogue (если не st_lret) + сброс st_infunc/st_lret;
+  while/if/else-метки — срез C.
 - **K2-Y005 p2s_else** — pop {if}: ifarr[seq]? -> jmp $_if<ke> (E02A,
   srctxt из строки if) + :_if<k>; push {else, k, seq}.
+  МЕХАНИКА НА WALL ВЫПОЛНЕНА (E6.4d-4/3b): p2s_else части
+  wall_self_y.wall — мутация kind 2 -> 3 на месте (k/seq
+  сохраняются); эмитция jmp/iflab — срез C.
 - **K2-Y006 p2s_if** — kctr++, ifseq2++ -> seq; e = ifarr[seq]
   (чтение ДО p_cond — ifarr стабилен после pass 1); p_cond(0, e, k)
   — guard внутри (E6.4c-3/3); at_end_chk; push {if, k, seq, lineidx};
-  last_ret=0.
+  last_ret=0. МЕХАНИКА НА WALL ВЫПОЛНЕНА (E6.4d-4/3b): p2s_if
+  части wall_self_y.wall — ifseq/st_ifcnt++, push bstk {2, k,
+  ifseq, curline} (ifarr читает срез C); last_ret-правило.
 - **K2-Y007 p2s_while** — kctr++; :_w<k> (E02C); p_cond(1, 1, k) —
   guard внутри (E6.4c-3/3; lfalse = _w<ke>); at_end_chk; push {while,
-  k, 0, lineidx}; last_ret=0.
+  k, 0, lineidx}; last_ret=0. МЕХАНИКА НА WALL ВЫПОЛНЕНА
+  (E6.4d-4/3b): p2s_while части wall_self_y.wall — st_ifcnt++,
+  push {4, k, 0, curline}; :_w<k> + guard — срез C.
 - **K2-Y008 p2s_return** — [выражение] -> mov rax, r10; эпилог (E019);
-  верхний уровень: last_ret=1.
+  верхний уровень: last_ret=1. СРЕЗ B НА WALL ВЫПОЛНЕН ЧАСТИЧНО
+  (E6.4d-4/3b): p2s_return части wall_self_y.wall — emit_epilogue
+  сразу (и для голого, и после выражения); эмитция «M mov r10 /
+  M mov rax, r10» — срез C; верхний уровень — st_lret = 1.
 - **K2-Y009 p2s_setb** — три выражения -> S0/S1/S2 (E02D); mov r10/r11/
   al из S-слотов; mov [r10+r11], al; last_ret=0.
 - **K2-Y00A p2_funchdr** — ftab (×80 Б — срез 4) -> lay_*; nbase
   [180C0] := ftab+0x48 nslots (сумма слотов — ВМЕСТО loccnt: скаляры
   после массива сдвигаются), loccnt [180F8] — окно local_find;
-  пролог E018; push {func}; last_ret=0.
+  пролог E018; push {func}; last_ret=0. СРЕЗ B НА WALL ВЫПОЛНЕН
+  (E6.4d-4/3b): p2_funchdr части wall_self_y.wall — имя -> names_find
+  -> ntab+24 мета = fidx; curf; st_fptr/st_flen; emit_prologue;
+  push bstk {1, 0, 0} (tabmem+4587584, как Y00A); lay-окна
+  local_find — вместе с выражениями (срез C).
 - **K2-Y00B p2_namestmt** — вызов (P014+P015, want=0), присваивание
   (локаль -> mov [rbp-X], r10; var -> mov [rip+$имя], r10; массив —
   G002) или astore (срез 4b: '[' -> pp_pcount -> astore_chk; база —
@@ -416,7 +378,13 @@ wall_self_emit 7/7); область вывода outmem 2103264 (блоб+scr+ou
   buf[20] + v%10/v/10; ноль -> "0" (как E008).
 - **K2-E009 emit_cmt** — « ; » + srctxt + LF (трассируемость R10).
 - **K2-E010 emit_kadr/emit_vyhod** — « ; кадр/выход имя-функции».
+  Реинкарнация на WALL (E6.4d-4/3b): части wall_self_f.wall —
+  out_str(25,3)/out_str(1078,9 | 1834,11) блоба + out_copy(srcbuf +
+  st_fptr, st_flen) (имя — глобали p2_funchdr, аналог 181B0/B8).
 - **K2-E011 emit_lab** — «:имя» + LF; nlab++.
+  Реинкарнация на WALL (E6.4d-4/3b): emit_lab(a, n) части
+  wall_self_f.wall — out_ch(58) + out_copy + LF (nlab++ —
+  в emit_prologue, как E018 wall.exe).
 - **K2-E012 lower_copy** — имя -> scr (нижний регистр); RAX = длина.
   Реинкарнация на WALL (E6.4d-4/3a): lower_copy(dst,a,n) части
   wall_self_e.wall — dst параметр (scrbuf = outmem+2048).
@@ -434,9 +402,20 @@ wall_self_emit 7/7); область вывода outmem 2103264 (блоб+scr+ou
 - **K2-E017 calc_framesize** — ftab (×80 Б) -> RAX =
   align16(8*nslots)+0x30; nslots = maxd+maxc+nslots(+0x48, срез 4:
   сумма слотов с массивами)+S (setb/astore ×3, ext5).
+  Реинкарнация на WALL (E6.4d-4/3b): calc_framesize() части
+  wall_self_f.wall — читает ftab[curf] напрямую (maxd +24 /
+  maxc +32 / nslots +72 / флаги +40); align16 — (v+15)/16*16
+  (литералов со знаком нет — для v >= 0 тождественно (v+15)&~15);
+  +0x30.
 - **K2-E018 emit_prologue** — :имя, push rbp/mov rbp,rsp/sub rsp,hex;
   параметры mov [rbp-8*(i+1)], ARGREG[i] (argtab).
+  Реинкарнация на WALL (E6.4d-4/3b): emit_prologue() части
+  wall_self_f.wall — ARGREG[i] (rcx/rdx/r8/r9) — if-цепочка
+  по смещениям блоба (s_rcx/s_rdx/s_r8/s_r9), argtab каркасу
+  не нужен; метки — nlab++ за :имя (как E018).
 - **K2-E019 emit_epilogue** — mov rsp,rbp / pop rbp / ret (+vyhod).
+  Реинкарнация на WALL (E6.4d-4/3b): emit_epilogue() части
+  wall_self_f.wall — s_mrsp/s_mpop/s_mret + emit_vyhod.
 - **K2-E020 emit_alu** — байт операции -> «M add/sub/and/or/xor r10, r11»
   (alutab, смещения блоба).
 - **K2-E021 emit_shift** — «M mov rcx, r11» + «M shl/shr r10, cl».

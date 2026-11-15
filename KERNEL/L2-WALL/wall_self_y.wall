@@ -1,27 +1,223 @@
-; wall_self_y.wall — проход 2 каркаса wall.wall, срез A (E6.4d-4/3a)
+; wall_self_y.wall — проход 2 каркаса wall.wall (E6.4d-4/3a..3b)
 ; Паспорт: KERNEL/L2-WALL/wall_self_y.wall | слой L2 | роль: реинкарнация
-; НАЧАЛА ветви Y (эмитция, SPEC/11 п.8) компилятора WALL на WALL v2 —
-; K2-Y001 pass2 (срез A: только пролог — заголовок/импорты/вход) +
-; эмиттеры K2-E015 emit_header / K2-E026 emit_imports / K2-E016
-; emit_entry (из wall_p2.b2/wall_e.b2). Строки канона — по смещениям
-; блоба sblob (таблица off/len — wall_self_blob.wall; ДЕСЯТИЧНЫЕ
-; литералы). Счётчик меток выхода nlab — глобаль (предел 2000 и
-; секции данных — следующие срезы прохода 2).
-; Срез A покрывает ФИКСИРОВАННЫЙ пролог выхода: 2 строки заголовка
-; (v1/v2 по флагу v2flag; счётчики nlines/fcount/ecount/scount/vcount),
-; область импортов 0x200 (SPEC/11 п.6: описатель/терминатор IDT, IAT
-; по earr, INTT, dll, hints 8x34 с именами ext, выравнивания DZ),
-; секцию кода и вход :_entry + 3 M-строки. Канарейка: выход каркаса ==
-; ПРЕФИКСУ выхода оракула/wall.exe (до конца строки входа int3);
-; статы/функции/данные — срезы B+.
+; ветви Y (эмитция, SPEC/11 п.8) компилятора WALL на WALL v2 —
+; K2-Y001 pass2 + эмиттеры K2-E015 emit_header / K2-E026 emit_imports /
+; K2-E016 emit_entry (срез A, E6.4d-4/3a) + срез B (E6.4d-4/3b):
+; K2-Y002 p2_line (цикл строк по карте текстов smem + диспетчер kw —
+; форма wall.exe), K2-Y00A p2_funchdr (заголовок func: ftab-раскладка +
+; пролог E018 + push bstk {func}), K2-Y003 p2s_var (верхний уровень —
+; сброс last_ret), K2-Y004 p2s_end (закрытие func: эпилог E019, если
+; не last_ret), K2-Y006/Y007/Y005 (if/while/else — МЕХАНИКА bstk:
+; счётчики, push/mutation записей; guard-эмитция p_cond и метки
+; E029-E02D — срез C) и K2-Y008 p2s_return (эпилог сразу; выражение
+; «M mov r10 / M mov rax, r10» — срез C). Строки канона — по
+; смещениям блоба sblob (таблица off/len — wall_self_blob.wall;
+; ДЕСЯТИЧНЫЕ литералы). Канон кадров (пролог/эпилог) — эмиттеры части
+; wall_self_f.wall.
+; Срез B покрывает пролог + ФУНКЦИИ: выход каркаса == выход оракула
+; байт-в-байт на классе источников, тела которых содержат только
+; объявления var и/или голый return (и «end»); при наличии глобальных
+; str/var (секции данных — срез C) — точный ПРЕФИКС до секции
+; «; --- данные: ...». Источники с прочими статами тел (присваивания,
+; вызовы, if/while с телами, return с выражением, setb, astore,
+; break/continue) компилируются с кодом 0, но их статы пока НЕ
+; эмитятся (вне класса среза; bstk-механика сохраняет целостность
+; стека блоков). Счётчик меток выхода nlab (предел 2000, строка 0)
+; проверяется в конце прохода — как Y001 wall.exe.
 
-; проход 2: сброс счётчиков; пролог выхода (срез A)
+; проход 2: сброс счётчиков; пролог; цикл строк по smem; предел nlab
 func pass2
+  var i
+  var t0
+  var t1
   outcur = 0
   nlab = 0
+  curline = 0
+  st_bcnt = 0
+  ifseq = 0
+  st_ifcnt = 0
+  st_infunc = 0
+  st_lret = 0
+  st_fbase = 0
   emit_header()
   emit_imports()
   emit_entry()
+  i = 1
+  while i <= nlentries
+    curline = i
+    t0 = getq(smem + 16 * i)
+    t1 = getq(smem + 16 * i + 8)
+    p2_line(t0, t0 + t1)
+    i = i + 1
+  end
+  ; секции данных (K2-E027/E028) — срез C
+  if nlab > 2000
+    curline = 0
+    fail_format(curline)
+  end
+  return 0
+end
+
+; диспетчер строки прохода 2 (K2-Y002): pos — начало текста строки
+; (смещение в srcbuf), le — конец; kw-плечи — форма wall.exe Y002
+; (func — раньше проверки «в функции»; вне функции строки — только
+; объявления, эмитции нет; не-имя — стенка, недостижимо: проход 1
+; уже отверг — у wall.exe там int3)
+func p2_line(pos, le)
+  var k
+  var kwi
+  k = tok_next(pos, le)
+  if k == 4
+    return 0
+  end
+  if k != 1
+    fail_format(curline)
+  end
+  kwi = kw_lookup(tokptr, tokend - tokptr)
+  if kwi == 3
+    return p2_funchdr(tokend, le)
+  end
+  if st_infunc != 0
+    if kwi == 0
+      return p2s_var(tokend, le)
+    end
+    if kwi == 4
+      return p2s_end(tokend, le)
+    end
+    if kwi == 5
+      return p2s_else(tokend, le)
+    end
+    if kwi == 6
+      return p2s_if(tokend, le)
+    end
+    if kwi == 7
+      return p2s_while(tokend, le)
+    end
+    if kwi == 8
+      return p2s_return(tokend, le)
+    end
+    ; setb / break / continue / имя-утверждение — эмитция срезов C+
+    ; (bstk эти статы не трогают — пропуск не ломает целостность)
+  end
+  return 0
+end
+
+; заголовок func в проходе 2 (K2-Y00A): имя -> ntab -> мета = fidx;
+; curf/fname; пролог E018; push bstk {kind 1}; параметры строки
+; пропускаются (карта текстов — по записям, не по токенам)
+func p2_funchdr(pos, le)
+  var nptr
+  var nln
+  var fidx
+  pos = want_id(pos, le)
+  nptr = tokptr
+  nln = tokend - tokptr
+  fidx = names_find(nptr, nln)
+  fidx = getq(tabmem + 40 * fidx + 24)
+  curf = fidx
+  st_fptr = nptr
+  st_flen = nln
+  emit_prologue()
+  st_fbase = st_bcnt
+  stq(tabmem + 4587584 + st_bcnt * 32, 1)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 8, 0)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 16, 0)
+  st_bcnt = st_bcnt + 1
+  st_infunc = 1
+  st_lret = 0
+  return 0
+end
+
+; локаль в проходе 2 (K2-Y003): строка не эмитится; если стек блоков
+; пуст до записи функции (bstk == fbase+1 — верхний уровень тела),
+; last_ret сбрасывается (как Y003 wall.exe)
+func p2s_var(pos, le)
+  if st_bcnt == st_fbase + 1
+    st_lret = 0
+  end
+  return 0
+end
+
+; закрытие блока end в проходе 2 (K2-Y004): pop bstk; func — эпилог
+; E019, если не last_ret (последний return уже эмитил), сброс
+; «в функции»; while (обратный jmp + :_w<ke>) и if/else (:_if<ke>)
+; — срез C (эмиттеры E02A/E02B/E02C + srctxt из строки цикла)
+func p2s_end(pos, le)
+  var kind
+  st_bcnt = st_bcnt - 1
+  kind = getq(tabmem + 4587584 + st_bcnt * 32)
+  if kind == 1
+    if st_lret == 0
+      emit_epilogue()
+    end
+    st_infunc = 0
+    st_lret = 0
+    return 0
+  end
+  return 0
+end
+
+; if в проходе 2 (K2-Y006, МЕХАНИКА среза B): ifseq++ (счётчик
+; прохода 2 — сбрасывается в pass2, как 18120 wall.exe), счётчик
+; if/while k++; e = ifarr[ifseq] читает СТАТИЧЕСКУЮ ветвь (срез C —
+; guard-эмитция p_cond с E029/E036-E038); push bstk {2, k, ifseq,
+; lineidx}; верхний уровень: last_ret = 0
+func p2s_if(pos, le)
+  ifseq = ifseq + 1
+  st_ifcnt = st_ifcnt + 1
+  stq(tabmem + 4587584 + st_bcnt * 32, 2)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 8, st_ifcnt)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 16, ifseq)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 24, curline)
+  st_bcnt = st_bcnt + 1
+  if st_bcnt == st_fbase + 1
+    st_lret = 0
+  end
+  return 0
+end
+
+; while в проходе 2 (K2-Y007, МЕХАНИКА среза B): счётчик if/while k++
+; (:_w<k> + guard — срез C); push bstk {4, k, 0, lineidx}; верхний
+; уровень: last_ret = 0
+func p2s_while(pos, le)
+  st_ifcnt = st_ifcnt + 1
+  stq(tabmem + 4587584 + st_bcnt * 32, 4)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 8, st_ifcnt)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 16, 0)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 24, curline)
+  st_bcnt = st_bcnt + 1
+  if st_bcnt == st_fbase + 1
+    st_lret = 0
+  end
+  return 0
+end
+
+; else в проходе 2 (K2-Y005, МЕХАНИКА среза B): верхняя запись bstk
+; kind 2 -> 3, мутация на месте (k/seq сохраняются; jmp $_if<ke> +
+; :_if<k> и srctxt из строки if — срез C); проверка «выше if» уже
+; сделана проходом 1 (p1s_else)
+func p2s_else(pos, le)
+  var k
+  var seq
+  st_bcnt = st_bcnt - 1
+  k = getq(tabmem + 4587584 + st_bcnt * 32 + 8)
+  seq = getq(tabmem + 4587584 + st_bcnt * 32 + 16)
+  stq(tabmem + 4587584 + st_bcnt * 32, 3)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 8, k)
+  stq(tabmem + 4587584 + st_bcnt * 32 + 16, seq)
+  st_bcnt = st_bcnt + 1
+  return 0
+end
+
+; return в проходе 2 (K2-Y008, срез B): эпилог E019 сразу — как для
+; голого return, так и после выражения (эмитция «M mov r10 / M mov
+; rax, r10» — срез C); верхний уровень тела: last_ret = 1 (эпилог
+; конца функции не дублируется — канон SPEC/11 п.8)
+func p2s_return(pos, le)
+  emit_epilogue()
+  if st_bcnt == st_fbase + 1
+    st_lret = 1
+  end
   return 0
 end
 

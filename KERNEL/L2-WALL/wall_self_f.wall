@@ -1,0 +1,121 @@
+; wall_self_f.wall — кадры функций каркаса wall.wall (E6.4d-4/3b)
+; Паспорт: KERNEL/L2-WALL/wall_self_f.wall | слой L2 | роль: реинкарнация
+; эмиттеров КАДРОВ функций компилятора WALL на самом языке WALL v2 —
+; K2-E010 emit_kadr/emit_vyhod (комментарии « ; кадр <имя>» /
+; « ; выход <имя>»), K2-E011 emit_lab («:имя»), K2-E017 calc_framesize
+; (размер кадра из ftab), K2-E018 emit_prologue (:имя; push rbp;
+; mov rbp, rsp; sub rsp <hex>; параметры mov [rbp-8*(i+1)], ARGREG[i])
+; и K2-E019 emit_epilogue (mov rsp, rbp / pop rbp / ret) — из
+; wall_e.b2/wall_ep.b2. Строки канона — по смещениям блоба sblob
+; (таблица off/len — wall_self_blob.wall, ДЕСЯТИЧНЫЕ литералы).
+; Отличия от wall.exe (выход байт-в-байт совпадает):
+; 1) имя текущей функции — глобали st_fptr/st_flen (аналог
+;    [r13+181B0/181B8]; ставит p2_funchdr части wall_self_y.wall),
+;    строка имени — в srcbuf по смещению st_fptr;
+; 2) calc_framesize читает ftab[curf] НАПРЯМУЮ (запись 80 Б в куче
+;    tabmem+2228224: maxd +24 / maxc +32 / nslots +72 / флаги +40),
+;    а не копии в скалярах 180C8/180D0 — реинкарнации стейджинга
+;    S-слотов (E02D) появятся вместе со статами (срез C);
+; 3) align16 — через (v+15)/16*16 (литералов со знаком в WALL нет;
+;    для v >= 0 результат тождественен (v+15)&~15);
+; 4) ARGREG[i] (rcx/rdx/r8/r9) — if-цепочка по смещениям блоба
+;    (s_rcx/s_rdx/s_r8/s_r9), а не argtab-таблица: таблица каркасу
+;    не нужна (смещения — константы вызовов);
+; 5) nlab++ за метку :имя — в emit_prologue (как E018 wall.exe).
+
+; « ; кадр <имя функции>» + LF (K2-E010)
+func emit_kadr
+  out_str(25, 3)
+  out_str(1078, 9)
+  out_copy(srcbuf + st_fptr, st_flen)
+  out_ch(10)
+  return 0
+end
+
+; « ; выход <имя функции>» + LF (K2-E010)
+func emit_vyhod
+  out_str(25, 3)
+  out_str(1834, 11)
+  out_copy(srcbuf + st_fptr, st_flen)
+  out_ch(10)
+  return 0
+end
+
+; «:имя» + LF (K2-E011); nlab++ — в вызывающем emit_prologue
+func emit_lab(a, n)
+  out_ch(58)
+  out_copy(a, n)
+  out_ch(10)
+  return 0
+end
+
+; размер кадра из ftab[curf] (K2-E017, SPEC/11 п.5):
+; (maxd + maxc + nslots + 3*S + 1*S5) * 8, align16, +0x30
+func calc_framesize
+  var fs
+  var fl
+  fs = getq(tabmem + 2228224 + curf * 80 + 24)
+  fs = fs + getq(tabmem + 2228224 + curf * 80 + 32)
+  fs = fs + getq(tabmem + 2228224 + curf * 80 + 72)
+  fl = getq(tabmem + 2228224 + curf * 80 + 40)
+  if fl & 1 != 0
+    fs = fs + 3
+  end
+  if fl & 2 != 0
+    fs = fs + 1
+  end
+  fs = fs * 8
+  fs = (fs + 15) / 16 * 16
+  fs = fs + 48
+  return fs
+end
+
+; пролог функции (K2-E018): :имя; M push rbp; M mov rbp, rsp;
+; M sub rsp, <hex>; параметры M mov [rbp-8*(i+1)], ARGREG[i]
+func emit_prologue
+  var i
+  var n
+  emit_lab(srcbuf + st_fptr, st_flen)
+  nlab = nlab + 1
+  out_str(1359, 10)
+  emit_kadr()
+  out_str(1430, 14)
+  emit_kadr()
+  out_str(1496, 11)
+  out_hex(calc_framesize())
+  emit_kadr()
+  n = getq(tabmem + 2228224 + curf * 80 + 16)
+  i = 0
+  while i < n
+    out_str(1267, 11)
+    out_hex(8 * (i + 1))
+    out_str(22, 3)
+    if i == 0
+      out_str(1524, 3)
+    else
+      if i == 1
+        out_str(1527, 3)
+      else
+        if i == 2
+          out_str(1520, 2)
+        else
+          out_str(1522, 2)
+        end
+      end
+    end
+    emit_kadr()
+    i = i + 1
+  end
+  return 0
+end
+
+; эпилог функции (K2-E019): M mov rsp, rbp / M pop rbp / M ret
+func emit_epilogue
+  out_str(1463, 14)
+  emit_vyhod()
+  out_str(1350, 9)
+  emit_vyhod()
+  out_str(1458, 5)
+  emit_vyhod()
+  return 0
+end

@@ -54,8 +54,21 @@
 ; заголовка (v1/v2 по v2flag, счётчики), область импортов 0x200 (SPEC/11
 ; п.6), секция кода + :_entry. Статы/функции/секции данных — срезы B+;
 ; канарейка: выход == префиксу оракула до конца строки int3 (T-E6-52).
-; Выходной .b2 при успехе — ПРОЛОГ эмитции (срез A: заголовок/импорты/
-; вход; срезы B+ — статы, функции, секции данных, предел nlab).
+; E6.4d-4/3b: проход 2, срез B — ФУНКЦИИ: цикл строк по карте
+; текстов (p2_line части y — диспетчер kw формы wall.exe),
+; заголовки func (p2_funchdr: ftab-раскладка + пролог E018 + push
+; bstk {func}), закрытие end (p2s_end: эпилог E019, если не
+; last_ret), локали var (p2s_var — сброс last_ret), return
+; (p2s_return — эпилог; эмитция выражения — срез C), механика
+; bstk для if/while/else (счётчики, push/мутация; guard-эмитция —
+; срез C) и предел nlab 2000 (строка 0); эмиттеры кадров — НОВАЯ
+; часть wall_self_f.wall (E010/E011/E017/E018/E019). Класс среза
+; B: тела только с var/голым return/end — выход == оракулу
+; байт-в-байт (при глобальных str/var — точный префикс до секции
+; данных); прочие статы дают код 0 без эмитции (вне класса).
+; Выходной .b2 при успехе — ПРОЛОГ эмитции (срез A: заголовок/
+; импорты/вход; срез B: функции) — срезы C+: статы, выражения,
+; секции данных.
 ; Отличие по API: wall.exe открывает файлы 7-аргументным CreateFileA —
 ; WALL v2 ограничивает ext-вызов 5 аргументами (SPEC/11 п.3), здесь
 ; CreateFile2 (имя LPCWSTR -> widen() в UTF-16; pCreateExParams NULL —
@@ -139,6 +152,13 @@ var scrbuf
 var nlab
 var ext_nptr
 var ext_nlen
+var st_infunc
+var st_lret
+var st_bcnt
+var st_fbase
+var st_ifcnt
+var st_fptr
+var st_flen
 
 str s_use = 'U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n'
 str s_long = 'U-L2-WALL ERR=LONG NAME\r\n'
@@ -165,6 +185,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_p1.wall
 !include wall_self_p1s.wall
 !include wall_self_e.wall
+!include wall_self_f.wall
 !include wall_self_y.wall
 
 func main

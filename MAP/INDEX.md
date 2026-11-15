@@ -159,7 +159,8 @@
 | `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
 | `KERNEL/L2-WALL/wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8x512 симв. = 256 Б; таблица off/len в комментариях; ГЕНЕРАТОР LAB/ai/wall_self_data.py — не редактировать) | 142 |
 | `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода (E6.4d-4/3a) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) | 173 |
-| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срез A (E6.4d-4/3a) — pass2 (Y001-начало), emit_header (E015), emit_imports (E026), emit_entry (E016) | 161 |
+| `KERNEL/L2-WALL/wall_self_f.wall` | часть каркаса: КАДРЫ ФУНКЦИЙ (E6.4d-4/3b) — emit_kadr/emit_vyhod (E010), emit_lab (E011), calc_framesize (E017), emit_prologue (E018 — ARGREG[i] if-цепочкой), emit_epilogue (E019) | 121 |
+| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B (E6.4d-4/3a..3b) — pass2 (Y001: пролог + цикл строк по smem + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002), p2_funchdr (Y00A), p2s_var/end/if/while/else/return (эмитция функций + МЕХАНИКА bstk) | 357 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
@@ -248,7 +249,7 @@
 | `LAB/ai/wall_syntax_check.py` | (частное) быстрая проверка каркаса: splice-оракул + компиляция оракулом (E6.4d-2/2) | 41 |
 | `LAB/ai/wall_self_test.py` | (частное) dev-прогон секции 12 вне CI (T-E6-49a/b/c; единый источник — lab_t_wallself.py) | 57 |
 | `LAB/ai/wall_self_data.py` | (частное) генератор wall_self_blob.wall: strblob wall_data.b2 (2046 Б) + 2 нуля -> 8 hex-литерал + таблица off/len (E6.4d-4/3a) | 101 |
-| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции пролога: сборка каркаса + матрица 7 источников — выход == префикс оракула (E6.4d-4/3a) | 200 |
+| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции срезов A+B: сборка каркаса + матрица 9 источников (0..8 ext, 0..4 параметра, массивы, v1/v2, вне-класс без краха) — выход == оракулу ЦЕЛИКОМ/префикс до секции данных (E6.4d-4/3a..3b) | 218 |
 | `LAB/ai/brick_build_lim2.py` | (частное) пересборка brick 512 КиБ -> 1 МиБ (E6.4g-1): 2 imm32 + 2 disp32, brick.hex/peg/exe, dev 11/11 | 425 |
 
 LAB — измерительный прибор (Python только здесь); подробности —
@@ -393,3 +394,21 @@ LAB — измерительный прибор (Python только здесь)
   666962 (64% brick 1 МиБ); тело 54348/64К (83%); метки 613/2048;
   EXE 55296. Риски срезов B+: .b2 ~95% enc 1 МиБ (подъём до 2 МиБ),
   тело ~64К (подъём предела тела ИЛИ WALL v3 qword-доступ).**
+  **E6.4d-4/3b ВЫПОЛНЕН: проход 2 каркаса, срез B — ЭМИТЦИЯ
+  ФУНКЦИЙ** (wall_self_y.wall: Y001-финал — цикл строк по smem +
+  предел nlab 2000; Y002 p2_line — диспетчер kw формы wall.exe;
+  Y00A p2_funchdr — имя -> ntab -> мета = fidx, пролог, push bstk;
+  Y003 p2s_var / Y004 p2s_end (эпилог, если не last_ret) /
+  Y008 p2s_return; Y005/Y006/Y007 — МЕХАНИКА bstk if/while/else;
+  НОВАЯ часть wall_self_f.wall — кадры E010/E011/E017/E018/E019;
+  глобали st_bcnt/st_fbase/st_infunc/st_lret/st_ifcnt/st_fptr/
+  st_flen корня). Выход == оракулу байт-в-байт на классе «тела из
+  var/голого return/end» — ЦЕЛИКОМ (без глобальных str/var) или
+  префикс до секции данных (T-E6-52 — 3 источника; dev
+  wall_self_emit 9/9: 0/1/4/8 ext, локальные массивы, v1/v2, 12
+  функций, вне-класс код 0 без краха). Батарея 133/133. Замеры:
+  каркас 3011 строк/107476 Б; .b2 775770 (73% enc 1 МиБ); .brick
+  737556 (70% brick 1 МиБ); тело 60967/64К (93% — ГЛАВНЫЙ РИСК:
+  подъём предела тела brick 64К -> 128К до среза C — E6.4g-2);
+  метки 663/2000; EXE 61952. Срез C — статы/выражения + секции
+  данных (E027/E028).**

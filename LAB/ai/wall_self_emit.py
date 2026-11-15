@@ -1,15 +1,19 @@
-"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3a, срез A).
+"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3b, срез B).
 
-Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срез A).
+Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B).
 Выход: [OK]/[FAIL] строки; код возврата 0/1.
 Функция: сборка каркаса полным кругом (wall.exe -> enc -> brick -> pegen,
-         эмуляция LAB) и прогон EXE каркаса на матрице источников: выход
-         .b2 обязан быть ТОЧНЫМ ПРЕФИКСОМ выхода оракула — от заголовка
-         до конца строки входа int3 (срез A = фиксированный пролог:
-         заголовок с счётчиками/версией, область импортов 0x200, секция
-         кода + :_entry). Матрица покрывает: 0/1/3/8 ext (все ветви
-         импортов), v1/v2 (заголовок), многозначные счётчики, пустые
-         str/var, комментарии-строки.
+         эмуляция LAB) и прогон EXE каркаса на матрице источников.
+         Срез B (функции): на классе источников, тела которых содержат
+         только var / голый return / end, выход каркаса обязан быть
+         байт-в-байт равен выходу оракула ЦЕЛИКОМ (если нет глобальных
+         str/var) или ТОЧНЫМ ПРЕФИКСОМ до секции «; --- данные: ...»
+         (секции данных — срез C). Матрица покрывает: 0..8 ext (все
+         ветви импортов), 0..4 параметра (ARGREG rcx/rdx/r8/r9),
+         локальные массивы (nslots/framesize), v1/v2 (заголовок),
+         многозначные счётчики, пустую str, var-локали. Источник с
+         статами-выражениями (вне класса среза B) — регресс: код 0,
+         stdout пуст, отсутствие краха (bstk-механика).
 Запуск: python3 LAB/ai/wall_self_emit.py  (из корня репозитория)
 """
 import os
@@ -70,13 +74,24 @@ def build_skeleton():
     return r4.files["s.exe"], b2
 
 
-def oracle_prefix(src_bytes):
-    """Выход оракула; префикс среза A — до конца строки int3 входа."""
-    out = lab_l2.compile_wall(src_bytes.decode("utf-8"))
+def oracle_full_prefix(src):
+    """(полный выход оракула; префикс среза B — до секции данных).
+
+    Секции данных («; --- данные: ...») — срез C: префикс среза B
+    кончается на последней строке последнего эпилога функции.
+    """
+    out = lab_l2.compile_wall(src)
     lines = out.split("\n")
-    i = lines.index(":_entry")
-    prefix = "\n".join(lines[:i + 4]) + "\n"
-    return out.encode(), prefix.encode()
+    cut = None
+    for i, ln in enumerate(lines):
+        if ln.startswith("; --- данные:"):
+            cut = i
+            break
+    if cut is None:
+        enc = out.encode()
+        return enc, enc
+    prefix = ("\n".join(lines[:cut]) + "\n").encode()
+    return out.encode(), prefix
 
 
 SRC_8EXT = """\
@@ -88,38 +103,29 @@ ext CreateFile2
 ext ReadFile
 ext CloseHandle
 ext GlobalAlloc
-var g
-str msg = 'HI\\r\\n'
+func f0(a, b, c, d)
+end
+
 func main
-  g = 7
-  ExitProcess(0)
+  return
 end
 """
 
-SRC_V2 = """\
-var a[3]
-var s
-func work(x, y)
+SRC_LOCAL_ARR = """\
+func work(x)
   var r
-  r = x * y + x % 3
-  return r
+  var a[4]
+  var t[2]
+  return
 end
+
 func main
   var i
-  i = 0
-  s = 0
-  while i < 3
-    a[i] = work(i + 2, 5)
-    if a[i] > 6 && s != 2 || a[i] == 1
-      s = s + a[i]
-    end
-    i = i + 1
-  end
-  s = a[0] + a[1] + a[2]
-  s = s / 2
-  return 0
+  var a[12]
+  return
 end
 """
+
 
 def _multi():
     """Многозначные счётчики: 12 функций, 15 str, 12 var, ~130 строк."""
@@ -128,13 +134,8 @@ def _multi():
     parts.append("\n".join("str m%d = 'X%d'" % (i, i) for i in range(12)))
     parts.append("\n".join("ext E%d" % i for i in range(6)))
     for i in range(11):
-        parts.append("func f%d(x)\n  return x + %d\nend" % (i, i))
-    body = ["func main", "  v0 = 0"]
-    for i in range(11):
-        body.append("  v0 = f%d(v0)" % i)
-    body.append("  return 0")
-    body.append("end")
-    parts.append("\n".join(body))
+        parts.append("func f%d(x)\nend" % i)
+    parts.append("func main\n  return\nend")
     parts.append("; " + "z" * 40)
     parts.append("; " + "y" * 40)
     return "\n".join(parts) + "\n"
@@ -149,15 +150,19 @@ def main():
         return 1
 
     cases = [
-        ("0 ext, 1 var, без str", "var g\nfunc main\n  g = 1\n"
-         "  return 0\nend\n"),
-        ("1 ext", "ext ExitProcess\nvar g\nstr m = 'A'\nfunc main\n"
-         "  g = 2\n  ExitProcess(0)\nend\n"),
-        ("3 ext (DEMO_WALL)", lab_l2_prog.DEMO_WALL),
-        ("8 ext (полные hints)", SRC_8EXT),
-        ("v2 (массивы, * / %, && ||)", SRC_V2),
-        ("многозначные счётчики (12 функций)", _multi()),
-        ("пустая str", "str e = ''\nfunc main\n  return 0\nend\n"),
+        ("0 ext, 2 функции, голый return (полный)",
+         "func add(a, b)\nend\nfunc main\n  return\nend\n"),
+        ("1 параметр + 0 параметров (полный)",
+         "func work(x)\nend\nfunc main\n  var i\n  return\nend\n"),
+        ("4 параметра (r9, полный)",
+         "func q(a, b, c, d)\nend\nfunc main\n  return\nend\n"),
+        ("8 ext (полные hints, префикс: 10 var)",
+         "\n".join("var v%d" % i for i in range(10)) + "\n" + SRC_8EXT),
+        ("локальные массивы (v2, framesize, полный)", SRC_LOCAL_ARR),
+        ("v2 глобальный массив + str (заголовок v2, префикс)",
+         "var a[3]\nvar s\nstr m = 'HI'\nfunc main\n  return\nend\n"),
+        ("многозначные счётчики (12 функций, префикс)", _multi()),
+        ("пустая str (префикс)", "str e = ''\nfunc main\n  return\nend\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")
@@ -166,7 +171,7 @@ def main():
     bad = []
     for name, src in cases:
         src_b = src.encode("utf-8")
-        out, prefix = oracle_prefix(src_b)
+        out, prefix = oracle_full_prefix(src)
         rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                              {"t.wall": src_b}).run()
         got = rs.files.get("t.b2", b"")
@@ -185,11 +190,22 @@ def main():
                               % (i, got[max(0, i - 30):i + 30],
                                  prefix[max(0, i - 30):i + 30]))
                         break
-        print("   %-38s %d Б / %d Б (шагов=%d)"
-              % (name, len(got), len(prefix), rs.steps))
-    os.unlink(path)
-    check("T-E6-52/dev: префикс эмитции == оракулу (%d источников)"
+        full = "ПОЛНЫЙ" if out == prefix else "префикс"
+        print("   %-44s %d Б / %d Б (%s; шагов=%d)"
+              % (name, len(got), len(prefix), full, rs.steps))
+    check("T-E6-52/dev: пролог+функции == оракулу (%d источников)"
           % len(cases), not bad, "; ".join(bad[:3]))
+
+    # регресс: статы-выражения вне класса среза B — код 0, без краха
+    src = ("func main\n  var i\n  i = 0\n  while i < 3\n    i = i + 1\n"
+           "    if i == 2\n      i = 5\n    end\n  end\n  return 0\n"
+           "end\n")
+    rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                         {"t.wall": src.encode("utf-8")}).run()
+    check("статы вне класса: код 0, stdout пуст (bstk-механика)",
+          rs.exit_code == 0 and rs.stdout == b"",
+          "код=%s out=%r" % (rs.exit_code, rs.stdout[:40]))
+    os.unlink(path)
 
     print("\nИТОГ: %d/%d %s" % (len(PASS), len(PASS) + len(FAIL),
                                 "OK" if not FAIL else "— ПРОВАЛЫ"))
