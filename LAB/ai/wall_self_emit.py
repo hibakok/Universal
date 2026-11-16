@@ -208,6 +208,49 @@ def main():
         ("C2: деление без скобок (уровни ниже)",
          "func f(a, b, c)\n  return a & b + c / 2\nend\n"
          "func main\n  return 0\nend\n"),
+        # ---- срез C-2/2: вызовы / getb / индексация в return ----
+        ("C22: вызов 1 аргумент + вызов 0 аргументов",
+         "func f(x)\n  return x + 1\nend\nfunc g\n  return 7\nend\n"
+         "func main\n  return f(2) + g()\nend\n"),
+        ("C22: вызов 4 аргументов (ARGREG r9)",
+         "func q(a, b, c, d)\n  return a + b + c + d\nend\n"
+         "func main\n  return q(1, 2, 3, 4)\nend\n"),
+        ("C22: вложенные вызовы (фикс №19, базы C-слотов)",
+         "func h(x)\n  return x * 2\nend\nfunc g(x, y)\n  return x + y\nend\n"
+         "func f(x, y)\n  return x - y\nend\n"
+         "func main\n  return f(g(h(1), 2), h(g(3, h(4))))\nend\n"),
+        ("C22: ext 0/4 аргументов в выражении",
+         "ext GetTickCount\next ReadFile\n"
+         "func main\n  return GetTickCount() + ReadFile(1, 2, 3, 4)\nend\n"),
+        ("C22: ext 5 аргументов (S5 + [rsp+20])",
+         "ext WriteFile\n"
+         "func main\n  return WriteFile(1, 2, 3, 4, 5)\nend\n"),
+        ("C22: getb простые и с выражениями",
+         "str s = 'ABC'\nfunc f(x)\n  var a[4]\n"
+         "  return getb(&s, 1) + getb(a, x + 1)\nend\n"
+         "func main\n  return getb(&s, 2)\nend\n"),
+        ("C22: индексация массива и цепочки указателей",
+         "var m[3]\nfunc f(x)\n  var a[4]\n  var p[2]\n"
+         "  return a[x] + p[0][1]\nend\n"
+         "func main\n  return m[2] + f(1)\nend\n"),
+        ("C22: индексация с выражением-индексом и вызовом",
+         "var g[4]\nfunc f(x)\n  return x * 2\nend\n"
+         "func main\n  return g[f(1) + 1]\nend\n"),
+        ("C22: вызов-база индексации (откат+перепознание)",
+         "var t[4]\nfunc f(x)\n  return t[x]\nend\n"
+         "func main\n  return f(0)[1]\nend\n"),
+        ("C22: скобочная база индексации",
+         "var a[4]\nfunc main\n  return (a + 0)[2]\nend\n"),
+        ("C22: getb с вызовами в аргументах",
+         "str s = 'XY'\nfunc f(x)\n  return x\nend\n"
+         "func main\n  return getb(&s, f(1))\nend\n"),
+        ("C22: смесь: вызовы + индексация + getb + операции",
+         "str s = 'Q'\nvar a[4]\nfunc f(x, y)\n  return x + y\nend\n"
+         "func g(x)\n  return a[x]\nend\n"
+         "func main\n  return f(g(1), getb(&s, 0)) * a[2] - f(1, 2)\nend\n"),
+        ("C22: глубокая вложенность (вызов в индексе вызова)",
+         "var a[4]\nfunc f(x)\n  return x + 1\nend\n"
+         "func main\n  return a[f(f(a[0]))]\nend\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")

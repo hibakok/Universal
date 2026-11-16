@@ -81,14 +81,24 @@
 ; emit_load / E034 emit_imul / E035 emit_divmod + emit_tstore/
 ; emit_tload (T-склад уровней); wall_self_ph.wall — chain_count P009
 ; + mul_peek + эмит-плечи p_expr/p_mul/p_mdm/p_unary (механика
-; tdepth = d+K-1 без AST — как wall.exe); wall_self_pp.wall — эмит-
-; плечи pp_prim0 (число / имя / &имя / len); p2_funchdr ставит
+; tdepth = d+K-1 без AST — как wall.exe); p2_funchdr ставит
 ; раскладку из ftab (st_p2maxd/st_p2maxc/st_p2nbase + окно lay);
-; p2s_return Y008 — выражение + «M mov rax, r10». Класс полного
-; выхода: тела из var / return <выражение из чисел, имён (load/
-; addr/len), скобок, унарного '-' и операций + - | ^ & << >>
-; * / %> / end; прочие статы и выражения (вызовы, getb, индексация)
-; — код 0, эмитция неполна (срезы C-2/2+).
+; p2s_return Y008 — выражение + «M mov rax, r10».
+; E6.4d-4/3c-2/2: срез C часть 2 шаг 2 — ВЫЗОВЫ И ИНДЕКСАЦИЯ
+; эмит-режимом: wall_self_pa.wall — НОВЫЕ pa_stage K2-P017 (стейджинг
+; C(base+cnt+1), 5-й аргумент ext -> S5) + p_call_tail K2-P015
+; (загрузки ARGREG из C(pc_cbase+i), «M call $имя» / «M call [rip+
+; $_iat_имя]», want -> «M mov r10, rax») + helper emit_argload;
+; wall_self_pp.wall — эмит-плечи pp_prim0 (getb: T-склад d + movzx;
+; вызов), pp_pairs и обёртка p_prim (откат outcur + перепознание
+; базы на d+k); p_args — pa_stage после каждого аргумента; ДЕФЕКТ
+; №21 закрыт синхронно с wall.exe (pc_staged := base / base+cnt —
+; двойная вложенность вызовов не теряет базу). Класс полного
+; выхода: тела из var / return <любое выражение v1/v2, вкл. вызовы
+; func/ext 0..5 аргументов, вложенные вызовы, getb, индексацию
+; (цепочки, вызов-база, скобочная база)> / end; прочие статы
+; (присваивания, вызов-утверждение, if/while/else, setb, astore,
+; break/continue) — код 0, эмитция неполна (срезы C-2/3+).
 ; Выходной .b2 при успехе — пролог эмитции (срез A: заголовок/
 ; импорты/вход; срез B: функции) + секции данных (срез C-1:
 ; строки/глобальные var) — остальные статы/выражения — срезы C+.

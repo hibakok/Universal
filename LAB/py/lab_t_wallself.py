@@ -98,6 +98,22 @@
          унарный '-' операцией (уровень 0) / терминатором (1/2) —
          T-адреса расходились с оракулом; фикс — флаг «конец
          операнда» в wall.exe и каркасе синхронно.
+         E6.4d-4/3c-2/2 (срез C часть 2 шаг 2 — ВЫРАЖЕНИЯ С ВЫЗОВАМИ
+         И ИНДЕКСАЦИЕЙ эмит-режимом): НОВЫЙ T-E6-56 — return <выраже-
+         ние> с вызовами func/ext (0..5 аргументов, S5 + [rsp+20]),
+         вложенными вызовами (фикс №19 + №21), getb и постфиксной
+         индексацией (цепочки p[0][1], вызов-база f(0)[1], скобочная
+         база (a+0)[2], вызовы в индексах) == оракулу ЦЕЛИКОМ;
+         pa_stage K2-P017 + p_call_tail K2-P015 + helper emit_argload
+         (НОВАЯ часть каркаса — функции wall_self_pa.wall) + эмит-плечи
+         p_args/pp_prim0/pp_pairs/p_prim (wall_self_pp.wall: откат
+         outcur + перепознание базы на d+k). ДЕФЕКТ №21 (закрыт,
+         синхронно wall_pa.b2 P014 + пересборка wall.exe SHA
+         295730EF…): pc_staged хранил только счёт без базы — двойная
+         вложенность вызовов получала базу 0, затирала C-слоты
+         объемлющего и занижала maxc/framesize (якорь: maxc 2 -> 3);
+         найден сравнением каркаса с оракулом на новых источниках
+         C-2/2 (dev wall_self_emit.py, 39 источников).
 """
 import os
 import tempfile
@@ -368,4 +384,70 @@ def run(check, kpath, kfile, kernel_host):
                        % (name, len(got), len(out), rs.exit_code))
     check("T-E6-55 выражения return == оракулу (%d источников)"
           % len(expr_cases), not bad, "; ".join(bad[:3]))
+
+    # T-E6-56: ВЫРАЖЕНИЯ С ВЫЗОВАМИ/GETB/ИНДЕКСАЦИЕЙ (срез C-2/2,
+    # E6.4d-4/3c-2/2) — pa_stage/P017 (стейджинг C(base+cnt+1), 5-й
+    # аргумент ext -> S5) + p_call_tail/P015 (загрузки ARGREG из
+    # C(pc_cbase+i), «M call $имя» / «M call [rip+$_iat_имя]», хвост
+    # «M mov r10, rax») + эмит-плечи p_args/P014, pp_prim0 (вызов +
+    # getb: T-склад d + movzx) и обёртка p_prim (откат outcur,
+    # перепознание базы на d+k) + pp_pairs/P01C (T-склад t(cur-1),
+    # индекс на cur, хвост shl r10,3 / mov r11 / mov r10,[T] / add /
+    # mov r10,[r10]) — части wall_self_pa/pp.wall; выход ЦЕЛИКОМ ==
+    # оракулу. ДЕФЕКТ №21 (закрыт здесь, синхронно wall_pa.b2 P014):
+    # pc_staged хранил только счёт без базы — двойная вложенность
+    # вызовов (вызов в аргументах вызова с base > 0) получала базу 0
+    # и затирала C-слоты объемлющего (maxc/framesize занижались,
+    # стейджинг портил чужие аргументы); якорь-источник —
+    # «вложенные вызовы» (f(g(h(1),2), h(g(3,h(4)))) — maxc 2 -> 3).
+    call_cases = [
+        ("вызов 1/0 аргументов в выражении",
+         "func f(x)\n  return x + 1\nend\nfunc g\n  return 7\nend\n"
+         "func main\n  return f(2) + g()\nend\n"),
+        ("вызов 4 аргументов (ARGREG r9)",
+         "func q(a, b, c, d)\n  return a + b + c + d\nend\n"
+         "func main\n  return q(1, 2, 3, 4)\nend\n"),
+        ("двойная вложенность вызовов (дефект №21)",
+         "func h(x)\n  return x * 2\nend\nfunc g(x, y)\n  return x + y\nend\n"
+         "func f(x, y)\n  return x - y\nend\n"
+         "func main\n  return f(g(h(1), 2), h(g(3, h(4))))\nend\n"),
+        ("ext 0/4/5 аргументов (S5 + [rsp+20])",
+         "ext GetTickCount\next ReadFile\next WriteFile\n"
+         "func main\n  return GetTickCount() + ReadFile(1, 2, 3, 4)"
+         " + WriteFile(1, 2, 3, 4, 5)\nend\n"),
+        ("getb с &str / массивом / выражениями",
+         "str s = 'ABC'\nfunc f(x)\n  var a[4]\n"
+         "  return getb(&s, 1) + getb(a, x + 1)\nend\n"
+         "func main\n  return getb(&s, 2)\nend\n"),
+        ("индексация: массив, цепочка p[0][1], индекс-выражение",
+         "var m[3]\nvar g[4]\nfunc f(x)\n  var a[4]\n  var p[2]\n"
+         "  return a[x] + p[0][1]\nend\nfunc h(x)\n  return x * 2\nend\n"
+         "func main\n  return m[2] + f(1) + g[h(1) + 1]\nend\n"),
+        ("вызов-база и скобочная база индексации (откат)",
+         "var t[4]\nvar a[4]\nfunc f(x)\n  return t[x]\nend\n"
+         "func main\n  return f(0)[1] + (a + 0)[2]\nend\n"),
+        ("смесь: вызовы + индексация + getb + операции",
+         "str s = 'Q'\nvar a[4]\nfunc f(x, y)\n  return x + y\nend\n"
+         "func g(x)\n  return a[x]\nend\n"
+         "func main\n  return f(g(1), getb(&s, 0)) * a[2] - f(1, 2)\nend\n"),
+        ("глубокая вложенность: вызов в индексе вызова",
+         "var a[4]\nfunc f(x)\n  return x + 1\nend\n"
+         "func main\n  return a[f(f(a[0]))]\nend\n"),
+        ("вызовы в аргументах getb и вложенных индексах",
+         "str s = 'XY'\nvar a[4]\nfunc f(x)\n  return x\nend\n"
+         "func main\n  return getb(&s, f(1)) + a[a[f(0)]]\nend\n"),
+    ]
+    bad = []
+    for name, src in call_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == out):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-56 выражения: вызовы+getb+индексация == оракулу "
+          "(%d источников)" % len(call_cases), not bad, "; ".join(bad[:3]))
     os.unlink(path)

@@ -1,26 +1,36 @@
-; wall_self_pp.wall — первичные выражения и индексация каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/1)
-; Паспорт: KERNEL/L2-WALL/wall_self_pp.wall | слой L2 | роль: реинкарнация
+; wall_self_pp.wall — первичные выражения и индексация каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/1..2/2)
+; Паспорт: KERNEL/L2-WALL/wall_self_pp.wall | слой: L2 | роль: реинкарнация
 ; первичных выражений и механики индексации компилятора (K2-P013 p_prim
 ; + K2-P013a pp_prim0 из wall_pp.b2; K2-P01B pp_pcount + K2-P01C
 ; pp_pairs + K2-P01E pp_strchk из wall_pi.b2) на самом языке WALL v2 —
 ; СТАТ-режим прохода 1 (плечо pc_mode == 0) и ЭМИТ-режим прохода 2
-; (плечо pc_mode != 0 — срез C-2/1: число «M mov r10, <hex>», имя
+; (плечо pc_mode != 0; срез C-2/1: число «M mov r10, <hex>», имя
 ; emit_load, &имя emit_addr, len(имя) emit_len — эмиттеры части
-; wall_self_g.wall; скобки прозрачны; откат r12 и перепознание базы
-; на d+k, эмитция пар pp_pairs и вызовов — срезы C-2/2+; в стат-режиме
-; база уже разобрана и need базы передаётся в pp_pairs как c0).
+; wall_self_g.wall; скобки прозрачны; срез C-2/2: getb — T-склад d
+; (emit_tstore) + хвост emit_tload(d) + «M movzx r10d, byte [r10+r11]»
+; (s_mmovzx 1230/28); вызов в выражении — p_args + p_call_tail(1, ...)
+; части pa (стат-режим — call_stats); индексация — ОТКАТ outcur и
+; перепознание базы prim на d+k (глубина базы известна только после
+; peek '[' — как P013 wall.exe: курсор вывода R0 = outcur, курсор
+; разбора C0 = pcur), затем эмит-плечо pp_pairs: на пару — T-склад
+; t(cur-1) (emit_tstore), индекс на cur, хвост «M shl r10, 3» (s_shl3
+; 1990/12) / emit_tload(cur-1) / emit_alu(43 '+') / «M mov r10, [r10]»
+; (s_mmr10r10 2002/16); в стат-режиме база уже разобрана и need базы
+; передаётся в pp_pairs как c0).
 ; pp_prim0: число (need 0, потребление); '(' выр ')' (need внутреннего);
 ; '&'имя (стат-режим: только want_id — имя НЕ проверяется, как у
 ; wall.exe: emit_addr — проход 2); имя: getb(выр, выр) — need =
 ; max + 1; len(имя) — 0; вызов имя(аргументы) — pc_extflg по виду
-; имени (ext — вид 3 ntab), p_args + call_stats части pa, need =
-; возврат p_args (max need аргументов, фикс №19 — счёт в локaлях
-; рамки p_args, вложенные вызовы в аргументах не затирают объемлющего);
-; прочее имя-значение — 0 (имя НЕ проверяется: emit_load —
-; проход 2); литерал-строка в выражении — ERR=FORMAT (pp_fail).
+; имени (ext — вид 3 ntab), p_args + (эмит: p_call_tail / стат:
+; call_stats) части pa, need = возврат p_args (max need аргументов,
+; фикс №19 — счёт в локaлях рамки p_args, вложенные вызовы в аргументах
+; не затирают объемлющего); прочее имя-значение — 0 (имя НЕ
+; проверяется: emit_load — проход 2); литерал-строка в выражении —
+; ERR=FORMAT (pp_fail).
 ; p_prim: обёртка индексации — prim0, заглядывание '[': pp_strchk
 ; (база-имя не str — иначе ERR), pp_pcount (k пар вперёд, k > 0 ставит
-; v2flag), pp_pairs (статы: k пар '['выр']', c = 1 + max(c, need) на
+; v2flag), эмит — откат+перепознание+pp_pairs(d, k, 0), статы —
+; pp_pairs(d, k, need) (k пар '['выр']', c = 1 + max(c, need) на
 ; пару). pp_pcount: скан БЕЗ потребления (локальный курсор sp, pcur не
 ; трогает — у wall.exe сохранение/восстановление pc_cur): '[' на
 ; глубине 0 — новая пара, вложенные — глубина; стоп — конец строки или
@@ -29,20 +39,31 @@
 ; — k ведущих '(', имя (не getb/len), k ')'; локаль (окно lay — в
 ; проходе 1 пусто, заполняет astore_chk) — ок; имя вида str (вид 2)
 ; — ERR=FORMAT; неизвестное/прочее — ок (ошибка будет позже).
-; Экономия меток (nlab <= 500): проверки «токен = символ c» свёрнуты
-; в одно условие через &&, max — хелпер max2 части pe.
+; Экономия меток: проверки «токен = символ c» свёрнуты в одно условие
+; через &&, max — хелпер max2 части pe.
 
 ; первичное + постфиксная индексация e[i]...; d — глубина (K2-P013)
 func p_prim(d)
   var c0
   var need
   var k
+  var r0
   c0 = pcur
+  r0 = outcur
   need = pp_prim0(d)
   if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 91
     pp_strchk(c0)
     k = pp_pcount()
-    need = pp_pairs(d, k, need)
+    if pc_mode != 0
+      ; эмит: откат вывода (prim на d не нужен) и перепознание базы
+      ; на глубине d+k — как P013 wall.exe (R0/C0)
+      outcur = r0
+      pcur = c0
+      pp_prim0(d + k)
+      pp_pairs(d, k, 0)
+    else
+      need = pp_pairs(d, k, need)
+    end
   end
   return need
 end
@@ -71,13 +92,21 @@ func pp_prim0(d)
     pcur = tokend
     n = kw_lookup(iptr, ilen)
     if n == 10
-      ; getb(выр, выр)
+      ; getb(выр, выр): T-склад d после первого, хвост после второго
       pcur = want_sym1(40, pcur, ple)
       need = p_expr(d + 1)
+      if pc_mode != 0
+        emit_tstore(d)
+      end
       pcur = want_sym1(44, pcur, ple)
-      need = max2(need, p_expr(d + 1)) + 1
+      k = p_expr(d + 1)
+      if pc_mode != 0
+        emit_tload(d)
+        out_str(1230, 28)
+        emit_cmt()
+      end
       pcur = want_sym1(41, pcur, ple)
-      return need
+      return max2(need, k) + 1
     end
     if n == 11
       ; len(имя): спан имени — ДО want_sym1(')') (он затирает его)
@@ -100,7 +129,12 @@ func pp_prim0(d)
         pc_extflg = 1
       end
       need = p_args(d)
-      call_stats(iptr, ilen)
+      if pc_mode != 0
+        ; загрузки ARGREG + вызов + «M mov r10, rax» (K2-P015)
+        p_call_tail(1, iptr, ilen)
+      else
+        call_stats(iptr, ilen)
+      end
       return need
     end
     ; имя-значение: проверка имени и загрузка — emit_load (проход 2)
@@ -174,12 +208,31 @@ func pp_pcount
   return k
 end
 
-; цикл пар индексации (статы; K2-P01C): d — глубина верхнего индекса,
-; k — число пар, c — need базы; на пару: '[' выр ']', c = 1 + max(c,
-; need); возврат — need цепочки
+; цикл пар индексации (K2-P01C): d — глубина верхнего индекса цепочки,
+; k — число пар, c — need базы (статы). Пара j: T-склад t(cur-1) ПОСЛЕ
+; базы (cur убывает от d+k до d+1), индекс на cur, хвост shl r10,3 /
+; mov r11,r10 / mov r10,[T] / add / mov r10,[r10] (канон SPEC/11 п.8).
+; Статы: '[' выр ']', c = 1 + max(c, need(индекса)); возврат — need
+; цепочки (эмит — 0: need не считается)
 func pp_pairs(d, k, c)
   var cur
   cur = d + k
+  if pc_mode != 0
+    while cur > d
+      emit_tstore(cur - 1)
+      pcur = want_sym1(91, pcur, ple)
+      p_expr(cur)
+      pcur = want_sym1(93, pcur, ple)
+      out_str(1990, 12)
+      emit_cmt()
+      emit_tload(cur - 1)
+      emit_alu(43)
+      out_str(2002, 16)
+      emit_cmt()
+      cur = cur - 1
+    end
+    return 0
+  end
   while cur > d
     pcur = want_sym1(91, pcur, ple)
     c = max2(c, p_expr(cur)) + 1

@@ -146,15 +146,19 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   семантический корень = k '(' + id (не getb/len) + k ')'; вид str ->
   G002 («индексирование строки запрещено (getb)»); &s/вызовы/цепочки
   разрешены. Счётчик k — В КАДРЕ (kw_lookup/lex_tok затирают r8/r9/rdi).
-- **K2-P014 p_args (фикс №19, E6.4d-4/2)** — аргументы до ')' включительно.
-  Рамка: d/base/cnt/mx/eflg/need — счёт и max need ЛОКАЛЬНЫ (вложенные
-  вызовы в аргументах не затирают состояние объемлющего). Глобальные:
-  pc_cact (вложенность; вход: base := pc_staged при pc_cact>0, иначе
-  0), pc_staged (стейджинг самого внутреннего АКТИВНОГО вызова;
-  выход: восстановить base объемлющему), tmp5 = финальный счёт и
-  pc_cbase = база — интерфейс для P015/P016. Выход: RAX = max need
-  аргументов (need вызова; потребляется P013a/S00D). Каждый аргумент
-  -> P017 (base, cnt, eflg).
+- **K2-P014 p_args (фикс №19 E6.4d-4/2 + №21 E6.4d-4/3c-2/2)** —
+  аргументы до ')' включительно. Рамка: d/base/cnt/mx/eflg/need —
+  счёт и max need ЛОКАЛЬНЫ (вложенные вызовы в аргументах не
+  затирают состояние объемлющего). Глобальные: pc_cact (вложенность;
+  вход: base := pc_staged при pc_cact>0, иначе 0), pc_staged —
+  **base+staged** самого внутреннего АКТИВНОГО вызова (ДЕФЕКТ №21:
+  до фикса хранил только счёт — двойная вложенность получала базу 0
+  и затирала C-слоты объемлющего; теперь вход pc_staged := base,
+  на аргумент pc_staged := base+cnt; выход: восстановить base
+  объемлющему), tmp5 = финальный счёт и pc_cbase = база — интерфейс
+  для P015/P016. Выход: RAX = max need аргументов (need вызова;
+  потребляется P013a/S00D). Каждый аргумент -> P017 (base, cnt,
+  eflg) — и в стате (пустой вызов), и в эмите.
 - **K2-P015 p_call_tail (№19)** — RCX want; имя (RDX,R8): func (арность
   из ftab, загрузки ARGREG[i] из C-слотов **C(pc_cbase+i)**, call $имя) /
   ext (<= 5, 5-й из S5 -> [rsp+20], call [rip+$_iat_имя]); want ->
@@ -359,94 +363,66 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
 
 ## Эмиттеры (E)
 
-- **K2-E001 out_ch / E002 out_copy / E003 out_str / E004 out_line** —
-  байт; (RDX,R8); запись strtab2[RCX] (смещение+байты из strblob); +LF.
-  Реинкарнация на WALL (E6.4d-4/3a): out_ch(c)/out_copy(a,n)/
-  out_str(off,n)/out_line(off,n) части wall_self_e.wall — курсор
-  глобаль outcur (setb в outbuf, не r12++); out_str принимает
-  (off,len) БЛОГА sblob (outmem+0), а не индекс strtab2 — таблица
-  индексов каркасу не нужна (смещения — константы вызовов, таблица
-  в wall_self_blob.wall).
-- **K2-E005 out_hex / E006 out_hex2** — ЗАГЛАВНЫЙ hex без ведущих нулей
-  / ровно 2 цифры. Реинкарнация на WALL (E6.4d-4/3a): части
-  wall_self_e.wall; out_hex собирает цифры в ЛОКАЛЬНЫЙ массив buf[16]
-  (обратный порядок, затем вперёд); hex2 — вложенный вызов getb в
-  аргументе out_ch (корректен с фиксом №19).
+- **K2-E001..E004 out_ch/out_copy/out_str/out_line** — байт; (RDX,R8);
+  запись strtab2[RCX]; +LF. Реинкарнация (E6.4d-4/3a, wall_self_e.wall):
+  курсор — глобаль outcur (setb в outbuf); out_str(off,n) — смещение
+  в блобе sblob (outmem+0), не индекс strtab2 (таблица индексов
+  каркасу не нужна; смещения — в wall_self_blob.wall).
+- **K2-E005/E006 out_hex/out_hex2** — ЗАГЛАВНЫЙ hex без ведущих нулей /
+  2 цифры. Реинкарнация (E6.4d-4/3a): out_hex — ЛОКАЛЬНЫЙ buf[16];
+  hex2 — вложенный getb в аргументе out_ch (корректен с №19).
 - **K2-E007 div10** — RAX/10 -> RAX, RDX (бит за битом, маска `and r9,1`).
   НЕ реинкарнирован: E6.4d-4/3a out_dec каркаса использует операторы
   / и % (idiv в ISA с E6.4c) — цифры те же, код проще.
-- **K2-E008 out_dec** — десятичное (кадр; цифры с конца).
-  Реинкарнация на WALL (E6.4d-4/3a): части wall_self_e.wall —
-  buf[20] + v%10/v/10; ноль -> "0" (как E008).
-- **K2-E009 emit_cmt** — « ; » + srctxt + LF (трассируемость R10).
-  Реинкарнация на WALL (E6.4d-4/3c-1): части wall_self_e.wall —
-  out_str(25,3) + out_copy(srcbuf + cmt_ptr, cmt_len) + LF; srctxt —
-  глобали cmt_ptr/cmt_len (аналог 181A0/A8; ставят p2_line/set_cmt).
-- **K2-E010 emit_kadr/emit_vyhod** — « ; кадр/выход имя-функции».
-  Реинкарнация на WALL (E6.4d-4/3b): части wall_self_f.wall —
-  out_str(25,3)/out_str(1078,9 | 1834,11) блоба + out_copy(srcbuf +
-  st_fptr, st_flen) (имя — глобали p2_funchdr, аналог 181B0/B8).
-- **K2-E011 emit_lab** — «:имя» + LF; nlab++.
-  Реинкарнация на WALL (E6.4d-4/3b): emit_lab(a, n) части
+- **K2-E008 out_dec** — десятичное. Реинкарнация (E6.4d-4/3a):
+  wall_self_e.wall — buf[20] + v%10/v/10 (idiv с E6.4c).
+- **K2-E009 emit_cmt** — « ; » + srctxt + LF. Реинкарнация (3c-1):
+  wall_self_e.wall — out_str(25,3) + out_copy(srcbuf+cmt_ptr,
+  cmt_len); srctxt — глобали cmt_ptr/cmt_len (181A0/A8).
+- **K2-E010 emit_kadr/emit_vyhod** — « ; кадр/выход имя». Реинкарнация
+  (3b, wall_self_f.wall): out_str блоба + out_copy(srcbuf+st_fptr,
+  st_flen) (аналог 181B0/B8).
+- **K2-E011 emit_lab** — «:имя» + LF; nlab++. Реинкарнация (3b):
   wall_self_f.wall — out_ch(58) + out_copy + LF (nlab++ —
-  в emit_prologue, как E018 wall.exe).
+  в emit_prologue).
 - **K2-E012 lower_copy** — имя -> scr (нижний регистр); RAX = длина.
-  Реинкарнация на WALL (E6.4d-4/3a): lower_copy(dst,a,n) части
-  wall_self_e.wall — dst параметр (scrbuf = outmem+2048).
+  Реинкарнация (3a): lower_copy(dst,a,n) — dst параметр (scr =
+  outmem+2048).
 - **K2-E013 str_dlen** — длина литерала с учётом экранов.
-  Реинкарнация на WALL (E6.4d-4/3c-1): str_dlen(a, n) части
-  wall_self_e.wall; проверка <= 512 не дублируется (проход 0 — slen).
-- **K2-E014 str_emit** — литерал -> строки «DB xx .. xx» <= 16 байт
-  (экраны -> байты; кадр-буфер 16Б, с E6.4d-1 на [rbp-40..rbp-31] —
-  НЕ пересекается с локальными, фикс дефекта №16).
-  Реинкарнация на WALL (E6.4d-4/3c-1): str_emit(a, n) + se_doline(buf,
-  k) + esc_code(c) части wall_self_e.wall — буфер ЛОКАЛЬНЫЙ buf[16]
-  (дефект №16 невозможен конструктивно); экраны — esc_code ранними
-  возвратами; se_doline принимает массив параметром (срез 4a).
-- **K2-E015 emit_header** — 2 строки заголовка; строка 1 выбирается
-  по флагу v2 [r13+18190]: «; UNIVERSAL / WALL v1/v2 / …» (E6.4c-3/1;
-  счётчики — как прежде, десятичные). Реинкарнация на WALL
-  (E6.4d-4/3a): части wall_self_y.wall — v2flag глобаль, счётчики
-  nlines/fcount/ecount/scount/vcount.
+  Реинкарнация (3c-1): проверка <= 512 не дублируется (проход 0).
+- **K2-E014 str_emit** — литерал -> «DB xx .. xx» <= 16 байт (экраны ->
+  байты; фикс №16: буфер НЕ пересекается с локальными). Реинкарнация
+  (3c-1, wall_self_e.wall): str_emit + se_doline(buf,k) + esc_code —
+  буфер ЛОКАЛЬНЫЙ buf[16] (дефект №16 невозможен конструктивно).
+- **K2-E015 emit_header** — 2 строки заголовка; v1/v2 по флагу
+  [r13+18190] (E6.4c-3/1). Реинкарнация (3a, wall_self_y.wall):
+  v2flag глобаль, счётчики nlines/fcount/ecount/scount/vcount.
 - **K2-E016 emit_entry** — «; --- код ---» + :_entry + 3 M-строки входа.
   Реинкарнация на WALL (E6.4d-4/3a): части wall_self_y.wall.
-- **K2-E017 calc_framesize** — ftab (×80 Б) -> RAX =
-  align16(8*nslots)+0x30; nslots = maxd+maxc+nslots(+0x48, срез 4:
-  сумма слотов с массивами)+S (setb/astore ×3, ext5).
-  Реинкарнация на WALL (E6.4d-4/3b): calc_framesize() части
-  wall_self_f.wall — читает ftab[curf] напрямую (maxd +24 /
-  maxc +32 / nslots +72 / флаги +40); align16 — (v+15)/16*16
-  (литералов со знаком нет — для v >= 0 тождественно (v+15)&~15);
-  +0x30.
-- **K2-E018 emit_prologue** — :имя, push rbp/mov rbp,rsp/sub rsp,hex;
-  параметры mov [rbp-8*(i+1)], ARGREG[i] (argtab).
-  Реинкарнация на WALL (E6.4d-4/3b): emit_prologue() части
-  wall_self_f.wall — ARGREG[i] (rcx/rdx/r8/r9) — if-цепочка
-  по смещениям блоба (s_rcx/s_rdx/s_r8/s_r9), argtab каркасу
-  не нужен; метки — nlab++ за :имя (как E018).
+- **K2-E017 calc_framesize** — ftab -> align16(8*nslots)+0x30; nslots
+  = nbase+maxd+maxc+S (setb/astore ×3, ext5). Реинкарнация (3b,
+  wall_self_f.wall): ftab[curf] напрямую (maxd +24 / maxc +32 /
+  nslots +72 / флаги +40); align16 — (v+15)/16*16.
+- **K2-E018 emit_prologue** — :имя, push/mov/sub rsp; параметры mov
+  [rbp-8*(i+1)], ARGREG[i]. Реинкарнация (3b, wall_self_f.wall):
+  ARGREG — if-цепочка по блобу (s_rcx/s_rdx/s_r8/s_r9), argtab не
+  нужен; nlab++ за :имя.
 - **K2-E019 emit_epilogue** — mov rsp,rbp / pop rbp / ret (+vyhod).
-  Реинкарнация на WALL (E6.4d-4/3b): emit_epilogue() части
-  wall_self_f.wall — s_mrsp/s_mpop/s_mret + emit_vyhod.
-- **K2-E020 emit_alu** — байт операции -> «M add/sub/and/or/xor r10, r11»
-  (alutab, смещения блоба). Реинкарнация на WALL (E6.4d-4/3c-2/1):
-  emit_alu(op) + alu_tail(a, n) части wall_self_g.wall — if-цепочка
-  по байту (43/45/38/124/94), alutab каркасу не нужна.
+  Реинкарнация (3b): s_mrsp/s_mpop/s_mret + emit_vyhod.
+- **K2-E020 emit_alu** — байт операции -> «M add/sub/and/or/xor r10,
+  r11» (alutab). Реинкарнация (C-2/1, wall_self_g.wall): if-цепочка
+  по байту (43/45/38/124/94), alutab не нужна.
 - **K2-E021 emit_shift** — «M mov rcx, r11» + «M shl/shr r10, cl».
-  Реинкарнация на WALL (E6.4d-4/3c-2/1): emit_shift(dir) части
-  wall_self_g.wall (s_mrcxr11 1444/14 + s_shl/s_shr + s_shcl).
-- **K2-E034 emit_imul (E6.4c-3/1)** — «M imul r10, r11» + комментарий
-  (v2: хвост операции `*`). Реинкарнация на WALL (E6.4d-4/3c-2/1):
-  emit_imul() части wall_self_g.wall (s_mimul 1856/15).
-- **K2-E035 emit_divmod (E6.4c-3/1)** — EAX = 0 '/' / 1 '%':
-  «M mov rax, r10 / M cqo / M idiv r11 / M mov r10, rax|rdx» +
-  комментарии (канон SPEC/11 п.8 форм v2). Реинкарнация на WALL
-  (E6.4d-4/3c-2/1): emit_divmod(m) части wall_self_g.wall.
-- **K2-E022 emit_addr** — &имя: локаль -> lea r10,[rbp-X] (X =
-  8*(база+размер); срез 4: массив — arrbase, скаляр — эквивалент
-  прежней формулы); var/str/массив (вид 5, срез 4) -> lea
-  r10,[rip+$имя]; иначе G002. Реинкарнация на WALL
-  (E6.4d-4/3c-2/1): emit_addr(iptr, ilen) части wall_self_g.wall
-  (размер локали — глобаль lf_size от local_find).
+  Реинкарнация (C-2/1): emit_shift(dir), s_mrcxr11/s_shl/s_shr/s_shcl.
+- **K2-E034 emit_imul (E6.4c-3/1)** — «M imul r10, r11» (v2 '*').
+  Реинкарнация (C-2/1): s_mimul 1856/15.
+- **K2-E035 emit_divmod (E6.4c-3/1)** — EAX = 0 '/' / 1 '%': mov
+  rax,r10 / cqo / idiv r11 / mov r10,rax|rdx. Реинкарнация (C-2/1):
+  emit_divmod(m), wall_self_g.wall.
+- **K2-E022 emit_addr** — &имя: локаль -> lea r10,[rbp-8*(база+
+  размер)]; var/str/массив -> lea r10,[rip+$имя]; иначе G002.
+  Реинкарнация (C-2/1): emit_addr(iptr, ilen) (размер — lf_size
+  от local_find).
 - **K2-E023 emit_len** — len(имя): срез 4 — сначала local_find
   (локальный массив -> константа размера; локальный скаляр -> G002,
   как оракул); затем str_dlen -> «M mov r10, hex»; глобальный

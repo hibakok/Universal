@@ -3,8 +3,11 @@
 ; '(' уже поглощено. Фикс №19 (E6.4d-4/2): счётчики — в РАМКЕ (d, base,
 ; cnt, mx, eflg, need), вложенные вызовы в аргументах не затирают
 ; состояние объемлющего. Глобальные: pc_cact [18050] — вложенность
-; (0 = верхний вызов), pc_staged [181F8] — застейджено аргументов самым
-; внутренним АКТИВНЫМ вызовом (вход: base := pc_staged, если вложен),
+; (0 = верхний вызов), pc_staged [181F8] — base+staged самым внутренним
+; АКТИВНЫМ вызовом (дефект №21, E6.4d-4/3c-2/2: ДО фикса — только счёт
+; без базы: двойная вложенность (вызов в аргументах вызова с base > 0)
+; получала базу 0 и затирала C-слоты объемлющего; фикс синхронно в
+; каркасе wall_self_pa.wall; вход: base := pc_staged, если вложен),
 ; pc_cbase [18078] и tmp5 [181E8] — база/счёт ТОЛЬКО ЧТО закрытого
 ; вызова (читают P015/P016). Выход: RAX = max need аргументов.
 :p_args
@@ -26,8 +29,9 @@ M inc rax ;P014
 M mov [r13+18050], rax ;P014 pc_cact++
 M mov rax, [r13+18088] ;P014
 M mov [rbp-28], rax ;P014 eflg (снять ДО вложенных вызовов)
+M mov rax, [rbp-10] ;P014
+M mov [r13+181F8], rax ;P014 pc_staged := base (дефект №21)
 M xor eax, eax ;P014
-M mov [r13+181F8], rax ;P014 pc_staged := 0
 M mov [rbp-18], rax ;P014 cnt := 0
 M mov [rbp-20], rax ;P014 mx := 0
 M mov rcx, [r13+18070] ;P014
@@ -53,7 +57,8 @@ M call $pa_stage ;P017
 M mov rax, [rbp-18] ;P014
 M inc rax ;P014
 M mov [rbp-18], rax ;P014 cnt++
-M mov [r13+181F8], rax ;P014 pc_staged := cnt
+M add rax, [rbp-10] ;P014 + base (дефект №21)
+M mov [r13+181F8], rax ;P014 pc_staged := base+cnt
 M mov rax, [rbp-30] ;P014
 M cmp [rbp-20], rax ;P014
 M jge $pa_l1 ;P014
@@ -85,7 +90,8 @@ M call $pa_stage ;P017
 M mov rax, [rbp-18] ;P014
 M inc rax ;P014
 M mov [rbp-18], rax ;P014
-M mov [r13+181F8], rax ;P014
+M add rax, [rbp-10] ;P014 + base (дефект №21)
+M mov [r13+181F8], rax ;P014 pc_staged := base+cnt
 M mov rax, [rbp-30] ;P014
 M cmp [rbp-20], rax ;P014
 M jge $pa_l2 ;P014
