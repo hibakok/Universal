@@ -259,15 +259,18 @@ def _t_splice(check, kpath, kfile, kernel_host):
 
 # ------------------------------------------------------------------ 8b
 def _t_brick(check, kpath, kfile, kernel_host):
-    """Инструмент brick.exe: пределы E6.4g-1/E6.4g-2/E6.4f-2."""
+    """Инструмент brick.exe: пределы E6.4g-6/E6.4g-2/E6.4f-2."""
     brick_exe = kpath("L1-BRICK/brick.exe")
 
-    # T-E6-36: пределы 1 МиБ и 2048 меток (E6.4g-1: подъём 512 КиБ ->
-    # 1 МиБ — мотив: .brick каркаса wall.wall с проходом 2 = 665811 Б):
-    # исходник 0x80020 байт одной строкой-комментарием принят (старый
-    # предел 0x80000 из E6.4f-2 отверг бы BIG SRC); 1025 меток приняты
-    # (предел 2048 записи с E6.4f-2); исходник 0x100000 отвергнут
-    # ERR=BIG SRC (код 7)
+    # T-E6-36: пределы 2 МиБ и 2048 меток (E6.4g-6: подъём 1 МиБ ->
+    # 2 МиБ — мотив: .brick каркаса wall.wall после C-2/1 = 834018 Б =
+    # 80%, срезы C-2/2+ добавят ~60-100 КБ): исходник 0x80020 байт одной
+    # строкой-комментарием принят (точка прежней границы — регресс
+    # семантики jb-края); 1025 меток приняты (предел 2048 записи с
+    # E6.4f-2); исходник 0x200000 — ТОЧНЫЙ КРАЙ нового предела —
+    # отвергнут ERR=BIG SRC (код 7; точки 0x100020/0x1FFFFF — dev-only
+    # в LAB/ai/brick_build_lim4.py: 15-29 млн шагов вне бюджета пуша;
+    # константный imm32 дополнительно защищён пином SHA секции 1)
     line512 = b";" + b"A" * (0x80020 - 2) + b"\n"
     r1 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": line512})
@@ -275,9 +278,9 @@ def _t_brick(check, kpath, kfile, kernel_host):
     want1025 = lab_brick.assemble(src1025)
     r2 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": src1025})
-    line1m = b";" + b"A" * (0x100000 - 2) + b"\n"
+    line2m = b";" + b"A" * (0x200000 - 2) + b"\n"
     r3 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": line1m})
+                        {"t.brick": line2m})
     # E6.4g-2: предел ТЕЛА 64 КиБ -> 128 КиБ (мотив: тело каркаса
     # wall.wall после среза B 60967/64К = 93%, срез C добавит ~10-15 КБ;
     # jb — принят < 0x20000): 0x10000 (старый предел — отверг бы) и
@@ -293,9 +296,9 @@ def _t_brick(check, kpath, kfile, kernel_host):
     src128 = b"DZ 20000\n"
     r6 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": src128})
-    check("T-E6-36 пределы brick 1 МиБ/2048 меток/тело 128 КиБ"
+    check("T-E6-36 пределы brick 2 МиБ/2048 меток/тело 128 КиБ"
           " (512К+20 и 1025 меток и тела 64К/128К-1 приняты /"
-          " 1М и тело 128К отвергнуты)",
+          " 2М и тело 128К отвергнуты)",
           r1.exit_code == 0 and r1.files.get("t.bin") == b"" and
           r2.exit_code == 0 and r2.files.get("t.bin") == want1025 and
           r3.exit_code == 7 and

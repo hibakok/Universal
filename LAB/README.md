@@ -119,6 +119,9 @@ E6.4d-3/3-1: кэш хранит готовый обработчик инстр�
 | `ai/splice_build.py` | (частное) построитель M1-SPLICE: разрез -> артефакты + dev-тесты |
 | `ai/splice_build_lim.py` | (частное) пересборка M1-SPLICE после роста пределов (E6.4e-2) |
 | `ai/brick_build_lim.py` | (частное) пересборка M1-BRICK после роста пределов (E6.4e-3): патч 8 слов brick.hex + dev-тесты |
+| `ai/brick_build_lim2.py` | (частное) пересборка M1-BRICK: вход 512 КиБ -> 1 МиБ (E6.4g-1) + dev-тесты границ |
+| `ai/brick_build_lim3.py` | (частное) пересборка M1-BRICK: предел ТЕЛА 64 -> 128 КиБ (E6.4g-2) + dev-тесты границ |
+| `ai/brick_build_lim4.py` | (частное) пересборка M1-BRICK: вход 1 -> 2 МиБ (E6.4g-6) + dev-тесты границ (0x100020/0x1FFFFF — dev-only) |
 | `ai/wall_build.py` | (частное) пересборка M2-WALL (E6.4b, используется каждой сессией) |
 | `ai/wall_test.py` | (частное) dev-тест wall.exe v1 (E6.4b) |
 | `ai/wall_test_v2.py` | (частное) dev-тест срез 1 (* / %; эталоны — py/lab_l2_mdm.py) |
