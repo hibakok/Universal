@@ -114,6 +114,25 @@
          объемлющего и занижала maxc/framesize (якорь: maxc 2 -> 3);
          найден сравнением каркаса с оракулом на новых источниках
          C-2/2 (dev wall_self_emit.py, 39 источников).
+         E6.4d-4/3c-2/3 (срез C часть 2 шаг 3 — СТАТЫ-ИМЕНА
+         эмит-режимом): НОВЫЙ T-E6-57 — тела с присваиваниями
+         локали/глобали, вызовами-утверждениями func/ext (0..5
+         аргументов, want 0), astore (k == 1 emit_load-база / k > 1
+         цепочка pp_prim0(k)+pp_pairs(1, k-1), S0/S1/S2 ПОРОЗНЬ +
+         хвост shl 3 / add / mov [r10], r11) и setb (S0/S1/S2 +
+         байтовая запись [r10+r11] = al, индекс БЕЗ *8) == оракулу
+         ЦЕЛИКОМ; emit_sstore K2-E02D + p2s_setb K2-Y009 +
+         p2_namestmt K2-Y00B (НОВАЯ часть каркаса wall_self_t.wall)
+         + плечи p2_line (kwi == 9 / цепочка — как Y002 wall.exe;
+         break/continue — пропуск до C-3). ДЕФЕКТ №22 (закрыт,
+         только каркас — guard в wall.exe P01D был): astore_chk
+         копировал lay-окно st_locoff/st_loccnt БЕЗУСЛОВНО — в
+         проходе 2 затирал окно p2_funchdr прошлогонними значениями
+         конца прохода 1 (astore локали не в последней функции —
+         ERR=FORMAT вместо кода 0); канарейка — локальные массивы в
+         двух функциях (с дефектом: код 6 AT=0004). Источники
+         T-E6-55/56/57 — модуль данных lab_t_wallself_emit_cases.py
+         (лимит 500 строк; выделен по образцу corpus/model).
 """
 import os
 import tempfile
@@ -127,6 +146,7 @@ import lab_l2_prog
 import lab_t_wallself_corpus
 from lab_t_wallself_corpus import KITCHEN
 from lab_t_wallself_model import _expect_line
+import lab_t_wallself_emit_cases as wscases
 
 USAGE = b"U-L2-WALL CMDS: WALL <SRC.WALL> <OUT.B2>\r\n"
 
@@ -339,38 +359,7 @@ def run(check, kpath, kfile, kernel_host):
     # wall_self_g.wall): return <выражение> из чисел/имён (load/addr/
     # len)/скобок/унарного '-' и операций + - | ^ & << >> * / % —
     # выход ЦЕЛИКОМ == оракулу
-    expr_cases = [
-        ("return число", "func main\n  return 42\nend\n"),
-        ("return параметры + операции",
-         "func add(a, b)\n  return a + b\nend\nfunc main\n  return 0\nend\n"),
-        ("все 5 ALU + сдвиги + v2 * / %",
-         "func f(a, b, c, d)\n"
-         "  return a + b - c | d ^ a & b << 1 >> 2 * 3 / 4 % 5\nend\n"
-         "func main\n  return 0\nend\n"),
-        ("скобки и приоритеты",
-         "func f(a, b, c, d)\n  return (a + b) * (c - d) / 2\nend\n"
-         "func main\n  return 0\nend\n"),
-        ("унарный минус в цепочке (дефект №20)",
-         "func f(a, b)\n  return -a + -3 - --b * 2\nend\n"
-         "func main\n  return 0\nend\n"),
-        ("глобальные var + массив (load)",
-         "var g\nvar h[3]\nfunc main\n  return g + 1\nend\n"),
-        ("&локальный массив и &глобаль (addr)",
-         "var g\nfunc f(x)\n  var a[4]\n  return &a\nend\n"
-         "func main\n  return &g\nend\n"),
-        ("len str + глобальный + локальный массив",
-         "str s = 'abc'\nvar h[5]\nfunc f(x)\n  var a[7]\n"
-         "  return len(s) + len(h) + len(a)\nend\n"
-         "func main\n  return 0\nend\n"),
-        ("длинная цепочка K=5 + вложенная смесь",
-         "func f(a, b, c, d)\n  return a + b + c + d + 1 + 2\nend\n"
-         "func g(a, b, c, d)\n"
-         "  return ((a + b) * 2 - (c << 1)) % 7 ^ (d & (a - b))\nend\n"
-         "func main\n  return 0\nend\n"),
-        ("v1 без v2-конструкций (заголовок v1)",
-         "func f(a, b)\n  return a & b | a ^ b\nend\n"
-         "func main\n  return 1 + 2\nend\n"),
-    ]
+    expr_cases = wscases.EXPR_CASES
     bad = []
     for name, src in expr_cases:
         sb = src.encode("utf-8")
@@ -400,43 +389,7 @@ def run(check, kpath, kfile, kernel_host):
     # и затирала C-слоты объемлющего (maxc/framesize занижались,
     # стейджинг портил чужие аргументы); якорь-источник —
     # «вложенные вызовы» (f(g(h(1),2), h(g(3,h(4)))) — maxc 2 -> 3).
-    call_cases = [
-        ("вызов 1/0 аргументов в выражении",
-         "func f(x)\n  return x + 1\nend\nfunc g\n  return 7\nend\n"
-         "func main\n  return f(2) + g()\nend\n"),
-        ("вызов 4 аргументов (ARGREG r9)",
-         "func q(a, b, c, d)\n  return a + b + c + d\nend\n"
-         "func main\n  return q(1, 2, 3, 4)\nend\n"),
-        ("двойная вложенность вызовов (дефект №21)",
-         "func h(x)\n  return x * 2\nend\nfunc g(x, y)\n  return x + y\nend\n"
-         "func f(x, y)\n  return x - y\nend\n"
-         "func main\n  return f(g(h(1), 2), h(g(3, h(4))))\nend\n"),
-        ("ext 0/4/5 аргументов (S5 + [rsp+20])",
-         "ext GetTickCount\next ReadFile\next WriteFile\n"
-         "func main\n  return GetTickCount() + ReadFile(1, 2, 3, 4)"
-         " + WriteFile(1, 2, 3, 4, 5)\nend\n"),
-        ("getb с &str / массивом / выражениями",
-         "str s = 'ABC'\nfunc f(x)\n  var a[4]\n"
-         "  return getb(&s, 1) + getb(a, x + 1)\nend\n"
-         "func main\n  return getb(&s, 2)\nend\n"),
-        ("индексация: массив, цепочка p[0][1], индекс-выражение",
-         "var m[3]\nvar g[4]\nfunc f(x)\n  var a[4]\n  var p[2]\n"
-         "  return a[x] + p[0][1]\nend\nfunc h(x)\n  return x * 2\nend\n"
-         "func main\n  return m[2] + f(1) + g[h(1) + 1]\nend\n"),
-        ("вызов-база и скобочная база индексации (откат)",
-         "var t[4]\nvar a[4]\nfunc f(x)\n  return t[x]\nend\n"
-         "func main\n  return f(0)[1] + (a + 0)[2]\nend\n"),
-        ("смесь: вызовы + индексация + getb + операции",
-         "str s = 'Q'\nvar a[4]\nfunc f(x, y)\n  return x + y\nend\n"
-         "func g(x)\n  return a[x]\nend\n"
-         "func main\n  return f(g(1), getb(&s, 0)) * a[2] - f(1, 2)\nend\n"),
-        ("глубокая вложенность: вызов в индексе вызова",
-         "var a[4]\nfunc f(x)\n  return x + 1\nend\n"
-         "func main\n  return a[f(f(a[0]))]\nend\n"),
-        ("вызовы в аргументах getb и вложенных индексах",
-         "str s = 'XY'\nvar a[4]\nfunc f(x)\n  return x\nend\n"
-         "func main\n  return getb(&s, f(1)) + a[a[f(0)]]\nend\n"),
-    ]
+    call_cases = wscases.CALL_CASES
     bad = []
     for name, src in call_cases:
         sb = src.encode("utf-8")
@@ -450,4 +403,28 @@ def run(check, kpath, kfile, kernel_host):
                        % (name, len(got), len(out), rs.exit_code))
     check("T-E6-56 выражения: вызовы+getb+индексация == оракулу "
           "(%d источников)" % len(call_cases), not bad, "; ".join(bad[:3]))
+
+    # T-E6-57: СТАТЫ-ИМЕНА (срез C-2/3, E6.4d-4/3c-2/3) —
+    # emit_sstore/E02D + p2s_setb/Y009 + p2_namestmt/Y00B (НОВАЯ
+    # часть wall_self_t.wall) + плечи p2_line; ДЕФЕКТ №22 (закрыт,
+    # только каркас): astore_chk копировал lay-окно безусловно — в
+    # проходе 2 затирал окно p2_funchdr (st_locoff/st_loccnt —
+    # прошлогонние с конца прохода 1); guard pc_mode == 0 — как
+    # P01D wall.exe; канарейка — astore локального массива в
+    # функции, отличной от последней функции прохода 1.
+    stmt_cases = wscases.STMT_CASES
+    bad = []
+    for name, src in stmt_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == out):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-57 статы-имена: присваивания+вызовы+astore+setb == "
+          "оракулу (%d источников)" % len(stmt_cases), not bad,
+          "; ".join(bad[:3]))
     os.unlink(path)

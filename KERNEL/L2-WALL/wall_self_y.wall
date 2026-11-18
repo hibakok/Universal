@@ -1,4 +1,4 @@
-; wall_self_y.wall — проход 2 каркаса wall.wall (E6.4d-4/3a..3c-2/1)
+; wall_self_y.wall — проход 2 каркаса wall.wall (E6.4d-4/3a..3c-2/3)
 ; Паспорт: KERNEL/L2-WALL/wall_self_y.wall | слой L2 | роль: реинкарнация
 ; ветви Y (эмитция, SPEC/11 п.8) компилятора WALL на WALL v2 —
 ; K2-Y001 pass2 + эмиттеры K2-E015 emit_header / K2-E026 emit_imports /
@@ -33,6 +33,11 @@
 ; lay_lo/lay_hi (аналог 180F0/180F8 — local_find в emit_addr/len/load).
 ; Счётчик меток выхода nlab (предел 2000, строка 0)
 ; проверяется в конце прохода — как Y001 wall.exe.
+; Срез C-2/3 (E6.4d-4/3c-2/3): диспетчер p2_line дополнен плечами
+; kwi == 9 (setb -> p2s_setb) и именами (цепочка kw-плеч падает в
+; p2_namestmt — как Y002 wall.exe; break/continue 12/13 — пропуск
+; до среза C-3) — УТВЕРЖДЕНИЯ эмитции (K2-Y009/K2-Y00B/E02D) —
+; НОВАЯ часть wall_self_t.wall.
 
 ; проход 2: сброс счётчиков; пролог; цикл строк по smem; предел nlab
 func pass2
@@ -84,7 +89,9 @@ end
 ; хранит строку без пробелов/табов по краям и без «;»-хвоста);
 ; kw-плечи — форма wall.exe Y002 (func — раньше проверки «в функции»;
 ; вне функции строки — только объявления, эмитции нет; не-имя —
-; стенка, недостижимо: проход 1 уже отверг — у wall.exe там int3)
+; стенка, недостижимо: проход 1 уже отверг — у wall.exe там int3);
+; setb (9) — p2s_setb, имя-утверждение — p2_namestmt (срез C-2/3),
+; break/continue — пропуск до среза C-3
 func p2_line(pos, le)
   var k
   var kwi
@@ -120,8 +127,21 @@ func p2_line(pos, le)
     if kwi == 8
       return p2s_return(tokend, le)
     end
-    ; setb / break / continue / имя-утверждение — эмитция срезов C+
-    ; (bstk эти статы не трогают — пропуск не ломает целостность)
+    if kwi == 9
+      return p2s_setb(tokend, le)
+    end
+    if kwi == 12
+      return 0
+    end
+    if kwi == 13
+      return 0
+    end
+    ; имя-утверждение (kwi == -1 и kw-имена вне плеч — цепочка
+    ; kw-плеч падает в p2_namestmt, как Y002 wall.exe); setb —
+    ; p2s_setb; break/continue (12/13) — guard-эмитция среза C-3
+    ; (пропуск: bstk эти статы не трогают — целостность стека
+    ; блоков сохраняется)
+    return p2_namestmt(tokend, le)
   end
   return 0
 end

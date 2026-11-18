@@ -99,6 +99,27 @@
 ; (цепочки, вызов-база, скобочная база)> / end; прочие статы
 ; (присваивания, вызов-утверждение, if/while/else, setb, astore,
 ; break/continue) — код 0, эмитция неполна (срезы C-2/3+).
+; E6.4d-4/3c-2/3: срез C часть 2 шаг 3 — СТАТЫ-ИМЕНА эмит-режимом:
+; НОВАЯ часть wall_self_t.wall — K2-E02D emit_sstore (стейджинг
+; S-слота: «M mov [rbp-X], r10», X = 8*(nbase+maxd+maxc+i+1)),
+; K2-Y009 p2s_setb (адрес/индекс/значение -> S0/S1/S2 + байтовая
+; запись «M mov r10, [rbp-S0]» / «M mov r11, [rbp-S1]» / «M mov al,
+; [rbp-S2]» / «M mov [r10+r11], al» — индекс БЕЗ *8) и K2-Y00B
+; p2_namestmt (вызов-утверждение — pc_extflg + p_args(1) +
+; p_call_tail(0); astore — pp_pcount + astore_chk + база
+; emit_load / цепочка pp_prim0(k)+pp_pairs(1, k-1) + S0/S1/S2
+; ПОРОЗНЬ + хвост shl 3 / add / «M mov [r10], r11»; присваивание —
+; локаль «M mov [rbp-X], r10» / глобаль «M mov [rip+$имя], r10»,
+; цель проверяется в проходе 2 — массив/str/func/ext/неизвестное —
+; ERR=FORMAT); плечи диспетчера p2_line (kwi == 9 -> p2s_setb,
+; цепочка — p2_namestmt; break/continue — пропуск до C-3);
+; ДЕФЕКТ №22 ЗАКРЫТ (astore_chk части wall_self_pa.wall: копия
+; lay-окна st_locoff/st_loccnt — только в стате pc_mode == 0, как
+; P01D wall.exe; в проходе 2 окно уже выставлено p2_funchdr, а
+; ст-значения — прошлогонние с конца прохода 1). Класс полного
+; выхода: тела из var / return <выражения> / присваиваний /
+; вызовов-утверждений / astore / setb / end; if/while/else/break/
+; continue — код 0 без guard-эмитции (срез C-3).
 ; Выходной .b2 при успехе — пролог эмитции (срез A: заголовок/
 ; импорты/вход; срез B: функции) + секции данных (срез C-1:
 ; строки/глобальные var) — остальные статы/выражения — срезы C+.
@@ -228,6 +249,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_d.wall
 !include wall_self_f.wall
 !include wall_self_g.wall
+!include wall_self_t.wall
 !include wall_self_y.wall
 
 func main

@@ -1,4 +1,4 @@
-; wall_self_pa.wall — аргументы, вызовы и astore-проверка каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/2)
+; wall_self_pa.wall — аргументы, вызовы и astore-проверка каркаса wall.wall (E6.4d-3/2, E6.4d-4/3c-2/2..2/3)
 ; Паспорт: KERNEL/L2-WALL/wall_self_pa.wall | слой: L2 | роль: реинкарнация
 ; механики вызовов и проверки цели astore компилятора (K2-P014 p_args +
 ; K2-P017 pa_stage + K2-P015 p_call_tail + K2-P016 call_stats из
@@ -43,9 +43,12 @@
 ; (S5-слот); НЕ ext (вкл. неизвестное имя — проверка в проходе 2) —
 ; maxc = max(maxc, pc_cbase + argcnt): вложенные вызовы считают
 ; C-слоты от своей базы — одновременное использование объемлющего.
-; astore_chk(имя): копия окна ст локалей в окно lay (st_locoff/
-; st_loccnt -> lay_lo/lay_hi — как проход 1 wall.exe; проход 2
-; использует уже выставленное lay-окно); локаль/параметр — ок;
+; astore_chk(имя): в стате (pc_mode == 0) — копия окна ст локалей
+; в окно lay (st_locoff/st_loccnt -> lay_lo/lay_hi — как проход 1
+; wall.exe; ФИКС №22: в эмите (pc_mode == 1) копия НЕ делается — окно
+; уже выставлено p2_funchdr из ftab, а st_locoff/st_loccnt в
+; проходе 2 — прошлогонные значения конца прохода 1; guard — как
+; P01D wall.exe [r13+18080]); локаль/параметр — ок;
 ; глобаль вида 1 (var) или 5 (массив) — ок; str/func/ext/неизвестное
 ; — ERR=FORMAT (неизвестное и str/func/ext поймает и оракул parse —
 ; «строка неизменяема» / «не переменная» / «неизвестное имя»).
@@ -238,8 +241,10 @@ end
 func astore_chk(iptr, ilen)
   var n
   var kind
-  lay_lo = st_locoff
-  lay_hi = st_loccnt
+  if pc_mode == 0
+    lay_lo = st_locoff
+    lay_hi = st_loccnt
+  end
   if local_find(iptr, ilen) != -1
     return 0
   end

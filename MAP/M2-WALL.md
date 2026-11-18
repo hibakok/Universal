@@ -10,13 +10,13 @@ v1 дословно); массивы `var a[n]` (DZ 8n / n слотов кадр
 larr ×32 {ptr, len, size}, ftab ×80 (+0x48 nslots); индексация
 `e[i]`/astore — срез 4b (pp_pcount/pp_pairs/astore_chk/pp_strchk).
 E6.4d — самохостинг wall.wall (каркас на WALL v2, разрез SPEC/10);
-проходы 0/1 полны (дефекты №18/№19 пойманы; №19 закрыт
-E6.4d-4/2); проход 2 — срезы A (пролог), B (функции), C-1 (секции
-данных), C-2/1 (return-выражения эмит-режимом; дефект №20 chain_count
-закрыт синхронно в wall.exe и каркасе); эпики пределов: enc 1 МиБ,
-brick 1 МиБ/2048, тело 128 КиБ (brick+pegen сквозной), вход 256 КиБ
-(E6.4g-4 — filebuf в хвосте bss), nlab 2000, эмулятор 1.45x. Детали —
-LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
+проходы 0/1 полны; проход 2 — срезы A (пролог), B (функции), C-1
+(секции данных), C-2/1 (return-выражения; дефект №20 закрыт
+синхронно), C-2/2 (вызовы/getb/индексация; дефект №21), C-2/3
+(СТАТЫ-ИМЕНА: присваивания/вызовы-утверждения/astore/setb — часть
+wall_self_t.wall; дефект №22 astore_chk lay-окно — только каркас);
+эпики пределов: enc/brick 2 МиБ, вход 256 КиБ, nlab 2000. Детали —
+LAB/ai/JOURNAL.md + VERIFY-E6D*.md.
 
 
 ## Поток исполнения (X)
@@ -120,9 +120,7 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
 - **K2-P012 p_unary** — унарный '-' (глубина та же) / P013.
   Реинкарнация на WALL (E6.4d-4/3c-2/1): p_unary(d) части
   wall_self_ph.wall — эмит-плечо «M neg r10» (s_mneg 1258/9).
-- **K2-P013 p_prim (срез 4b)** — обёртка: pp_prim0 (P013a) разбирает
-  первичное (число mov r10,hex; имя -> E024; &имя -> E022; len -> E023;
-  getb — T-склад + movzx; скобки прозрачны; имя( — вызов P014+P015),
+- **K2-P013 p_prim (срез 4b)** — обёртка: pp_prim0 (P013a) — первичное,
   затем peek `[`: pp_strchk (P01E) -> pp_pcount (P01B). k=0 — v1-выход;
   k>0 — эмит: откат r12, prim на d+k, pp_pairs (P01C); статы:
   pp_pairs(d, k, need_prim).
@@ -139,26 +137,24 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   хвост канона SPEC/11 (shl r10,3 / mov r11,r10 / mov r10,[T] /
   add r10,r11 / mov r10,[r10]); статы: c = 1 + max(c, need индекса).
 - **K2-P01D astore_chk (wall_pi.b2, срез 4b)** — RCX/RDX = имя: локаль
-  или параметр (local_find; в проходе 1 окно st_locoff/loccnt копируется
-  в lay-окно local_find) либо вид ntab 1 (var) / 5 (массив);
-  str/func/ext/неизвестное -> G002 (как parse()-оракула).
+  или параметр (local_find; копия окна st_locoff/loccnt в lay — ТОЛЬКО
+  в стате pc_mode == 0, в проходе 2 окно уже выставлено p2_funchdr)
+  либо вид ntab 1 (var) / 5 (массив); str/func/ext/неизвестное ->
+  G002. Реинкарнация (E6.4d-3/2, wall_self_pa.wall); фикс №22
+  (E6.4d-4/3c-2/3): каркас копировал окно БЕЗУСЛОВНО — в проходе 2
+  затирал lay прошлогонними значениями (guard вернул, как P01D).
 - **K2-P01E pp_strchk (wall_pi.b2, срез 4b)** — RCX = курсор до prim:
-  семантический корень = k '(' + id (не getb/len) + k ')'; вид str ->
-  G002 («индексирование строки запрещено (getb)»); &s/вызовы/цепочки
-  разрешены. Счётчик k — В КАДРЕ (kw_lookup/lex_tok затирают r8/r9/rdi).
-- **K2-P014 p_args (фикс №19 E6.4d-4/2 + №21 E6.4d-4/3c-2/2)** —
-  аргументы до ')' включительно. Рамка: d/base/cnt/mx/eflg/need —
-  счёт и max need ЛОКАЛЬНЫ (вложенные вызовы в аргументах не
-  затирают состояние объемлющего). Глобальные: pc_cact (вложенность;
-  вход: base := pc_staged при pc_cact>0, иначе 0), pc_staged —
-  **base+staged** самого внутреннего АКТИВНОГО вызова (ДЕФЕКТ №21:
-  до фикса хранил только счёт — двойная вложенность получала базу 0
-  и затирала C-слоты объемлющего; теперь вход pc_staged := base,
-  на аргумент pc_staged := base+cnt; выход: восстановить base
-  объемлющему), tmp5 = финальный счёт и pc_cbase = база — интерфейс
-  для P015/P016. Выход: RAX = max need аргументов (need вызова;
-  потребляется P013a/S00D). Каждый аргумент -> P017 (base, cnt,
-  eflg) — и в стате (пустой вызов), и в эмите.
+  корень = k '(' + id (не getb/len) + k ')'; вид str -> G002; прочее
+  разрешено. Счётчик k — В КАДРЕ (kw_lookup/lex_tok затирают r8/r9/rdi).
+- **K2-P014 p_args (фикс №19 + №21)** — аргументы до ')' включительно.
+  Рамка: d/base/cnt/mx/eflg/need — ЛОКАЛЬНЫ (вложенные вызовы не
+  затирают объемлющий). Глобальные: pc_cact (вход: base :=
+  pc_staged при pc_cact>0, иначе 0), pc_staged — **base+staged**
+  самого внутреннего АКТИВНОГО вызова (ДЕФЕКТ №21: до фикса —
+  только счёт без базы; теперь вход := base, на аргумент :=
+  base+cnt), pc_argcnt/pc_cbase — интерфейс для P015/P016. Выход:
+  RAX = max need аргументов (потребляется P013a/S00D). Каждый
+  аргумент -> P017 (base, cnt, eflg) — и в стате, и в эмите.
 - **K2-P015 p_call_tail (№19)** — RCX want; имя (RDX,R8): func (арность
   из ftab, загрузки ARGREG[i] из C-слотов **C(pc_cbase+i)**, call $имя) /
   ext (<= 5, 5-й из S5 -> [rsp+20], call [rip+$_iat_имя]); want ->
@@ -285,27 +281,22 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   (строка 0; E6.4d-3/3-1: 500 -> 2000, cmp rax,7D0; ёмкость brick
   2048 вкл. base -> запас 48; граница 2000/2001 — T-E6-50).
   СРЕЗЫ A+B+C-1 НА WALL ВЫПОЛНЕНЫ (E6.4d-4/3a..3c-1): pass2 части
-  wall_self_y.wall — сброс outcur/nlab/счётчиков + пролог + ЦИКЛ
-  СТРОК по smem (записи 1..nlentries) + СЕКЦИИ ДАННЫХ (заголовки
-  s_secstr/s_secglob при непустой секции + emit_strdata/
-  emit_globdata — часть wall_self_d.wall; после цикла, до предела
-  nlab) + предел nlab (fail_format строки 0). НОВЫЕ кирпичи
+  wall_self_y.wall — сброс + пролог + ЦИКЛ СТРОК по smem + СЕКЦИИ
+  ДАННЫХ (заголовки при непустой секции + emit_strdata/emit_globdata
+  части wall_self_d.wall; после цикла, до предела nlab) + предел nlab. НОВЫЕ кирпичи
   каркаса: blob_dec/init_blob (часть wall_self_e.wall; кириллица
   канона невыразима в str-литерале SPEC/11 п.2), глобали состояния
   st_bcnt/st_fbase/st_infunc/st_lret/st_ifcnt/st_fptr/st_flen и
   cmt_ptr/cmt_len (аналоги 18158/18180/18178/18110/18100/181B0/
   181B8/181A0/181A8; сброс/установка — как wall.exe).
 - **K2-Y002 p2_line** — карта текстов -> srctxt; диспетчер как S002
-  (break/continue -> Y00C, E6.4c-3/2). СРЕЗ B НА WALL ВЫПОЛНЕН
-  (E6.4d-4/3b): p2_line(pos, le) части wall_self_y.wall — цикл
-  строк — записи smem (не line_next: записи те же, как в проходе 1
-  каркаса); диспетчер kw — форма wall.exe Y002: k==4 -> пропуск;
-  не-имя -> fail_format (стенка, недостижимо — у wall.exe int3);
-  func — раньше проверки «в функции» (quirk вложенной func —
-  зеркально); вне функции строки пропускаются; p2_line ставит
-  cmt_ptr/cmt_len = pos/le-pos на входе (аналог srctxt 181A0/A8;
-  карта текстов уже без краёв и «;»-хвоста) — читают emit_cmt и
-  секции данных; статы-эмиттеры — срез C-2+.
+  (break/continue -> Y00C). Реинкарнация (E6.4d-4/3b..3c-2/3):
+  p2_line(pos, le) части wall_self_y.wall — цикл строк по smem;
+  kw-плечи — форма wall.exe (func раньше «в функции»; вне функции —
+  пропуск; не-имя — fail_format); cmt_ptr/cmt_len = pos/le-pos на
+  входе — читают emit_cmt и секции данных; C-2/3: kwi == 9 ->
+  p2s_setb, цепочка имён -> p2_namestmt (как p2l_name Y002), 12/13
+  (break/continue) — пропуск до C-3.
 - **K2-Y003 p2s_var** — верхний уровень: last_ret=0 (строка не эмитится).
   СРЕЗ B НА WALL ВЫПОЛНЕН (E6.4d-4/3b): p2s_var части
   wall_self_y.wall — if st_bcnt == st_fbase+1: st_lret = 0.
@@ -337,21 +328,28 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   сразу (и для голого, и после выражения); эмитция «M mov r10 /
   M mov rax, r10» — срез C; верхний уровень — st_lret = 1.
 - **K2-Y009 p2s_setb** — три выражения -> S0/S1/S2 (E02D); mov r10/r11/
-  al из S-слотов; mov [r10+r11], al; last_ret=0.
-- **K2-Y00A p2_funchdr** — ftab (×80 Б — срез 4) -> lay_*; nbase
-  [180C0] := ftab+0x48 nslots (сумма слотов — ВМЕСТО loccnt: скаляры
-  после массива сдвигаются), loccnt [180F8] — окно local_find;
-  пролог E018; push {func}; last_ret=0. СРЕЗ B НА WALL ВЫПОЛНЕН
-  (E6.4d-4/3b): p2_funchdr части wall_self_y.wall — имя -> names_find
-  -> ntab+24 мета = fidx; curf; st_fptr/st_flen; emit_prologue;
-  push bstk {1, 0, 0} (tabmem+4587584, как Y00A); lay-окна
-  local_find — вместе с выражениями (срез C).
+  al из S-слотов; mov [r10+r11], al; last_ret=0. Реинкарнация (C-2/3,
+  wall_self_t.wall): p2s_setb(pos, le) — pcur/ple, три p_expr(1) +
+  emit_sstore(0..2) + хвост 4 строки блоба; верхний уровень —
+  st_lret = 0.
+- **K2-Y00A p2_funchdr** — ftab (×80 Б) -> lay_*; nbase [180C0] :=
+  ftab+0x48 nslots, loccnt [180F8] — окно local_find; пролог E018;
+  push {func}; last_ret=0. Реинкарнация (E6.4d-4/3b..3c-2/1):
+  p2_funchdr части wall_self_y.wall — имя -> ntab мета = fidx; curf;
+  st_fptr/st_flen; st_p2maxd/maxc/nbase + lay-окна из ftab;
+  emit_prologue; push bstk {1, 0, 0}.
 - **K2-Y00B p2_namestmt** — вызов (P014+P015, want=0), присваивание
   (локаль -> mov [rbp-X], r10; var -> mov [rip+$имя], r10; массив —
   G002) или astore (срез 4b: '[' -> pp_pcount -> astore_chk; база —
   emit_load / цепочка pp_prim0(k)+pp_pairs(1,k-1); затем emit_sstore
   S0/S1/S2 вокруг пары/значения и хвост mov r10,[S0] / mov r11,[S1] /
   shl r11,3 / add r10,r11 / mov r11,[S2] / mov [r10],r11).
+  Реинкарнация (C-2/3, wall_self_t.wall): p2_namestmt(pos, le) — имя
+  в tokptr/tokend; peek '(' — pc_extflg по виду ntab + p_args(1) +
+  p_call_tail(0, iptr, ilen); '[' — astore (выше); иначе '=' p_expr(1)
+  + local_find (lf_size > 1 — G002) / names_find вид 1 (var); цель
+  валидируется ЗДЕСЬ (проход 1 цель не проверяет — как wall.exe);
+  верхний уровень — st_lret = 0.
 - **K2-Y00C p2s_break/p2s_continue (E6.4c-3/2)** — вход: ключевое слово
   (kw 0C — точка входа p2s_break, 0D — p2s_continue; e-флаг: 1/0 в EDX
   -> R11 — скретч, переживает скан); выход: «M jmp $_w<ke>» (break) /
@@ -461,7 +459,10 @@ LAB/ai/JOURNAL.md + VERIFY-E6D*.md; сводка сессий — там же.
   Используется в: P018 (последний дизъюнкт guard — E6.4c-3/3).
 - **K2-E02A emit_jmp_line** — «M jmp $_if|_w<k>[e]».
 - **K2-E02B emit_iflab / E02C emit_wlab** — «:_if<k>[e]»/«:_w<k>[e]».
-- **K2-E02D emit_sstore** — стейджинг S-слота i: «M mov [rbp-X], r10».
+- **K2-E02D emit_sstore** — стейджинг S-слота i: «M mov [rbp-X], r10»,
+  X = 8*(nbase+maxd+maxc+i+1) — s(i) SPEC/11 п.5. Реинкарнация
+  (C-2/3, wall_self_t.wall): emit_sstore(i) — строки блоба
+  s_movm/s_r10 + X из st_p2nbase/maxd/maxc.
 - **K2-E036 emit_jccd (E6.4c-3/3)** — вход: RCX = индекс jcc (0..5,
   jcctab), RDX = pfx (0=if/1=while), R8 = k, R9 = i (>= 2); выход:
   «M <mnem> $<pfx><k>d<i> ; текст» — jcc на d-метку guard-цепочки

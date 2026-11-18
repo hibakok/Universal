@@ -1,0 +1,197 @@
+; wall_self_t.wall — статы-имена эмит-режимом каркаса wall.wall (E6.4d-4/3c-2/3)
+; Паспорт: KERNEL/L2-WALL/wall_self_t.wall | слой L2 | роль: реинкарнация
+; УТВЕРЖДЕНИЙ эмитции прохода 2 компилятора WALL (K2-Y009 p2s_setb +
+; K2-Y00B p2_namestmt из wall_p2t.b2; helper K2-E02D emit_sstore из
+; wall_p2s.b2) на самом языке WALL v2 — режим эмитции прохода 2
+; (pc_mode == 1; стат-плечи прохода 1 — p1s_setb/p1_namestmt части
+; wall_self_p1s.wall). КЛАСС ПОЛНОГО ВЫХОДА каркаса расширен на
+; статы-имена в телах: присваивания локали/глобали, вызовы-утверждения
+; func/ext (0..5 аргументов), astore (имя[выр]... = выр, цепочки k > 1)
+; и setb(выр, выр, выр). Канон каждой строки — SPEC/11 п.8; строки —
+; блоб sblob по смещениям (таблица off/len — wall_self_blob.wall;
+; ДЕСЯТИЧНЫЕ литералы): s_mal 1150/15, s_movm 1267/11, s_movr10m
+; 1289/16, s_movrip 1338/12, s_movr11m 1322/16, s_mr10r11al 1369/19,
+; s_r10 1514/6, s_shl11_3 2018/12, s_mmr10r11 2030/16, ']' — out_ch(93).
+; S-слоты s(i) = nbase+maxd+maxc+i+1 (SPEC/11 п.5; фикс №19): X =
+; 8*(st_p2nbase+st_p2maxd+st_p2maxc+i+1) — глобали ставит p2_funchdr
+; из ftab (часть wall_self_y.wall); резервирование 3 слотов — флаг
+; st_setb (проход 1, p1s_setb/p1_namestmt) -> ftab+40 бит 0 -> +3 в
+; calc_framesize (часть wall_self_f.wall); 4-й S-слот S5 (5-й аргумент
+; ext) — pa_stage части wall_self_pa.wall, бит 1 ftab+40.
+; p2_namestmt(pos, le): pos — курсор ЗА именем (имя — в tokptr/tokend,
+; как p1_namestmt); peek следующего токена: '(' — вызов-утверждение
+; (pc_extflg по виду имени: ext — вид 3 ntab; p_args(1) + p_call_tail(0,
+; ...) — want 0, без хвоста «M mov r10, rax»); '[' — astore (pp_pcount
+; -> astore_chk [pc_mode-плечо — фикс №22: проход 2 НЕ копирует окно
+; st_locoff/st_loccnt в lay — оно уже выставлено p2_funchdr] -> база:
+; k == 1 — emit_load(имя), k > 1 — перепознание pp_prim0(k) от имени +
+; pp_pairs(1, k-1, 0) -> emit_sstore S0 / '[' p_expr ']' S1 / '='
+; p_expr S2 -> хвост «M mov r10, [rbp-S0]» / «M mov r11, [rbp-S1]» /
+; «M shl r11, 3» / emit_alu('+') / «M mov r11, [rbp-S2]» / «M mov
+; [r10], r11»); прочее — присваивание ('=' p_expr(1); локаль —
+; local_find+lf_size: массив -> ERR, скаляр «M mov [rbp-X], r10», X =
+; 8*(base+1); глобаль — names_find вид 1 (var) «M mov [rip+$имя],
+; r10», прочее/неизвестное — ERR=FORMAT; порядок — как Y00B wall.exe:
+; выражение сначала, проверка цели после). Хвост обоих статов: верхний
+; уровень тела (st_bcnt == st_fbase+1) — st_lret = 0 (эпилог конца
+; функции обязателен; аналог bstk_sp == cur_fsp+1 -> last_ret = 0).
+; p2s_setb(pos, le): '(' выр ',' выр ',' выр ')' — три выражения на
+; глубине 1 с emit_sstore S0/S1/S2 ПОСЛЕ каждого, затем «M mov r10,
+; [rbp-S0]» / «M mov r11, [rbp-S1]» / «M mov al, [rbp-S2]» / «M mov
+; [r10+r11], al» — байтовая запись, индекс БЕЗ масштабирования *8
+; (адрес + индекс; канон SPEC/11 п.8) — отличается от astore (там
+; shl 3 + add и запись 8 байт). Оба стата НЕ трогают bstk (целостность
+; стека блоков; guard-эмитция if/while/else/break/continue — срез C-3).
+
+; стейджинг S-слота i (K2-E02D): «M mov [rbp-X], r10», X =
+; 8*(nbase+maxd+maxc+i+1) — s(i) SPEC/11 п.5 (фикс №19)
+func emit_sstore(i)
+  out_str(1267, 11)
+  out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + i + 1))
+  out_str(1514, 6)
+  emit_cmt()
+  return 0
+end
+
+; setb(выр, выр, выр) (K2-Y009): адрес/индекс/значение -> S0/S1/S2,
+; затем байтовая запись [r10+r11] = al (индекс без *8)
+func p2s_setb(pos, le)
+  pcur = pos
+  ple = le
+  pcur = want_sym1(40, pcur, ple)
+  p_expr(1)
+  emit_sstore(0)
+  pcur = want_sym1(44, pcur, ple)
+  p_expr(1)
+  emit_sstore(1)
+  pcur = want_sym1(44, pcur, ple)
+  p_expr(1)
+  emit_sstore(2)
+  out_str(1289, 16)
+  out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 1))
+  out_ch(93)
+  emit_cmt()
+  out_str(1322, 16)
+  out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 2))
+  out_ch(93)
+  emit_cmt()
+  out_str(1150, 15)
+  out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 3))
+  out_ch(93)
+  emit_cmt()
+  out_str(1369, 19)
+  emit_cmt()
+  if st_bcnt == st_fbase + 1
+    st_lret = 0
+  end
+  return 0
+end
+
+; утверждение-имя (K2-Y00B): вызов / astore / присваивание; pos —
+; курсор ЗА именем (имя — в tokptr/tokend на входе)
+func p2_namestmt(pos, le)
+  var iptr
+  var ilen
+  var k
+  var n
+  var base
+  iptr = tokptr
+  ilen = tokend - tokptr
+  pcur = pos
+  ple = le
+  if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 40
+    ; вызов-утверждение: имя(аргументы) — want 0 (результат в rax
+    ; не читается); ext-флаг по виду имени (вид 3 ntab)
+    pcur = tokend
+    pc_extflg = 0
+    n = names_find(iptr, ilen)
+    if n != -1
+      if getq(tabmem + n * 40 + 16) == 3
+        pc_extflg = 1
+      end
+    end
+    p_args(1)
+    p_call_tail(0, iptr, ilen)
+  else
+    if tok_next(pcur, ple) == 2 && tokend - tokptr == 1 && getb(srcbuf, tokptr) == 91
+      ; astore: имя[выр]... = выр — база/индекс/значение порознь
+      ; через S0/S1/S2 (последняя пара и значение — ПОРОЗНЬ, канон
+      ; SPEC/11 п.8); курсор НЕ потреблён peek'ом — pp_pcount скан
+      k = pp_pcount()
+      astore_chk(iptr, ilen)
+      if k > 1
+        ; база-цепочка: перепознание prim на глубине k от имени +
+        ; пары 1..k-1 (как p1_namestmt стат-режимом)
+        pcur = iptr
+        pp_prim0(k)
+        pp_pairs(1, k - 1, 0)
+      else
+        ; база = имя: адрес a[0] (массив) / значение (скаляр) /
+        ; [rip+$имя] (глобаль) — emit_load
+        emit_load(iptr, ilen)
+      end
+      emit_sstore(0)
+      pcur = want_sym1(91, pcur, ple)
+      p_expr(1)
+      pcur = want_sym1(93, pcur, ple)
+      emit_sstore(1)
+      pcur = want_sym1(61, pcur, ple)
+      p_expr(1)
+      emit_sstore(2)
+      ; хвост: r10 = [S0] + [S1]*8; r11 = [S2]; [r10] = r11
+      out_str(1289, 16)
+      out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 1))
+      out_ch(93)
+      emit_cmt()
+      out_str(1322, 16)
+      out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 2))
+      out_ch(93)
+      emit_cmt()
+      out_str(2018, 12)
+      emit_cmt()
+      emit_alu(43)
+      out_str(1322, 16)
+      out_hex(8 * (st_p2nbase + st_p2maxd + st_p2maxc + 3))
+      out_ch(93)
+      emit_cmt()
+      out_str(2030, 16)
+      emit_cmt()
+    else
+      ; присваивание: имя = выр (выражение эмитится первым — как
+      ; Y00B wall.exe и оракул _body; цель проверяется после)
+      pcur = want_sym1(61, pcur, ple)
+      p_expr(1)
+      base = local_find(iptr, ilen)
+      if base != -1
+        ; локаль: массив нельзя присвоить целиком (срез 4)
+        if lf_size > 1
+          fail_format(curline)
+        end
+        out_str(1267, 11)
+        out_hex(8 * (base + 1))
+        out_str(1514, 6)
+        emit_cmt()
+      else
+        ; глобаль: только var (вид 1); str/массив/func/ext/
+        ; неизвестное — ERR=FORMAT (проход 2 — валидатор целей,
+        ; как у wall.exe: проход 1 цель не проверяет)
+        n = names_find(iptr, ilen)
+        if n == -1
+          fail_format(curline)
+        end
+        if getq(tabmem + n * 40 + 16) != 1
+          fail_format(curline)
+        end
+        out_str(1338, 12)
+        out_copy(srcbuf + iptr, ilen)
+        out_str(1514, 6)
+        emit_cmt()
+      end
+    end
+  end
+  ; верхний уровень тела: last_ret = 0 (эпилог end обязателен)
+  if st_bcnt == st_fbase + 1
+    st_lret = 0
+  end
+  return 0
+end

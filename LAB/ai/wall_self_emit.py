@@ -1,22 +1,29 @@
-"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-2/1, срез C-2/1).
+"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-2/3, срез C-2/3).
 
-Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1+C-2/1).
+Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1+
+         C-2/1+C-2/2+C-2/3).
 Выход: [OK]/[FAIL] строки; код возврата 0/1.
 Функция: сборка каркаса полным кругом (wall.exe -> enc -> brick -> pegen,
          эмуляция LAB) и прогон EXE каркаса на матрице источников.
-         Срез C-2/1 (ВЫРАЖЕНИЯ эмит-режимом: pc_mode/chain_count/
-         p_expr-p_mul-p_mdm-p_unary эмит-плечи + emit_alu/shift/imul/
-         divmod/addr/len/load) расширяет класс ПОЛНОГО выхода на
-         return <выражение> из чисел / имён (load/addr/len) / скобок /
-         унарного '-' и операций + - | ^ & << >> * / % (вход — E6.4g-4:
-         сборка требует предел входа wall.exe 256 КиБ — исходник каркаса
-         перешёл 128 КиБ). Матрица: старые 13 источников срезов A+B+C-1
-         + новые 14 return-выражений (число/параметры/все 10 операций/
-         цепочки K>1/скобки/унарный/globals var+массив/&локали и
-;         &глобали/len str+varr+larr/глубокая вложенность). Источник со
-         статами вне класса — регресс: код 0, stdout пуст, отсутствие
-         краха (bstk-механика; эмитция неполна — вызовы/getb/индексация
-         — срезы C-2/2+).
+         Срез C-2/3 (СТАТЫ-ИМЕНА эмит-режимом: НОВАЯ часть wall_self_t.wall
+         — K2-E02D emit_sstore + K2-Y009 p2s_setb + K2-Y00B p2_namestmt;
+         плечи диспетчера p2_line; ДЕФЕКТ №22 закрыт — astore_chk копирует
+         lay-окно только в стате pc_mode == 0, как P01D wall.exe)
+         расширяет класс ПОЛНОГО выхода на статы-имена в телах:
+         присваивания локали/глобали (цель — валидация прохода 2:
+         массив/str/func/ext/неизвестное — ERR), вызовы-утверждения
+         func/ext 0..5 аргументов (want 0), astore имя[выр]... = выр
+         (k == 1 — emit_load-база; k > 1 — pp_prim0(k) + pp_pairs(1,
+         k-1); последняя пара и значение ПОРОЗНЬ через S0/S1/S2 +
+         хвост shl 3 / add / mov [r10], r11) и setb(выр, выр, выр)
+         (S0/S1/S2 + байтовая запись [r10+r11] = al — индекс БЕЗ *8).
+         Матрица: 13 источников срезов A+B+C-1 + 14 return-выражений
+         C-2/1 + 13 вызовов/getb/индексации C-2/2 + 10 статов-имён
+         C-2/3 (канарейка №22 — astore локального массива в функции,
+         отличной от последней функции прохода 1). Источник со
+         статами вне класса (if/while/else/break/continue) — регресс:
+         код 0, stdout пуст, отсутствие краха (bstk-механика;
+         guard-эмитция — срез C-3).
 Запуск: python3 LAB/ai/wall_self_emit.py  (из корня репозитория)
 """
 import os
@@ -251,6 +258,50 @@ def main():
         ("C22: глубокая вложенность (вызов в индексе вызова)",
          "var a[4]\nfunc f(x)\n  return x + 1\nend\n"
          "func main\n  return a[f(f(a[0]))]\nend\n"),
+        # ---- срез C-2/3: статы-имена эмит-режимом ----
+        ("C23: присваивание локали и глобали",
+         "var g\nfunc main\n  var i\n  i = 5\n  g = 7\n  return 0\nend\n"),
+        ("C23: присваивание с выражениями (вызовы/индексация/getb)",
+         "str s = 'AB'\nvar g[4]\nfunc f(x)\n  return x * 2\nend\n"
+         "func main\n  var i\n  i = f(3) + g[1] + getb(&s, 0)\n"
+         "  g[2] = i + 1\n  return i\nend\n"),
+        ("C23: вызов-утверждение func 0..4 аргументов",
+         "func a\n  return 1\nend\nfunc b(x)\n  return x\nend\n"
+         "func q(x, y, z, w)\n  return x + y + z + w\nend\n"
+         "func main\n  a()\n  b(9)\n  q(1, 2, 3, 4)\n  return 0\nend\n"),
+        ("C23: вызов-утверждение ext 0/4/5 аргументов",
+         "ext GetTickCount\next ReadFile\next WriteFile\n"
+         "func main\n  GetTickCount()\n  ReadFile(1, 2, 3, 4)\n"
+         "  WriteFile(1, 2, 3, 4, 5)\n  return 0\nend\n"),
+        ("C23: astore локальный/глобальный массив (k = 1)",
+         "var m[3]\nfunc main\n  var a[4]\n  a[0] = 11\n"
+         "  a[1 + 1] = a[0] + 5\n  m[1] = a[2]\n  m[2] = m[1]\n"
+         "  return a[0]\nend\n"),
+        ("C23: astore цепочка k=2/k=3 + индекс-выражения",
+         "var g[4]\nfunc main\n  var p[2]\n  var q[2]\n"
+         "  p[0][1] = 9\n  q[0][g[0]][1] = 8\n  g[1] = p[0][1]\n"
+         "  return 0\nend\n"),
+        ("C23: setb простые и с выражениями/вызовами",
+         "str s = 'AB'\nfunc f(x)\n  return x\nend\n"
+         "func main\n  var a[4]\n  setb(&s, 0, 65)\n"
+         "  setb(a, 1 + 1, 66)\n  setb(&s, f(1), f(2))\n  return 0\nend\n"),
+        ("C23: setb + astore + ext5 в одной функции (S + S5)",
+         "ext WriteFile\nstr s = 'Q'\nvar g[2]\nfunc f(x)\n  return x\nend\n"
+         "func main\n  var i\n  var a[4]\n  i = f(2)\n  a[i] = i + 1\n"
+         "  g[0] = a[i]\n  setb(&s, f(0), 81)\n"
+         "  WriteFile(1, 2, 3, 4, 5)\n  return i\nend\n"),
+        ("C23: канарейка №22 — astore локали не в последней функции",
+         "func f(x)\n  var aaa[4]\n  var b\n  aaa[x] = x + 1\n  b = aaa[x]\n"
+         "  return b\nend\n"
+         "func main\n  var zzz[8]\n  zzz[3] = f(1)\n  return zzz[3]\nend\n"),
+        ("C23: смесь всего (присваивания + вызовы + astore + setb)",
+         "ext ReadFile\nstr s = 'XYZ'\nvar g[4]\nvar v\n"
+         "func f(x, y)\n  return x + y\nend\n"
+         "func h(x)\n  var t[2]\n  t[0] = x\n  setb(&s, x, 65)\n"
+         "  return t[0]\nend\n"
+         "func main\n  var i\n  i = f(1, 2)\n  g[i] = h(i)\n"
+         "  v = g[i] + len(s)\n  ReadFile(1, 2, 3, 4)\n  setb(&s, 1, 66)\n"
+         "  return v\nend\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")
@@ -280,16 +331,18 @@ def main():
                         break
         else:
             print("   %-56s %d Б (шагов=%d)" % (name, len(got), rs.steps))
-    check("T-E6-52+54+55/dev: функции+данные+выражения == оракулу "
-          "(%d источников)" % len(cases), not bad, "; ".join(bad[:3]))
+    check("T-E6-52+54+55+56+57/dev: функции+данные+выражения+статы == "
+          "оракулу (%d источников)" % len(cases), not bad, "; ".join(bad[:3]))
 
-    # регресс: статы-выражения вне класса среза — код 0, без краха
+    # регресс: статы вне класса (guard-эмитция if/while — срез C-3) —
+    # код 0, без краха; присваивания внутри тел уже эмитятся (C-2/3),
+    # if/while/else/break/continue — нет (bstk-механика цела)
     src = ("func main\n  var i\n  i = 0\n  while i < 3\n    i = i + 1\n"
            "    if i == 2\n      i = 5\n    end\n  end\n  return 0\n"
            "end\n")
     rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                          {"t.wall": src.encode("utf-8")}).run()
-    check("статы вне класса: код 0, stdout пуст (bstk-механика)",
+    check("статы вне класса (if/while): код 0, stdout пуст (bstk)",
           rs.exit_code == 0 and rs.stdout == b"",
           "код=%s out=%r" % (rs.exit_code, rs.stdout[:40]))
     os.unlink(path)
