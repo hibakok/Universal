@@ -1,0 +1,197 @@
+; wall_self_pg.wall — guard-эмиттеры и break/continue каркаса (E6.4d-4/3c-3)
+; Паспорт: KERNEL/L2-WALL/wall_self_pg.wall | слой L2 | роль: реинкарнация
+; ГУАРД-эмиттеров канона SPEC/11 п.8 (K2-E029 emit_jcc_line / K2-E02A
+; emit_jmp_line / K2-E02B emit_iflab / K2-E02C emit_wlab из wall_p2s.b2
+; и K2-E036 emit_jccd / K2-E037 emit_jmpt / K2-E038 emit_glab из
+; wall_pg.b2) и стата break/continue (K2-Y00C p2s_break/p2s_continue)
+; на самом языке WALL v2 — срез C часть 3 (guard-эмитция if/while/
+; else/break/continue) этапа E6.4d-4. Строки канона — по смещениям
+; блоба sblob (таблица off/len — wall_self_blob.wall; ДЕСЯТИЧНЫЕ
+; литералы; аналоги strtab-индексов wall.exe: 39->s_m 1148/2,
+; 10->s_e 286/1, 2A->s_ifref 1058/5, 69->s_wref 1848/4, 29->s_iflbl
+; 1054/4, 68->s_wlbl 1845/3, 3E->s_mjmpif 1205/10, 3F->s_mjmpw
+; 1215/9, jcctab wall.exe -> строки s_je/s_jg/s_jge/s_jl/s_jle/s_jne).
+; Отличия от wall.exe (выход байт-в-байт совпадает):
+; 1) jcctab-таблица не нужна: мнемоники инверсии (jne je jge jg jle
+;    jl — индексы 0..5) — константы вызовов jcc_name (if-цепочка
+;    ранних возвратов, как emit_alu E020 и jcctab-инверсии p_cond);
+; 2) p2s_break/p2s_continue — здесь (не в части y): guard-семейство;
+;    общий хвост p2s_brk(e) — скан bstk до kind 4, вызов
+;    emit_jmp_line (как p2b_loop wall.exe);
+; 3) суффикс 'e' — out_str(286, 1) (у wall.exe — out_str 10 по
+;    strtab); байты 'd'/'t' — out_ch(100)/out_ch(116).
+; Потребители: p_cond (wall_self_pc.wall — сравнения и дизъюнкты),
+; p2s_if/p2s_while/p2s_else/p2s_end (wall_self_y.wall — плечи
+; диспетчера p2_line), p2_line (break/continue 12/13).
+
+; «M j<инв>…» — мнемоника инверсии сравнения по индексу jcctab
+; (0 jne / 1 je / 2 jge / 3 jg / 4 jle / 5 jl; строки блоба s_j*)
+func jcc_name(j)
+  if j == 0
+    return out_str(1075, 3)
+  end
+  if j == 1
+    return out_str(1063, 2)
+  end
+  if j == 2
+    return out_str(1067, 3)
+  end
+  if j == 3
+    return out_str(1065, 2)
+  end
+  if j == 4
+    return out_str(1072, 3)
+  end
+  return out_str(1070, 2)
+end
+
+; «M j<инв> $<pfx><k>[e] ; текст» — условный переход на lfalse
+; (K2-E029): jcc 0..5; e — суффикс 'e' метки; k — счётчик if/while;
+; wflag — pfx (0 if / 1 while); вызывается p_cond для сравнений
+; ПОСЛЕДНЕГО дизъюнкта (lfail = lfalse)
+func emit_jcc_line(jcc, e, k, wflag)
+  out_str(1148, 2)
+  jcc_name(jcc)
+  if wflag != 0
+    out_str(1848, 4)
+  else
+    out_str(1058, 5)
+  end
+  out_dec(k)
+  if e != 0
+    out_str(286, 1)
+  end
+  emit_cmt()
+  return 0
+end
+
+; «M jmp $<pfx><k>[e] ; текст» — безусловный переход (K2-E02A):
+; wflag — pfx (0 if / 1 while), e — суффикс 'e', k — счётчик;
+; потребители: p2s_else («M jmp $_if<ke>»), p2s_end while («M jmp
+; $_w<k>»), p2s_brk (break «M jmp $_w<ke>» / continue «M jmp $_w<k>»)
+func emit_jmp_line(wflag, e, k)
+  if wflag != 0
+    out_str(1215, 9)
+  else
+    out_str(1205, 10)
+  end
+  out_dec(k)
+  if e != 0
+    out_str(286, 1)
+  end
+  emit_cmt()
+  return 0
+end
+
+; «:_if<k>[e]» — метка if (K2-E02B); e — суффикс 'e'; nlab++
+; (предел меток выхода — конец Y001)
+func emit_iflab(k, e)
+  out_str(1054, 4)
+  out_dec(k)
+  if e != 0
+    out_str(286, 1)
+  end
+  out_ch(10)
+  nlab = nlab + 1
+  return 0
+end
+
+; «:_w<k>[e]» — метка while (K2-E02C); e — суффикс 'e'; nlab++
+func emit_wlab(k, e)
+  out_str(1845, 3)
+  out_dec(k)
+  if e != 0
+    out_str(286, 1)
+  end
+  out_ch(10)
+  nlab = nlab + 1
+  return 0
+end
+
+; «M j<инв> $<pfx><k>d<i> ; текст» — jcc на d-метку guard-цепочки
+; (K2-E036): jcc 0..5, pfx (0 if / 1 while), k, i >= 2 — номер
+; СЛЕДУЮЩЕГО дизъюнкта (lfail = d<i> при провале конъюнкта);
+; вызывается p_cond для сравнений НЕ последних дизъюнктов
+func emit_jccd(jcc, pfx, k, i)
+  out_str(1148, 2)
+  jcc_name(jcc)
+  if pfx != 0
+    out_str(1848, 4)
+  else
+    out_str(1058, 5)
+  end
+  out_dec(k)
+  out_ch(100)
+  out_dec(i)
+  emit_cmt()
+  return 0
+end
+
+; «M jmp $<pfx><k>t ; текст» — успех дизъюнкта -> тело (K2-E037,
+; short-circuit SPEC/11 п.8); вызывается p_cond после дизъюнкта
+; i < m
+func emit_jmpt(pfx, k)
+  if pfx != 0
+    out_str(1215, 9)
+  else
+    out_str(1205, 10)
+  end
+  out_dec(k)
+  out_ch(116)
+  emit_cmt()
+  return 0
+end
+
+; «:<pfx><k>d<i>» (i >= 2) / «:<pfx><k>t» (i == 0) — метка
+; guard-цепочки (K2-E038); nlab++; вызывается p_cond (d-метки
+; между дизъюнктами, t-метка финала при m > 1)
+func emit_glab(pfx, k, i)
+  if pfx != 0
+    out_str(1845, 3)
+  else
+    out_str(1054, 4)
+  end
+  out_dec(k)
+  if i != 0
+    out_ch(100)
+    out_dec(i)
+  else
+    out_ch(116)
+  end
+  out_ch(10)
+  nlab = nlab + 1
+  return 0
+end
+
+; общий хвост break/continue (K2-Y00C): e 1 — break («M jmp $_w<ke>»),
+; 0 — continue («M jmp $_w<k>» — условие перевычисляется); скан bstk
+; сверху до ближайшей записи kind 4 (while) — k объемлющего цикла
+; (проход 1 уже отверг break/continue вне while — скан всегда
+; находит); комментарий — текст ТЕКУЩЕЙ строки (cmt_ptr/cmt_len
+; ставит p2_line)
+func p2s_brk(e)
+  var i
+  var k
+  i = st_bcnt
+  while i > 0
+    if getq(tabmem + 4587584 + (i - 1) * 32) == 4
+      k = getq(tabmem + 4587584 + (i - 1) * 32 + 8)
+      emit_jmp_line(1, e, k)
+      return 0
+    end
+    i = i - 1
+  end
+  return 0
+end
+
+; break в проходе 2 (K2-Y00C): «M jmp $_w<ke>» (k — ближайший
+; объемлющий while); плечо p2_line kwi == 12
+func p2s_break(pos, le)
+  return p2s_brk(1)
+end
+
+; continue в проходе 2 (K2-Y00C): «M jmp $_w<k>»; плечо p2_line
+; kwi == 13
+func p2s_continue(pos, le)
+  return p2s_brk(0)
+end

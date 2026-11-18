@@ -38,6 +38,14 @@
 ; p2_namestmt — как Y002 wall.exe; break/continue 12/13 — пропуск
 ; до среза C-3) — УТВЕРЖДЕНИЯ эмитции (K2-Y009/K2-Y00B/E02D) —
 ; НОВАЯ часть wall_self_t.wall.
+; Срез C-3 (E6.4d-4/3c-3): GUARD-ЭМИТЦИЯ if/while/else/break/
+; continue — p2s_if Y006 (guard через p_cond эмит-плечом: e из
+; ifarr[ifseq] — e=1 нет else / e=0 есть else), p2s_while Y007
+; (:_w<k> emit_wlab + guard c lfalse=_w<ke>), p2s_else Y005 («M jmp
+; $_if<ke>» + :_if<k> при ifarr != 0 — set_cmt строки if), p2s_end
+; Y004 (kind 4: «M jmp $_w<k>» + :_w<ke> — set_cmt строки while;
+; kind 2/3: :_if<ke>), p2s_break/p2s_continue Y00C (часть
+; wall_self_pg.wall); p2_line плеча 12/13 -> p2s_break/p2s_continue.
 
 ; проход 2: сброс счётчиков; пролог; цикл строк по smem; предел nlab
 func pass2
@@ -91,7 +99,8 @@ end
 ; вне функции строки — только объявления, эмитции нет; не-имя —
 ; стенка, недостижимо: проход 1 уже отверг — у wall.exe там int3);
 ; setb (9) — p2s_setb, имя-утверждение — p2_namestmt (срез C-2/3),
-; break/continue — пропуск до среза C-3
+; break/continue (12/13) — p2s_break/p2s_continue (срез C-3 —
+; «M jmp $_w<k>[e]», K2-Y00C части wall_self_pg.wall)
 func p2_line(pos, le)
   var k
   var kwi
@@ -131,16 +140,15 @@ func p2_line(pos, le)
       return p2s_setb(tokend, le)
     end
     if kwi == 12
-      return 0
+      return p2s_break(tokend, le)
     end
     if kwi == 13
-      return 0
+      return p2s_continue(tokend, le)
     end
     ; имя-утверждение (kwi == -1 и kw-имена вне плеч — цепочка
     ; kw-плеч падает в p2_namestmt, как Y002 wall.exe); setb —
-    ; p2s_setb; break/continue (12/13) — guard-эмитция среза C-3
-    ; (пропуск: bstk эти статы не трогают — целостность стека
-    ; блоков сохраняется)
+    ; p2s_setb; break/continue (12/13) — p2s_break/p2s_continue
+    ; (guard-эмитция среза C-3 — K2-Y00C части wall_self_pg.wall)
     return p2_namestmt(tokend, le)
   end
   return 0
@@ -194,9 +202,10 @@ end
 ; закрытие блока end в проходе 2 (K2-Y004): pop bstk; func — эпилог
 ; E019, если не last_ret (последний return уже эмитил), сброс
 ; «в функции»; while (обратный jmp + :_w<ke>) и if/else (:_if<ke>)
-; — срез C (эмиттеры E02A/E02B/E02C + srctxt из строки цикла)
+; — срез C-3: эмиттеры E02A/E02B/E02C + set_cmt из строки цикла
 func p2s_end(pos, le)
   var kind
+  var k
   st_bcnt = st_bcnt - 1
   kind = getq(tabmem + 4587584 + st_bcnt * 32)
   if kind == 1
@@ -207,17 +216,38 @@ func p2s_end(pos, le)
     st_lret = 0
     return 0
   end
+  k = getq(tabmem + 4587584 + st_bcnt * 32 + 8)
+  if kind == 4
+    ; while: «M jmp $_w<k>» + «:_w<ke>» — комментарий строки WHILE
+    ; (lineidx записи -> карта текстов smem — set_cmt)
+    set_cmt(getq(tabmem + 4587584 + st_bcnt * 32 + 24))
+    emit_jmp_line(1, 0, k)
+    emit_wlab(k, 1)
+    return 0
+  end
+  ; if/else (kind 2/3): «:_if<ke>»
+  emit_iflab(k, 1)
   return 0
 end
 
-; if в проходе 2 (K2-Y006, МЕХАНИКА среза B): ifseq++ (счётчик
-; прохода 2 — сбрасывается в pass2, как 18120 wall.exe), счётчик
-; if/while k++; e = ifarr[ifseq] читает СТАТИЧЕСКУЮ ветвь (срез C —
-; guard-эмитция p_cond с E029/E036-E038); push bstk {2, k, ifseq,
-; lineidx}; верхний уровень: last_ret = 0
+; if в проходе 2 (K2-Y006, срез C-3): ifseq++ (счётчик прохода 2 —
+; сбрасывается в pass2, как 18120 wall.exe), счётчик if/while k++;
+; e = ifarr[ifseq]: 1 — нет else (lfalse = _if<ke>), 0 — есть else
+; (lfalse = _if<k>); guard-эмитция p_cond(0, e, k) (pfx = 0 if);
+; at_end; push bstk {2, k, ifseq, lineidx}; верхний уровень:
+; last_ret = 0
 func p2s_if(pos, le)
+  var e
   ifseq = ifseq + 1
   st_ifcnt = st_ifcnt + 1
+  pcur = pos
+  ple = le
+  e = 1
+  if getq(tabmem + 4685888 + ifseq * 8) != 0
+    e = 0
+  end
+  p_cond(0, e, st_ifcnt)
+  at_end(pcur, le)
   stq(tabmem + 4587584 + st_bcnt * 32, 2)
   stq(tabmem + 4587584 + st_bcnt * 32 + 8, st_ifcnt)
   stq(tabmem + 4587584 + st_bcnt * 32 + 16, ifseq)
@@ -229,11 +259,17 @@ func p2s_if(pos, le)
   return 0
 end
 
-; while в проходе 2 (K2-Y007, МЕХАНИКА среза B): счётчик if/while k++
-; (:_w<k> + guard — срез C); push bstk {4, k, 0, lineidx}; верхний
-; уровень: last_ret = 0
+; while в проходе 2 (K2-Y007, срез C-3): счётчик if/while k++;
+; «:_w<k>» (emit_wlab e=0) + guard-эмитция p_cond(1, 1, k) (pfx=1
+; while, lfalse = _w<ke>); at_end; push bstk {4, k, 0, lineidx};
+; верхний уровень: last_ret = 0
 func p2s_while(pos, le)
   st_ifcnt = st_ifcnt + 1
+  pcur = pos
+  ple = le
+  emit_wlab(st_ifcnt, 0)
+  p_cond(1, 1, st_ifcnt)
+  at_end(pcur, le)
   stq(tabmem + 4587584 + st_bcnt * 32, 4)
   stq(tabmem + 4587584 + st_bcnt * 32 + 8, st_ifcnt)
   stq(tabmem + 4587584 + st_bcnt * 32 + 16, 0)
@@ -245,16 +281,22 @@ func p2s_while(pos, le)
   return 0
 end
 
-; else в проходе 2 (K2-Y005, МЕХАНИКА среза B): верхняя запись bstk
-; kind 2 -> 3, мутация на месте (k/seq сохраняются; jmp $_if<ke> +
-; :_if<k> и srctxt из строки if — срез C); проверка «выше if» уже
-; сделана проходом 1 (p1s_else)
+; else в проходе 2 (K2-Y005, срез C-3): верхняя запись bstk
+; kind 2 -> 3, мутация на месте (k/seq сохраняются); ifarr[seq]
+; != 0 — «M jmp $_if<ke>» (E02A) + «:_if<k>» (E02B), комментарий
+; IF-строки (set_cmt по lineidx записи — как Y005 wall.exe);
+; проверка «выше if» уже сделана проходом 1 (p1s_else)
 func p2s_else(pos, le)
   var k
   var seq
   st_bcnt = st_bcnt - 1
   k = getq(tabmem + 4587584 + st_bcnt * 32 + 8)
   seq = getq(tabmem + 4587584 + st_bcnt * 32 + 16)
+  if getq(tabmem + 4685888 + seq * 8) != 0
+    set_cmt(getq(tabmem + 4587584 + st_bcnt * 32 + 24))
+    emit_jmp_line(0, 1, k)
+    emit_iflab(k, 0)
+  end
   stq(tabmem + 4587584 + st_bcnt * 32, 3)
   stq(tabmem + 4587584 + st_bcnt * 32 + 8, k)
   stq(tabmem + 4587584 + st_bcnt * 32 + 16, seq)

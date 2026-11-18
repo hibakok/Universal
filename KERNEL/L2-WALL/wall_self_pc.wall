@@ -1,11 +1,14 @@
-; wall_self_pc.wall — условие if/while каркаса wall.wall (E6.4d-3/3)
+; wall_self_pc.wall — условие if/while каркаса wall.wall (E6.4d-3/3, C-3)
 ; Паспорт: KERNEL/L2-WALL/wall_self_pc.wall | слой L2 | роль: реинкарнация
 ; условия if/while (K2-P018 p_cond из wall_pc.b2) на самом языке WALL v2 —
 ; СТАТ-плечо прохода 1 (плечо pc_mode == 0 у wall.exe): разбор условия
-; + статистика maxd БЕЗ эмитции. Не реинкарнируются до E6.4d-4+ (эмит-
-; механика прохода 2): m-скан числа '||' (нужен только для d/t-меток
-; guard-канона SPEC/11 п.8), инверсия jcc по оператору, эмиттеры
-; E003/E005/E009/E029/E036/E037/E038.
+; + статистика maxd БЕЗ эмитции; ЭМИТ-плечо прохода 2 (срез C-3,
+; E6.4d-4/3c-3): m-скан (предподсчёт дизъюнктов — скан без потребления,
+; как pcd_scan wall.exe), сравнение эмит-режимом (операнды на глубине 2,
+; T1-склад emit_tstore(1)/emit_tload(1) — X = 8*(nbase+1), канон t(1)
+; SPEC/11 п.5/8), «M cmp r10, r11» (s_mcmp 1191/14) + jcc-инверсия
+; (if-цепочка по коду оператора, как jcctab wall.exe) + guard-эмиттеры
+; E029/E036/E037/E038 (часть wall_self_pg.wall).
 ; Грамматика (SPEC/11 п.2, == оракул P.cond/conj/cmp): дизъюнкты по
 ; '||', внутри дизъюнкта — сравнения по '&&'; сравнение — левый
 ; операнд p_expr(2), оператор == != < <= > >=, правый p_expr(2)
@@ -21,24 +24,65 @@
 ; Проверка оператора (порядок == wall.exe pc_eq/pc_ne/pc_lt/pc_gt):
 ; '=' / '!' — ровно 2 символа и второй '='; '<' / '>' — 1 символ либо
 ; 2 с '='; прочее (вкл. '<<' '>>' '&' '|') — ERR=FORMAT.
+; Инверсии jcc (jcctab wall.exe: индексы 0..5): '==' -> jne (0),
+; '!=' -> je (1), '<' -> jge (2), '<=' -> jg (3), '>' -> jle (4),
+; '>=' -> jl (5). Параметры (проход 2): pfx (0=if, 1=while), e
+; (суффикс lfalse), k (сквозной счётчик if/while) — в стат-плече
+; не читаются (pc_mode == 0; вызывающие прохода 1 передают нули —
+; как wall.exe, параметры не задаются и не читаются).
+; Guard-канон (SPEC/11 п.8): m=1 — выход как v1 (ни d/t-меток, ни
+; jmp; jcc прямо на lfalse); m>1 — каждое сравнение дизъюнкта i:
+; jcc на d<i+1> (i<m) или lfalse (i==m); после дизъюнкта i<m —
+; «M jmp $<pfx><k>t» + метка d<i+1>; финал — метка t.
 
 ; условие if/while: сравнения по '&&', дизъюнкты по '||' (K2-P018,
-; стат-плечо); курсор pcur/ple за ключевым словом if/while
-func p_cond
+; стат-плечо + эмит-плечо C-3); курсор pcur/ple за ключевым словом
+; if/while
+func p_cond(pfx, e, k)
   var needl
   var needr
-  var k
+  var tk
   var ln
   var c0
   var c1
   var t
   var more
+  var m
+  var i
+  var scur
+  var jcc
+  i = 1
+  m = 1
+  if pc_mode != 0
+    ; m-скан: предподсчёт числа дизъюнктов (число '||' в строке,
+    ; скан без потребления — как pcd_scan wall.exe; в стат-плече m
+    ; не нужен: d/t-метки только эмит-плеча)
+    scur = pcur
+    t = tok_next(scur, ple)
+    while t != 4
+      if t == 2
+        if tokend - tokptr == 2
+          if getb(srcbuf, tokptr) == 124
+            if getb(srcbuf, tokptr + 1) == 124
+              m = m + 1
+            end
+          end
+        end
+      end
+      scur = tokend
+      t = tok_next(scur, ple)
+    end
+  end
   more = 1
   while more == 1
     needl = p_expr(2)
+    if pc_mode != 0
+      ; T1-склад: «M mov [rbp-X], r10», X = 8*(nbase+1) = t(1)
+      emit_tstore(1)
+    end
     ; оператор сравнения: == != < <= > >= (иначе ERR=FORMAT)
-    k = tok_next(pcur, ple)
-    if k != 2
+    tk = tok_next(pcur, ple)
+    if tk != 2
       fail_format(curline)
     end
     ln = tokend - tokptr
@@ -64,11 +108,54 @@ func p_cond
     end
     pcur = tokend
     needr = p_expr(2)
-    ; maxd = max(maxd, 1 + max(need_l, need_r)) — как pcd_maxl wall.exe
-    ; (вложенные вызовы в аргументах wall.exe не разбирает — дефект №19,
-    ; поэтому два max2 порознь)
-    needr = max2(needl, needr)
-    st_maxd = max2(st_maxd, needr + 1)
+    if pc_mode != 0
+      ; «M mov r11, r10» + «M mov r10, [rbp-X]» (t(1)) + «M cmp
+      ; r10, r11»; инверсия jcc по коду оператора (if-цепочка —
+      ; индексы jcctab, как emit_argload/E020)
+      emit_tload(1)
+      out_str(1191, 14)
+      emit_cmt()
+      if c0 == 61
+        ; '==' -> jne
+        jcc = 0
+      else
+        if c0 == 33
+          ; '!=' -> je
+          jcc = 1
+        else
+          if c0 == 60
+            if ln == 2
+              ; '<=' -> jg
+              jcc = 3
+            else
+              ; '<' -> jge
+              jcc = 2
+            end
+          else
+            if ln == 2
+              ; '>=' -> jl
+              jcc = 5
+            else
+              ; '>' -> jle
+              jcc = 4
+            end
+          end
+        end
+      end
+      if i < m
+        ; провал конъюнкта = провал дизъюнкта i -> d<i+1>
+        emit_jccd(jcc, pfx, k, i + 1)
+      else
+        ; последний дизъюнкт -> lfalse: «M j<инв> $<pfx><k>[e]»
+        emit_jcc_line(jcc, e, k, pfx)
+      end
+    else
+      ; maxd = max(maxd, 1 + max(need_l, need_r)) — как pcd_maxl
+      ; wall.exe (вложенные вызовы в аргументах wall.exe не разбирает
+      ; — дефект №19, поэтому два max2 порознь)
+      needr = max2(needl, needr)
+      st_maxd = max2(st_maxd, needr + 1)
+    end
     ; '&&' / '||' — следующее сравнение; прочее — конец условия
     more = 0
     t = tok_next(pcur, ple)
@@ -82,12 +169,23 @@ func p_cond
         more = 1
       else
         if c0 == 124 && c1 == 124
-          ; '||' — следующий дизъюнкт
+          ; '||' — следующий дизъюнкт: успех i -> t, метка d<i+1>
           v2flag = 1
           pcur = tokend
           more = 1
+          i = i + 1
+          if pc_mode != 0
+            emit_jmpt(pfx, k)
+            emit_glab(pfx, k, i)
+          end
         end
       end
+    end
+  end
+  ; финал: m > 1 — метка t (успех любого дизъюнкта -> тело)
+  if pc_mode != 0
+    if m > 1
+      emit_glab(pfx, k, 0)
     end
   end
   return 0

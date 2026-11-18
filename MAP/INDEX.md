@@ -146,24 +146,25 @@
 | `KERNEL/L2-WALL/wall_ep.b2` | пролог/эпилог/alu/shift/imul/divmod | 192 |
 | `KERNEL/L2-WALL/wall_ed.b2` | импорты/данные (строки, глобальные var DZ 8n — срез 4a) | 386 |
 | `KERNEL/L2-WALL/wall_data.b2` | ветвь D: таблицы, strblob (113), bss r13+X | 361 |
-| `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/3..4/3c-2/3): ext/var/str + main + 17 частей; CLI == wall.exe, чтение, GlobalAlloc, проходы 0/1 + проход 2 (срезы A..C-2/3) | 324 |
+| `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/3..4/3c-3): ext/var/str + main + 18 частей; CLI == wall.exe, чтение, GlobalAlloc, проходы 0/1 + проход 2 (срезы A..C-3) | 338 |
 | `KERNEL/L2-WALL/wall_self_c.wall` | часть каркаса: сервис — print_error/skip0/read_arg/widen (E6.4d-1) | 147 |
 | `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
 | `KERNEL/L2-WALL/wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3..3/2) — getq, tok_next, kw_lookup, chk_name, names_find/_ci/add, local_find (P008), max2/tok_is1 (экономия меток), arr_size, at_end/want_id/want_sym1; таблицы tabmem | 434 |
 | `KERNEL/L2-WALL/wall_self_ph.wall` | часть каркаса: уровни выражений стат-режимом (E6.4d-3/2) — p_expr (P010), p_mul (P011), p_mdm (P01A), p_unary (P012); курсор pcur/ple | 77 |
 | `KERNEL/L2-WALL/wall_self_pp.wall` | часть каркаса: первичные + индексация (E6.4d-3/2; эмит-плечи E6.4d-4/3c-2/1..2/2) — p_prim (P013: откат outcur + перепознание базы d+k), pp_prim0 (P013a: число/скобки/&имя/getb/len/вызов/имя), pp_pcount (P01B), pp_pairs (P01C: статы + эмит T-склад/хвост), pp_strchk (P01E) | 292 |
 | `KERNEL/L2-WALL/wall_self_pa.wall` | часть каркаса: вызовы и astore-проверка (E6.4d-3/2; эмит-механика E6.4d-4/3c-2/2) — p_args (P014: стейджинг после каждого аргумента; фикс №19+№21), pa_stage (P017: C(base+cnt+1)/S5), p_call_tail (P015), emit_argload, call_stats (P016), astore_chk (P01D; фикс №22: копия lay-окна — только стат pc_mode == 0) | 261 |
-| `KERNEL/L2-WALL/wall_self_pc.wall` | часть каркаса: условие if/while (E6.4d-3/3) — p_cond (P018 стат-плечо: сравнения, '&&'/'||', maxd, v2flag) | 94 |
+| `KERNEL/L2-WALL/wall_self_pc.wall` | часть каркаса: условие if/while (E6.4d-3/3; эмит-плечо C-3) — p_cond (P018: стат — сравнения, '&&'/'||', maxd, v2flag; эмит — m-скан дизъюнктов, операнды на глубине 2 + T1-склад + «M cmp r10, r11» + jcc-инверсии + d/t-метки; параметры pfx/e/k) | 192 |
 | `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab; окно дублей — local_find | 208 |
 | `KERNEL/L2-WALL/wall_self_p1.wall` | часть каркаса: каркас прохода 1 (E6.4d-2/3..3/3) — p1_line (S002: func -> S004, fcur -> S006/S007/S008/S009/S00A/S00B/S00C/S00F/S00D), pass1 (S001) + пост-проверка main + сброс ifseq, set_lastline | 151 |
-| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 262 |
+| `KERNEL/L2-WALL/wall_self_p1s.wall` | часть каркаса: утверждения прохода 1 (E6.4d-2/4..3/3; C-3 — p1s_if/p1s_while вызывают p_cond(0, 0, 0): параметры эмит-плеча) — p1s_var (S006), p1s_end (S007), p1s_if (S009), p1s_while (S00A), p1s_else (S008), p1s_brk (S00F), p1s_return (S00B), p1s_setb (S00C), p1_namestmt (S00D); ifarr — окно tabmem+4685888 | 266 |
 | `KERNEL/L2-WALL/wall_self_blob.wall` | часть каркаса: ДАННЫЕ эмитции (E6.4d-4/3a) — блоб канона 2048 Б hex-литералами sd0..sd7 (8x512 симв. = 256 Б; таблица off/len в комментариях; ГЕНЕРАТОР LAB/ai/wall_self_data.py — не редактировать) | 142 |
 | `KERNEL/L2-WALL/wall_self_e.wall` | часть каркаса: примитивы вывода и данных (E6.4d-4/3a, 3c-1) — blob_dec/init_blob (декодер блоба в sblob=outmem+0), out_ch/copy/str/line (курсор — глобаль outcur), out_hex/hex2/dec, lower_copy, get_ext (реинкарнации K2-E001..E008/E012/E025) + emit_cmt (E009), str_dlen (E013), str_emit+se_doline+esc_code (E014) | 280 |
 | `KERNEL/L2-WALL/wall_self_d.wall` | часть каркаса: СЕКЦИИ ДАННЫХ (E6.4d-4/3c-1) — set_cmt (строка №ln -> cmt_ptr/cmt_len из smem), emit_strdata (E027: :имя + DZ 0 / DB-строки <= 16), emit_globdata (E028: :имя + DZ 8n + комментарий) | 92 |
 | `KERNEL/L2-WALL/wall_self_g.wall` | часть каркаса: ЭМИТТЕРЫ ВЫРАЖЕНИЙ (E6.4d-4/3c-2/1) — emit_tstore/emit_tload (T-склад уровней: «M mov [rbp-X], r10» / «M mov r11, r10» + «M mov r10, [rbp-X]»), emit_alu (E020) + alu_tail, emit_shift (E021), emit_imul (E034), emit_divmod (E035), emit_addr (E022), emit_len (E023), emit_load (E024) — строки блоба по смещениям, nbase — глобаль st_p2nbase | 238 |
 | `KERNEL/L2-WALL/wall_self_f.wall` | часть каркаса: КАДРЫ ФУНКЦИЙ (E6.4d-4/3b) — emit_kadr/emit_vyhod (E010), emit_lab (E011), calc_framesize (E017), emit_prologue (E018 — ARGREG[i] if-цепочкой), emit_epilogue (E019) | 121 |
-| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1+C-2/1..2/3 (E6.4d-4/3a..3c-2/3) — pass2 (Y001: пролог + цикл строк по smem + pc_mode=1 + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: cmt_ptr/cmt_len, плечи 0/4..8 + 9 setb + имя-цепочка p2_namestmt, break/continue — пропуск до C-3), p2_funchdr (Y00A: + st_p2maxd/maxc/nbase + окно lay из ftab), p2s_var/end/if/while/else (эмитция функций + МЕХАНИКА bstk) и p2s_return (Y008: выражение p_expr(1) эмит-режимом + «M mov rax, r10» + эпилог) | 418 |
+| `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1+C-2/1..2/3+C-3 (E6.4d-4/3a..3c-3) — pass2 (Y001: пролог + цикл строк по smem + pc_mode=1 + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: cmt_ptr/cmt_len, плечи 0/4..8 + 9 setb + имя-цепочка p2_namestmt + 12/13 p2s_break/p2s_continue), p2_funchdr (Y00A: + st_p2maxd/maxc/nbase + окно lay из ftab), p2s_var/end/if/while/else (эмитция функций + bstk + GUARD: p2s_if — p_cond(0, e, k); p2s_while — :_w<k> + p_cond(1, 1, k); p2s_else — jmp $_if<ke> + :_if<k>; p2s_end — while: обратный jmp + :_w<ke>, if/else: :_if<ke>) и p2s_return (Y008: выражение p_expr(1) эмит-режимом + «M mov rax, r10» + эпилог) | 460 |
 | `KERNEL/L2-WALL/wall_self_t.wall` | часть каркаса: СТАТЫ-ИМЕНА эмит-режимом (E6.4d-4/3c-2/3) — emit_sstore (E02D: стейджинг S-слота s(i) = nbase+maxd+maxc+i+1), p2s_setb (Y009: S0/S1/S2 + «M mov r10/r11/al, [rbp-S]» + «M mov [r10+r11], al» — байтовая запись, индекс БЕЗ *8) и p2_namestmt (Y00B: вызов-утверждение pc_extflg+p_args(1)+p_call_tail(0); astore — pp_pcount+astore_chk+база emit_load / цепочка pp_prim0(k)+pp_pairs(1,k-1)+S0/S1/S2 ПОРОЗНЬ+хвост shl 3/add/«M mov [r10], r11»; присваивание локали «M mov [rbp-X], r10» / глобали «M mov [rip+$имя], r10» — цель валидируется здесь, как Y00B wall.exe) | 197 |
+| `KERNEL/L2-WALL/wall_self_pg.wall` | часть каркаса: GUARD-ЭМИТТЕРЫ и break/continue (E6.4d-4/3c-3, срез C-3) — jcc_name (инверсии jne je jge jg jle jl по индексу 0..5, if-цепочка), emit_jcc_line (E029: «M j<инв> $<pfx><k>[e]»), emit_jmp_line (E02A: «M jmp $<pfx><k>[e]»), emit_iflab (E02B) / emit_wlab (E02C: «:_if/_w<k>[e]», nlab++), emit_jccd (E036: «M j<инв> $<pfx><k>d<i>»), emit_jmpt (E037: «M jmp $<pfx><k>t»), emit_glab (E038: «:<pfx><k>d<i>»/«t») + p2s_break/p2s_continue (Y00C: «M jmp $_w<k>[e]», общий хвост p2s_brk — скан bstk до kind 4) | 197 |
 | `KERNEL/L2-WALL/wall.brick` | плоская форма v1 = enc(splice(wall.b2)) | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка (PEG v1, SPEC/07) | 9 |
 | `KERNEL/L2-WALL/wall.exe` | материализация: 28160 байт (0x6E00), PE32+ (фикс №19: рост P014/P017/P015/P016/P013a/S00D +0x10C) | — |
@@ -254,7 +255,7 @@
 | `LAB/ai/wall_syntax_check.py` | (частное) быстрая проверка каркаса: splice-оракул + компиляция оракулом (E6.4d-2/2) | 41 |
 | `LAB/ai/wall_self_test.py` | (частное) dev-прогон секции 12 вне CI (T-E6-49a/b/c; единый источник — lab_t_wallself.py) | 57 |
 | `LAB/ai/wall_self_data.py` | (частное) генератор wall_self_blob.wall: strblob wall_data.b2 (2046 Б) + 2 нуля -> 8 hex-литерал + таблица off/len (E6.4d-4/3a) | 101 |
-| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции срезов A+B+C-1+C-2/1..2/3: сборка каркаса + матрица 49 источников (+ вызовы 0..5 аргументов, двойная вложенность №21, getb, индексация; C-2/3: присваивания, вызовы-утверждения, astore цепочки, setb, канарейка №22; вне-класс if/while без краха) — выход == оракулу ЦЕЛИКОМ (E6.4d-4/3a..3c-2/3) | 356 |
+| `LAB/ai/wall_self_emit.py` | (частное) dev-тест эмитции срезов A+B+C-1+C-2/1..2/3+C-3: сборка каркаса + матрица 61 источника (+ вызовы 0..5 аргументов, двойная вложенность №21, getb, индексация; C-2/3: присваивания, вызовы-утверждения, astore цепочки, setb, канарейка №22; C-3: if/while/else/break/continue, &&/||, инверсии, вложенность; регресс if/while — полный выход) — выход == оракулу ЦЕЛИКОМ (E6.4d-4/3a..3c-3) | 411 |
 | `LAB/ai/brick_build_lim2.py` | (частное) пересборка brick 512 КиБ -> 1 МиБ (E6.4g-1): 2 imm32 + 2 disp32, brick.hex/peg/exe, dev 11/11 | 425 |
 | `LAB/ai/brick_build_lim3.py` | (частное) пересборка brick: предел ТЕЛА 64 -> 128 КиБ (E6.4g-2): 1 imm32 BIG OUT, hex/exe (peg/bss не тронуты), dev 11/11 | 403 |
 | `LAB/ai/brick_build_lim4.py` | (частное) пересборка brick: предел ИСХОДНИКА 1 -> 2 МиБ (E6.4g-6): 2 imm32 + 2 disp32 + DBZ filebuf/imagebuf, hex/peg/exe, dev 11/11 (границы 0x100020/0x1FFFFF/0x200000) | 428 |
@@ -328,135 +329,55 @@ LAB — измерительный прибор (Python только здесь)
   таблица _CC вместо словаря на каждый jcc; батарея 131/131,
   время батареи 3м40с -> 2м52с даже с новым T-E6-50). **E6.4d-3/3
   ВЫПОЛНЕН (проходы 0/1 ПОЛНЫ): статы bstk-группы на WALL — S009
-  p1s_if + S00A p1s_while (условие p_cond P018 СТАТ-плечо — НОВАЯ
-  часть wall_self_pc.wall: сравнения ==/!=/</<=/>/>=, конъюнкты
-  '&&' / дизъюнкты '||' с v2flag, maxd = 1+max(need_l,need_r) на
-  каждое сравнение; m-скан и guard-эмит — проход 2) + S008
-  p1s_else (bstk kind 2 -> 3 + ifarr, мутация на месте) + S00F
-  p1s_brk break/continue (скан bstk до while, v2flag); плечи
-  диспетчера kw 5/6/7/C/D + сброс ifseq в pass1; ifarr — окно
-  tabmem+4685888 32768 qword (ёмкость == wall.exe 0x8000), tabmem
-  4685888 -> 4948032; корпус T-E6-49d 153 -> 178 (сравнимо 129 ->
-  161, код-0 38 -> 56, вне класса 24 -> 17 — только cerr/quirk/
-  kw-патологии str/ext); ПОЙМАН латентный дефект №19: wall.exe не
-  разбирает вложенные вызовы в аргументах (оракул принимает) —
-  каркас обходит (max2 порознь), починка wall.exe в очереди.
-  Плоский каркас 2140 строк / 73634 Б, .b2 493526 Б (94% предела
-  enc 512К — ГЛАВНЫЙ РИСК: проход 2 не поместится, сначала подъём
-  enc до 1 МиБ либо WALL v3), .brick 463458, тело 43747/65536
-  (67%), меток выхода 530/2000, меток исходника 530/2048, EXE
-  44544 (см. `DOCS/03-ROADMAP.md`, журнал 19-27, VERIFY-E6D2.md).**
-  **E6.4d-4/1 ВЫПОЛНЕН: предел входа enc 512 КиБ -> 1 МиБ** (ГЛАВНЫЙ
-  РИСК снят; 2 imm32 + DBZ х2; SHA 4BB73143… -> EEF6C66E…; dev
-  enc_build_lim2.py 11/11; T-E6-10b перепечатан; .b2 каркаса 47%
-  предела; реестры M1-ENC синхронизированы).**
-  **E6.4d-4/2 ВЫПОЛНЕН: дефект №19 закрыт полностью** (вложенные
-  вызовы: БАЗЫ C-слотов C(base+i) в каноне SPEC/11 п.5/8; wall.exe
-  P014/P017/P015/P016/P013a/S00D — рамочные счётчики + pc_cact/
-  pc_staged/pc_cbase; каркас синхронно; DEMO_NEST «U-NEST-OK 4C»;
-  T-E6-51 круг; батарея 131 -> 132/132; wall.exe 28160 Б, SHA
-  E04BA41B…; 59 старых исходников байт-в-байт).**
-  **E6.4g-1 ВЫПОЛНЕН: предел brick 512 КиБ -> 1 МиБ** (2 imm32 +
-  2 disp32 + DBZ х2; тело/файл не изменились; SHA AD3886E7… ->
-  86DADEF9…; dev 11/11; T-E6-36 перепечатан; реестры M1-BRICK
-  синхронизированы).**
-  **E6.4d-4/3a ВЫПОЛНЕН: проход 2 каркаса, срез A — ПРОЛОГ
-  эмитции** (части wall_self_blob/e/y.wall): примитивы вывода
-  (out_ch/copy/str/line, out_hex/hex2/dec — реинкарнации
-  K2-E001..E008; курсор — глобаль outcur; out_str (off,len) блоба
-  без strtab2; out_dec через / %), блоб канона 2048 Б hex-литералами
-  sd0..sd7 (генератор LAB/ai/wall_self_data.py; кириллица >= 0x80
-  невыразима в str-литерале), пролог pass2/emit_header/imports/
-  entry (Y001-начало/E015/E026/E016); область вывода outmem
-  2103264 (блоб+scr+outbuf 2 МиБ); куча эмулятора 8 -> 16 МиБ.
-  Выход каркаса == ТОЧНЫЙ ПРЕФИКС оракула до строки int3 входа
-  (T-E6-52 — 3 источника; dev wall_self_emit 7/7: 0/1/3/8 ext,
-  v2, многозначные счётчики, пустая str); поймана конвенция
-  ntab.ptr (смещение в srcbuf — не адрес). Батарея 132 -> 133/133.
-  Замеры: каркас 2674 строк/95281 Б; .b2 700619 (67% enc); .brick
-  666962 (64% brick 1 МиБ); тело 54348/64К (83%); метки 613/2048;
-  EXE 55296. Риски срезов B+: .b2 ~95% enc 1 МиБ (подъём до 2 МиБ),
-  тело ~64К (подъём предела тела ИЛИ WALL v3 qword-доступ).**
-  **E6.4d-4/3b ВЫПОЛНЕН: проход 2 каркаса, срез B — ЭМИТЦИЯ
-  ФУНКЦИЙ** (wall_self_y.wall: Y001-финал — цикл строк по smem +
-  предел nlab 2000; Y002 p2_line — диспетчер kw формы wall.exe;
-  Y00A p2_funchdr — имя -> ntab -> мета = fidx, пролог, push bstk;
-  Y003 p2s_var / Y004 p2s_end (эпилог, если не last_ret) /
-  Y008 p2s_return; Y005/Y006/Y007 — МЕХАНИКА bstk if/while/else;
-  НОВАЯ часть wall_self_f.wall — кадры E010/E011/E017/E018/E019;
-  глобали st_bcnt/st_fbase/st_infunc/st_lret/st_ifcnt/st_fptr/
-  st_flen корня). Выход == оракулу байт-в-байт на классе «тела из
-  var/голого return/end» — ЦЕЛИКОМ (без глобальных str/var) или
-  префикс до секции данных (T-E6-52 — 3 источника; dev
-  wall_self_emit 9/9: 0/1/4/8 ext, локальные массивы, v1/v2, 12
-  функций, вне-класс код 0 без краха). Батарея 133/133. Замеры:
-  каркас 3011 строк/107476 Б; .b2 775770 (73% enc 1 МиБ); .brick
-  737556 (70% brick 1 МиБ); тело 60967/64К (93% — ГЛАВНЫЙ РИСК:
-  подъём предела тела brick 64К -> 128К до среза C — E6.4g-2);
-  метки 663/2000; EXE 61952. Срез C — статы/выражения + секции
-  данных (E027/E028).**
-  **E6.4g-2+E6.4g-3 ВЫПОЛНЕНЫ: ПОТОЛОК ТЕЛА КОМВЕЙЕРА 64 -> 128 КиБ
-  СКВОЗНОЙ (brick И pegen)** (мотив: тело каркаса после среза B
-  60967/64К = 93%, срез C добавит ~10-15 КБ; НАЙДЕН ПРОПУСК плана
-  сессии 31 — поднимался только BIG OUT brick, а круг каркаса
-  T-E6-49b идёт и через pegen: тело ~71-77 КБ упало бы ERR=BIG IMAGE
-  код 6). brick: cmp eax 0x10000 -> 0x20000 (ровно 1 байт diff;
-  imagebuf 0x100010 не тронут — привязан к пределу исходника 1 МиБ,
-  тела 128 КиБ покрывает с запасом 8x; peg/bss/файл не изменились);
-  SHA 86DADEF9… -> 79B50A01…; dev brick_build_lim3.py 11/11. pegen:
-  imm32 вместимости 0x10001 -> 0x20001 + imm32 предела 0x10000 ->
-  0x20000 + disp32 lea zeropad +0x10000 (imagebuf 0x10010 -> 0x20010
-  сдвинул zeropad; ровно 3 байта diff + VirtualSize/SizeOfImage);
-  !bss 20402 -> 30402, vsize 0x2117C -> 0x3117C; оракул lab_pegen
-  синхронизирован; SHA 39B7D78C… -> FAECAC2E…; dev pegen_build_lim.py
-  7/7 (вкл. регресс обёртки 9 модулей KERNEL). T-E6-36 расширен
-  телами (0x10000/0x1FFFF приняты — старый предел отверг бы уже
-  0x10000; 0x20000 — BIG OUT) + НОВЫЙ T-E6-53 (0x10001/0x20000
-  приняты == оракулу wrap; 0x20001 — BIG IMAGE); батарея 133 ->
-  134/134. Попутно исправлены устаревшие значения: CARD M1-BRICK
-  (imagebuf 0x80010 -> 0x100010, labtab 0x4000/1023 -> 0x8000/2047
-  — дрейф с E6.4g-1/E6.4f-2), BYTECODE M0-PEGEN (SizeOfImage 0x22000
-  -> факт 0x23000, bss-старт 0xD80 -> 0xD7A).**
-  **E6.4d-4/3c-1 ВЫПОЛНЕН: срез C часть 1 — СЕКЦИИ ДАННЫХ прохода 2
-  каркаса** (срез C разбит: 1 — данные, 2 — выражения, 3 — guard-
-  статы): emit_cmt/E009 + str_dlen/E013 + str_emit/E014+se_doline+
-  esc_code (wall_self_e.wall; глобали cmt_ptr/cmt_len — аналог
-  181A0/A8, буфер DB — локальный массив: класс дефекта №16 невозможен
-  конструктивно) + НОВАЯ часть wall_self_d.wall (set_cmt,
-  emit_strdata/E027, emit_globdata/E028); pass2 — заголовки секций
-  только при непустой секции (как Y001 wall.exe); p2_line ставит
-  cmt-глобали текущей строки. КЛАСС СРЕЗОВ A+B СТАЛ ДАВАТЬ ПОЛНЫЙ
-  ВЫХОД ОРАКУЛА и при глобальных str/var (до C-1 — префикс до секции
-  данных). T-E6-52 переведён на полный выход + НОВЫЙ T-E6-54 (6
-  источников: пустая str, экраны 6 видов, граница DB 16/17, длинная
-  42 Б, var-only, отступы/«;»-хвосты); батарея 134 -> 135/135; dev
-  wall_self_emit 3/3 (13 источников ЦЕЛИКОМ). Замеры: каркас 3236
-  строк/116261 Б; .b2 810157 (77% enc 1 МиБ); .brick 769916 (73%);
-  тело 64561/128К (49%); метки 699/2000; EXE 65536. Следующий шаг —
-  срез C часть 2: выражения в режиме эмитции (E020-E024/E034/E035,
-  плечи P010..P018, Y008-выражение + Y00B).**
-  **E6.4g-5 ВЫПОЛНЕН: предел ВХОДА enc 1 МиБ -> 2 МиБ** (2 imm32 +
-  DBZ х2; SHA EEF6C66E… -> B4B49041…; батарея 136/136; риск снят).
-  Детали — DOCS/03a-HISTORY.md (серия E6.4g).**
+  p1s_if + S00A p1s_while (p_cond P018 стат-плечо — НОВАЯ часть
+  wall_self_pc.wall) + S008 p1s_else (ifarr — окно
+  tabmem+4685888, 4685888 -> 4948032) + S00F p1s_brk; корпус
+  T-E6-49d 153 -> 178 (сравнимо 161, код-0 56, вне класса 17);
+  ПОЙМАН латентный дефект №19 (вложенные вызовы — очередь).
+  Замеры: каркас 2140 строк, .b2 493526 (94% enc 512К — РИСК),
+  тело 43747/64К, меток 530/2000, EXE 44544 (журнал 19-27,
+  VERIFY-E6D2.md).**
+  **E6.4d-4/1 + E6.4d-4/2 + E6.4g-1 ВЫПОЛНЕНЫ: enc вход 1 МиБ;
+  дефект №19 ЗАКРЫТ (базы C-слотов C(base+i) — синхронно wall.exe
+  + каркас; T-E6-51; wall.exe 28160 Б, SHA E04BA41B…); brick
+  1 МиБ (SHA 86DADEF9…). Батарея 132/132.**
+  **E6.4d-4/3a ВЫПОЛНЕН: срез A — ПРОЛОГ эмитции** (части
+  wall_self_blob/e/y.wall: примитивы вывода + блоб канона 2048 Б
+  hex-литералами + Y001-начало/E015/E026/E016; outmem 2103264;
+  куча эмулятора 8 -> 16 МиБ; выход == ПРЕФИКС оракула до int3
+  входа, T-E6-52; 132 -> 133/133; каркас 2674 строк, .b2 700619
+  (67% enc), тело 54348/64К — РИСК срезов B+).**
+  **E6.4d-4/3b ВЫПОЛНЕН: срез B — ЭМИТЦИЯ ФУНКЦИЙ** (Y001-финал
+  + Y002/Y00A/Y003/Y004/Y008 + МЕХАНИКА bstk Y005/Y006/Y007;
+  НОВАЯ часть wall_self_f.wall — кадры E010..E019; глобали
+  st_bcnt/st_fbase/st_infunc/st_lret/st_ifcnt/st_fptr/st_flen).
+  Выход == оракулу на классе «тела из var/голого return/end»;
+  133/133. Каркас 3011 строк, .b2 775770, тело 60967/64К (93% —
+  РИСК: подъём предела тела до среза C).**
+  **E6.4g-2 + E6.4g-3 ВЫПОЛНЕНЫ: ПОТОЛОК ТЕЛА КОНВЕЙЕРА 64 ->
+  128 КиБ СКВОЗНОЙ (brick И pegen; пропуск плана сессии 31 —
+  круг T-E6-49b идёт и через pegen). brick: 1 байт diff (cmp eax
+  0x20000), SHA 79B50A01…; pegen: +3 байта (VirtualSize/
+  SizeOfImage 0x3117C), SHA FAECAC2E…; оракул синхронизирован;
+  T-E6-36 расширен + НОВЫЙ T-E6-53; 133 -> 134/134; попутно
+  закрыт дрейф CARD M1-BRICK/BYTECODE M0-PEGEN.**
+  **E6.4d-4/3c-1 ВЫПОЛНЕН: срез C часть 1 — СЕКЦИИ ДАННЫХ**
+  (emit_cmt/E009 + str_dlen/E013 + str_emit/E014 — часть
+  wall_self_e.wall; НОВАЯ часть wall_self_d.wall — set_cmt +
+  emit_strdata/E027 + emit_globdata/E028); класс срезов A+B стал
+  давать ПОЛНЫЙ выход и при глобальных str/var; T-E6-52 перевёден
+  на полный выход + НОВЫЙ T-E6-54 (6 источников); 134 -> 135/135;
+  каркас 3236 строк, .b2 810157 (77%), тело 64561/128К.**
   **E6.4d-4/3c-2/2 ВЫПОЛНЕН: срез C часть 2 шаг 2 — ВЫРАЖЕНИЯ С
-  ВЫЗОВАМИ И ИНДЕКСАЦИЕЙ эмит-режимом** (класс полного выхода
-  прохода 2 каркаса расширен на return <выражение> с вызовами
-  func/ext 0..5 аргументов, вложенными вызовами, getb и постфиксной
-  индексацией): НОВЫЕ pa_stage K2-P017 + p_call_tail K2-P015 +
-  emit_argload (wall_self_pa.wall) + эмит-плечи p_args / pp_prim0
-  (getb: T-склад d + movzx; вызов) / pp_pairs / обёртка p_prim с
-  откатом outcur (wall_self_pp.wall). ДЕФЕКТ №21 НАЙДЕН И ЗАКРЫТ
-  (синхронно wall_pa.b2 P014 +3 M-строки + пересборка wall.exe:
-  тело 27326 -> 27338, SHA 81DB0498… -> 295730EF…, idata 79A2 ->
-  79AE; pc_staged хранил счёт без базы — двойная вложенность вызовов
-  получала базу 0, затирала C-слоты объемлющего и занижала
-  maxc/framesize; якорь maxc 2 -> 3; карта ветвей BYTECODE.md
-  переведена bytecode_rows.py — заодно закрыт дрейф эпохи №20).
-  НОВЫЙ T-E6-56 (10 источников; канарейки №21); батарея 136 ->
-  137/137. Замеры: склейка 142632 Б (54%); метки 882/2048.
-  **E6.4g-6 ВЫПОЛНЕН: предел ВХОДА brick 1 МиБ -> 2 МиБ** (2 imm32
-  + DBZ х2; SHA 79B50A01… -> 38E46B52…; батарея 136/136; риск
-  снят; детали — 03a-HISTORY).**
+  ВЫЗОВАМИ И ИНДЕКСАЦИЕЙ эмит-режимом** (pa_stage/P017 +
+  p_call_tail/P015 + emit_argload — НОВАЯ часть wall_self_pa.wall;
+  эмит-плечи p_args/pp_prim0/pp_pairs/p_prim — wall_self_pp.wall).
+  ДЕФЕКТ №21 ЗАКРЫТ (синхронно wall_pa.b2: тело 27326 -> 27338,
+  SHA 295730EF…); НОВЫЙ T-E6-56; 136 -> 137/137; склейка
+  142632 Б, метки 882/2048.
+  **E6.4g-5 + E6.4g-6 ВЫПОЛНЕНЫ: пределы ВХОДА enc/brick 1 -> 2
+  МиБ (SHA B4B49041… / 38E46B52…; риски сняты; детали —
+  03a-HISTORY).**
   **E6.4d-4/3c-2/3 ВЫПОЛНЕН: срез C часть 2 шаг 3 — СТАТЫ-ИМЕНА
   эмит-режимом** (класс полного выхода прохода 2 каркаса расширен
   на статы-имена в телах: присваивания локали/глобали — цель
@@ -482,6 +403,43 @@ LAB — измерительный прибор (Python только здесь)
   39 -> 49 источников (3/3); батарея 137 -> 138/138. Замеры:
   склейка 155446 Б (59% входа 256 КиБ); .b2 960265 (46% enc
   2 МиБ); .brick 909743 (43% brick 2 МиБ); метки 903/2048.
-  Следующий шаг — срез C-3: guard-эмитция if/while/else/break/
-  continue (метки E02A-E02C + guard E036-E038 + p_cond эмит-
-  плечом + Y00C; финал — wall(wall.wall) == wall.b2).**
+- **E6.4d-4/3c-3 (сессия 39) — срез C часть 3: GUARD-ЭМИТЦИЯ
+  if/while/else/break/continue ВЫПОЛНЕНА.** НОВАЯ часть
+  wall_self_pg.wall (197 строк): jcc_name (инверсии jne je jge
+  jg jle jl — if-цепочка ранних возвратов, как emit_alu E020;
+  jcctab wall.exe не нужен) + реинкарнации K2-E029 emit_jcc_line
+  («M j<инв> $<pfx><k>[e]») / E02A emit_jmp_line («M jmp $<pfx>
+  <k>[e]») / E02B emit_iflab / E02C emit_wlab («:_if/_w<k>[e]»,
+  nlab++) / E036 emit_jccd («M j<инв> $<pfx><k>d<i>») / E037
+  emit_jmpt («M jmp $<pfx><k>t») / E038 emit_glab («:<pfx><k>
+  d<i>»/«t») + K2-Y00C p2s_break/p2s_continue (общий хвост
+  p2s_brk — скан bstk до kind 4, k объемлющего while; «M jmp
+  $_w<k>[e]»). p_cond (wall_self_pc.wall, 94 -> 192): параметры
+  (pfx, e, k) + эмит-плечо — m-скан дизъюнктов (скан без
+  потребления, как pcd_scan wall.exe; в стат-плече не нужен),
+  сравнение эмит-режимом: операнды p_expr(2) + T1-склад
+  emit_tstore(1)/emit_tload(1) (X = 8*(nbase+1) = t(1)) + «M cmp
+  r10, r11» (s_mcmp 1191/14) + jcc-инверсия if-цепочкой +
+  emit_jccd (i < m) / emit_jcc_line (последний дизъюнкт);
+  «||» — i++ + emit_jmpt + emit_glab(d<i>); финал m > 1 —
+  emit_glab(t); m=1 — выход как v1 (ни d/t-меток, ни jmp).
+  Плечи прохода 2 (wall_self_y.wall, 418 -> 460): p2s_if — e =
+  ifarr[ifseq]==0 ? 1 : 0 (lfalse = _if<ke> нет else / _if<k>
+  есть else) + p_cond(0, e, st_ifcnt); p2s_while — :_w<k>
+  emit_wlab + p_cond(1, 1, k); p2s_else — при ifarr != 0:
+  set_cmt строки if + emit_jmp_line(0, 1, k) + emit_iflab(k, 0);
+  p2s_end — kind 4: set_cmt строки while + emit_jmp_line(1, 0,
+  k) + emit_wlab(k, 1); kind 2/3: emit_iflab(k, 1); p2_line
+  12/13 -> p2s_break/p2s_continue. p1s_if/p1s_while (проход 1)
+  — p_cond(0, 0, 0) (wall.exe в стате параметры не задаёт и не
+  читает; WALL v2 требует равенства аргументов параметрам).
+  НОВЫЙ T-E6-58 (12 источников: m=1/m>1, все 6 операторов,
+  вложенность, break/continue, условия с вызовами/индексацией);
+  dev wall_self_emit 49 -> 61 источников (3/3; регресс «статы
+  вне класса if/while» переведён в полный выход 1718 Б);
+  батарея 138 -> 139/139. Замеры: .b2 каркаса 1009314 (48% enc
+  2 МиБ); склейка ~163 КБ (62% входа 256 КиБ). Следующий шаг —
+  канарейки финала E6.4d: полный круг DEMO_* (BC/CC/ARR/WALL2/
+  NEST) КАРКАСОМ, big_source/big_source2 байт-в-байт, финал —
+  wall(wall.wall) == wall.b2 (порядок функций каркаса vs wall.b2 —
+  возможно, перестановка).**

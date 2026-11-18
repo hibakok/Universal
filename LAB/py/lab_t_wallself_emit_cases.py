@@ -1,10 +1,12 @@
 """lab_t_wallself_emit_cases.py — источники тестов эмитции каркаса
-(T-E6-55/56/57, срезы C-2/1..C-2/3 этапа E6.4d-4/3c-2).
+(T-E6-55/56/57/58, срезы C-2/1..C-2/3 + C-3 этапа E6.4d-4/3c).
 
 Только данные: списки (имя, исходник) для секций T-E6-55 (return-
-выражения), T-E6-56 (вызовы/getb/индексация; канарейки дефекта №21)
-и T-E6-57 (статы-имена: присваивания/вызовы-утверждения/astore/
-setb; канарейка дефекта №22). Прогонщик — lab_t_wallself.py.
+выражения), T-E6-56 (вызовы/getb/индексация; канарейки дефекта №21),
+T-E6-57 (статы-имена: присваивания/вызовы-утверждения/astore/
+setb; канарейка дефекта №22) и T-E6-58 (guard-эмитция среза C-3:
+if/while/else/break/continue, цепочки && / ||, инверсии jcc).
+Прогонщик — lab_t_wallself.py.
 """
 
 EXPR_CASES = [
@@ -120,4 +122,58 @@ STMT_CASES = [
      "func main\n  var i\n  i = f(1, 2)\n  g[i] = h(i)\n"
      "  v = g[i] + len(s)\n  ReadFile(1, 2, 3, 4)\n  setb(&s, 1, 66)\n"
      "  return v\nend\n"),
+]
+GUARD_CASES = [
+    ("if простой (m=1 — без d/t-меток)",
+     "func main\n  var i\n  i = 0\n  if i == 0\n    i = 1\n"
+     "  end\n  return i\nend\n"),
+    ("if/else (lfalse = _if<k>)",
+     "func main\n  var i\n  i = 0\n  if i < 2\n    i = 1\n"
+     "  else\n    i = 2\n  end\n  return i\nend\n"),
+    ("while простой (:_w<k> + обратный jmp)",
+     "func main\n  var i\n  i = 0\n  while i < 3\n    i = i + 1\n"
+     "  end\n  return i\nend\n"),
+    ("while + break + continue (скан bstk)",
+     "func main\n  var i\n  var s\n  i = 0\n  s = 0\n"
+     "  while i < 10\n    i = i + 1\n    if i == 3\n"
+     "      continue\n    end\n    if i == 8\n      break\n"
+     "    end\n    s = s + i\n  end\n  return s\nend\n"),
+    ("if с || m=2 (d/t-метки + jmp t)",
+     "func main\n  var i\n  i = 0\n  if i == 1 || i == 0\n"
+     "    i = 9\n  end\n  return i\nend\n"),
+    ("if с || m=3 + конъюнкты &&",
+     "func f(a, b, c, d)\n"
+     "  if a == 1 && b == 2 || c == 3 && d == 4 || b == 5\n"
+     "    return 1\n  end\n  return 0\nend\n"
+     "func main\n  return f(1, 2, 0, 0)\nend\n"),
+    ("while с || условием (m=2)",
+     "func main\n  var i\n  var s\n  i = 10\n  s = 0\n"
+     "  while i > 27 || s > 100\n    i = i - 1\n    s = s + 2\n"
+     "  end\n  return i\nend\n"),
+    ("все 6 операторов сравнения (инверсии jcc)",
+     "func f(a, b)\n  if a == b\n    return 1\n  end\n"
+     "  if a != b\n    return 2\n  end\n  if a < b\n    return 3\n"
+     "  end\n  if a <= b\n    return 4\n  end\n  if a > b\n"
+     "    return 5\n  end\n  if a >= b\n    return 6\n  end\n"
+     "  return 0\nend\nfunc main\n  return f(1, 2)\nend\n"),
+    ("вложенные if/while/if-else (сквозной счётчик k)",
+     "func main\n  var i\n  var s\n  i = 0\n  s = 0\n"
+     "  while i < 5\n    i = i + 1\n    if i == 2\n"
+     "      s = s + 10\n    else\n      if i == 3\n"
+     "        s = s + 100\n      end\n    end\n    s = s + 1\n"
+     "  end\n  return s\nend\n"),
+    ("условия с выражениями/вызовами/индексацией",
+     "var g[4]\nfunc f(x)\n  return x * 2\nend\n"
+     "func main\n  var a[2]\n  a[0] = 5\n  if a[0] + 1 == 6\n"
+     "    if f(2) == g[0] + 4\n      return 1\n    end\n"
+     "  end\n  return 0\nend\n"),
+    ("&& цепочка m=1 (выход как v1)",
+     "func f(a, b, c)\n  if a > 0 && b > 0 && c > 0\n"
+     "    return 1\n  end\n  return 0\nend\n"
+     "func main\n  return f(1, 2, 3)\nend\n"),
+    ("if/else + while в теле if",
+     "func main\n  var i\n  var s\n  s = 0\n"
+     "  if s == 0\n    i = 0\n    while i < 3\n      s = s + 2\n"
+     "      i = i + 1\n    end\n  else\n    s = 7\n  end\n"
+     "  return s\nend\n"),
 ]

@@ -1,29 +1,27 @@
-"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-2/3, срез C-2/3).
+"""wall_self_emit.py — dev-прогон эмитции каркаса (E6.4d-4/3c-3, срез C-3).
 
 Вход:  KERNEL/L2-WALL/wall.wall (каркас с проходом 2, срезы A+B+C-1+
-         C-2/1+C-2/2+C-2/3).
+         C-2/1+C-2/2+C-2/3+C-3).
 Выход: [OK]/[FAIL] строки; код возврата 0/1.
 Функция: сборка каркаса полным кругом (wall.exe -> enc -> brick -> pegen,
          эмуляция LAB) и прогон EXE каркаса на матрице источников.
-         Срез C-2/3 (СТАТЫ-ИМЕНА эмит-режимом: НОВАЯ часть wall_self_t.wall
-         — K2-E02D emit_sstore + K2-Y009 p2s_setb + K2-Y00B p2_namestmt;
-         плечи диспетчера p2_line; ДЕФЕКТ №22 закрыт — astore_chk копирует
-         lay-окно только в стате pc_mode == 0, как P01D wall.exe)
-         расширяет класс ПОЛНОГО выхода на статы-имена в телах:
-         присваивания локали/глобали (цель — валидация прохода 2:
-         массив/str/func/ext/неизвестное — ERR), вызовы-утверждения
-         func/ext 0..5 аргументов (want 0), astore имя[выр]... = выр
-         (k == 1 — emit_load-база; k > 1 — pp_prim0(k) + pp_pairs(1,
-         k-1); последняя пара и значение ПОРОЗНЬ через S0/S1/S2 +
-         хвост shl 3 / add / mov [r10], r11) и setb(выр, выр, выр)
-         (S0/S1/S2 + байтовая запись [r10+r11] = al — индекс БЕЗ *8).
-         Матрица: 13 источников срезов A+B+C-1 + 14 return-выражений
-         C-2/1 + 13 вызовов/getb/индексации C-2/2 + 10 статов-имён
-         C-2/3 (канарейка №22 — astore локального массива в функции,
-         отличной от последней функции прохода 1). Источник со
-         статами вне класса (if/while/else/break/continue) — регресс:
-         код 0, stdout пуст, отсутствие краха (bstk-механика;
-         guard-эмитция — срез C-3).
+         Срез C-3 (GUARD-ЭМИТЦИЯ if/while/else/break/continue: НОВАЯ
+         часть wall_self_pg.wall — K2-E029/E02A/E02B/E02C/E036/E037/
+         E038 + K2-Y00C p2s_break/p2s_continue; p_cond эмит-плечо —
+         m-скан дизъюнктов, операнды на глубине 2 + T1-склад + «M cmp
+         r10, r11» + jcc-инверсии jcc_name + d/t-метки; плечи Y006/
+         Y007/Y005/Y004 и p2_line 12/13) расширяет класс ПОЛНОГО
+         выхода на guard-группу: if m=1 (выход как v1 — без d/t-меток),
+         if/else, while (:_w<k> + обратный jmp + :_w<ke>), break/
+         continue («M jmp $_w<k>[e]», скан bstk до kind 4), цепочки
+         && (m=1) и || (m>1 — d<i>/t-метки + jmp t), все 6 операторов
+         сравнения (jne je jge jg jle jl), вложенные if/while/if-else
+         (сквозной счётчик k), условия с выражениями/вызовами/
+         индексацией. Матрица: 13 источников срезов A+B+C-1 + 14
+         return-выражений C-2/1 + 13 вызовов/getb/индексации C-2/2 +
+         10 статов-имён C-2/3 + 12 guard-источников C-3 (регресс-стат
+         «статы вне класса» переведён в полный выход — if/while с
+         телами из присваиваний сравним с оракулом ЦЕЛИКОМ).
 Запуск: python3 LAB/ai/wall_self_emit.py  (из корня репозитория)
 """
 import os
@@ -302,6 +300,60 @@ def main():
          "func main\n  var i\n  i = f(1, 2)\n  g[i] = h(i)\n"
          "  v = g[i] + len(s)\n  ReadFile(1, 2, 3, 4)\n  setb(&s, 1, 66)\n"
          "  return v\nend\n"),
+        # ---- срез C-3: guard-эмитция if/while/else/break/continue ----
+        ("C3: if простой (m=1, без d/t-меток)",
+         "func main\n  var i\n  i = 0\n  if i == 0\n    i = 1\n"
+         "  end\n  return i\nend\n"),
+        ("C3: if/else (lfalse = _if<k>)",
+         "func main\n  var i\n  i = 0\n  if i < 2\n    i = 1\n"
+         "  else\n    i = 2\n  end\n  return i\nend\n"),
+        ("C3: while простой (:_w<k> + обратный jmp)",
+         "func main\n  var i\n  i = 0\n  while i < 3\n"
+         "    i = i + 1\n  end\n  return i\nend\n"),
+        ("C3: while + break + continue (скан bstk)",
+         "func main\n  var i\n  var s\n  i = 0\n  s = 0\n"
+         "  while i < 10\n    i = i + 1\n    if i == 3\n"
+         "      continue\n    end\n    if i == 8\n      break\n"
+         "    end\n    s = s + i\n  end\n  return s\nend\n"),
+        ("C3: if с || m=2 (d/t-метки)",
+         "func main\n  var i\n  i = 0\n  if i == 1 || i == 0\n"
+         "    i = 9\n  end\n  return i\nend\n"),
+        ("C3: if с || m=3 + конъюнкты &&",
+         "func f(a, b, c, d)\n"
+         "  if a == 1 && b == 2 || c == 3 && d == 4 || b == 5\n"
+         "    return 1\n  end\n  return 0\nend\n"
+         "func main\n  return f(1, 2, 0, 0)\nend\n"),
+        ("C3: while с || условием (m=2)",
+         "func main\n  var i\n  var s\n  i = 10\n  s = 0\n"
+         "  while i > 27 || s > 100\n    i = i - 1\n    s = s + 2\n"
+         "  end\n  return i\nend\n"),
+        ("C3: все 6 операторов сравнения (инверсии)",
+         "func f(a, b)\n  if a == b\n    return 1\n  end\n"
+         "  if a != b\n    return 2\n  end\n  if a < b\n"
+         "    return 3\n  end\n  if a <= b\n    return 4\n"
+         "  end\n  if a > b\n    return 5\n  end\n  if a >= b\n"
+         "    return 6\n  end\n  return 0\nend\n"
+         "func main\n  return f(1, 2)\nend\n"),
+        ("C3: вложенные if/while/if-else (сквозной k)",
+         "func main\n  var i\n  var s\n  i = 0\n  s = 0\n"
+         "  while i < 5\n    i = i + 1\n    if i == 2\n"
+         "      s = s + 10\n    else\n      if i == 3\n"
+         "        s = s + 100\n      end\n    end\n"
+         "    s = s + 1\n  end\n  return s\nend\n"),
+        ("C3: условия с выражениями/вызовами/индексацией",
+         "var g[4]\nfunc f(x)\n  return x * 2\nend\n"
+         "func main\n  var a[2]\n  a[0] = 5\n  if a[0] + 1 == 6\n"
+         "    if f(2) == g[0] + 4\n      return 1\n    end\n"
+         "  end\n  return 0\nend\n"),
+        ("C3: && цепочка m=1 (выход как v1)",
+         "func f(a, b, c)\n  if a > 0 && b > 0 && c > 0\n"
+         "    return 1\n  end\n  return 0\nend\n"
+         "func main\n  return f(1, 2, 3)\nend\n"),
+        ("C3: if/else + while в теле if",
+         "func main\n  var i\n  var s\n  s = 0\n"
+         "  if s == 0\n    i = 0\n    while i < 3\n"
+         "      s = s + 2\n      i = i + 1\n    end\n"
+         "  else\n    s = 7\n  end\n  return s\nend\n"),
     ]
     import tempfile
     fd, path = tempfile.mkstemp(suffix=".exe")
@@ -331,20 +383,23 @@ def main():
                         break
         else:
             print("   %-56s %d Б (шагов=%d)" % (name, len(got), rs.steps))
-    check("T-E6-52+54+55+56+57/dev: функции+данные+выражения+статы == "
-          "оракулу (%d источников)" % len(cases), not bad, "; ".join(bad[:3]))
+    check("T-E6-52+54+55+56+57+58/dev: функции+данные+выражения+статы+"
+          "guard == оракулу (%d источников)" % len(cases), not bad,
+          "; ".join(bad[:3]))
 
-    # регресс: статы вне класса (guard-эмитция if/while — срез C-3) —
-    # код 0, без краха; присваивания внутри тел уже эмитятся (C-2/3),
-    # if/while/else/break/continue — нет (bstk-механика цела)
-    src = ("func main\n  var i\n  i = 0\n  while i < 3\n    i = i + 1\n"
-           "    if i == 2\n      i = 5\n    end\n  end\n  return 0\n"
-           "end\n")
+    # регресс (срез C-3): тела с if/while — теперь ВНУТРИ класса
+    # полного выхода (guard-эмитция): сравнение с оракулом ЦЕЛИКОМ
+    src = ("func main\n  var i\n  i = 0\n  while i < 3\n"
+           "    i = i + 1\n    if i == 2\n      i = 5\n    end\n"
+           "  end\n  return 0\nend\n")
+    out = oracle_full(src)
     rs = lab_win.Machine(path, ["t.wall", "t.b2"],
                          {"t.wall": src.encode("utf-8")}).run()
-    check("статы вне класса (if/while): код 0, stdout пуст (bstk)",
-          rs.exit_code == 0 and rs.stdout == b"",
-          "код=%s out=%r" % (rs.exit_code, rs.stdout[:40]))
+    got = rs.files.get("t.b2", b"")
+    check("статы if/while в классе (guard-эмитция C-3): полный выход",
+          rs.exit_code == 0 and rs.stdout == b"" and got == out,
+          "код=%s out=%r %d/%d Б" % (rs.exit_code, rs.stdout[:40],
+                                     len(got), len(out)))
     os.unlink(path)
 
     print("\nИТОГ: %d/%d %s" % (len(PASS), len(PASS) + len(FAIL),

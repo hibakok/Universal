@@ -89,7 +89,7 @@ end
 func p1s_if(pos, le)
   pcur = pos
   ple = le
-  p_cond()
+  p_cond(0, 0, 0)
   at_end(pcur, le)
   ifseq = ifseq + 1
   stq(tabmem + 4685888 + ifseq * 8, 0)
@@ -105,7 +105,7 @@ end
 func p1s_while(pos, le)
   pcur = pos
   ple = le
-  p_cond()
+  p_cond(0, 0, 0)
   at_end(pcur, le)
   stq(tabmem + 4587584 + fdepth * 32, 4)
   stq(tabmem + 4587584 + fdepth * 32 + 8, 0)

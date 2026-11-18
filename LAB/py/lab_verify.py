@@ -31,7 +31,10 @@
             (T-E6-52/54), return-выражения (T-E6-55), вызовы/getb/
             индексация (T-E6-56), СТАТЫ-ИМЕНА — присваивания/вызовы-
             утверждения/astore/setb (T-E6-57, срез C-2/3; фикс
-            дефекта №22 — astore_chk lay-окно).
+            дефекта №22 — astore_chk lay-окно), GUARD-ЭМИТЦИЯ —
+            if/while/else/break/continue, цепочки && / || (T-E6-58,
+            срез C-3; НОВАЯ часть wall_self_pg.wall + p_cond
+            эмит-плечо).
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib

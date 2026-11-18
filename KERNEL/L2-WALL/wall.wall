@@ -120,6 +120,19 @@
 ; выхода: тела из var / return <выражения> / присваиваний /
 ; вызовов-утверждений / astore / setb / end; if/while/else/break/
 ; continue — код 0 без guard-эмитции (срез C-3).
+; E6.4d-4/3c-3: срез C часть 3 — GUARD-ЭМИТЦИЯ if/while/else/
+; break/continue: НОВАЯ часть wall_self_pg.wall (K2-E029
+; emit_jcc_line / E02A emit_jmp_line / E02B emit_iflab / E02C
+; emit_wlab / E036 emit_jccd / E037 emit_jmpt / E038 emit_glab +
+; K2-Y00C p2s_break/p2s_continue/p2s_brk — скан bstk до kind 4);
+; p_cond (wall_self_pc.wall) — эмит-плечо: m-скан дизъюнктов +
+; операнды на глубине 2 + T1-склад + «M cmp r10, r11» +
+; jcc-инверсии (jcc_name) + d/t-метки; плечи p2s_if Y006 (guard +
+; bstk push), p2s_while Y007 (:_w<k> + guard), p2s_else Y005 (jmp +
+; :_if<k>), p2s_end Y004 (while: обратный jmp + :_w<ke>; if/else:
+; :_if<ke>), p2_line 12/13 -> p2s_break/p2s_continue; p1s_if/
+; p1s_while — p_cond(0, 0, 0) (параметры эмит-плеча; стат их
+; не читает). Класс полного выхода: ЛЮБЫЕ тела прохода 1.
 ; Выходной .b2 при успехе — пролог эмитции (срез A: заголовок/
 ; импорты/вход; срез B: функции) + секции данных (срез C-1:
 ; строки/глобальные var) — остальные статы/выражения — срезы C+.
@@ -250,6 +263,7 @@ str s_kws = 'var str ext func end else if while return setb getb len break conti
 !include wall_self_f.wall
 !include wall_self_g.wall
 !include wall_self_t.wall
+!include wall_self_pg.wall
 !include wall_self_y.wall
 
 func main

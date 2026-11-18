@@ -133,6 +133,18 @@
          двух функциях (с дефектом: код 6 AT=0004). Источники
          T-E6-55/56/57 — модуль данных lab_t_wallself_emit_cases.py
          (лимит 500 строк; выделен по образцу corpus/model).
+         E6.4d-4/3c-3 (срез C часть 3 — GUARD-ЭМИТЦИЯ): НОВЫЙ T-E6-58 —
+         тела с if/while/else/break/continue == оракулу ЦЕЛИКОМ:
+         НОВАЯ часть wall_self_pg.wall (K2-E029 emit_jcc_line /
+         E02A emit_jmp_line / E02B emit_iflab / E02C emit_wlab /
+         E036 emit_jccd / E037 emit_jmpt / E038 emit_glab + jcc_name
+         — инверсии jne je jge jg jle jl по коду оператора, if-цепочка
+         как emit_alu; + K2-Y00C p2s_break/p2s_continue/p2s_brk — «M
+         jmp $_w<k>[e]», скан bstk до kind 4); p_cond (часть
+         wall_self_pc.wall) — эмит-плечо: m-скан дизъюнктов (скан без
+         потребления) + T1-склад t(1) + «M cmp r10, r11» + d/t-метки
+         (m=1 — выход как v1); плечи Y006/Y007/Y005/Y004 и p2_line
+         12/13; p1s_if/p1s_while — p_cond(0, 0, 0).
 """
 import os
 import tempfile
@@ -426,5 +438,36 @@ def run(check, kpath, kfile, kernel_host):
                        % (name, len(got), len(out), rs.exit_code))
     check("T-E6-57 статы-имена: присваивания+вызовы+astore+setb == "
           "оракулу (%d источников)" % len(stmt_cases), not bad,
+          "; ".join(bad[:3]))
+
+    # T-E6-58: GUARD-ЭМИТЦИЯ (срез C-3, E6.4d-4/3c-3) — НОВАЯ часть
+    # wall_self_pg.wall: K2-E029 emit_jcc_line («M j<инв> $<pfx><k>
+    # [e]»), E02A emit_jmp_line («M jmp $<pfx><k>[e]»), E02B/E02C
+    # emit_iflab/emit_wlab («:_if/_w<k>[e]», nlab++), E036
+    # emit_jccd («M j<инв> $<pfx><k>d<i>»), E037 emit_jmpt («M jmp
+    # $<pfx><k>t»), E038 emit_glab («:<pfx><k>d<i>»/«t»), jcc_name —
+    # инверсии по коду оператора (== -> jne, != -> je, < -> jge,
+    # <= -> jg, > -> jle, >= -> jl); K2-Y00C p2s_break/p2s_continue
+    # (общий хвост p2s_brk — скан bstk до kind 4, k объемлюющего
+    # while); p_cond эмит-плечо (часть wall_self_pc.wall): m-скан
+    # дизъюнктов + операнды на глубине 2 + T1-склад + «M cmp r10,
+    # r11» + d/t-метки; плечи p2s_if Y006 / p2s_while Y007 (:_w<k> +
+    # guard с lfalse=_w<ke>) / p2s_else Y005 (jmp $_if<ke> + :_if<k>
+    # при ifarr != 0) / p2s_end Y004 (while: обратный jmp + :_w<ke>;
+    # if/else: :_if<ke>) + p2_line 12/13 — выход ЦЕЛИКОМ == оракулу
+    guard_cases = wscases.GUARD_CASES
+    bad = []
+    for name, src in guard_cases:
+        sb = src.encode("utf-8")
+        out = lab_l2.compile_wall(src).encode("utf-8")
+        rs = lab_win.Machine(path, ["t.wall", "t.b2"],
+                             {"t.wall": sb}).run()
+        got = rs.files.get("t.b2", b"")
+        if not (rs.exit_code == 0 and rs.stdout == b"" and
+                got == out):
+            bad.append("%s (%d Б, нужно %d Б, код=%s)"
+                       % (name, len(got), len(out), rs.exit_code))
+    check("T-E6-58 guard-эмитция: if/while/else/break/continue == "
+          "оракулу (%d источников)" % len(guard_cases), not bad,
           "; ".join(bad[:3]))
     os.unlink(path)
