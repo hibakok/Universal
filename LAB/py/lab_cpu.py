@@ -3,41 +3,26 @@
 Вход:  память-регионы (объект с read/write), начальный rip.
 Выход: состояние CPU: регистры, флаги, rip; пошаговое исполнение.
 Функция: исполнять декодированные lab_x86 инструкции подмножества
-         SPEC/05 с Win64-семантикой (32-битные записи обнуляют
-         старшие биты; imm8/imm32 знакорасширяются; rol не трогает ZF).
+         SPEC/05 с Win64-семантикой; состав файла (E6.4d-5/0):
+         CPU (кэш/цикл/память/флаги) + «threaded code» lab_thread
+         (замыкания под конкретную форму операндов — «зашитые»
+         константы; построители тел — lab_thread_ops) + универсальный
+         путь _op_<имя> (референс — примесь lab_cpu_ops.OpsMixin;
+         диффтест путей — LAB/ai/cpu_fuzz.py).
 
 Память: регион = (base, bytearray). Доступ — read/write с выбором
-        региона по адресу. Три уровня скорости: кэш декодированных
-        инструкций по rip (код самомодифицируемым не бывает).
+        региона по адресу. Уровни скорости: кэш инструкций по rip (код
+        самомодифицируемым не бывает) + замыкания lab_thread +
+        одноэлементная подсказка региона memo (только при
+        непересекающихся регионах). Инварианты для замыканий:
+        r/fl/rscan/stubs НЕ перевязываются (только мутируются);
+        fl = [zf, cf, sf, of] — всегда 0/1.
 """
 import lab_x86
-
-M64 = (1 << 64) - 1
-M32 = (1 << 32) - 1
-BYTE, WORD, DWORD, QWORD = 8, 16, 32, 64
-NBYTES = {BYTE: 1, WORD: 2, DWORD: 4, QWORD: 8}
-
-# Таблица условий jcc (E6.4d-3/3-1: ускорение — прежде _cond строил
-# словарь на КАЖДЫЙ условный переход; семантика та же, значения
-# zf/cf/sf/of передаются позиционно)
-_CC = {
-    "o": lambda zf, cf, sf, of: of,
-    "no": lambda zf, cf, sf, of: 1 - of,
-    "b": lambda zf, cf, sf, of: cf,
-    "ae": lambda zf, cf, sf, of: 1 - cf,
-    "z": lambda zf, cf, sf, of: zf,
-    "nz": lambda zf, cf, sf, of: 1 - zf,
-    "be": lambda zf, cf, sf, of: cf | zf,
-    "a": lambda zf, cf, sf, of: (1 - cf) & (1 - zf),
-    "s": lambda zf, cf, sf, of: sf,
-    "ns": lambda zf, cf, sf, of: 1 - sf,
-    "p": lambda zf, cf, sf, of: 0,
-    "np": lambda zf, cf, sf, of: 1,
-    "l": lambda zf, cf, sf, of: sf ^ of,
-    "ge": lambda zf, cf, sf, of: 1 - (sf ^ of),
-    "le": lambda zf, cf, sf, of: zf | (sf ^ of),
-    "g": lambda zf, cf, sf, of: (1 - zf) & (1 - (sf ^ of)),
-}
+import lab_thread
+from functools import partial
+from lab_cpu_ops import (OpsMixin, M64, M32, BYTE, WORD, DWORD,
+                         QWORD, NBYTES, _CC)  # noqa: F401 — реэкспорт
 
 
 class ExitProcess(Exception):
@@ -47,20 +32,63 @@ class ExitProcess(Exception):
         self.code = code
 
 
-class CPU:
+class CPU(OpsMixin):
     def __init__(self, image, image_base, regions=None):
         self.img = image              # bytearray образа (заголовки+секции)
         self.img_base = image_base    # виртуальный адрес image[0]
         self.regions = [(image_base, image)] if regions is None else \
             regions
         self.r = [0] * 16             # rax..r15 (беззнаковые 64-бит)
-        self.zf = self.cf = self.sf = self.of = 0
+        self.fl = [0, 0, 0, 0]        # [zf, cf, sf, of] — всегда 0/1;
+                                      # захватывается lab_thread
         self.rip = 0
         self.stubs = {}               # адрес заглушки -> callable(cpu)
         self.retguard = None          # адрес-ловушка возврата из entry
-        self.cache = {}               # rip -> (имя, длина, args)
+        self.cache = {}               # rip -> (имя, длина, fn)
         self.trace = None             # опционально: collect list
         self.steps = 0
+        self.rscan = [(b, b + len(m), m) for b, m in self.regions]
+        # подсказка региона для lab_thread (одноэлементный кэш): только
+        # при НЕпересекающихся регионах — иначе совпадение с подсказкой
+        # могло бы отличаться от первого совпадения _region
+        ovl = any(self.rscan[i][0] < self.rscan[j][1] and
+                  self.rscan[j][0] < self.rscan[i][1]
+                  for i in range(len(self.rscan))
+                  for j in range(i + 1, len(self.rscan)))
+        self.memo = None if ovl else [0, 0, None]
+
+    # --- флаги: совместимый доступ zf/cf/sf/of поверх списка fl ---
+    def _get_zf(self):
+        return self.fl[0]
+
+    def _set_zf(self, v):
+        self.fl[0] = v
+
+    zf = property(_get_zf, _set_zf)
+
+    def _get_cf(self):
+        return self.fl[1]
+
+    def _set_cf(self, v):
+        self.fl[1] = v
+
+    cf = property(_get_cf, _set_cf)
+
+    def _get_sf(self):
+        return self.fl[2]
+
+    def _set_sf(self, v):
+        self.fl[2] = v
+
+    sf = property(_get_sf, _set_sf)
+
+    def _get_of(self):
+        return self.fl[3]
+
+    def _set_of(self, v):
+        self.fl[3] = v
+
+    of = property(_get_of, _set_of)
 
     # --- память образа (код и данные секции; маленькие куски) ---
     def fetch(self, addr, n):
@@ -84,364 +112,75 @@ class CPU:
         buf[off:off + n] = (val & ((1 << (n * 8)) - 1)).to_bytes(n,
                                                                 "little")
 
-    # --- операнды ---
-    def _opaddr(self, op):
-        _, base, index, scale, disp, _sz, ripinfo = op
-        if ripinfo is not None:      # ('abs', адрес)
-            return ripinfo[1]
-        addr = disp
-        if base is not None:
-            addr += self.r[base]
-        if index is not None:
-            addr += self.r[index] * scale
-        return addr & M64
-
-    def get(self, op):
-        kind = op[0]
-        if kind == "r":
-            _, idx, size = op
-            if size == BYTE:
-                return self.r[idx] & 0xFF
-            if size == WORD:
-                return self.r[idx] & 0xFFFF
-            if size == DWORD:
-                return self.r[idx] & M32
-            return self.r[idx]
-        if kind == "i":
-            return op[1]
-        if kind == "m":
-            n = NBYTES[op[5]]
-            return self.read(self._opaddr(op), n)
-        raise ValueError(op)
-
-    def put(self, op, val):
-        kind = op[0]
-        if kind == "r":
-            _, idx, size = op
-            if size == BYTE:
-                self.r[idx] = (self.r[idx] & ~0xFF) | (val & 0xFF)
-            elif size == WORD:
-                self.r[idx] = (self.r[idx] & ~0xFFFF) | (val & 0xFFFF)
-            elif size == DWORD:
-                self.r[idx] = val & M32        # 32-бит запись обнуляет
-            else:
-                self.r[idx] = val & M64
-            return
-        if kind == "m":
-            n = NBYTES[op[5]]
-            self.write(self._opaddr(op), n, val)
-            return
-        raise ValueError(op)
-
-    # --- флаги ---
-    def _flags_logic(self, res, size):
-        mask = (1 << size) - 1
-        res &= mask
-        self.zf = 1 if res == 0 else 0
-        self.sf = 1 if (res >> (size - 1)) & 1 else 0
-        self.cf = 0
-        self.of = 0
-        return res
-
-    def _flags_add(self, a, b, size):
-        mask = (1 << size) - 1
-        res = (a + b) & mask
-        self.zf = 1 if res == 0 else 0
-        self.sf = (res >> (size - 1)) & 1
-        self.cf = 1 if (a + b) > mask else 0
-        sa = (a >> (size - 1)) & 1
-        sb = (b >> (size - 1)) & 1
-        sr = self.sf
-        self.of = 1 if (sa == sb and sr != sa) else 0
-        return res
-
-    def _flags_sub(self, a, b, size):
-        mask = (1 << size) - 1
-        res = (a - b) & mask
-        self.zf = 1 if res == 0 else 0
-        self.sf = (res >> (size - 1)) & 1
-        self.cf = 1 if a < b else 0
-        sa = (a >> (size - 1)) & 1
-        sb = (b >> (size - 1)) & 1
-        self.of = 1 if (sa != sb and self.sf != sa) else 0
-        return res
-
     # --- исполнение ---
+    def _fb(self, name, args, nrip):
+        # универсальный путь (fallback): та же семантика, что у
+        # замыканий lab_thread — rip ПО достоинству инструкции,
+        # возврат — следующий rip (переходы оставляют свой в self.rip)
+        self.rip = nrip
+        getattr(self, "_op_" + name)(*args)
+        return self.rip
+
     def _decode(self, rip):
-        # декодировать rip и разрешить обработчик ОДИН раз (кэш хранит
-        # (имя, длина, args, функцию) — прежде getattr на каждом шаге)
+        # декодировать rip ОДИН раз и построить замыкание под конкретную
+        # форму операндов (lab_thread; None — универсальный _fb/_op_*;
+        # прежде на каждом шаге был getattr + fn(*args) с разбором
+        # операндов внутри — ускорение E6.4d-5/0)
         name, length, args = lab_x86.decode(self.fetch, rip)
-        full = (name, length, args, getattr(self, "_op_" + name))
+        fn = lab_thread.build(self, name, args)
+        if fn is None:
+            fn = partial(self._fb, name, args)
+        full = (name, length, fn)
         self.cache[rip] = full
         return full
 
     def step(self):
+        # пошаговое исполнение (трассировщики LAB/ai); порядок тот же,
+        # что в run(): замыканию передаётся продвижение rip, следующий
+        # rip — возврат замыкания
         rip = self.rip
         ins = self.cache.get(rip)
         if ins is None:
             ins = self._decode(rip)
-        name, length, args, fn = ins
+        name, length, fn = ins
         if self.trace is not None:
             self.trace.append(rip)
         self.steps += 1
-        self.rip = rip + length
-        fn(*args)
+        self.rip = fn(rip + length)
         return name
 
     def run(self, max_steps=100_000_000):
-        # Горячий цикл развёрнут из step() (та же семантика: счётчик
-        # шагов, трасса, порядок rip/вызова — ускорение E6.4d-3/3-1;
-        # step() сохранён для внешних трассировщиков LAB/ai)
+        # Горячий цикл, развёрнутый из step() (ускорения E6.4d-3/3-1 и
+        # E6.4d-5/0): замыкание ВОЗВРАЩАЕТ следующий rip — присвоение
+        # атрибута self.rip на каждом шаге не нужно (синхронизация — в
+        # finally); без трассы — отдельная ветка цикла (без проверки).
+        # Счётчики шагов и сообщения об ошибках идентичны прежним.
         cache_get = self.cache.get
-        trace = self.trace
         steps = self.steps
-        while True:
-            rip = self.rip
-            ins = cache_get(rip)
-            if ins is None:
-                ins = self._decode(rip)
-            if trace is not None:
-                trace.append(rip)
-            steps += 1
+        rip = self.rip
+        try:
+            if self.trace is None:
+                while True:
+                    ins = cache_get(rip)
+                    if ins is None:
+                        ins = self._decode(rip)
+                    steps += 1
+                    rip = ins[2](rip + ins[1])
+                    if steps > max_steps:
+                        raise RuntimeError("предел шагов (зависание?)"
+                                           " @ rip=%X" % rip)
+            else:
+                trace = self.trace
+                while True:
+                    ins = cache_get(rip)
+                    if ins is None:
+                        ins = self._decode(rip)
+                    trace.append(rip)
+                    steps += 1
+                    rip = ins[2](rip + ins[1])
+                    if steps > max_steps:
+                        raise RuntimeError("предел шагов (зависание?)"
+                                           " @ rip=%X" % rip)
+        finally:
             self.steps = steps
-            self.rip = rip + ins[1]
-            ins[3](*ins[2])
-            if steps > max_steps:
-                raise RuntimeError("предел шагов (зависание?) @ rip=%X"
-                                   % self.rip)
-
-    # --- инструкции ---
-    def _op_mov(self, dst, src):
-        self.put(dst, self.get(src))
-
-    def _op_movzx(self, dst, src):
-        self.put(dst, self.get(src))
-
-    def _op_lea(self, dst, mem):
-        self.put(dst, self._opaddr(mem))
-
-    def _op_cdqe(self, reg):
-        eax = self.r[0] & M32
-        self.r[0] = eax - (1 << 32) if eax & 0x80000000 else eax
-
-    def _op_add(self, dst, src):
-        size = dst[2] if dst[0] == "r" else dst[5]
-        a, b = self.get(dst), self.get(src)
-        self.put(dst, self._flags_add(a, b, size))
-
-    def _op_sub(self, dst, src):
-        size = dst[2] if dst[0] == "r" else dst[5]
-        a, b = self.get(dst), self.get(src)
-        self.put(dst, self._flags_sub(a, b, size))
-
-    def _op_cmp(self, a_op, b_op):
-        size = a_op[2] if a_op[0] == "r" else a_op[5]
-        self._flags_sub(self.get(a_op), self.get(b_op), size)
-
-    def _op_test(self, a_op, b_op):
-        size = a_op[2] if a_op[0] == "r" else a_op[5]
-        self._flags_logic(self.get(a_op) & self.get(b_op), size)
-
-    def _op_and(self, dst, src):
-        size = dst[2] if dst[0] == "r" else dst[5]
-        res = self._flags_logic(self.get(dst) & self.get(src), size)
-        self.put(dst, res)
-
-    def _op_or(self, dst, src):
-        size = dst[2] if dst[0] == "r" else dst[5]
-        res = self._flags_logic(self.get(dst) | self.get(src), size)
-        self.put(dst, res)
-
-    def _op_xor(self, dst, src):
-        size = dst[2] if dst[0] == "r" else dst[5]
-        res = self._flags_logic(self.get(dst) ^ self.get(src), size)
-        self.put(dst, res)
-
-    def _op_neg(self, op):
-        size = op[2] if op[0] == "r" else op[5]
-        a = self.get(op)
-        mask = (1 << size) - 1
-        self.cf = 1 if a != 0 else 0
-        res = (-a) & mask
-        self.zf = 1 if res == 0 else 0
-        self.sf = (res >> (size - 1)) & 1
-        # OF: только для минимального значения (INT_MIN)
-        self.of = 1 if a == (1 << (size - 1)) else 0
-        self.put(op, res)
-
-    def _op_inc(self, op):
-        size = op[2] if op[0] == "r" else op[5]
-        cf = self.cf
-        self.put(op, self._flags_add(self.get(op), 1, size))
-        self.cf = cf                    # inc не трогает CF
-
-    def _op_dec(self, op):
-        size = op[2] if op[0] == "r" else op[5]
-        cf = self.cf
-        self.put(op, self._flags_sub(self.get(op), 1, size))
-        self.cf = cf                    # dec не трогает CF
-
-    def _cl(self, count, size=64):
-        """Счётчик сдвига: imm или CL. 64-бит — маска 6 бит (REX.W),
-        прочие — 5 (правило Intel; найдено E6.2: shr rax,32)."""
-        if count != "cl":
-            return count
-        return self.r[1] & (0x3F if size == QWORD else 0x1F)
-
-    def _op_shl(self, op, count):
-        size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count, size)
-        if count == 0:
-            return
-        mask = (1 << size) - 1
-        a = self.get(op)
-        full = a << count
-        res = full & mask
-        self.cf = (full >> size) & 1
-        self.zf = 1 if res == 0 else 0
-        self.sf = (res >> (size - 1)) & 1
-        self.put(op, res)
-
-    def _op_shr(self, op, count):
-        size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count, size)
-        if count == 0:
-            return
-        a = self.get(op)
-        self.cf = (a >> (count - 1)) & 1
-        res = a >> count
-        self.zf = 1 if res == 0 else 0
-        self.sf = (res >> (size - 1)) & 1
-        self.put(op, res)
-
-    def _op_rol(self, op, count):
-        size = op[2] if op[0] == "r" else op[5]
-        cnt = self._cl(count, size)
-        if cnt == 0:
-            return
-        bits = size
-        a = self.get(op)
-        c = cnt % bits
-        res = ((a << c) | (a >> (bits - c))) & ((1 << bits) - 1) if c \
-            else a
-        self.cf = res & 1               # rol НЕ трогает ZF/SF
-        self.put(op, res)
-
-    def _op_sar(self, op, count):
-        size = op[2] if op[0] == "r" else op[5]
-        count = self._cl(count, size)
-        if count == 0:
-            return
-        a = self.get(op)
-        bits = size
-        sa = a >> (bits - 1)
-        val = a
-        for _ in range(count):
-            val = (val >> 1) | (sa << (bits - 1))
-        self.cf = (a >> 0) & 1
-        self.zf = 1 if val == 0 else 0
-        self.sf = (val >> (bits - 1)) & 1
-        self.put(op, val)
-
-    # --- умножение/деление (E6.4c; SPEC/05 «Расширение E6.4c») ---
-    def _sgn(self, v, size):
-        """беззнаковое -> знаковое значение size бит"""
-        return v - (1 << size) if v >> (size - 1) & 1 else v
-
-    def _op_imul(self, dst, src):
-        # двухоперандная: dst <- младшие size бит (dst * src), знаковые
-        size = dst[2] if dst[0] == "r" else dst[5]
-        full = self._sgn(self.get(dst), size) * self._sgn(self.get(src),
-                                                          size)
-        res = full & ((1 << size) - 1)
-        # CF=OF=1, если результат не знакорасширяется до полного (Intel)
-        self.cf = self.of = 0 if self._sgn(res, size) == full else 1
-        self.zf = 1 if res == 0 else 0
-        self.sf = res >> (size - 1) & 1
-        self.put(dst, res)
-
-    def _op_cqo(self):
-        self.r[2] = M64 if self.r[0] >> 63 else 0
-
-    def _op_cdq(self):
-        self.r[2] = 0xFFFFFFFF if self.r[0] & 0x80000000 else 0
-
-    def _op_idiv(self, op):
-        size = op[2] if op[0] == "r" else op[5]
-        if size not in (DWORD, QWORD):
-            raise ValueError("idiv %d бит вне подмножества" % size)
-        if size == QWORD:
-            dividend = self._sgn(self.r[2] << 64 | self.r[0], 128)
-        else:
-            dividend = self._sgn((self.r[2] & M32) << 32 |
-                                 (self.r[0] & M32), 64)
-        divisor = self._sgn(self.get(op), size)
-        if divisor == 0:
-            raise RuntimeError("idiv: деление на ноль (#DE) @ rip=%X"
-                               % (self.rip - 2))
-        q = abs(dividend) // abs(divisor)          # усечение к нулю (C)
-        if (dividend < 0) != (divisor < 0):
-            q = -q
-        r = dividend - q * divisor
-        if not -(1 << size - 1) <= q < 1 << size - 1:
-            raise RuntimeError("idiv: частное вне диапазона (#DE) @ rip=%X"
-                               % (self.rip - 2))
-        if size == QWORD:
-            self.r[0] = q & M64
-            self.r[2] = r & M64
-        else:                       # 32-битная запись обнуляет старшие
-            self.r[0] = q & M32
-            self.r[2] = r & M32
-
-    # --- переходы ---
-    def _cond(self, cc):
-        # Ускорение E6.4d-3/3-1: прежде строился словарь 16 условий на
-        # каждый jcc; теперь таблица _CC (значения идентичны)
-        return _CC[cc](self.zf, self.cf, self.sf, self.of)
-
-    def _op_jmp(self, target):
-        self.rip = target[1]
-
-    def _op_jcc(self, cc, target):
-        if self._cond(cc):
-            self.rip = target[1]
-
-    def _op_call(self, target):
-        if target[0] == "t":
-            dest = target[1]
-        else:                            # косвенный: FF /2 по памяти
-            dest = self.read(self._opaddr(target), 8)
-        stub = self.stubs.get(dest)
-        if stub is not None:
-            stub(self)                   # вызов Win32; rip уже за call
-            return
-        if dest == self.retguard:
-            raise RuntimeError("call на ловушку возврата @ %X" % self.rip)
-        self.push64(self.rip)
-        self.rip = dest
-
-    def _op_ret(self):
-        dest = self.pop64()
-        if dest == self.retguard:
-            raise RuntimeError("возврат из точки входа (нет ExitProcess)")
-        self.rip = dest
-
-    def _op_int3(self):
-        raise RuntimeError("int3 (страховка) @ rip=%X — поток дошёл до "
-                           "ловушки" % (self.rip - 1))
-
-    def _op_push(self, reg):
-        self.push64(self.get(reg))
-
-    def _op_pop(self, reg):
-        self.put(reg, self.pop64())
-
-    # --- стек ---
-    def push64(self, val):
-        self.r[4] = (self.r[4] - 8) & M64
-        self.write(self.r[4], 8, val)
-
-    def pop64(self):
-        val = self.read(self.r[4], 8)
-        self.r[4] = (self.r[4] + 8) & M64
-        return val
+            self.rip = rip
