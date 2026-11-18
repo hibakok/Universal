@@ -34,7 +34,11 @@
             дефекта №22 — astore_chk lay-окно), GUARD-ЭМИТЦИЯ —
             if/while/else/break/continue, цепочки && / || (T-E6-58,
             срез C-3; НОВАЯ часть wall_self_pg.wall + p_cond
-            эмит-плечо).
+            эмит-плечо); ФИНАЛ E6.4d-5 шаг 1 (секция 12b,
+            lab_t_wallself_final): канарейки круга — 6 DEMO-
+            программ компилируются КАРКАСОМ до эмуляции (T-E6-59;
+            шаг 2 — big-исходники каркасом — приёмочная проверка
+            LAB/ai/wall_self_canary.py).
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib

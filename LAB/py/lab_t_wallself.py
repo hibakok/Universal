@@ -145,6 +145,12 @@
          потребления) + T1-склад t(1) + «M cmp r10, r11» + d/t-метки
          (m=1 — выход как v1); плечи Y006/Y007/Y005/Y004 и p2_line
          12/13; p1s_if/p1s_while — p_cond(0, 0, 0).
+         E6.4d-5 шаг 1 (финал, секция 12b — модуль
+         lab_t_wallself_final.py): T-E6-59 — канарейки круга: шесть
+         DEMO-программ (mdm/bc/cc/arr/wall2/nest — эталоны секции 11)
+         компилируются КАРКАСОМ и проходят полный круг до эмуляции.
+         Шаг 2 финала (big_source/big_source2 == оракулу каркасом)
+         — приёмочная проверка (LAB/ai/wall_self_canary.py).
 """
 import os
 import tempfile
@@ -156,6 +162,7 @@ import lab_win
 import lab_l2
 import lab_l2_prog
 import lab_t_wallself_corpus
+import lab_t_wallself_final
 from lab_t_wallself_corpus import KITCHEN
 from lab_t_wallself_model import _expect_line
 import lab_t_wallself_emit_cases as wscases
@@ -470,4 +477,10 @@ def run(check, kpath, kfile, kernel_host):
     check("T-E6-58 guard-эмитция: if/while/else/break/continue == "
           "оракулу (%d источников)" % len(guard_cases), not bad,
           "; ".join(bad[:3]))
+
+    # T-E6-59 (E6.4d-5 шаг 1, секция 12b): канарейки круга — шесть
+    # DEMO-программ компилируются КАРКАСОМ (полный круг enc+brick+
+    # pegen + эмуляция: «U-MDM-OK 52» ... «U-NEST-OK 4C»); модуль
+    # lab_t_wallself_final.py (лимит 500 строк секции 12)
+    lab_t_wallself_final.run(check, path, enc_exe, brick_exe, pegen_exe)
     os.unlink(path)
