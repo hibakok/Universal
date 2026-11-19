@@ -1,0 +1,2855 @@
+; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
+; исходник: 721 строк; функций: 18; ext: 8; str: 13; глобальных var: 22
+; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
+:_idt
+DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
+DZ 14 ; терминатор IDT
+:_iat
+:_iat_getstdhandle
+DQ $_hint_getstdhandle
+:_iat_writefile
+DQ $_hint_writefile
+:_iat_exitprocess
+DQ $_hint_exitprocess
+:_iat_getcommandlinea
+DQ $_hint_getcommandlinea
+:_iat_createfile2
+DQ $_hint_createfile2
+:_iat_readfile
+DQ $_hint_readfile
+:_iat_closehandle
+DQ $_hint_closehandle
+:_iat_globalalloc
+DQ $_hint_globalalloc
+DQ 0
+:_intt
+DQ $_hint_getstdhandle $_hint_writefile $_hint_exitprocess $_hint_getcommandlinea $_hint_createfile2 $_hint_readfile $_hint_closehandle $_hint_globalalloc 0
+:_dll
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 ; "kernel32.dll\0"
+DZ 1 ; выравнивание
+:_hint_getstdhandle
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "GetStdHandle"
+:_hint_writefile
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "WriteFile"
+:_hint_exitprocess
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "ExitProcess"
+:_hint_getcommandlinea
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 41 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "GetCommandLineA"
+:_hint_createfile2
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "CreateFile2"
+:_hint_readfile
+DB 00 00 52 65 61 64 46 69 6C 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "ReadFile"
+:_hint_closehandle
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "CloseHandle"
+:_hint_globalalloc
+DB 00 00 47 6C 6F 62 61 6C 41 6C 6C 6F 63 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; "GlobalAlloc"
+DZ 2A ; выравнивание области до 0x200
+; --- код ---
+:_entry
+H 48 83 EC 08 ; вход: выравнивание стека для вызова main
+H E8 $main ; вход: вызов main
+H CC ; вход: возврат из main без ExitProcess — ловушка
+:print_error
+H 55 ; кадр print_error
+H 48 89 E5 ; кадр print_error
+H 48 83 EC 70 ; кадр print_error
+H 48 89 4D F8 ; кадр print_error
+H 48 89 55 F0 ; кадр print_error
+H 4C 89 45 E8 ; кадр print_error
+H 4C 8B 15 $hstdout ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 55 E0 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 55 F8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 55 D8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 55 F0 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 55 D0 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8D 15 $written ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 55 C8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 49 C7 C2 00 00 00 00 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 55 A8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 48 8B 4D E0 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 48 8B 55 D8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 45 D0 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 4D C8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 55 A8 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 89 54 24 20 ; WriteFile(hstdout, msg, mlen, &written, 0)
+H FF 15 $_iat_writefile ; WriteFile(hstdout, msg, mlen, &written, 0)
+H 4C 8B 55 E8 ; ExitProcess(code)
+H 4C 89 55 E0 ; ExitProcess(code)
+H 48 8B 4D E0 ; ExitProcess(code)
+H FF 15 $_iat_exitprocess ; ExitProcess(code)
+H 48 89 EC ; выход print_error
+H 5D ; выход print_error
+H C3 ; выход print_error
+:skip0
+H 55 ; кадр skip0
+H 48 89 E5 ; кадр skip0
+H 48 81 EC 80 00 00 00 ; кадр skip0
+H 49 C7 C2 00 00 00 00 ; i = 0
+H 4C 89 55 F8 ; i = 0
+H 4C 8B 15 $cmdline ; c = getb(cmdline, 0)
+H 4C 89 55 D0 ; c = getb(cmdline, 0)
+H 49 C7 C2 00 00 00 00 ; c = getb(cmdline, 0)
+H 4D 89 D3 ; c = getb(cmdline, 0)
+H 4C 8B 55 D0 ; c = getb(cmdline, 0)
+H 47 0F B6 14 1A ; c = getb(cmdline, 0)
+H 4C 89 55 F0 ; c = getb(cmdline, 0)
+H 4C 8B 55 F0 ; if c == 34
+H 4C 89 55 D0 ; if c == 34
+H 49 C7 C2 22 00 00 00 ; if c == 34
+H 4D 89 D3 ; if c == 34
+H 4C 8B 55 D0 ; if c == 34
+H 4D 39 DA ; if c == 34
+H 0F 85 $_if1 ; if c == 34
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; q = 1
+H 4C 89 55 E8 ; q = 1
+:_w2
+H 4C 8B 55 E8 ; while q == 1
+H 4C 89 55 D0 ; while q == 1
+H 49 C7 C2 01 00 00 00 ; while q == 1
+H 4D 89 D3 ; while q == 1
+H 4C 8B 55 D0 ; while q == 1
+H 4D 39 DA ; while q == 1
+H 0F 85 $_w2e ; while q == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 D0 ; c = getb(cmdline, i)
+H 4C 8B 55 F8 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 D0 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 F0 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; if c == 0
+H 4C 89 55 D0 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 D0 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if3e ; if c == 0
+H 4C 8D 15 $s_use ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C8 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 27 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C0 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 02 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 B8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 4D C8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 55 C0 ; print_error(s_use, len(s_use), 2)
+H 4C 8B 45 B8 ; print_error(s_use, len(s_use), 2)
+H E8 $print_error ; print_error(s_use, len(s_use), 2)
+:_if3e
+H 4C 8B 55 F0 ; if c == 34
+H 4C 89 55 D0 ; if c == 34
+H 49 C7 C2 22 00 00 00 ; if c == 34
+H 4D 89 D3 ; if c == 34
+H 4C 8B 55 D0 ; if c == 34
+H 4D 39 DA ; if c == 34
+H 0F 85 $_if4 ; if c == 34
+H 49 C7 C2 00 00 00 00 ; q = 0
+H 4C 89 55 E8 ; q = 0
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_if4e ; if c == 34
+:_if4
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+:_if4e
+H E9 $_w2 ; while q == 1
+:_w2e
+H E9 $_if1e ; if c == 34
+:_if1
+H 49 C7 C2 01 00 00 00 ; u = 1
+H 4C 89 55 E0 ; u = 1
+:_w5
+H 4C 8B 55 E0 ; while u == 1
+H 4C 89 55 D0 ; while u == 1
+H 49 C7 C2 01 00 00 00 ; while u == 1
+H 4D 89 D3 ; while u == 1
+H 4C 8B 55 D0 ; while u == 1
+H 4D 39 DA ; while u == 1
+H 0F 85 $_w5e ; while u == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 D0 ; c = getb(cmdline, i)
+H 4C 8B 55 F8 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 D0 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 F0 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; if c == 0
+H 4C 89 55 D0 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 D0 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if6e ; if c == 0
+H 4C 8D 15 $s_use ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C8 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 27 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C0 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 02 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 B8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 4D C8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 55 C0 ; print_error(s_use, len(s_use), 2)
+H 4C 8B 45 B8 ; print_error(s_use, len(s_use), 2)
+H E8 $print_error ; print_error(s_use, len(s_use), 2)
+:_if6e
+H 4C 8B 55 F0 ; if c == 32
+H 4C 89 55 D0 ; if c == 32
+H 49 C7 C2 20 00 00 00 ; if c == 32
+H 4D 89 D3 ; if c == 32
+H 4C 8B 55 D0 ; if c == 32
+H 4D 39 DA ; if c == 32
+H 0F 85 $_if7 ; if c == 32
+H 49 C7 C2 00 00 00 00 ; u = 0
+H 4C 89 55 E0 ; u = 0
+H E9 $_if7e ; if c == 32
+:_if7
+H 4C 8B 55 F0 ; if c == 9
+H 4C 89 55 D0 ; if c == 9
+H 49 C7 C2 09 00 00 00 ; if c == 9
+H 4D 89 D3 ; if c == 9
+H 4C 8B 55 D0 ; if c == 9
+H 4D 39 DA ; if c == 9
+H 0F 85 $_if8 ; if c == 9
+H 49 C7 C2 00 00 00 00 ; u = 0
+H 4C 89 55 E0 ; u = 0
+H E9 $_if8e ; if c == 9
+:_if8
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+:_if8e
+:_if7e
+H E9 $_w5 ; while u == 1
+:_w5e
+:_if1e
+H 49 C7 C2 01 00 00 00 ; d = 1
+H 4C 89 55 D8 ; d = 1
+:_w9
+H 4C 8B 55 D8 ; while d == 1
+H 4C 89 55 D0 ; while d == 1
+H 49 C7 C2 01 00 00 00 ; while d == 1
+H 4D 89 D3 ; while d == 1
+H 4C 8B 55 D0 ; while d == 1
+H 4D 39 DA ; while d == 1
+H 0F 85 $_w9e ; while d == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 D0 ; c = getb(cmdline, i)
+H 4C 8B 55 F8 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 D0 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 F0 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; if c == 0
+H 4C 89 55 D0 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 D0 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if10e ; if c == 0
+H 4C 8D 15 $s_use ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C8 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 27 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C0 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 02 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 B8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 4D C8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 55 C0 ; print_error(s_use, len(s_use), 2)
+H 4C 8B 45 B8 ; print_error(s_use, len(s_use), 2)
+H E8 $print_error ; print_error(s_use, len(s_use), 2)
+:_if10e
+H 4C 8B 55 F0 ; if c == 32
+H 4C 89 55 D0 ; if c == 32
+H 49 C7 C2 20 00 00 00 ; if c == 32
+H 4D 89 D3 ; if c == 32
+H 4C 8B 55 D0 ; if c == 32
+H 4D 39 DA ; if c == 32
+H 0F 85 $_if11 ; if c == 32
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_if11e ; if c == 32
+:_if11
+H 4C 8B 55 F0 ; if c == 9
+H 4C 89 55 D0 ; if c == 9
+H 49 C7 C2 09 00 00 00 ; if c == 9
+H 4D 89 D3 ; if c == 9
+H 4C 8B 55 D0 ; if c == 9
+H 4D 39 DA ; if c == 9
+H 0F 85 $_if12 ; if c == 9
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 D0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_if12e ; if c == 9
+:_if12
+H 49 C7 C2 00 00 00 00 ; d = 0
+H 4C 89 55 D8 ; d = 0
+:_if12e
+:_if11e
+H E9 $_w9 ; while d == 1
+:_w9e
+H 4C 8B 55 F8 ; return i
+H 4C 89 D0 ; return i
+H 48 89 EC ; выход skip0
+H 5D ; выход skip0
+H C3 ; выход skip0
+:read_arg
+H 55 ; кадр read_arg
+H 48 89 E5 ; кадр read_arg
+H 48 81 EC A0 00 00 00 ; кадр read_arg
+H 48 89 4D F8 ; кадр read_arg
+H 48 89 55 F0 ; кадр read_arg
+H 49 C7 C2 01 00 00 00 ; s = 1
+H 4C 89 55 D8 ; s = 1
+:_w13
+H 4C 8B 55 D8 ; while s == 1
+H 4C 89 55 C8 ; while s == 1
+H 49 C7 C2 01 00 00 00 ; while s == 1
+H 4D 89 D3 ; while s == 1
+H 4C 8B 55 C8 ; while s == 1
+H 4D 39 DA ; while s == 1
+H 0F 85 $_w13e ; while s == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 C8 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 C8 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 E8 ; c = getb(cmdline, i)
+H 4C 8B 55 E8 ; if c == 32
+H 4C 89 55 C8 ; if c == 32
+H 49 C7 C2 20 00 00 00 ; if c == 32
+H 4D 89 D3 ; if c == 32
+H 4C 8B 55 C8 ; if c == 32
+H 4D 39 DA ; if c == 32
+H 0F 85 $_if14 ; if c == 32
+H 4C 8B 55 F0 ; i = i + 1
+H 4C 89 55 C8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 C8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F0 ; i = i + 1
+H E9 $_if14e ; if c == 32
+:_if14
+H 4C 8B 55 E8 ; if c == 9
+H 4C 89 55 C8 ; if c == 9
+H 49 C7 C2 09 00 00 00 ; if c == 9
+H 4D 89 D3 ; if c == 9
+H 4C 8B 55 C8 ; if c == 9
+H 4D 39 DA ; if c == 9
+H 0F 85 $_if15 ; if c == 9
+H 4C 8B 55 F0 ; i = i + 1
+H 4C 89 55 C8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 C8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F0 ; i = i + 1
+H E9 $_if15e ; if c == 9
+:_if15
+H 49 C7 C2 00 00 00 00 ; s = 0
+H 4C 89 55 D8 ; s = 0
+:_if15e
+:_if14e
+H E9 $_w13 ; while s == 1
+:_w13e
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 C8 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 C8 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 E8 ; c = getb(cmdline, i)
+H 4C 8B 55 E8 ; if c == 0
+H 4C 89 55 C8 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 C8 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if16e ; if c == 0
+H 4C 8D 15 $s_use ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C0 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 27 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 B8 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 02 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 B0 ; print_error(s_use, len(s_use), 2)
+H 48 8B 4D C0 ; print_error(s_use, len(s_use), 2)
+H 48 8B 55 B8 ; print_error(s_use, len(s_use), 2)
+H 4C 8B 45 B0 ; print_error(s_use, len(s_use), 2)
+H E8 $print_error ; print_error(s_use, len(s_use), 2)
+:_if16e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 E0 ; k = 0
+H 49 C7 C2 01 00 00 00 ; w = 1
+H 4C 89 55 D0 ; w = 1
+:_w17
+H 4C 8B 55 D0 ; while w == 1
+H 4C 89 55 C8 ; while w == 1
+H 49 C7 C2 01 00 00 00 ; while w == 1
+H 4D 89 D3 ; while w == 1
+H 4C 8B 55 C8 ; while w == 1
+H 4D 39 DA ; while w == 1
+H 0F 85 $_w17e ; while w == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 C8 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 C8 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 E8 ; c = getb(cmdline, i)
+H 4C 8B 55 E8 ; if c == 0
+H 4C 89 55 C8 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 C8 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if18 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; w = 0
+H 4C 89 55 D0 ; w = 0
+H E9 $_if18e ; if c == 0
+:_if18
+H 4C 8B 55 E8 ; if c == 32
+H 4C 89 55 C8 ; if c == 32
+H 49 C7 C2 20 00 00 00 ; if c == 32
+H 4D 89 D3 ; if c == 32
+H 4C 8B 55 C8 ; if c == 32
+H 4D 39 DA ; if c == 32
+H 0F 85 $_if19 ; if c == 32
+H 49 C7 C2 00 00 00 00 ; w = 0
+H 4C 89 55 D0 ; w = 0
+H E9 $_if19e ; if c == 32
+:_if19
+H 4C 8B 55 E8 ; if c == 9
+H 4C 89 55 C8 ; if c == 9
+H 49 C7 C2 09 00 00 00 ; if c == 9
+H 4D 89 D3 ; if c == 9
+H 4C 8B 55 C8 ; if c == 9
+H 4D 39 DA ; if c == 9
+H 0F 85 $_if20 ; if c == 9
+H 49 C7 C2 00 00 00 00 ; w = 0
+H 4C 89 55 D0 ; w = 0
+H E9 $_if20e ; if c == 9
+:_if20
+H 4C 8B 55 E0 ; if k >= 127
+H 4C 89 55 C8 ; if k >= 127
+H 49 C7 C2 7F 00 00 00 ; if k >= 127
+H 4D 89 D3 ; if k >= 127
+H 4C 8B 55 C8 ; if k >= 127
+H 4D 39 DA ; if k >= 127
+H 0F 8C $_if21e ; if k >= 127
+H 4C 8D 15 $s_long ; print_error(s_long, len(s_long), 3)
+H 4C 89 55 C0 ; print_error(s_long, len(s_long), 3)
+H 49 C7 C2 18 00 00 00 ; print_error(s_long, len(s_long), 3)
+H 4C 89 55 B8 ; print_error(s_long, len(s_long), 3)
+H 49 C7 C2 03 00 00 00 ; print_error(s_long, len(s_long), 3)
+H 4C 89 55 B0 ; print_error(s_long, len(s_long), 3)
+H 48 8B 4D C0 ; print_error(s_long, len(s_long), 3)
+H 48 8B 55 B8 ; print_error(s_long, len(s_long), 3)
+H 4C 8B 45 B0 ; print_error(s_long, len(s_long), 3)
+H E8 $print_error ; print_error(s_long, len(s_long), 3)
+:_if21e
+H 4C 8B 55 F8 ; setb(dst, k, c)
+H 4C 89 55 A8 ; setb(dst, k, c)
+H 4C 8B 55 E0 ; setb(dst, k, c)
+H 4C 89 55 A0 ; setb(dst, k, c)
+H 4C 8B 55 E8 ; setb(dst, k, c)
+H 4C 89 55 98 ; setb(dst, k, c)
+H 4C 8B 55 A8 ; setb(dst, k, c)
+H 4C 8B 5D A0 ; setb(dst, k, c)
+H 8A 45 98 ; setb(dst, k, c)
+H 43 88 04 1A ; setb(dst, k, c)
+H 4C 8B 55 E0 ; k = k + 1
+H 4C 89 55 C8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 C8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 E0 ; k = k + 1
+H 4C 8B 55 F0 ; i = i + 1
+H 4C 89 55 C8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 C8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F0 ; i = i + 1
+:_if20e
+:_if19e
+:_if18e
+H E9 $_w17 ; while w == 1
+:_w17e
+H 4C 8B 55 E0 ; wlen = k
+H 4C 89 15 $wlen ; wlen = k
+H 4C 8B 55 F8 ; setb(dst, k, 0)
+H 4C 89 55 A8 ; setb(dst, k, 0)
+H 4C 8B 55 E0 ; setb(dst, k, 0)
+H 4C 89 55 A0 ; setb(dst, k, 0)
+H 49 C7 C2 00 00 00 00 ; setb(dst, k, 0)
+H 4C 89 55 98 ; setb(dst, k, 0)
+H 4C 8B 55 A8 ; setb(dst, k, 0)
+H 4C 8B 5D A0 ; setb(dst, k, 0)
+H 8A 45 98 ; setb(dst, k, 0)
+H 43 88 04 1A ; setb(dst, k, 0)
+H 4C 8B 55 F0 ; return i
+H 4C 89 D0 ; return i
+H 48 89 EC ; выход read_arg
+H 5D ; выход read_arg
+H C3 ; выход read_arg
+:check_end
+H 55 ; кадр check_end
+H 48 89 E5 ; кадр check_end
+H 48 83 EC 70 ; кадр check_end
+H 48 89 4D F8 ; кадр check_end
+H 49 C7 C2 01 00 00 00 ; go = 1
+H 4C 89 55 E8 ; go = 1
+:_w22
+H 4C 8B 55 E8 ; while go == 1
+H 4C 89 55 E0 ; while go == 1
+H 49 C7 C2 01 00 00 00 ; while go == 1
+H 4D 89 D3 ; while go == 1
+H 4C 8B 55 E0 ; while go == 1
+H 4D 39 DA ; while go == 1
+H 0F 85 $_w22e ; while go == 1
+H 4C 8B 15 $cmdline ; c = getb(cmdline, i)
+H 4C 89 55 E0 ; c = getb(cmdline, i)
+H 4C 8B 55 F8 ; c = getb(cmdline, i)
+H 4D 89 D3 ; c = getb(cmdline, i)
+H 4C 8B 55 E0 ; c = getb(cmdline, i)
+H 47 0F B6 14 1A ; c = getb(cmdline, i)
+H 4C 89 55 F0 ; c = getb(cmdline, i)
+H 4C 8B 55 F0 ; if c == 0
+H 4C 89 55 E0 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; if c == 0
+H 4D 89 D3 ; if c == 0
+H 4C 8B 55 E0 ; if c == 0
+H 4D 39 DA ; if c == 0
+H 0F 85 $_if23 ; if c == 0
+H 49 C7 C2 00 00 00 00 ; go = 0
+H 4C 89 55 E8 ; go = 0
+H E9 $_if23e ; if c == 0
+:_if23
+H 4C 8B 55 F0 ; if c == 32
+H 4C 89 55 E0 ; if c == 32
+H 49 C7 C2 20 00 00 00 ; if c == 32
+H 4D 89 D3 ; if c == 32
+H 4C 8B 55 E0 ; if c == 32
+H 4D 39 DA ; if c == 32
+H 0F 85 $_if24 ; if c == 32
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 E0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_if24e ; if c == 32
+:_if24
+H 4C 8B 55 F0 ; if c == 9
+H 4C 89 55 E0 ; if c == 9
+H 49 C7 C2 09 00 00 00 ; if c == 9
+H 4D 89 D3 ; if c == 9
+H 4C 8B 55 E0 ; if c == 9
+H 4D 39 DA ; if c == 9
+H 0F 85 $_if25 ; if c == 9
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 E0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_if25e ; if c == 9
+:_if25
+H 4C 8D 15 $s_use ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 D8 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 27 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 D0 ; print_error(s_use, len(s_use), 2)
+H 49 C7 C2 02 00 00 00 ; print_error(s_use, len(s_use), 2)
+H 4C 89 55 C8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 4D D8 ; print_error(s_use, len(s_use), 2)
+H 48 8B 55 D0 ; print_error(s_use, len(s_use), 2)
+H 4C 8B 45 C8 ; print_error(s_use, len(s_use), 2)
+H E8 $print_error ; print_error(s_use, len(s_use), 2)
+:_if25e
+:_if24e
+:_if23e
+H E9 $_w22 ; while go == 1
+:_w22e
+H 4C 8B 55 F8 ; return i
+H 4C 89 D0 ; return i
+H 48 89 EC ; выход check_end
+H 5D ; выход check_end
+H C3 ; выход check_end
+:widen
+H 55 ; кадр widen
+H 48 89 E5 ; кадр widen
+H 48 81 EC 80 00 00 00 ; кадр widen
+H 48 89 4D F8 ; кадр widen
+H 48 89 55 F0 ; кадр widen
+H 4C 89 45 E8 ; кадр widen
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 E0 ; k = 0
+:_w26
+H 4C 8B 55 E0 ; while k < n
+H 4C 89 55 D0 ; while k < n
+H 4C 8B 55 E8 ; while k < n
+H 4D 89 D3 ; while k < n
+H 4C 8B 55 D0 ; while k < n
+H 4D 39 DA ; while k < n
+H 0F 8D $_w26e ; while k < n
+H 4C 8B 55 F0 ; c = getb(src, k)
+H 4C 89 55 D0 ; c = getb(src, k)
+H 4C 8B 55 E0 ; c = getb(src, k)
+H 4D 89 D3 ; c = getb(src, k)
+H 4C 8B 55 D0 ; c = getb(src, k)
+H 47 0F B6 14 1A ; c = getb(src, k)
+H 4C 89 55 D8 ; c = getb(src, k)
+H 4C 8B 55 F8 ; setb(dst, 2 * k, c)
+H 4C 89 55 C0 ; setb(dst, 2 * k, c)
+H 49 C7 C2 02 00 00 00 ; setb(dst, 2 * k, c)
+H 4C 89 55 D0 ; setb(dst, 2 * k, c)
+H 4C 8B 55 E0 ; setb(dst, 2 * k, c)
+H 4D 89 D3 ; setb(dst, 2 * k, c)
+H 4C 8B 55 D0 ; setb(dst, 2 * k, c)
+H 4D 0F AF D3 ; setb(dst, 2 * k, c)
+H 4C 89 55 B8 ; setb(dst, 2 * k, c)
+H 4C 8B 55 D8 ; setb(dst, 2 * k, c)
+H 4C 89 55 B0 ; setb(dst, 2 * k, c)
+H 4C 8B 55 C0 ; setb(dst, 2 * k, c)
+H 4C 8B 5D B8 ; setb(dst, 2 * k, c)
+H 8A 45 B0 ; setb(dst, 2 * k, c)
+H 43 88 04 1A ; setb(dst, 2 * k, c)
+H 4C 8B 55 F8 ; setb(dst, 2 * k + 1, 0)
+H 4C 89 55 C0 ; setb(dst, 2 * k + 1, 0)
+H 49 C7 C2 02 00 00 00 ; setb(dst, 2 * k + 1, 0)
+H 4C 89 55 C8 ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 55 E0 ; setb(dst, 2 * k + 1, 0)
+H 4D 89 D3 ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 55 C8 ; setb(dst, 2 * k + 1, 0)
+H 4D 0F AF D3 ; setb(dst, 2 * k + 1, 0)
+H 4C 89 55 D0 ; setb(dst, 2 * k + 1, 0)
+H 49 C7 C2 01 00 00 00 ; setb(dst, 2 * k + 1, 0)
+H 4D 89 D3 ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 55 D0 ; setb(dst, 2 * k + 1, 0)
+H 4D 01 DA ; setb(dst, 2 * k + 1, 0)
+H 4C 89 55 B8 ; setb(dst, 2 * k + 1, 0)
+H 49 C7 C2 00 00 00 00 ; setb(dst, 2 * k + 1, 0)
+H 4C 89 55 B0 ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 55 C0 ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 5D B8 ; setb(dst, 2 * k + 1, 0)
+H 8A 45 B0 ; setb(dst, 2 * k + 1, 0)
+H 43 88 04 1A ; setb(dst, 2 * k + 1, 0)
+H 4C 8B 55 E0 ; k = k + 1
+H 4C 89 55 D0 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D0 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 E0 ; k = k + 1
+H E9 $_w26 ; while k < n
+:_w26e
+H 4C 8B 55 F8 ; setb(dst, 2 * n, 0)
+H 4C 89 55 C0 ; setb(dst, 2 * n, 0)
+H 49 C7 C2 02 00 00 00 ; setb(dst, 2 * n, 0)
+H 4C 89 55 D0 ; setb(dst, 2 * n, 0)
+H 4C 8B 55 E8 ; setb(dst, 2 * n, 0)
+H 4D 89 D3 ; setb(dst, 2 * n, 0)
+H 4C 8B 55 D0 ; setb(dst, 2 * n, 0)
+H 4D 0F AF D3 ; setb(dst, 2 * n, 0)
+H 4C 89 55 B8 ; setb(dst, 2 * n, 0)
+H 49 C7 C2 00 00 00 00 ; setb(dst, 2 * n, 0)
+H 4C 89 55 B0 ; setb(dst, 2 * n, 0)
+H 4C 8B 55 C0 ; setb(dst, 2 * n, 0)
+H 4C 8B 5D B8 ; setb(dst, 2 * n, 0)
+H 8A 45 B0 ; setb(dst, 2 * n, 0)
+H 43 88 04 1A ; setb(dst, 2 * n, 0)
+H 4C 8B 55 F8 ; setb(dst, 2 * n + 1, 0)
+H 4C 89 55 C0 ; setb(dst, 2 * n + 1, 0)
+H 49 C7 C2 02 00 00 00 ; setb(dst, 2 * n + 1, 0)
+H 4C 89 55 C8 ; setb(dst, 2 * n + 1, 0)
+H 4C 8B 55 E8 ; setb(dst, 2 * n + 1, 0)
+H 4D 89 D3 ; setb(dst, 2 * n + 1, 0)
+H 4C 8B 55 C8 ; setb(dst, 2 * n + 1, 0)
+H 4D 0F AF D3 ; setb(dst, 2 * n + 1, 0)
+H 4C 89 55 D0 ; setb(dst, 2 * n + 1, 0)
+H 49 C7 C2 01 00 00 00 ; setb(dst, 2 * n + 1, 0)
+H 4D 89 D3 ; setb(dst, 2 * n + 1, 0)
+H 4C 8B 55 D0 ; setb(dst, 2 * n + 1, 0)
+H 4D 01 DA ; setb(dst, 2 * n + 1, 0)
+H 4C 89 55 B8 ; setb(dst, 2 * n + 1, 0)
+H 49 C7 C2 00 00 00 00 ; setb(dst, 2 * n + 1, 0)
+H 4C 89 55 B0 ; setb(dst, 2 * n + 1, 0)
+H 4C 8B 55 C0 ; setb(dst, 2 * n + 1, 0)
+H 4C 8B 5D B8 ; setb(dst, 2 * n + 1, 0)
+H 8A 45 B0 ; setb(dst, 2 * n + 1, 0)
+H 43 88 04 1A ; setb(dst, 2 * n + 1, 0)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход widen
+H 5D ; выход widen
+H C3 ; выход widen
+:fail_at
+H 55 ; кадр fail_at
+H 48 89 E5 ; кадр fail_at
+H 48 81 EC 90 00 00 00 ; кадр fail_at
+H 48 89 4D F8 ; кадр fail_at
+H 4C 8B 55 F8 ; ln = ln & 65535
+H 4C 89 55 D8 ; ln = ln & 65535
+H 49 C7 C2 FF FF 00 00 ; ln = ln & 65535
+H 4D 89 D3 ; ln = ln & 65535
+H 4C 8B 55 D8 ; ln = ln & 65535
+H 4D 21 DA ; ln = ln & 65535
+H 4C 89 55 F8 ; ln = ln & 65535
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F0 ; k = 0
+:_w27
+H 4C 8B 55 F0 ; while k < len(s_fmt)
+H 4C 89 55 D8 ; while k < len(s_fmt)
+H 49 C7 C2 17 00 00 00 ; while k < len(s_fmt)
+H 4D 89 D3 ; while k < len(s_fmt)
+H 4C 8B 55 D8 ; while k < len(s_fmt)
+H 4D 39 DA ; while k < len(s_fmt)
+H 0F 8D $_w27e ; while k < len(s_fmt)
+H 4C 8D 15 $fmtbuf ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 89 55 B0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 55 F0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 89 55 A8 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8D 15 $s_fmt ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 89 55 D8 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 55 F0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4D 89 D3 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 55 D8 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 47 0F B6 14 1A ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 89 55 A0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 55 B0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 5D A8 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 8A 45 A0 ; setb(fmtbuf, k, getb(s_fmt, k))
+H 43 88 04 1A ; setb(fmtbuf, k, getb(s_fmt, k))
+H 4C 8B 55 F0 ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F0 ; k = k + 1
+H E9 $_w27 ; while k < len(s_fmt)
+:_w27e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F0 ; k = 0
+:_w28
+H 4C 8B 55 F0 ; while k < 4
+H 4C 89 55 D8 ; while k < 4
+H 49 C7 C2 04 00 00 00 ; while k < 4
+H 4D 89 D3 ; while k < 4
+H 4C 8B 55 D8 ; while k < 4
+H 4D 39 DA ; while k < 4
+H 0F 8D $_w28e ; while k < 4
+H 49 C7 C2 0C 00 00 00 ; sh = 12 - 4 * k
+H 4C 89 55 D8 ; sh = 12 - 4 * k
+H 49 C7 C2 04 00 00 00 ; sh = 12 - 4 * k
+H 4C 89 55 D0 ; sh = 12 - 4 * k
+H 4C 8B 55 F0 ; sh = 12 - 4 * k
+H 4D 89 D3 ; sh = 12 - 4 * k
+H 4C 8B 55 D0 ; sh = 12 - 4 * k
+H 4D 0F AF D3 ; sh = 12 - 4 * k
+H 4D 89 D3 ; sh = 12 - 4 * k
+H 4C 8B 55 D8 ; sh = 12 - 4 * k
+H 4D 29 DA ; sh = 12 - 4 * k
+H 4C 89 55 E8 ; sh = 12 - 4 * k
+H 4C 8B 55 F8 ; d = (ln >> sh) & 15
+H 4C 89 55 D0 ; d = (ln >> sh) & 15
+H 4C 8B 55 E8 ; d = (ln >> sh) & 15
+H 4D 89 D3 ; d = (ln >> sh) & 15
+H 4C 8B 55 D0 ; d = (ln >> sh) & 15
+H 4C 89 D9 ; d = (ln >> sh) & 15
+H 49 D3 EA ; d = (ln >> sh) & 15
+H 4C 89 55 D8 ; d = (ln >> sh) & 15
+H 49 C7 C2 0F 00 00 00 ; d = (ln >> sh) & 15
+H 4D 89 D3 ; d = (ln >> sh) & 15
+H 4C 8B 55 D8 ; d = (ln >> sh) & 15
+H 4D 21 DA ; d = (ln >> sh) & 15
+H 4C 89 55 E0 ; d = (ln >> sh) & 15
+H 4C 8D 15 $fmtbuf ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 89 55 B0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 49 C7 C2 17 00 00 00 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 89 55 D8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 F0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4D 89 D3 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 D8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4D 01 DA ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 89 55 A8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8D 15 $s_hexd ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 89 55 D8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 E0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4D 89 D3 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 D8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 47 0F B6 14 1A ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 89 55 A0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 B0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 5D A8 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 8A 45 A0 ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 43 88 04 1A ; setb(fmtbuf, len(s_fmt) + k, getb(s_hexd, d))
+H 4C 8B 55 F0 ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F0 ; k = k + 1
+H E9 $_w28 ; while k < 4
+:_w28e
+H 4C 8D 15 $fmtbuf ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 89 55 B0 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 49 C7 C2 17 00 00 00 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 89 55 D8 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 49 C7 C2 04 00 00 00 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4D 89 D3 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 8B 55 D8 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4D 01 DA ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 89 55 A8 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 49 C7 C2 0D 00 00 00 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 89 55 A0 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 8B 55 B0 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 8B 5D A8 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 8A 45 A0 ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 43 88 04 1A ; setb(fmtbuf, len(s_fmt) + 4, 13)
+H 4C 8D 15 $fmtbuf ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 89 55 B0 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 49 C7 C2 17 00 00 00 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 89 55 D8 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 49 C7 C2 05 00 00 00 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4D 89 D3 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 8B 55 D8 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4D 01 DA ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 89 55 A8 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 49 C7 C2 0A 00 00 00 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 89 55 A0 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 8B 55 B0 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 8B 5D A8 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 8A 45 A0 ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 43 88 04 1A ; setb(fmtbuf, len(s_fmt) + 5, 10)
+H 4C 8D 15 $fmtbuf ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 89 55 C8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 49 C7 C2 17 00 00 00 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 89 55 D8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 49 C7 C2 06 00 00 00 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4D 89 D3 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 8B 55 D8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4D 01 DA ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 89 55 C0 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 49 C7 C2 06 00 00 00 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 89 55 B8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 48 8B 4D C8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 48 8B 55 C0 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 4C 8B 45 B8 ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H E8 $print_error ; print_error(fmtbuf, len(s_fmt) + 6, 6)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход fail_at
+H 5D ; выход fail_at
+H C3 ; выход fail_at
+:tok_is
+H 55 ; кадр tok_is
+H 48 89 E5 ; кадр tok_is
+H 48 81 EC 80 00 00 00 ; кадр tok_is
+H 48 89 4D F8 ; кадр tok_is
+H 48 89 55 F0 ; кадр tok_is
+H 4C 89 45 E8 ; кадр tok_is
+H 4C 8D 15 $tend ; n = tend[ti] - tstart[ti]
+H 4C 89 55 B8 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 F8 ; n = tend[ti] - tstart[ti]
+H 49 C1 E2 03 ; n = tend[ti] - tstart[ti]
+H 4D 89 D3 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 B8 ; n = tend[ti] - tstart[ti]
+H 4D 01 DA ; n = tend[ti] - tstart[ti]
+H 4D 8B 12 ; n = tend[ti] - tstart[ti]
+H 4C 89 55 C0 ; n = tend[ti] - tstart[ti]
+H 4C 8D 15 $tstart ; n = tend[ti] - tstart[ti]
+H 4C 89 55 B8 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 F8 ; n = tend[ti] - tstart[ti]
+H 49 C1 E2 03 ; n = tend[ti] - tstart[ti]
+H 4D 89 D3 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 B8 ; n = tend[ti] - tstart[ti]
+H 4D 01 DA ; n = tend[ti] - tstart[ti]
+H 4D 8B 12 ; n = tend[ti] - tstart[ti]
+H 4D 89 D3 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 C0 ; n = tend[ti] - tstart[ti]
+H 4D 29 DA ; n = tend[ti] - tstart[ti]
+H 4C 89 55 E0 ; n = tend[ti] - tstart[ti]
+H 4C 8B 55 E0 ; if n != slen
+H 4C 89 55 C0 ; if n != slen
+H 4C 8B 55 E8 ; if n != slen
+H 4D 89 D3 ; if n != slen
+H 4C 8B 55 C0 ; if n != slen
+H 4D 39 DA ; if n != slen
+H 0F 84 $_if29e ; if n != slen
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход tok_is
+H 5D ; выход tok_is
+H C3 ; выход tok_is
+:_if29e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 D8 ; k = 0
+:_w30
+H 4C 8B 55 D8 ; while k < n
+H 4C 89 55 C0 ; while k < n
+H 4C 8B 55 E0 ; while k < n
+H 4D 89 D3 ; while k < n
+H 4C 8B 55 C0 ; while k < n
+H 4D 39 DA ; while k < n
+H 0F 8D $_w30e ; while k < n
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 89 55 C0 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8D 15 $tstart ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 89 55 B0 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 F8 ; c = getb(srcbuf, tstart[ti] + k)
+H 49 C1 E2 03 ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 89 D3 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 B0 ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 01 DA ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 8B 12 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 89 55 B8 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 D8 ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 89 D3 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 B8 ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 01 DA ; c = getb(srcbuf, tstart[ti] + k)
+H 4D 89 D3 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 C0 ; c = getb(srcbuf, tstart[ti] + k)
+H 47 0F B6 14 1A ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 89 55 D0 ; c = getb(srcbuf, tstart[ti] + k)
+H 4C 8B 55 F0 ; d = getb(s, k)
+H 4C 89 55 C0 ; d = getb(s, k)
+H 4C 8B 55 D8 ; d = getb(s, k)
+H 4D 89 D3 ; d = getb(s, k)
+H 4C 8B 55 C0 ; d = getb(s, k)
+H 47 0F B6 14 1A ; d = getb(s, k)
+H 4C 89 55 C8 ; d = getb(s, k)
+H 4C 8B 55 D0 ; if c != d
+H 4C 89 55 C0 ; if c != d
+H 4C 8B 55 C8 ; if c != d
+H 4D 89 D3 ; if c != d
+H 4C 8B 55 C0 ; if c != d
+H 4D 39 DA ; if c != d
+H 0F 84 $_if31e ; if c != d
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход tok_is
+H 5D ; выход tok_is
+H C3 ; выход tok_is
+:_if31e
+H 4C 8B 55 D8 ; k = k + 1
+H 4C 89 55 C0 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 C0 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H E9 $_w30 ; while k < n
+:_w30e
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход tok_is
+H 5D ; выход tok_is
+H C3 ; выход tok_is
+:tokenize
+H 55 ; кадр tokenize
+H 48 89 E5 ; кадр tokenize
+H 48 81 EC 80 00 00 00 ; кадр tokenize
+H 48 89 4D F8 ; кадр tokenize
+H 48 89 55 F0 ; кадр tokenize
+H 4C 8B 55 F8 ; i = a
+H 4C 89 55 E8 ; i = a
+H 49 C7 C2 00 00 00 00 ; tcnt = 0
+H 4C 89 15 $tcnt ; tcnt = 0
+H 49 C7 C2 01 00 00 00 ; go = 1
+H 4C 89 55 D0 ; go = 1
+:_w32
+H 4C 8B 55 D0 ; while go == 1
+H 4C 89 55 C8 ; while go == 1
+H 49 C7 C2 01 00 00 00 ; while go == 1
+H 4D 89 D3 ; while go == 1
+H 4C 8B 55 C8 ; while go == 1
+H 4D 39 DA ; while go == 1
+H 0F 85 $_w32e ; while go == 1
+:_w33
+H 4C 8B 55 E8 ; while i < b
+H 4C 89 55 C8 ; while i < b
+H 4C 8B 55 F0 ; while i < b
+H 4D 89 D3 ; while i < b
+H 4C 8B 55 C8 ; while i < b
+H 4D 39 DA ; while i < b
+H 0F 8D $_w33e ; while i < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 C8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E8 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 C8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 D8 ; c = getb(srcbuf, i)
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 20 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34d2 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if34t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34d2
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 09 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34d3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if34t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34d3
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 2C 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34d4 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if34t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34d4
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0D 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34d5 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if34t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34d5
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0B 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34d6 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if34t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34d6
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0C 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if34 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34t
+H 4C 8B 55 E8 ; i = i + 1
+H 4C 89 55 C8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 C8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E8 ; i = i + 1
+H E9 $_if34e ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if34
+H E9 $_w33e ; break
+:_if34e
+H E9 $_w33 ; while i < b
+:_w33e
+H 4C 8B 55 E8 ; if i >= b
+H 4C 89 55 C8 ; if i >= b
+H 4C 8B 55 F0 ; if i >= b
+H 4D 89 D3 ; if i >= b
+H 4C 8B 55 C8 ; if i >= b
+H 4D 39 DA ; if i >= b
+H 0F 8C $_if35 ; if i >= b
+H 49 C7 C2 00 00 00 00 ; go = 0
+H 4C 89 55 D0 ; go = 0
+H E9 $_if35e ; if i >= b
+:_if35
+H 4C 8B 55 E8 ; s = i
+H 4C 89 55 E0 ; s = i
+:_w36
+H 4C 8B 55 E8 ; while i < b
+H 4C 89 55 C8 ; while i < b
+H 4C 8B 55 F0 ; while i < b
+H 4D 89 D3 ; while i < b
+H 4C 8B 55 C8 ; while i < b
+H 4D 39 DA ; while i < b
+H 0F 8D $_w36e ; while i < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 C8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E8 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 C8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 D8 ; c = getb(srcbuf, i)
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 20 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37d2 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if37t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37d2
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 09 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37d3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if37t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37d3
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 2C 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37d4 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if37t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37d4
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0D 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37d5 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if37t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37d5
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0B 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37d6 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H E9 $_if37t ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37d6
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 89 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0C 00 00 00 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 C8 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if37 ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37t
+H E9 $_w36e ; break
+H E9 $_if37e ; if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+:_if37
+H 4C 8B 55 E8 ; i = i + 1
+H 4C 89 55 C8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 C8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E8 ; i = i + 1
+:_if37e
+H E9 $_w36 ; while i < b
+:_w36e
+H 4C 8B 15 $tcnt ; if tcnt < 12
+H 4C 89 55 C8 ; if tcnt < 12
+H 49 C7 C2 0C 00 00 00 ; if tcnt < 12
+H 4D 89 D3 ; if tcnt < 12
+H 4C 8B 55 C8 ; if tcnt < 12
+H 4D 39 DA ; if tcnt < 12
+H 0F 8D $_if38e ; if tcnt < 12
+H 4C 8D 15 $tstart ; tstart[tcnt] = s
+H 4C 89 55 C0 ; tstart[tcnt] = s
+H 4C 8B 15 $tcnt ; tstart[tcnt] = s
+H 4C 89 55 B8 ; tstart[tcnt] = s
+H 4C 8B 55 E0 ; tstart[tcnt] = s
+H 4C 89 55 B0 ; tstart[tcnt] = s
+H 4C 8B 55 C0 ; tstart[tcnt] = s
+H 4C 8B 5D B8 ; tstart[tcnt] = s
+H 49 C1 E3 03 ; tstart[tcnt] = s
+H 4D 01 DA ; tstart[tcnt] = s
+H 4C 8B 5D B0 ; tstart[tcnt] = s
+H 4D 89 1A ; tstart[tcnt] = s
+H 4C 8D 15 $tend ; tend[tcnt] = i
+H 4C 89 55 C0 ; tend[tcnt] = i
+H 4C 8B 15 $tcnt ; tend[tcnt] = i
+H 4C 89 55 B8 ; tend[tcnt] = i
+H 4C 8B 55 E8 ; tend[tcnt] = i
+H 4C 89 55 B0 ; tend[tcnt] = i
+H 4C 8B 55 C0 ; tend[tcnt] = i
+H 4C 8B 5D B8 ; tend[tcnt] = i
+H 49 C1 E3 03 ; tend[tcnt] = i
+H 4D 01 DA ; tend[tcnt] = i
+H 4C 8B 5D B0 ; tend[tcnt] = i
+H 4D 89 1A ; tend[tcnt] = i
+:_if38e
+H 4C 8B 15 $tcnt ; tcnt = tcnt + 1
+H 4C 89 55 C8 ; tcnt = tcnt + 1
+H 49 C7 C2 01 00 00 00 ; tcnt = tcnt + 1
+H 4D 89 D3 ; tcnt = tcnt + 1
+H 4C 8B 55 C8 ; tcnt = tcnt + 1
+H 4D 01 DA ; tcnt = tcnt + 1
+H 4C 89 15 $tcnt ; tcnt = tcnt + 1
+:_if35e
+H E9 $_w32 ; while go == 1
+:_w32e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход tokenize
+H 5D ; выход tokenize
+H C3 ; выход tokenize
+:parse_num
+H 55 ; кадр parse_num
+H 48 89 E5 ; кадр parse_num
+H 48 81 EC 90 00 00 00 ; кадр parse_num
+H 48 89 4D F8 ; кадр parse_num
+H 4C 8D 15 $tstart ; a = tstart[ti]
+H 4C 89 55 B8 ; a = tstart[ti]
+H 4C 8B 55 F8 ; a = tstart[ti]
+H 49 C1 E2 03 ; a = tstart[ti]
+H 4D 89 D3 ; a = tstart[ti]
+H 4C 8B 55 B8 ; a = tstart[ti]
+H 4D 01 DA ; a = tstart[ti]
+H 4D 8B 12 ; a = tstart[ti]
+H 4C 89 55 F0 ; a = tstart[ti]
+H 4C 8D 15 $tend ; b = tend[ti]
+H 4C 89 55 B8 ; b = tend[ti]
+H 4C 8B 55 F8 ; b = tend[ti]
+H 49 C1 E2 03 ; b = tend[ti]
+H 4D 89 D3 ; b = tend[ti]
+H 4C 8B 55 B8 ; b = tend[ti]
+H 4D 01 DA ; b = tend[ti]
+H 4D 8B 12 ; b = tend[ti]
+H 4C 89 55 E8 ; b = tend[ti]
+H 4C 8B 55 F0 ; i = a
+H 4C 89 55 E0 ; i = a
+H 49 C7 C2 01 00 00 00 ; sign = 1
+H 4C 89 55 D0 ; sign = 1
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 B8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E0 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 B8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 C8 ; c = getb(srcbuf, i)
+H 4C 8B 55 C8 ; if c == 45
+H 4C 89 55 B8 ; if c == 45
+H 49 C7 C2 2D 00 00 00 ; if c == 45
+H 4D 89 D3 ; if c == 45
+H 4C 8B 55 B8 ; if c == 45
+H 4D 39 DA ; if c == 45
+H 0F 85 $_if39 ; if c == 45
+H 49 C7 C2 01 00 00 00 ; sign = -1
+H 49 F7 DA ; sign = -1
+H 4C 89 55 D0 ; sign = -1
+H 4C 8B 55 E0 ; i = i + 1
+H 4C 89 55 B8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 B8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H E9 $_if39e ; if c == 45
+:_if39
+H 4C 8B 55 C8 ; if c == 43
+H 4C 89 55 B8 ; if c == 43
+H 49 C7 C2 2B 00 00 00 ; if c == 43
+H 4D 89 D3 ; if c == 43
+H 4C 8B 55 B8 ; if c == 43
+H 4D 39 DA ; if c == 43
+H 0F 85 $_if40e ; if c == 43
+H 4C 8B 55 E0 ; i = i + 1
+H 4C 89 55 B8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 B8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+:_if40e
+:_if39e
+H 4C 8B 55 E0 ; if i >= b
+H 4C 89 55 B8 ; if i >= b
+H 4C 8B 55 E8 ; if i >= b
+H 4D 89 D3 ; if i >= b
+H 4C 8B 55 B8 ; if i >= b
+H 4D 39 DA ; if i >= b
+H 0F 8C $_if41e ; if i >= b
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if41e
+H 49 C7 C2 00 00 00 00 ; hex = 0
+H 4C 89 55 C0 ; hex = 0
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 B8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E0 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 B8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 C8 ; c = getb(srcbuf, i)
+H 4C 8B 55 C8 ; if c == 48
+H 4C 89 55 B8 ; if c == 48
+H 49 C7 C2 30 00 00 00 ; if c == 48
+H 4D 89 D3 ; if c == 48
+H 4C 8B 55 B8 ; if c == 48
+H 4D 39 DA ; if c == 48
+H 0F 85 $_if42e ; if c == 48
+H 4C 8B 55 E0 ; if i + 1 < b
+H 4C 89 55 B0 ; if i + 1 < b
+H 49 C7 C2 01 00 00 00 ; if i + 1 < b
+H 4D 89 D3 ; if i + 1 < b
+H 4C 8B 55 B0 ; if i + 1 < b
+H 4D 01 DA ; if i + 1 < b
+H 4C 89 55 B8 ; if i + 1 < b
+H 4C 8B 55 E8 ; if i + 1 < b
+H 4D 89 D3 ; if i + 1 < b
+H 4C 8B 55 B8 ; if i + 1 < b
+H 4D 39 DA ; if i + 1 < b
+H 0F 8D $_if43e ; if i + 1 < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i + 1)
+H 4C 89 55 B8 ; c = getb(srcbuf, i + 1)
+H 4C 8B 55 E0 ; c = getb(srcbuf, i + 1)
+H 4C 89 55 B0 ; c = getb(srcbuf, i + 1)
+H 49 C7 C2 01 00 00 00 ; c = getb(srcbuf, i + 1)
+H 4D 89 D3 ; c = getb(srcbuf, i + 1)
+H 4C 8B 55 B0 ; c = getb(srcbuf, i + 1)
+H 4D 01 DA ; c = getb(srcbuf, i + 1)
+H 4D 89 D3 ; c = getb(srcbuf, i + 1)
+H 4C 8B 55 B8 ; c = getb(srcbuf, i + 1)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i + 1)
+H 4C 89 55 C8 ; c = getb(srcbuf, i + 1)
+H 4C 8B 55 C8 ; if c == 120
+H 4C 89 55 B8 ; if c == 120
+H 49 C7 C2 78 00 00 00 ; if c == 120
+H 4D 89 D3 ; if c == 120
+H 4C 8B 55 B8 ; if c == 120
+H 4D 39 DA ; if c == 120
+H 0F 85 $_if44e ; if c == 120
+H 49 C7 C2 01 00 00 00 ; hex = 1
+H 4C 89 55 C0 ; hex = 1
+H 4C 8B 55 E0 ; i = i + 2
+H 4C 89 55 B8 ; i = i + 2
+H 49 C7 C2 02 00 00 00 ; i = i + 2
+H 4D 89 D3 ; i = i + 2
+H 4C 8B 55 B8 ; i = i + 2
+H 4D 01 DA ; i = i + 2
+H 4C 89 55 E0 ; i = i + 2
+:_if44e
+:_if43e
+:_if42e
+H 4C 8B 55 E0 ; if i >= b
+H 4C 89 55 B8 ; if i >= b
+H 4C 8B 55 E8 ; if i >= b
+H 4D 89 D3 ; if i >= b
+H 4C 8B 55 B8 ; if i >= b
+H 4D 39 DA ; if i >= b
+H 0F 8C $_if45e ; if i >= b
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if45e
+H 49 C7 C2 00 00 00 00 ; v = 0
+H 4C 89 55 D8 ; v = 0
+:_w46
+H 4C 8B 55 E0 ; while i < b
+H 4C 89 55 B8 ; while i < b
+H 4C 8B 55 E8 ; while i < b
+H 4D 89 D3 ; while i < b
+H 4C 8B 55 B8 ; while i < b
+H 4D 39 DA ; while i < b
+H 0F 8D $_w46e ; while i < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 B8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E0 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 B8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 C8 ; c = getb(srcbuf, i)
+H 4C 8B 55 C0 ; if hex == 1
+H 4C 89 55 B8 ; if hex == 1
+H 49 C7 C2 01 00 00 00 ; if hex == 1
+H 4D 89 D3 ; if hex == 1
+H 4C 8B 55 B8 ; if hex == 1
+H 4D 39 DA ; if hex == 1
+H 0F 85 $_if47 ; if hex == 1
+H 4C 8B 55 C8 ; if c >= 48 && c <= 57
+H 4C 89 55 B8 ; if c >= 48 && c <= 57
+H 49 C7 C2 30 00 00 00 ; if c >= 48 && c <= 57
+H 4D 89 D3 ; if c >= 48 && c <= 57
+H 4C 8B 55 B8 ; if c >= 48 && c <= 57
+H 4D 39 DA ; if c >= 48 && c <= 57
+H 0F 8C $_if48 ; if c >= 48 && c <= 57
+H 4C 8B 55 C8 ; if c >= 48 && c <= 57
+H 4C 89 55 B8 ; if c >= 48 && c <= 57
+H 49 C7 C2 39 00 00 00 ; if c >= 48 && c <= 57
+H 4D 89 D3 ; if c >= 48 && c <= 57
+H 4C 8B 55 B8 ; if c >= 48 && c <= 57
+H 4D 39 DA ; if c >= 48 && c <= 57
+H 0F 8F $_if48 ; if c >= 48 && c <= 57
+H 4C 8B 55 D8 ; v = v * 16 + c - 48
+H 4C 89 55 A8 ; v = v * 16 + c - 48
+H 49 C7 C2 10 00 00 00 ; v = v * 16 + c - 48
+H 4D 89 D3 ; v = v * 16 + c - 48
+H 4C 8B 55 A8 ; v = v * 16 + c - 48
+H 4D 0F AF D3 ; v = v * 16 + c - 48
+H 4C 89 55 B0 ; v = v * 16 + c - 48
+H 4C 8B 55 C8 ; v = v * 16 + c - 48
+H 4D 89 D3 ; v = v * 16 + c - 48
+H 4C 8B 55 B0 ; v = v * 16 + c - 48
+H 4D 01 DA ; v = v * 16 + c - 48
+H 4C 89 55 B8 ; v = v * 16 + c - 48
+H 49 C7 C2 30 00 00 00 ; v = v * 16 + c - 48
+H 4D 89 D3 ; v = v * 16 + c - 48
+H 4C 8B 55 B8 ; v = v * 16 + c - 48
+H 4D 29 DA ; v = v * 16 + c - 48
+H 4C 89 55 D8 ; v = v * 16 + c - 48
+H E9 $_if48e ; if c >= 48 && c <= 57
+:_if48
+H 4C 8B 55 C8 ; if c >= 65 && c <= 70
+H 4C 89 55 B8 ; if c >= 65 && c <= 70
+H 49 C7 C2 41 00 00 00 ; if c >= 65 && c <= 70
+H 4D 89 D3 ; if c >= 65 && c <= 70
+H 4C 8B 55 B8 ; if c >= 65 && c <= 70
+H 4D 39 DA ; if c >= 65 && c <= 70
+H 0F 8C $_if49 ; if c >= 65 && c <= 70
+H 4C 8B 55 C8 ; if c >= 65 && c <= 70
+H 4C 89 55 B8 ; if c >= 65 && c <= 70
+H 49 C7 C2 46 00 00 00 ; if c >= 65 && c <= 70
+H 4D 89 D3 ; if c >= 65 && c <= 70
+H 4C 8B 55 B8 ; if c >= 65 && c <= 70
+H 4D 39 DA ; if c >= 65 && c <= 70
+H 0F 8F $_if49 ; if c >= 65 && c <= 70
+H 4C 8B 55 D8 ; v = v * 16 + c - 55
+H 4C 89 55 A8 ; v = v * 16 + c - 55
+H 49 C7 C2 10 00 00 00 ; v = v * 16 + c - 55
+H 4D 89 D3 ; v = v * 16 + c - 55
+H 4C 8B 55 A8 ; v = v * 16 + c - 55
+H 4D 0F AF D3 ; v = v * 16 + c - 55
+H 4C 89 55 B0 ; v = v * 16 + c - 55
+H 4C 8B 55 C8 ; v = v * 16 + c - 55
+H 4D 89 D3 ; v = v * 16 + c - 55
+H 4C 8B 55 B0 ; v = v * 16 + c - 55
+H 4D 01 DA ; v = v * 16 + c - 55
+H 4C 89 55 B8 ; v = v * 16 + c - 55
+H 49 C7 C2 37 00 00 00 ; v = v * 16 + c - 55
+H 4D 89 D3 ; v = v * 16 + c - 55
+H 4C 8B 55 B8 ; v = v * 16 + c - 55
+H 4D 29 DA ; v = v * 16 + c - 55
+H 4C 89 55 D8 ; v = v * 16 + c - 55
+H E9 $_if49e ; if c >= 65 && c <= 70
+:_if49
+H 4C 8B 55 C8 ; if c >= 97 && c <= 102
+H 4C 89 55 B8 ; if c >= 97 && c <= 102
+H 49 C7 C2 61 00 00 00 ; if c >= 97 && c <= 102
+H 4D 89 D3 ; if c >= 97 && c <= 102
+H 4C 8B 55 B8 ; if c >= 97 && c <= 102
+H 4D 39 DA ; if c >= 97 && c <= 102
+H 0F 8C $_if50 ; if c >= 97 && c <= 102
+H 4C 8B 55 C8 ; if c >= 97 && c <= 102
+H 4C 89 55 B8 ; if c >= 97 && c <= 102
+H 49 C7 C2 66 00 00 00 ; if c >= 97 && c <= 102
+H 4D 89 D3 ; if c >= 97 && c <= 102
+H 4C 8B 55 B8 ; if c >= 97 && c <= 102
+H 4D 39 DA ; if c >= 97 && c <= 102
+H 0F 8F $_if50 ; if c >= 97 && c <= 102
+H 4C 8B 55 D8 ; v = v * 16 + c - 87
+H 4C 89 55 A8 ; v = v * 16 + c - 87
+H 49 C7 C2 10 00 00 00 ; v = v * 16 + c - 87
+H 4D 89 D3 ; v = v * 16 + c - 87
+H 4C 8B 55 A8 ; v = v * 16 + c - 87
+H 4D 0F AF D3 ; v = v * 16 + c - 87
+H 4C 89 55 B0 ; v = v * 16 + c - 87
+H 4C 8B 55 C8 ; v = v * 16 + c - 87
+H 4D 89 D3 ; v = v * 16 + c - 87
+H 4C 8B 55 B0 ; v = v * 16 + c - 87
+H 4D 01 DA ; v = v * 16 + c - 87
+H 4C 89 55 B8 ; v = v * 16 + c - 87
+H 49 C7 C2 57 00 00 00 ; v = v * 16 + c - 87
+H 4D 89 D3 ; v = v * 16 + c - 87
+H 4C 8B 55 B8 ; v = v * 16 + c - 87
+H 4D 29 DA ; v = v * 16 + c - 87
+H 4C 89 55 D8 ; v = v * 16 + c - 87
+H E9 $_if50e ; if c >= 97 && c <= 102
+:_if50
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if50e
+:_if49e
+:_if48e
+H E9 $_if47e ; if hex == 1
+:_if47
+H 4C 8B 55 C8 ; if c >= 48 && c <= 57
+H 4C 89 55 B8 ; if c >= 48 && c <= 57
+H 49 C7 C2 30 00 00 00 ; if c >= 48 && c <= 57
+H 4D 89 D3 ; if c >= 48 && c <= 57
+H 4C 8B 55 B8 ; if c >= 48 && c <= 57
+H 4D 39 DA ; if c >= 48 && c <= 57
+H 0F 8C $_if51 ; if c >= 48 && c <= 57
+H 4C 8B 55 C8 ; if c >= 48 && c <= 57
+H 4C 89 55 B8 ; if c >= 48 && c <= 57
+H 49 C7 C2 39 00 00 00 ; if c >= 48 && c <= 57
+H 4D 89 D3 ; if c >= 48 && c <= 57
+H 4C 8B 55 B8 ; if c >= 48 && c <= 57
+H 4D 39 DA ; if c >= 48 && c <= 57
+H 0F 8F $_if51 ; if c >= 48 && c <= 57
+H 4C 8B 55 D8 ; v = v * 10 + c - 48
+H 4C 89 55 A8 ; v = v * 10 + c - 48
+H 49 C7 C2 0A 00 00 00 ; v = v * 10 + c - 48
+H 4D 89 D3 ; v = v * 10 + c - 48
+H 4C 8B 55 A8 ; v = v * 10 + c - 48
+H 4D 0F AF D3 ; v = v * 10 + c - 48
+H 4C 89 55 B0 ; v = v * 10 + c - 48
+H 4C 8B 55 C8 ; v = v * 10 + c - 48
+H 4D 89 D3 ; v = v * 10 + c - 48
+H 4C 8B 55 B0 ; v = v * 10 + c - 48
+H 4D 01 DA ; v = v * 10 + c - 48
+H 4C 89 55 B8 ; v = v * 10 + c - 48
+H 49 C7 C2 30 00 00 00 ; v = v * 10 + c - 48
+H 4D 89 D3 ; v = v * 10 + c - 48
+H 4C 8B 55 B8 ; v = v * 10 + c - 48
+H 4D 29 DA ; v = v * 10 + c - 48
+H 4C 89 55 D8 ; v = v * 10 + c - 48
+H E9 $_if51e ; if c >= 48 && c <= 57
+:_if51
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if51e
+:_if47e
+H 4C 8B 55 D8 ; if v >> 32 != 0
+H 4C 89 55 B0 ; if v >> 32 != 0
+H 49 C7 C2 20 00 00 00 ; if v >> 32 != 0
+H 4D 89 D3 ; if v >> 32 != 0
+H 4C 8B 55 B0 ; if v >> 32 != 0
+H 4C 89 D9 ; if v >> 32 != 0
+H 49 D3 EA ; if v >> 32 != 0
+H 4C 89 55 B8 ; if v >> 32 != 0
+H 49 C7 C2 00 00 00 00 ; if v >> 32 != 0
+H 4D 89 D3 ; if v >> 32 != 0
+H 4C 8B 55 B8 ; if v >> 32 != 0
+H 4D 39 DA ; if v >> 32 != 0
+H 0F 84 $_if52e ; if v >> 32 != 0
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if52e
+H 4C 8B 55 E0 ; i = i + 1
+H 4C 89 55 B8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 B8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H E9 $_w46 ; while i < b
+:_w46e
+H 4C 8B 55 D0 ; if sign == -1
+H 4C 89 55 B8 ; if sign == -1
+H 49 C7 C2 01 00 00 00 ; if sign == -1
+H 49 F7 DA ; if sign == -1
+H 4D 89 D3 ; if sign == -1
+H 4C 8B 55 B8 ; if sign == -1
+H 4D 39 DA ; if sign == -1
+H 0F 85 $_if53e ; if sign == -1
+H 4C 8B 55 D8 ; if v > 2147483647 + 1
+H 4C 89 55 B8 ; if v > 2147483647 + 1
+H 49 C7 C2 FF FF FF 7F ; if v > 2147483647 + 1
+H 4C 89 55 B0 ; if v > 2147483647 + 1
+H 49 C7 C2 01 00 00 00 ; if v > 2147483647 + 1
+H 4D 89 D3 ; if v > 2147483647 + 1
+H 4C 8B 55 B0 ; if v > 2147483647 + 1
+H 4D 01 DA ; if v > 2147483647 + 1
+H 4D 89 D3 ; if v > 2147483647 + 1
+H 4C 8B 55 B8 ; if v > 2147483647 + 1
+H 4D 39 DA ; if v > 2147483647 + 1
+H 0F 8E $_if54e ; if v > 2147483647 + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:_if54e
+H 4C 8B 55 D8 ; v = -v
+H 49 F7 DA ; v = -v
+H 4C 89 55 D8 ; v = -v
+:_if53e
+H 4C 8B 55 D8 ; nval = v
+H 4C 89 15 $nval ; nval = v
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход parse_num
+H 5D ; выход parse_num
+H C3 ; выход parse_num
+:line_trim
+H 55 ; кадр line_trim
+H 48 89 E5 ; кадр line_trim
+H 48 83 EC 60 ; кадр line_trim
+H 48 89 4D F8 ; кадр line_trim
+H 48 89 55 F0 ; кадр line_trim
+H 4C 8B 55 F8 ; i = a
+H 4C 89 55 E8 ; i = a
+:_w55
+H 4C 8B 55 E8 ; while i < b
+H 4C 89 55 D8 ; while i < b
+H 4C 8B 55 F0 ; while i < b
+H 4D 89 D3 ; while i < b
+H 4C 8B 55 D8 ; while i < b
+H 4D 39 DA ; while i < b
+H 0F 8D $_w55e ; while i < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, i)
+H 4C 89 55 D8 ; c = getb(srcbuf, i)
+H 4C 8B 55 E8 ; c = getb(srcbuf, i)
+H 4D 89 D3 ; c = getb(srcbuf, i)
+H 4C 8B 55 D8 ; c = getb(srcbuf, i)
+H 47 0F B6 14 1A ; c = getb(srcbuf, i)
+H 4C 89 55 E0 ; c = getb(srcbuf, i)
+H 4C 8B 55 E0 ; if c == 59
+H 4C 89 55 D8 ; if c == 59
+H 49 C7 C2 3B 00 00 00 ; if c == 59
+H 4D 89 D3 ; if c == 59
+H 4C 8B 55 D8 ; if c == 59
+H 4D 39 DA ; if c == 59
+H 0F 85 $_if56e ; if c == 59
+H 4C 8B 55 E8 ; b = i
+H 4C 89 55 F0 ; b = i
+H E9 $_w55e ; break
+:_if56e
+H 4C 8B 55 E8 ; i = i + 1
+H 4C 89 55 D8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E8 ; i = i + 1
+H E9 $_w55 ; while i < b
+:_w55e
+:_w57
+H 4C 8B 55 F8 ; while a < b
+H 4C 89 55 D8 ; while a < b
+H 4C 8B 55 F0 ; while a < b
+H 4D 89 D3 ; while a < b
+H 4C 8B 55 D8 ; while a < b
+H 4D 39 DA ; while a < b
+H 0F 8D $_w57e ; while a < b
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, a)
+H 4C 89 55 D8 ; c = getb(srcbuf, a)
+H 4C 8B 55 F8 ; c = getb(srcbuf, a)
+H 4D 89 D3 ; c = getb(srcbuf, a)
+H 4C 8B 55 D8 ; c = getb(srcbuf, a)
+H 47 0F B6 14 1A ; c = getb(srcbuf, a)
+H 4C 89 55 E0 ; c = getb(srcbuf, a)
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 20 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if58d2 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if58t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58d2
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 09 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if58d3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if58t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58d3
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0D 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if58d4 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if58t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58d4
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0B 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if58d5 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if58t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58d5
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0C 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if58 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58t
+H 4C 8B 55 F8 ; a = a + 1
+H 4C 89 55 D8 ; a = a + 1
+H 49 C7 C2 01 00 00 00 ; a = a + 1
+H 4D 89 D3 ; a = a + 1
+H 4C 8B 55 D8 ; a = a + 1
+H 4D 01 DA ; a = a + 1
+H 4C 89 55 F8 ; a = a + 1
+H E9 $_if58e ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if58
+H E9 $_w57e ; break
+:_if58e
+H E9 $_w57 ; while a < b
+:_w57e
+:_w59
+H 4C 8B 55 F0 ; while b > a
+H 4C 89 55 D8 ; while b > a
+H 4C 8B 55 F8 ; while b > a
+H 4D 89 D3 ; while b > a
+H 4C 8B 55 D8 ; while b > a
+H 4D 39 DA ; while b > a
+H 0F 8E $_w59e ; while b > a
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, b - 1)
+H 4C 89 55 D8 ; c = getb(srcbuf, b - 1)
+H 4C 8B 55 F0 ; c = getb(srcbuf, b - 1)
+H 4C 89 55 D0 ; c = getb(srcbuf, b - 1)
+H 49 C7 C2 01 00 00 00 ; c = getb(srcbuf, b - 1)
+H 4D 89 D3 ; c = getb(srcbuf, b - 1)
+H 4C 8B 55 D0 ; c = getb(srcbuf, b - 1)
+H 4D 29 DA ; c = getb(srcbuf, b - 1)
+H 4D 89 D3 ; c = getb(srcbuf, b - 1)
+H 4C 8B 55 D8 ; c = getb(srcbuf, b - 1)
+H 47 0F B6 14 1A ; c = getb(srcbuf, b - 1)
+H 4C 89 55 E0 ; c = getb(srcbuf, b - 1)
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 20 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if60d2 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if60t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60d2
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 09 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if60d3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if60t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60d3
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0D 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if60d4 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if60t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60d4
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0B 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if60d5 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H E9 $_if60t ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60d5
+H 4C 8B 55 E0 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 89 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 49 C7 C2 0C 00 00 00 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 89 D3 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4C 8B 55 D8 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 4D 39 DA ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+H 0F 85 $_if60 ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60t
+H 4C 8B 55 F0 ; b = b - 1
+H 4C 89 55 D8 ; b = b - 1
+H 49 C7 C2 01 00 00 00 ; b = b - 1
+H 4D 89 D3 ; b = b - 1
+H 4C 8B 55 D8 ; b = b - 1
+H 4D 29 DA ; b = b - 1
+H 4C 89 55 F0 ; b = b - 1
+H E9 $_if60e ; if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+:_if60
+H E9 $_w59e ; break
+:_if60e
+H E9 $_w59 ; while b > a
+:_w59e
+H 4C 8B 55 F8 ; lna = a
+H 4C 89 15 $lna ; lna = a
+H 4C 8B 55 F0 ; lne = b
+H 4C 89 15 $lne ; lne = b
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход line_trim
+H 5D ; выход line_trim
+H C3 ; выход line_trim
+:line_next
+H 55 ; кадр line_next
+H 48 89 E5 ; кадр line_next
+H 48 83 EC 60 ; кадр line_next
+H 4C 8B 15 $lpos ; if lpos > srclen
+H 4C 89 55 E8 ; if lpos > srclen
+H 4C 8B 15 $srclen ; if lpos > srclen
+H 4D 89 D3 ; if lpos > srclen
+H 4C 8B 55 E8 ; if lpos > srclen
+H 4D 39 DA ; if lpos > srclen
+H 0F 8E $_if61e ; if lpos > srclen
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход line_next
+H 5D ; выход line_next
+H C3 ; выход line_next
+:_if61e
+H 4C 8B 15 $lln ; lln = lln + 1
+H 4C 89 55 E8 ; lln = lln + 1
+H 49 C7 C2 01 00 00 00 ; lln = lln + 1
+H 4D 89 D3 ; lln = lln + 1
+H 4C 8B 55 E8 ; lln = lln + 1
+H 4D 01 DA ; lln = lln + 1
+H 4C 89 15 $lln ; lln = lln + 1
+H 4C 8B 15 $lpos ; t = lpos
+H 4C 89 55 F8 ; t = lpos
+:_w62
+H 4C 8B 55 F8 ; while t < srclen
+H 4C 89 55 E8 ; while t < srclen
+H 4C 8B 15 $srclen ; while t < srclen
+H 4D 89 D3 ; while t < srclen
+H 4C 8B 55 E8 ; while t < srclen
+H 4D 39 DA ; while t < srclen
+H 0F 8D $_w62e ; while t < srclen
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, t)
+H 4C 89 55 E8 ; c = getb(srcbuf, t)
+H 4C 8B 55 F8 ; c = getb(srcbuf, t)
+H 4D 89 D3 ; c = getb(srcbuf, t)
+H 4C 8B 55 E8 ; c = getb(srcbuf, t)
+H 47 0F B6 14 1A ; c = getb(srcbuf, t)
+H 4C 89 55 F0 ; c = getb(srcbuf, t)
+H 4C 8B 55 F0 ; if c == 10
+H 4C 89 55 E8 ; if c == 10
+H 49 C7 C2 0A 00 00 00 ; if c == 10
+H 4D 89 D3 ; if c == 10
+H 4C 8B 55 E8 ; if c == 10
+H 4D 39 DA ; if c == 10
+H 0F 85 $_if63e ; if c == 10
+H E9 $_w62e ; break
+:_if63e
+H 4C 8B 55 F8 ; t = t + 1
+H 4C 89 55 E8 ; t = t + 1
+H 49 C7 C2 01 00 00 00 ; t = t + 1
+H 4D 89 D3 ; t = t + 1
+H 4C 8B 55 E8 ; t = t + 1
+H 4D 01 DA ; t = t + 1
+H 4C 89 55 F8 ; t = t + 1
+H E9 $_w62 ; while t < srclen
+:_w62e
+H 4C 8B 15 $lpos ; line_trim(lpos, t)
+H 4C 89 55 E0 ; line_trim(lpos, t)
+H 4C 8B 55 F8 ; line_trim(lpos, t)
+H 4C 89 55 D8 ; line_trim(lpos, t)
+H 48 8B 4D E0 ; line_trim(lpos, t)
+H 48 8B 55 D8 ; line_trim(lpos, t)
+H E8 $line_trim ; line_trim(lpos, t)
+H 4C 8B 55 F8 ; lpos = t + 1
+H 4C 89 55 E8 ; lpos = t + 1
+H 49 C7 C2 01 00 00 00 ; lpos = t + 1
+H 4D 89 D3 ; lpos = t + 1
+H 4C 8B 55 E8 ; lpos = t + 1
+H 4D 01 DA ; lpos = t + 1
+H 4C 89 15 $lpos ; lpos = t + 1
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход line_next
+H 5D ; выход line_next
+H C3 ; выход line_next
+:pass1
+H 55 ; кадр pass1
+H 48 89 E5 ; кадр pass1
+H 48 83 EC 70 ; кадр pass1
+H 49 C7 C2 01 00 00 00 ; memsize = -1
+H 49 F7 DA ; memsize = -1
+H 4C 89 15 $memsize ; memsize = -1
+H 49 C7 C2 00 00 00 00 ; pc = 0
+H 4C 89 15 $pc ; pc = 0
+H 49 C7 C2 00 00 00 00 ; lpos = 0
+H 4C 89 15 $lpos ; lpos = 0
+H 49 C7 C2 00 00 00 00 ; lln = 0
+H 4C 89 15 $lln ; lln = 0
+H E8 $line_next ; go = line_next()
+H 49 89 C2 ; go = line_next()
+H 4C 89 55 F8 ; go = line_next()
+:_w64
+H 4C 8B 55 F8 ; while go == 1
+H 4C 89 55 F0 ; while go == 1
+H 49 C7 C2 01 00 00 00 ; while go == 1
+H 4D 89 D3 ; while go == 1
+H 4C 8B 55 F0 ; while go == 1
+H 4D 39 DA ; while go == 1
+H 0F 85 $_w64e ; while go == 1
+H 4C 8B 15 $lna ; if lna < lne
+H 4C 89 55 F0 ; if lna < lne
+H 4C 8B 15 $lne ; if lna < lne
+H 4D 89 D3 ; if lna < lne
+H 4C 8B 55 F0 ; if lna < lne
+H 4D 39 DA ; if lna < lne
+H 0F 8D $_if65e ; if lna < lne
+H 4C 8B 15 $lna ; tokenize(lna, lne)
+H 4C 89 55 D8 ; tokenize(lna, lne)
+H 4C 8B 15 $lne ; tokenize(lna, lne)
+H 4C 89 55 D0 ; tokenize(lna, lne)
+H 48 8B 4D D8 ; tokenize(lna, lne)
+H 48 8B 55 D0 ; tokenize(lna, lne)
+H E8 $tokenize ; tokenize(lna, lne)
+H 4C 8B 15 $tcnt ; if tcnt != 0
+H 4C 89 55 F0 ; if tcnt != 0
+H 49 C7 C2 00 00 00 00 ; if tcnt != 0
+H 4D 89 D3 ; if tcnt != 0
+H 4C 8B 55 F0 ; if tcnt != 0
+H 4D 39 DA ; if tcnt != 0
+H 0F 84 $_if66e ; if tcnt != 0
+H 4C 8B 15 $srcbuf ; if getb(srcbuf, tstart[0]) == 46
+H 4C 89 55 E8 ; if getb(srcbuf, tstart[0]) == 46
+H 4C 8D 15 $tstart ; if getb(srcbuf, tstart[0]) == 46
+H 4C 89 55 E0 ; if getb(srcbuf, tstart[0]) == 46
+H 49 C7 C2 00 00 00 00 ; if getb(srcbuf, tstart[0]) == 46
+H 49 C1 E2 03 ; if getb(srcbuf, tstart[0]) == 46
+H 4D 89 D3 ; if getb(srcbuf, tstart[0]) == 46
+H 4C 8B 55 E0 ; if getb(srcbuf, tstart[0]) == 46
+H 4D 01 DA ; if getb(srcbuf, tstart[0]) == 46
+H 4D 8B 12 ; if getb(srcbuf, tstart[0]) == 46
+H 4D 89 D3 ; if getb(srcbuf, tstart[0]) == 46
+H 4C 8B 55 E8 ; if getb(srcbuf, tstart[0]) == 46
+H 47 0F B6 14 1A ; if getb(srcbuf, tstart[0]) == 46
+H 4C 89 55 F0 ; if getb(srcbuf, tstart[0]) == 46
+H 49 C7 C2 2E 00 00 00 ; if getb(srcbuf, tstart[0]) == 46
+H 4D 89 D3 ; if getb(srcbuf, tstart[0]) == 46
+H 4C 8B 55 F0 ; if getb(srcbuf, tstart[0]) == 46
+H 4D 39 DA ; if getb(srcbuf, tstart[0]) == 46
+H 0F 85 $_if67 ; if getb(srcbuf, tstart[0]) == 46
+H 49 C7 C2 00 00 00 00 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 89 55 D8 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 8D 15 $s_dotmem ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 89 55 D0 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 49 C7 C2 04 00 00 00 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 89 55 C8 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 48 8B 4D D8 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 48 8B 55 D0 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 8B 45 C8 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H E8 $tok_is ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 49 89 C2 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 89 55 F0 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 49 C7 C2 01 00 00 00 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4D 89 D3 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 8B 55 F0 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4D 39 DA ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 0F 85 $_if68 ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+H 4C 8B 15 $memsize ; if memsize != -1
+H 4C 89 55 F0 ; if memsize != -1
+H 49 C7 C2 01 00 00 00 ; if memsize != -1
+H 49 F7 DA ; if memsize != -1
+H 4D 89 D3 ; if memsize != -1
+H 4C 8B 55 F0 ; if memsize != -1
+H 4D 39 DA ; if memsize != -1
+H 0F 84 $_if69e ; if memsize != -1
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if69e
+H 4C 8B 15 $tcnt ; if tcnt != 2
+H 4C 89 55 F0 ; if tcnt != 2
+H 49 C7 C2 02 00 00 00 ; if tcnt != 2
+H 4D 89 D3 ; if tcnt != 2
+H 4C 8B 55 F0 ; if tcnt != 2
+H 4D 39 DA ; if tcnt != 2
+H 0F 84 $_if70e ; if tcnt != 2
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if70e
+H 49 C7 C2 01 00 00 00 ; if parse_num(1) == 0
+H 4C 89 55 D8 ; if parse_num(1) == 0
+H 48 8B 4D D8 ; if parse_num(1) == 0
+H E8 $parse_num ; if parse_num(1) == 0
+H 49 89 C2 ; if parse_num(1) == 0
+H 4C 89 55 F0 ; if parse_num(1) == 0
+H 49 C7 C2 00 00 00 00 ; if parse_num(1) == 0
+H 4D 89 D3 ; if parse_num(1) == 0
+H 4C 8B 55 F0 ; if parse_num(1) == 0
+H 4D 39 DA ; if parse_num(1) == 0
+H 0F 85 $_if71e ; if parse_num(1) == 0
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if71e
+H 4C 8B 15 $nval ; if nval < 0 || nval > 67108864
+H 4C 89 55 F0 ; if nval < 0 || nval > 67108864
+H 49 C7 C2 00 00 00 00 ; if nval < 0 || nval > 67108864
+H 4D 89 D3 ; if nval < 0 || nval > 67108864
+H 4C 8B 55 F0 ; if nval < 0 || nval > 67108864
+H 4D 39 DA ; if nval < 0 || nval > 67108864
+H 0F 8D $_if72d2 ; if nval < 0 || nval > 67108864
+H E9 $_if72t ; if nval < 0 || nval > 67108864
+:_if72d2
+H 4C 8B 15 $nval ; if nval < 0 || nval > 67108864
+H 4C 89 55 F0 ; if nval < 0 || nval > 67108864
+H 49 C7 C2 00 00 00 04 ; if nval < 0 || nval > 67108864
+H 4D 89 D3 ; if nval < 0 || nval > 67108864
+H 4C 8B 55 F0 ; if nval < 0 || nval > 67108864
+H 4D 39 DA ; if nval < 0 || nval > 67108864
+H 0F 8E $_if72e ; if nval < 0 || nval > 67108864
+:_if72t
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if72e
+H 4C 8B 15 $nval ; memsize = nval
+H 4C 89 15 $memsize ; memsize = nval
+H E9 $_if68e ; if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+:_if68
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if68e
+H E9 $_if67e ; if getb(srcbuf, tstart[0]) == 46
+:_if67
+H 49 C7 C2 00 00 00 00 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 89 55 D8 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 8D 15 $s_halt ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 89 55 D0 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 49 C7 C2 04 00 00 00 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 89 55 C8 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 48 8B 4D D8 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 48 8B 55 D0 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 8B 45 C8 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H E8 $tok_is ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 49 89 C2 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 89 55 F0 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 49 C7 C2 01 00 00 00 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4D 89 D3 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 8B 55 F0 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4D 39 DA ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 0F 85 $_if73 ; if tok_is(0, s_halt, len(s_halt)) == 1
+H 4C 8B 15 $memsize ; if memsize == -1
+H 4C 89 55 F0 ; if memsize == -1
+H 49 C7 C2 01 00 00 00 ; if memsize == -1
+H 49 F7 DA ; if memsize == -1
+H 4D 89 D3 ; if memsize == -1
+H 4C 8B 55 F0 ; if memsize == -1
+H 4D 39 DA ; if memsize == -1
+H 0F 85 $_if74e ; if memsize == -1
+H 49 C7 C2 01 00 00 00 ; fail_at(1)
+H 4C 89 55 D8 ; fail_at(1)
+H 48 8B 4D D8 ; fail_at(1)
+H E8 $fail_at ; fail_at(1)
+:_if74e
+H 4C 8B 15 $pc ; pc = pc + 6
+H 4C 89 55 F0 ; pc = pc + 6
+H 49 C7 C2 06 00 00 00 ; pc = pc + 6
+H 4D 89 D3 ; pc = pc + 6
+H 4C 8B 55 F0 ; pc = pc + 6
+H 4D 01 DA ; pc = pc + 6
+H 4C 89 15 $pc ; pc = pc + 6
+H E9 $_if73e ; if tok_is(0, s_halt, len(s_halt)) == 1
+:_if73
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D8 ; fail_at(lln)
+H 48 8B 4D D8 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if73e
+:_if67e
+:_if66e
+:_if65e
+H E8 $line_next ; go = line_next()
+H 49 89 C2 ; go = line_next()
+H 4C 89 55 F8 ; go = line_next()
+H E9 $_w64 ; while go == 1
+:_w64e
+H 4C 8B 15 $memsize ; if memsize == -1
+H 4C 89 55 F0 ; if memsize == -1
+H 49 C7 C2 01 00 00 00 ; if memsize == -1
+H 49 F7 DA ; if memsize == -1
+H 4D 89 D3 ; if memsize == -1
+H 4C 8B 55 F0 ; if memsize == -1
+H 4D 39 DA ; if memsize == -1
+H 0F 85 $_if75e ; if memsize == -1
+H 49 C7 C2 01 00 00 00 ; fail_at(1)
+H 4C 89 55 D8 ; fail_at(1)
+H 48 8B 4D D8 ; fail_at(1)
+H E8 $fail_at ; fail_at(1)
+:_if75e
+H 4C 8B 15 $pc ; if pc == 0
+H 4C 89 55 F0 ; if pc == 0
+H 49 C7 C2 00 00 00 00 ; if pc == 0
+H 4D 89 D3 ; if pc == 0
+H 4C 8B 55 F0 ; if pc == 0
+H 4D 39 DA ; if pc == 0
+H 0F 85 $_if76e ; if pc == 0
+H 4C 8D 15 $s_code0 ; print_error(s_code0, len(s_code0), 6)
+H 4C 89 55 D8 ; print_error(s_code0, len(s_code0), 6)
+H 49 C7 C2 14 00 00 00 ; print_error(s_code0, len(s_code0), 6)
+H 4C 89 55 D0 ; print_error(s_code0, len(s_code0), 6)
+H 49 C7 C2 06 00 00 00 ; print_error(s_code0, len(s_code0), 6)
+H 4C 89 55 C8 ; print_error(s_code0, len(s_code0), 6)
+H 48 8B 4D D8 ; print_error(s_code0, len(s_code0), 6)
+H 48 8B 55 D0 ; print_error(s_code0, len(s_code0), 6)
+H 4C 8B 45 C8 ; print_error(s_code0, len(s_code0), 6)
+H E8 $print_error ; print_error(s_code0, len(s_code0), 6)
+:_if76e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход pass1
+H 5D ; выход pass1
+H C3 ; выход pass1
+:enc_halt
+H 55 ; кадр enc_halt
+H 48 89 E5 ; кадр enc_halt
+H 48 83 EC 70 ; кадр enc_halt
+H 48 89 4D F8 ; кадр enc_halt
+H 4C 8B 15 $outbuf ; setb(outbuf, 24 + at, 18)
+H 4C 89 55 D8 ; setb(outbuf, 24 + at, 18)
+H 49 C7 C2 18 00 00 00 ; setb(outbuf, 24 + at, 18)
+H 4C 89 55 F0 ; setb(outbuf, 24 + at, 18)
+H 4C 8B 55 F8 ; setb(outbuf, 24 + at, 18)
+H 4D 89 D3 ; setb(outbuf, 24 + at, 18)
+H 4C 8B 55 F0 ; setb(outbuf, 24 + at, 18)
+H 4D 01 DA ; setb(outbuf, 24 + at, 18)
+H 4C 89 55 D0 ; setb(outbuf, 24 + at, 18)
+H 49 C7 C2 12 00 00 00 ; setb(outbuf, 24 + at, 18)
+H 4C 89 55 C8 ; setb(outbuf, 24 + at, 18)
+H 4C 8B 55 D8 ; setb(outbuf, 24 + at, 18)
+H 4C 8B 5D D0 ; setb(outbuf, 24 + at, 18)
+H 8A 45 C8 ; setb(outbuf, 24 + at, 18)
+H 43 88 04 1A ; setb(outbuf, 24 + at, 18)
+H 4C 8B 15 $outbuf ; setb(outbuf, 25 + at, 0)
+H 4C 89 55 D8 ; setb(outbuf, 25 + at, 0)
+H 49 C7 C2 19 00 00 00 ; setb(outbuf, 25 + at, 0)
+H 4C 89 55 F0 ; setb(outbuf, 25 + at, 0)
+H 4C 8B 55 F8 ; setb(outbuf, 25 + at, 0)
+H 4D 89 D3 ; setb(outbuf, 25 + at, 0)
+H 4C 8B 55 F0 ; setb(outbuf, 25 + at, 0)
+H 4D 01 DA ; setb(outbuf, 25 + at, 0)
+H 4C 89 55 D0 ; setb(outbuf, 25 + at, 0)
+H 49 C7 C2 00 00 00 00 ; setb(outbuf, 25 + at, 0)
+H 4C 89 55 C8 ; setb(outbuf, 25 + at, 0)
+H 4C 8B 55 D8 ; setb(outbuf, 25 + at, 0)
+H 4C 8B 5D D0 ; setb(outbuf, 25 + at, 0)
+H 8A 45 C8 ; setb(outbuf, 25 + at, 0)
+H 43 88 04 1A ; setb(outbuf, 25 + at, 0)
+H 49 C7 C2 1A 00 00 00 ; put32(26 + at, nval)
+H 4C 89 55 F0 ; put32(26 + at, nval)
+H 4C 8B 55 F8 ; put32(26 + at, nval)
+H 4D 89 D3 ; put32(26 + at, nval)
+H 4C 8B 55 F0 ; put32(26 + at, nval)
+H 4D 01 DA ; put32(26 + at, nval)
+H 4C 89 55 E8 ; put32(26 + at, nval)
+H 4C 8B 15 $nval ; put32(26 + at, nval)
+H 4C 89 55 E0 ; put32(26 + at, nval)
+H 48 8B 4D E8 ; put32(26 + at, nval)
+H 48 8B 55 E0 ; put32(26 + at, nval)
+H E8 $put32 ; put32(26 + at, nval)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход enc_halt
+H 5D ; выход enc_halt
+H C3 ; выход enc_halt
+:pass2
+H 55 ; кадр pass2
+H 48 89 E5 ; кадр pass2
+H 48 83 EC 70 ; кадр pass2
+H 49 C7 C2 00 00 00 00 ; at = 0
+H 4C 89 55 F0 ; at = 0
+H 49 C7 C2 00 00 00 00 ; lpos = 0
+H 4C 89 15 $lpos ; lpos = 0
+H 49 C7 C2 00 00 00 00 ; lln = 0
+H 4C 89 15 $lln ; lln = 0
+H E8 $line_next ; go = line_next()
+H 49 89 C2 ; go = line_next()
+H 4C 89 55 F8 ; go = line_next()
+:_w77
+H 4C 8B 55 F8 ; while go == 1
+H 4C 89 55 E0 ; while go == 1
+H 49 C7 C2 01 00 00 00 ; while go == 1
+H 4D 89 D3 ; while go == 1
+H 4C 8B 55 E0 ; while go == 1
+H 4D 39 DA ; while go == 1
+H 0F 85 $_w77e ; while go == 1
+H 4C 8B 15 $lna ; if lna < lne
+H 4C 89 55 E0 ; if lna < lne
+H 4C 8B 15 $lne ; if lna < lne
+H 4D 89 D3 ; if lna < lne
+H 4C 8B 55 E0 ; if lna < lne
+H 4D 39 DA ; if lna < lne
+H 0F 8D $_if78e ; if lna < lne
+H 4C 8B 15 $lna ; tokenize(lna, lne)
+H 4C 89 55 D0 ; tokenize(lna, lne)
+H 4C 8B 15 $lne ; tokenize(lna, lne)
+H 4C 89 55 C8 ; tokenize(lna, lne)
+H 48 8B 4D D0 ; tokenize(lna, lne)
+H 48 8B 55 C8 ; tokenize(lna, lne)
+H E8 $tokenize ; tokenize(lna, lne)
+H 4C 8B 15 $tcnt ; if tcnt != 0
+H 4C 89 55 E0 ; if tcnt != 0
+H 49 C7 C2 00 00 00 00 ; if tcnt != 0
+H 4D 89 D3 ; if tcnt != 0
+H 4C 8B 55 E0 ; if tcnt != 0
+H 4D 39 DA ; if tcnt != 0
+H 0F 84 $_if79e ; if tcnt != 0
+H 4C 8B 15 $srcbuf ; c = getb(srcbuf, tstart[0])
+H 4C 89 55 E0 ; c = getb(srcbuf, tstart[0])
+H 4C 8D 15 $tstart ; c = getb(srcbuf, tstart[0])
+H 4C 89 55 D8 ; c = getb(srcbuf, tstart[0])
+H 49 C7 C2 00 00 00 00 ; c = getb(srcbuf, tstart[0])
+H 49 C1 E2 03 ; c = getb(srcbuf, tstart[0])
+H 4D 89 D3 ; c = getb(srcbuf, tstart[0])
+H 4C 8B 55 D8 ; c = getb(srcbuf, tstart[0])
+H 4D 01 DA ; c = getb(srcbuf, tstart[0])
+H 4D 8B 12 ; c = getb(srcbuf, tstart[0])
+H 4D 89 D3 ; c = getb(srcbuf, tstart[0])
+H 4C 8B 55 E0 ; c = getb(srcbuf, tstart[0])
+H 47 0F B6 14 1A ; c = getb(srcbuf, tstart[0])
+H 4C 89 55 E8 ; c = getb(srcbuf, tstart[0])
+H 4C 8B 55 E8 ; if c != 46
+H 4C 89 55 E0 ; if c != 46
+H 49 C7 C2 2E 00 00 00 ; if c != 46
+H 4D 89 D3 ; if c != 46
+H 4C 8B 55 E0 ; if c != 46
+H 4D 39 DA ; if c != 46
+H 0F 84 $_if80e ; if c != 46
+H 4C 8B 15 $tcnt ; if tcnt != 2
+H 4C 89 55 E0 ; if tcnt != 2
+H 49 C7 C2 02 00 00 00 ; if tcnt != 2
+H 4D 89 D3 ; if tcnt != 2
+H 4C 8B 55 E0 ; if tcnt != 2
+H 4D 39 DA ; if tcnt != 2
+H 0F 84 $_if81e ; if tcnt != 2
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D0 ; fail_at(lln)
+H 48 8B 4D D0 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if81e
+H 49 C7 C2 01 00 00 00 ; if parse_num(1) == 0
+H 4C 89 55 D0 ; if parse_num(1) == 0
+H 48 8B 4D D0 ; if parse_num(1) == 0
+H E8 $parse_num ; if parse_num(1) == 0
+H 49 89 C2 ; if parse_num(1) == 0
+H 4C 89 55 E0 ; if parse_num(1) == 0
+H 49 C7 C2 00 00 00 00 ; if parse_num(1) == 0
+H 4D 89 D3 ; if parse_num(1) == 0
+H 4C 8B 55 E0 ; if parse_num(1) == 0
+H 4D 39 DA ; if parse_num(1) == 0
+H 0F 85 $_if82e ; if parse_num(1) == 0
+H 4C 8B 15 $lln ; fail_at(lln)
+H 4C 89 55 D0 ; fail_at(lln)
+H 48 8B 4D D0 ; fail_at(lln)
+H E8 $fail_at ; fail_at(lln)
+:_if82e
+H 4C 8B 55 F0 ; enc_halt(at)
+H 4C 89 55 D0 ; enc_halt(at)
+H 48 8B 4D D0 ; enc_halt(at)
+H E8 $enc_halt ; enc_halt(at)
+H 4C 8B 55 F0 ; at = at + 6
+H 4C 89 55 E0 ; at = at + 6
+H 49 C7 C2 06 00 00 00 ; at = at + 6
+H 4D 89 D3 ; at = at + 6
+H 4C 8B 55 E0 ; at = at + 6
+H 4D 01 DA ; at = at + 6
+H 4C 89 55 F0 ; at = at + 6
+:_if80e
+:_if79e
+:_if78e
+H E8 $line_next ; go = line_next()
+H 49 89 C2 ; go = line_next()
+H 4C 89 55 F8 ; go = line_next()
+H E9 $_w77 ; while go == 1
+:_w77e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход pass2
+H 5D ; выход pass2
+H C3 ; выход pass2
+:put32
+H 55 ; кадр put32
+H 48 89 E5 ; кадр put32
+H 48 83 EC 70 ; кадр put32
+H 48 89 4D F8 ; кадр put32
+H 48 89 55 F0 ; кадр put32
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 E8 ; k = 0
+:_w83
+H 4C 8B 55 E8 ; while k < 4
+H 4C 89 55 E0 ; while k < 4
+H 49 C7 C2 04 00 00 00 ; while k < 4
+H 4D 89 D3 ; while k < 4
+H 4C 8B 55 E0 ; while k < 4
+H 4D 39 DA ; while k < 4
+H 0F 8D $_w83e ; while k < 4
+H 4C 8B 15 $outbuf ; setb(outbuf, off + k, v & 255)
+H 4C 89 55 D8 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 F8 ; setb(outbuf, off + k, v & 255)
+H 4C 89 55 E0 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 E8 ; setb(outbuf, off + k, v & 255)
+H 4D 89 D3 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 E0 ; setb(outbuf, off + k, v & 255)
+H 4D 01 DA ; setb(outbuf, off + k, v & 255)
+H 4C 89 55 D0 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 F0 ; setb(outbuf, off + k, v & 255)
+H 4C 89 55 E0 ; setb(outbuf, off + k, v & 255)
+H 49 C7 C2 FF 00 00 00 ; setb(outbuf, off + k, v & 255)
+H 4D 89 D3 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 E0 ; setb(outbuf, off + k, v & 255)
+H 4D 21 DA ; setb(outbuf, off + k, v & 255)
+H 4C 89 55 C8 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 D8 ; setb(outbuf, off + k, v & 255)
+H 4C 8B 5D D0 ; setb(outbuf, off + k, v & 255)
+H 8A 45 C8 ; setb(outbuf, off + k, v & 255)
+H 43 88 04 1A ; setb(outbuf, off + k, v & 255)
+H 4C 8B 55 F0 ; v = v >> 8
+H 4C 89 55 E0 ; v = v >> 8
+H 49 C7 C2 08 00 00 00 ; v = v >> 8
+H 4D 89 D3 ; v = v >> 8
+H 4C 8B 55 E0 ; v = v >> 8
+H 4C 89 D9 ; v = v >> 8
+H 49 D3 EA ; v = v >> 8
+H 4C 89 55 F0 ; v = v >> 8
+H 4C 8B 55 E8 ; k = k + 1
+H 4C 89 55 E0 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 E0 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 E8 ; k = k + 1
+H E9 $_w83 ; while k < 4
+:_w83e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход put32
+H 5D ; выход put32
+H C3 ; выход put32
+:make_header
+H 55 ; кадр make_header
+H 48 89 E5 ; кадр make_header
+H 48 83 EC 70 ; кадр make_header
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F8 ; k = 0
+:_w84
+H 4C 8B 55 F8 ; while k < 4
+H 4C 89 55 F0 ; while k < 4
+H 49 C7 C2 04 00 00 00 ; while k < 4
+H 4D 89 D3 ; while k < 4
+H 4C 8B 55 F0 ; while k < 4
+H 4D 39 DA ; while k < 4
+H 0F 8D $_w84e ; while k < 4
+H 4C 8B 15 $outbuf ; setb(outbuf, k, getb(s_up01, k))
+H 4C 89 55 D8 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 55 F8 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 89 55 D0 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8D 15 $s_up01 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 89 55 F0 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 55 F8 ; setb(outbuf, k, getb(s_up01, k))
+H 4D 89 D3 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 55 F0 ; setb(outbuf, k, getb(s_up01, k))
+H 47 0F B6 14 1A ; setb(outbuf, k, getb(s_up01, k))
+H 4C 89 55 C8 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 55 D8 ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 5D D0 ; setb(outbuf, k, getb(s_up01, k))
+H 8A 45 C8 ; setb(outbuf, k, getb(s_up01, k))
+H 43 88 04 1A ; setb(outbuf, k, getb(s_up01, k))
+H 4C 8B 55 F8 ; k = k + 1
+H 4C 89 55 F0 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 F0 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F8 ; k = k + 1
+H E9 $_w84 ; while k < 4
+:_w84e
+H 49 C7 C2 04 00 00 00 ; put32(4, 1)
+H 4C 89 55 E8 ; put32(4, 1)
+H 49 C7 C2 01 00 00 00 ; put32(4, 1)
+H 4C 89 55 E0 ; put32(4, 1)
+H 48 8B 4D E8 ; put32(4, 1)
+H 48 8B 55 E0 ; put32(4, 1)
+H E8 $put32 ; put32(4, 1)
+H 49 C7 C2 08 00 00 00 ; put32(8, memsize)
+H 4C 89 55 E8 ; put32(8, memsize)
+H 4C 8B 15 $memsize ; put32(8, memsize)
+H 4C 89 55 E0 ; put32(8, memsize)
+H 48 8B 4D E8 ; put32(8, memsize)
+H 48 8B 55 E0 ; put32(8, memsize)
+H E8 $put32 ; put32(8, memsize)
+H 49 C7 C2 0C 00 00 00 ; put32(12, memsize >> 32)
+H 4C 89 55 E8 ; put32(12, memsize >> 32)
+H 4C 8B 15 $memsize ; put32(12, memsize >> 32)
+H 4C 89 55 F0 ; put32(12, memsize >> 32)
+H 49 C7 C2 20 00 00 00 ; put32(12, memsize >> 32)
+H 4D 89 D3 ; put32(12, memsize >> 32)
+H 4C 8B 55 F0 ; put32(12, memsize >> 32)
+H 4C 89 D9 ; put32(12, memsize >> 32)
+H 49 D3 EA ; put32(12, memsize >> 32)
+H 4C 89 55 E0 ; put32(12, memsize >> 32)
+H 48 8B 4D E8 ; put32(12, memsize >> 32)
+H 48 8B 55 E0 ; put32(12, memsize >> 32)
+H E8 $put32 ; put32(12, memsize >> 32)
+H 49 C7 C2 10 00 00 00 ; put32(16, pc)
+H 4C 89 55 E8 ; put32(16, pc)
+H 4C 8B 15 $pc ; put32(16, pc)
+H 4C 89 55 E0 ; put32(16, pc)
+H 48 8B 4D E8 ; put32(16, pc)
+H 48 8B 55 E0 ; put32(16, pc)
+H E8 $put32 ; put32(16, pc)
+H 49 C7 C2 14 00 00 00 ; put32(20, 0)
+H 4C 89 55 E8 ; put32(20, 0)
+H 49 C7 C2 00 00 00 00 ; put32(20, 0)
+H 4C 89 55 E0 ; put32(20, 0)
+H 48 8B 4D E8 ; put32(20, 0)
+H 48 8B 55 E0 ; put32(20, 0)
+H E8 $put32 ; put32(20, 0)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход make_header
+H 5D ; выход make_header
+H C3 ; выход make_header
+:write_out
+H 55 ; кадр write_out
+H 48 89 E5 ; кадр write_out
+H 48 81 EC 80 00 00 00 ; кадр write_out
+H 4C 8D 15 $w2 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 D8 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 49 C7 C2 00 00 00 40 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 D0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 C8 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 49 C7 C2 02 00 00 00 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 C0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 A0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 48 8B 4D D8 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 48 8B 55 D0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 8B 45 C8 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 8B 4D C0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 8B 55 A0 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 54 24 20 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H FF 15 $_iat_createfile2 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 49 89 C2 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 89 55 F8 ; fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+H 4C 8B 55 F8 ; if fh == -1
+H 4C 89 55 E0 ; if fh == -1
+H 49 C7 C2 01 00 00 00 ; if fh == -1
+H 49 F7 DA ; if fh == -1
+H 4D 89 D3 ; if fh == -1
+H 4C 8B 55 E0 ; if fh == -1
+H 4D 39 DA ; if fh == -1
+H 0F 85 $_if85e ; if fh == -1
+H 4C 8D 15 $s_oout ; print_error(s_oout, len(s_oout), 8)
+H 4C 89 55 D8 ; print_error(s_oout, len(s_oout), 8)
+H 49 C7 C2 17 00 00 00 ; print_error(s_oout, len(s_oout), 8)
+H 4C 89 55 D0 ; print_error(s_oout, len(s_oout), 8)
+H 49 C7 C2 08 00 00 00 ; print_error(s_oout, len(s_oout), 8)
+H 4C 89 55 C8 ; print_error(s_oout, len(s_oout), 8)
+H 48 8B 4D D8 ; print_error(s_oout, len(s_oout), 8)
+H 48 8B 55 D0 ; print_error(s_oout, len(s_oout), 8)
+H 4C 8B 45 C8 ; print_error(s_oout, len(s_oout), 8)
+H E8 $print_error ; print_error(s_oout, len(s_oout), 8)
+:_if85e
+H 49 C7 C2 18 00 00 00 ; n = 24 + pc
+H 4C 89 55 E0 ; n = 24 + pc
+H 4C 8B 15 $pc ; n = 24 + pc
+H 4D 89 D3 ; n = 24 + pc
+H 4C 8B 55 E0 ; n = 24 + pc
+H 4D 01 DA ; n = 24 + pc
+H 4C 89 55 E8 ; n = 24 + pc
+H 4C 8B 55 F8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 D8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 15 $outbuf ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 D0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 55 E8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 C8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8D 15 $written ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 C0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 49 C7 C2 00 00 00 00 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 A0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 48 8B 4D D8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 48 8B 55 D0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 45 C8 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 4D C0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 55 A0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 54 24 20 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H FF 15 $_iat_writefile ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 49 89 C2 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 89 55 F0 ; rc = WriteFile(fh, outbuf, n, &written, 0)
+H 4C 8B 55 F0 ; if rc == 0
+H 4C 89 55 E0 ; if rc == 0
+H 49 C7 C2 00 00 00 00 ; if rc == 0
+H 4D 89 D3 ; if rc == 0
+H 4C 8B 55 E0 ; if rc == 0
+H 4D 39 DA ; if rc == 0
+H 0F 85 $_if86e ; if rc == 0
+H 4C 8D 15 $s_wout ; print_error(s_wout, len(s_wout), 9)
+H 4C 89 55 D8 ; print_error(s_wout, len(s_wout), 9)
+H 49 C7 C2 18 00 00 00 ; print_error(s_wout, len(s_wout), 9)
+H 4C 89 55 D0 ; print_error(s_wout, len(s_wout), 9)
+H 49 C7 C2 09 00 00 00 ; print_error(s_wout, len(s_wout), 9)
+H 4C 89 55 C8 ; print_error(s_wout, len(s_wout), 9)
+H 48 8B 4D D8 ; print_error(s_wout, len(s_wout), 9)
+H 48 8B 55 D0 ; print_error(s_wout, len(s_wout), 9)
+H 4C 8B 45 C8 ; print_error(s_wout, len(s_wout), 9)
+H E8 $print_error ; print_error(s_wout, len(s_wout), 9)
+:_if86e
+H 4C 8B 55 F8 ; CloseHandle(fh)
+H 4C 89 55 D8 ; CloseHandle(fh)
+H 48 8B 4D D8 ; CloseHandle(fh)
+H FF 15 $_iat_closehandle ; CloseHandle(fh)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход write_out
+H 5D ; выход write_out
+H C3 ; выход write_out
+:main
+H 55 ; кадр main
+H 48 89 E5 ; кадр main
+H 48 81 EC 90 00 00 00 ; кадр main
+H 49 C7 C2 0B 00 00 00 ; hstdout = GetStdHandle(-11)
+H 49 F7 DA ; hstdout = GetStdHandle(-11)
+H 4C 89 55 C8 ; hstdout = GetStdHandle(-11)
+H 48 8B 4D C8 ; hstdout = GetStdHandle(-11)
+H FF 15 $_iat_getstdhandle ; hstdout = GetStdHandle(-11)
+H 49 89 C2 ; hstdout = GetStdHandle(-11)
+H 4C 89 15 $hstdout ; hstdout = GetStdHandle(-11)
+H FF 15 $_iat_getcommandlinea ; cmdline = GetCommandLineA()
+H 49 89 C2 ; cmdline = GetCommandLineA()
+H 4C 89 15 $cmdline ; cmdline = GetCommandLineA()
+H E8 $skip0 ; i = skip0()
+H 49 89 C2 ; i = skip0()
+H 4C 89 55 F8 ; i = skip0()
+H 4C 8D 15 $arg1 ; i = read_arg(arg1, i)
+H 4C 89 55 C8 ; i = read_arg(arg1, i)
+H 4C 8B 55 F8 ; i = read_arg(arg1, i)
+H 4C 89 55 C0 ; i = read_arg(arg1, i)
+H 48 8B 4D C8 ; i = read_arg(arg1, i)
+H 48 8B 55 C0 ; i = read_arg(arg1, i)
+H E8 $read_arg ; i = read_arg(arg1, i)
+H 49 89 C2 ; i = read_arg(arg1, i)
+H 4C 89 55 F8 ; i = read_arg(arg1, i)
+H 4C 8B 15 $wlen ; nlen1 = wlen
+H 4C 89 55 E0 ; nlen1 = wlen
+H 4C 8D 15 $arg2 ; i = read_arg(arg2, i)
+H 4C 89 55 C8 ; i = read_arg(arg2, i)
+H 4C 8B 55 F8 ; i = read_arg(arg2, i)
+H 4C 89 55 C0 ; i = read_arg(arg2, i)
+H 48 8B 4D C8 ; i = read_arg(arg2, i)
+H 48 8B 55 C0 ; i = read_arg(arg2, i)
+H E8 $read_arg ; i = read_arg(arg2, i)
+H 49 89 C2 ; i = read_arg(arg2, i)
+H 4C 89 55 F8 ; i = read_arg(arg2, i)
+H 4C 8B 15 $wlen ; nlen2 = wlen
+H 4C 89 55 D8 ; nlen2 = wlen
+H 4C 8B 55 F8 ; check_end(i)
+H 4C 89 55 C8 ; check_end(i)
+H 48 8B 4D C8 ; check_end(i)
+H E8 $check_end ; check_end(i)
+H 4C 8D 15 $w1 ; widen(w1, arg1, nlen1)
+H 4C 89 55 C8 ; widen(w1, arg1, nlen1)
+H 4C 8D 15 $arg1 ; widen(w1, arg1, nlen1)
+H 4C 89 55 C0 ; widen(w1, arg1, nlen1)
+H 4C 8B 55 E0 ; widen(w1, arg1, nlen1)
+H 4C 89 55 B8 ; widen(w1, arg1, nlen1)
+H 48 8B 4D C8 ; widen(w1, arg1, nlen1)
+H 48 8B 55 C0 ; widen(w1, arg1, nlen1)
+H 4C 8B 45 B8 ; widen(w1, arg1, nlen1)
+H E8 $widen ; widen(w1, arg1, nlen1)
+H 4C 8D 15 $w2 ; widen(w2, arg2, nlen2)
+H 4C 89 55 C8 ; widen(w2, arg2, nlen2)
+H 4C 8D 15 $arg2 ; widen(w2, arg2, nlen2)
+H 4C 89 55 C0 ; widen(w2, arg2, nlen2)
+H 4C 8B 55 D8 ; widen(w2, arg2, nlen2)
+H 4C 89 55 B8 ; widen(w2, arg2, nlen2)
+H 48 8B 4D C8 ; widen(w2, arg2, nlen2)
+H 48 8B 55 C0 ; widen(w2, arg2, nlen2)
+H 4C 8B 45 B8 ; widen(w2, arg2, nlen2)
+H E8 $widen ; widen(w2, arg2, nlen2)
+H 4C 8D 15 $w1 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 C8 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 C7 C2 01 00 00 00 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 D0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 C7 C2 1F 00 00 00 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4D 89 D3 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 8B 55 D0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 D9 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 D3 E2 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 C0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 B8 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 C7 C2 03 00 00 00 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 B0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 90 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 48 8B 4D C8 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 48 8B 55 C0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 8B 45 B8 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 8B 4D B0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 8B 55 90 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 54 24 20 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H FF 15 $_iat_createfile2 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 49 89 C2 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 89 55 F0 ; fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+H 4C 8B 55 F0 ; if fh == -1
+H 4C 89 55 D0 ; if fh == -1
+H 49 C7 C2 01 00 00 00 ; if fh == -1
+H 49 F7 DA ; if fh == -1
+H 4D 89 D3 ; if fh == -1
+H 4C 8B 55 D0 ; if fh == -1
+H 4D 39 DA ; if fh == -1
+H 0F 85 $_if87e ; if fh == -1
+H 4C 8D 15 $s_osrc ; print_error(s_osrc, len(s_osrc), 4)
+H 4C 89 55 C8 ; print_error(s_osrc, len(s_osrc), 4)
+H 49 C7 C2 17 00 00 00 ; print_error(s_osrc, len(s_osrc), 4)
+H 4C 89 55 C0 ; print_error(s_osrc, len(s_osrc), 4)
+H 49 C7 C2 04 00 00 00 ; print_error(s_osrc, len(s_osrc), 4)
+H 4C 89 55 B8 ; print_error(s_osrc, len(s_osrc), 4)
+H 48 8B 4D C8 ; print_error(s_osrc, len(s_osrc), 4)
+H 48 8B 55 C0 ; print_error(s_osrc, len(s_osrc), 4)
+H 4C 8B 45 B8 ; print_error(s_osrc, len(s_osrc), 4)
+H E8 $print_error ; print_error(s_osrc, len(s_osrc), 4)
+:_if87e
+H 49 C7 C2 00 00 00 00 ; srcbuf = GlobalAlloc(0, 65537)
+H 4C 89 55 C8 ; srcbuf = GlobalAlloc(0, 65537)
+H 49 C7 C2 01 00 01 00 ; srcbuf = GlobalAlloc(0, 65537)
+H 4C 89 55 C0 ; srcbuf = GlobalAlloc(0, 65537)
+H 48 8B 4D C8 ; srcbuf = GlobalAlloc(0, 65537)
+H 48 8B 55 C0 ; srcbuf = GlobalAlloc(0, 65537)
+H FF 15 $_iat_globalalloc ; srcbuf = GlobalAlloc(0, 65537)
+H 49 89 C2 ; srcbuf = GlobalAlloc(0, 65537)
+H 4C 89 15 $srcbuf ; srcbuf = GlobalAlloc(0, 65537)
+H 4C 8B 15 $srcbuf ; if srcbuf == 0
+H 4C 89 55 D0 ; if srcbuf == 0
+H 49 C7 C2 00 00 00 00 ; if srcbuf == 0
+H 4D 89 D3 ; if srcbuf == 0
+H 4C 8B 55 D0 ; if srcbuf == 0
+H 4D 39 DA ; if srcbuf == 0
+H 0F 85 $_if88e ; if srcbuf == 0
+H 4C 8D 15 $s_rsrc ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 17 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 4D C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 8B 45 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H E8 $print_error ; print_error(s_rsrc, len(s_rsrc), 5)
+:_if88e
+H 49 C7 C2 00 00 00 00 ; srclen = 0
+H 4C 89 15 $srclen ; srclen = 0
+H 4C 8B 55 F0 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 C8 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8B 15 $srcbuf ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 C0 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 49 C7 C2 01 00 01 00 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 B8 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8D 15 $srclen ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 B0 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 49 C7 C2 00 00 00 00 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 90 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 48 8B 4D C8 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 48 8B 55 C0 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8B 45 B8 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8B 4D B0 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8B 55 90 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 54 24 20 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H FF 15 $_iat_readfile ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 49 89 C2 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 89 55 E8 ; rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+H 4C 8B 55 E8 ; if rc == 0
+H 4C 89 55 D0 ; if rc == 0
+H 49 C7 C2 00 00 00 00 ; if rc == 0
+H 4D 89 D3 ; if rc == 0
+H 4C 8B 55 D0 ; if rc == 0
+H 4D 39 DA ; if rc == 0
+H 0F 85 $_if89e ; if rc == 0
+H 4C 8D 15 $s_rsrc ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 17 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 4D C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 8B 45 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H E8 $print_error ; print_error(s_rsrc, len(s_rsrc), 5)
+:_if89e
+H 4C 8B 15 $srclen ; if srclen >= 65537
+H 4C 89 55 D0 ; if srclen >= 65537
+H 49 C7 C2 01 00 01 00 ; if srclen >= 65537
+H 4D 89 D3 ; if srclen >= 65537
+H 4C 8B 55 D0 ; if srclen >= 65537
+H 4D 39 DA ; if srclen >= 65537
+H 0F 8C $_if90e ; if srclen >= 65537
+H 4C 8D 15 $s_big ; print_error(s_big, len(s_big), 7)
+H 4C 89 55 C8 ; print_error(s_big, len(s_big), 7)
+H 49 C7 C2 16 00 00 00 ; print_error(s_big, len(s_big), 7)
+H 4C 89 55 C0 ; print_error(s_big, len(s_big), 7)
+H 49 C7 C2 07 00 00 00 ; print_error(s_big, len(s_big), 7)
+H 4C 89 55 B8 ; print_error(s_big, len(s_big), 7)
+H 48 8B 4D C8 ; print_error(s_big, len(s_big), 7)
+H 48 8B 55 C0 ; print_error(s_big, len(s_big), 7)
+H 4C 8B 45 B8 ; print_error(s_big, len(s_big), 7)
+H E8 $print_error ; print_error(s_big, len(s_big), 7)
+:_if90e
+H 4C 8B 55 F0 ; CloseHandle(fh)
+H 4C 89 55 C8 ; CloseHandle(fh)
+H 48 8B 4D C8 ; CloseHandle(fh)
+H FF 15 $_iat_closehandle ; CloseHandle(fh)
+H 49 C7 C2 00 00 00 00 ; outbuf = GlobalAlloc(0, 65560)
+H 4C 89 55 C8 ; outbuf = GlobalAlloc(0, 65560)
+H 49 C7 C2 18 00 01 00 ; outbuf = GlobalAlloc(0, 65560)
+H 4C 89 55 C0 ; outbuf = GlobalAlloc(0, 65560)
+H 48 8B 4D C8 ; outbuf = GlobalAlloc(0, 65560)
+H 48 8B 55 C0 ; outbuf = GlobalAlloc(0, 65560)
+H FF 15 $_iat_globalalloc ; outbuf = GlobalAlloc(0, 65560)
+H 49 89 C2 ; outbuf = GlobalAlloc(0, 65560)
+H 4C 89 15 $outbuf ; outbuf = GlobalAlloc(0, 65560)
+H 4C 8B 15 $outbuf ; if outbuf == 0
+H 4C 89 55 D0 ; if outbuf == 0
+H 49 C7 C2 00 00 00 00 ; if outbuf == 0
+H 4D 89 D3 ; if outbuf == 0
+H 4C 8B 55 D0 ; if outbuf == 0
+H 4D 39 DA ; if outbuf == 0
+H 0F 85 $_if91e ; if outbuf == 0
+H 4C 8D 15 $s_rsrc ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 17 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 89 55 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 4D C8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 48 8B 55 C0 ; print_error(s_rsrc, len(s_rsrc), 5)
+H 4C 8B 45 B8 ; print_error(s_rsrc, len(s_rsrc), 5)
+H E8 $print_error ; print_error(s_rsrc, len(s_rsrc), 5)
+:_if91e
+H E8 $pass1 ; pass1()
+H E8 $pass2 ; pass2()
+H E8 $make_header ; make_header()
+H E8 $write_out ; write_out()
+H 49 C7 C2 00 00 00 00 ; ExitProcess(0)
+H 4C 89 55 C8 ; ExitProcess(0)
+H 48 8B 4D C8 ; ExitProcess(0)
+H FF 15 $_iat_exitprocess ; ExitProcess(0)
+H 48 89 EC ; выход main
+H 5D ; выход main
+H C3 ; выход main
+; --- данные: строки ---
+:s_use
+DB 55 2D 4C 33 2D 55 56 41 20 43 4D 44 53 3A 20 55 ; str s_use = 'U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n'
+DB 56 41 20 3C 53 52 43 2E 55 56 41 3E 20 3C 4F 55 ; str s_use = 'U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n'
+DB 54 2E 55 50 3E 0D 0A ; str s_use = 'U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n'
+:s_long
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 4C 4F 4E ; str s_long = 'U-L3-UVA ERR=LONG NAME\r\n'
+DB 47 20 4E 41 4D 45 0D 0A ; str s_long = 'U-L3-UVA ERR=LONG NAME\r\n'
+:s_osrc
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 4F 50 45 ; str s_osrc = 'U-L3-UVA ERR=OPEN SRC\r\n'
+DB 4E 20 53 52 43 0D 0A ; str s_osrc = 'U-L3-UVA ERR=OPEN SRC\r\n'
+:s_rsrc
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 52 45 41 ; str s_rsrc = 'U-L3-UVA ERR=READ SRC\r\n'
+DB 44 20 53 52 43 0D 0A ; str s_rsrc = 'U-L3-UVA ERR=READ SRC\r\n'
+:s_big
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 42 49 47 ; str s_big = 'U-L3-UVA ERR=BIG SRC\r\n'
+DB 20 53 52 43 0D 0A ; str s_big = 'U-L3-UVA ERR=BIG SRC\r\n'
+:s_fmt
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 46 4F 52 ; str s_fmt = 'U-L3-UVA ERR=FORMAT AT='
+DB 4D 41 54 20 41 54 3D ; str s_fmt = 'U-L3-UVA ERR=FORMAT AT='
+:s_code0
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 43 4F 44 ; str s_code0 = 'U-L3-UVA ERR=CODE0\r\n'
+DB 45 30 0D 0A ; str s_code0 = 'U-L3-UVA ERR=CODE0\r\n'
+:s_oout
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 4F 50 45 ; str s_oout = 'U-L3-UVA ERR=OPEN OUT\r\n'
+DB 4E 20 4F 55 54 0D 0A ; str s_oout = 'U-L3-UVA ERR=OPEN OUT\r\n'
+:s_wout
+DB 55 2D 4C 33 2D 55 56 41 20 45 52 52 3D 57 52 49 ; str s_wout = 'U-L3-UVA ERR=WRITE OUT\r\n'
+DB 54 45 20 4F 55 54 0D 0A ; str s_wout = 'U-L3-UVA ERR=WRITE OUT\r\n'
+:s_hexd
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 ; str s_hexd = '0123456789ABCDEF'
+:s_up01
+DB 55 50 30 31 ; str s_up01 = 'UP01'
+:s_dotmem
+DB 2E 6D 65 6D ; str s_dotmem = '.mem'
+:s_halt
+DB 68 61 6C 74 ; str s_halt = 'halt'
+; --- данные: глобальные переменные (нулевые ячейки) ---
+:hstdout
+DZ 8 ; var hstdout
+:cmdline
+DZ 8 ; var cmdline
+:written
+DZ 8 ; var written
+:wlen
+DZ 8 ; var wlen
+:arg1
+DZ 200 ; var arg1[64]
+:arg2
+DZ 200 ; var arg2[64]
+:w1
+DZ 200 ; var w1[64]
+:w2
+DZ 200 ; var w2[64]
+:srcbuf
+DZ 8 ; var srcbuf
+:srclen
+DZ 8 ; var srclen
+:outbuf
+DZ 8 ; var outbuf
+:memsize
+DZ 8 ; var memsize
+:pc
+DZ 8 ; var pc
+:lpos
+DZ 8 ; var lpos
+:lln
+DZ 8 ; var lln
+:lna
+DZ 8 ; var lna
+:lne
+DZ 8 ; var lne
+:tcnt
+DZ 8 ; var tcnt
+:tstart
+DZ 60 ; var tstart[12]
+:tend
+DZ 60 ; var tend[12]
+:nval
+DZ 8 ; var nval
+:fmtbuf
+DZ 180 ; var fmtbuf[48]

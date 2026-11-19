@@ -1,0 +1,124 @@
+; uva.wall — ассемблер UNIVM (M3-UVA, этап E7.3): корень с разрезом
+; Паспорт: KERNEL/L3-UVA/uva.wall | слой: L3 (исходник — WALL, слой L2)
+; | роль: корень ассемблера .uva -> .UP — читает текст программы UNIVM
+; (мнемоники SPEC/12 п. 8, директива .mem, метки) по пути из командной
+; строки и собирает контейнер .UP (SPEC/13); выход обязан совпадать
+; с ассемблером оракула LAB/py/lab_vm.py (assemble) байт-в-байт —
+; правило R8, общие свидетели — якоря T-E7-01.
+; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
+; и main, части — функции по ветвям (сервис C / токены T / проход 1 L /
+; кодирование E / запись W).
+; Срез E7.3-1 (каркас): CLI на два аргумента (вход .uva, выход .up),
+; чтение исходника (куча 65537, предел 65536 — BIG SRC), разбор строк
+; (комментарии ';', края-разделители, токены), директива .mem (одна,
+; до инструкций, 0..64 МиБ) и инструкция halt (F3: 12 00 imm32 LE);
+; прочие мнемоники/метки — срезы E7.3-2+ (пока ERR=FORMAT AT=строка).
+; Пустая программа (нет инструкций) — ERR=CODE0 (как make_up оракула);
+; нет .mem — ERR=FORMAT AT=0001 (строка 1 — как AsmError(1) оракула).
+; Контракт CLI/кодов — как у инструментов L1/L2 (SPEC/11): 0 успех;
+; 2 справка; 3 LONG NAME; 4 OPEN SRC; 5 READ SRC; 6 FORMAT AT=XXXX
+; (XXXX — ЗАГЛАВНЫЙ hex-номер строки с 1) и CODE0; 7 BIG SRC;
+; 8 OPEN OUT; 9 WRITE OUT.
+; Сборка (полный круг, инструменты ядра; обёртка — uva.peg):
+;   splice.exe uva.wall uva_s.flat
+;   wall.exe   uva_s.flat uva_s.b2
+;   enc.exe    uva_s.b2   uva_s.brick
+;   brick.exe  uva_s.brick uva_s.bin
+;   pegen.exe  uva_s.bin  uva.peg uva.exe
+; Запуск: uva.exe <src.uva> <out.up>; справка — без аргументов (код 2).
+
+ext GetStdHandle
+ext WriteFile
+ext ExitProcess
+ext GetCommandLineA
+ext CreateFile2
+ext ReadFile
+ext CloseHandle
+ext GlobalAlloc
+
+var hstdout
+var cmdline
+var written
+var wlen
+var arg1[64]
+var arg2[64]
+var w1[64]
+var w2[64]
+var srcbuf
+var srclen
+var outbuf
+var memsize
+var pc
+var lpos
+var lln
+var lna
+var lne
+var tcnt
+var tstart[12]
+var tend[12]
+var nval
+var fmtbuf[48]
+
+str s_use = 'U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n'
+str s_long = 'U-L3-UVA ERR=LONG NAME\r\n'
+str s_osrc = 'U-L3-UVA ERR=OPEN SRC\r\n'
+str s_rsrc = 'U-L3-UVA ERR=READ SRC\r\n'
+str s_big = 'U-L3-UVA ERR=BIG SRC\r\n'
+str s_fmt = 'U-L3-UVA ERR=FORMAT AT='
+str s_code0 = 'U-L3-UVA ERR=CODE0\r\n'
+str s_oout = 'U-L3-UVA ERR=OPEN OUT\r\n'
+str s_wout = 'U-L3-UVA ERR=WRITE OUT\r\n'
+str s_hexd = '0123456789ABCDEF'
+str s_up01 = 'UP01'
+str s_dotmem = '.mem'
+str s_halt = 'halt'
+
+!include uva_self_c.wall
+!include uva_self_t.wall
+!include uva_self_l.wall
+!include uva_self_e.wall
+!include uva_self_w.wall
+
+func main
+  var i
+  var fh
+  var rc
+  var nlen1
+  var nlen2
+  hstdout = GetStdHandle(-11)
+  cmdline = GetCommandLineA()
+  i = skip0()
+  i = read_arg(arg1, i)
+  nlen1 = wlen
+  i = read_arg(arg2, i)
+  nlen2 = wlen
+  check_end(i)
+  widen(w1, arg1, nlen1)
+  widen(w2, arg2, nlen2)
+  fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+  if fh == -1
+    print_error(s_osrc, len(s_osrc), 4)
+  end
+  srcbuf = GlobalAlloc(0, 65537)
+  if srcbuf == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  srclen = 0
+  rc = ReadFile(fh, srcbuf, 65537, &srclen, 0)
+  if rc == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  if srclen >= 65537
+    print_error(s_big, len(s_big), 7)
+  end
+  CloseHandle(fh)
+  outbuf = GlobalAlloc(0, 65560)
+  if outbuf == 0
+    print_error(s_rsrc, len(s_rsrc), 5)
+  end
+  pass1()
+  pass2()
+  make_header()
+  write_out()
+  ExitProcess(0)
+end

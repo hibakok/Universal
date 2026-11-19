@@ -1,0 +1,53 @@
+; uva_self_e.wall — проход 2 ассемблера uva.wall (E7.3-1)
+; Паспорт: KERNEL/L3-UVA/uva_self_e.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь E — кодирование инструкций (K3-E001 pass2): повторный
+; проход по строкам тем же итератором (проход 1 гарантировал структуру:
+; директивы пропускаются, каждая строка-инструкция — halt); операнд —
+; ровно одно число imm32 (иначе ERR=FORMAT AT=<строка> — как _enc_f3
+; оракула: сначала счёт операндов, потом число); код пишется в
+; outbuf+24 (за местом заголовка .UP). K3-E002 enc_halt — кирпич
+; кодировки halt (F3): 12 00 imm32 LE (заполнитель rd = 0, SPEC/12
+; п. 4-5; imm32 — младшие 32 бита числа, как _i32 оракула).
+; Срез 1: только halt; F1 (mov/ALU), F2 (const/память) и цели jmp/jnz
+; (метки) — срезы E7.3-2+.
+
+; halt imm32 -> outbuf[24+at .. 24+at+6): 12 00 <imm32 LE>
+func enc_halt(at)
+  setb(outbuf, 24 + at, 18)
+  setb(outbuf, 25 + at, 0)
+  put32(26 + at, nval)
+  return 0
+end
+
+; проход 2: кодирование всех инструкций (срез 1 — halt) в outbuf+24
+; (идиома итератора — чтение ВПЕРЁД, как pass1: после исчерпания входа
+; тело не выполняется, последняя строка не кодируется дважды)
+func pass2
+  var go
+  var at
+  var c
+  at = 0
+  lpos = 0
+  lln = 0
+  go = line_next()
+  while go == 1
+    if lna < lne
+      tokenize(lna, lne)
+      if tcnt != 0
+        c = getb(srcbuf, tstart[0])
+        if c != 46
+          if tcnt != 2
+            fail_at(lln)
+          end
+          if parse_num(1) == 0
+            fail_at(lln)
+          end
+          enc_halt(at)
+          at = at + 6
+        end
+      end
+    end
+    go = line_next()
+  end
+  return 0
+end

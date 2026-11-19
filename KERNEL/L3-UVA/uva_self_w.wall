@@ -1,0 +1,59 @@
+; uva_self_w.wall — сборка контейнера .UP ассемблера uva.wall (E7.3-1)
+; Паспорт: KERNEL/L3-UVA/uva_self_w.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь W — материализация результата: K3-W002 put32 (LE u32
+; по смещению буфера outbuf — пишет ровно младшие 4 байта значения,
+; как to_bytes(4, 'little')), K3-W001 make_header (заголовок .UP v1
+; — 24 байта по SPEC/13 п. 2: сигнатура UP01, версия 1, memsize u64,
+; codesize u32, резерв 0) и K3-W003 write_out (открытие выхода
+; CreateFile2 GENERIC_WRITE/CREATE_ALWAYS, запись 24+pc байтов,
+; закрытие; отказы — ERR=OPEN OUT код 8 / ERR=WRITE OUT код 9).
+; Код лежит в outbuf+24 (написан проходом 2) — заголовок и код
+; выходят одним WriteFile, файл = 24 + codesize байт (SPEC/13 п. 3).
+
+; значение v (LE u32, младшие 4 байта) по смещению off буфера outbuf
+func put32(off, v)
+  var k
+  k = 0
+  while k < 4
+    setb(outbuf, off + k, v & 255)
+    v = v >> 8
+    k = k + 1
+  end
+  return 0
+end
+
+; заголовок .UP v1 (24 байта) в outbuf[0..24): UP01 + версия 1 +
+; memsize (u64 LE) + codesize (pc) + резерв 0 — SPEC/13 п. 2
+func make_header
+  var k
+  k = 0
+  while k < 4
+    setb(outbuf, k, getb(s_up01, k))
+    k = k + 1
+  end
+  put32(4, 1)
+  put32(8, memsize)
+  put32(12, memsize >> 32)
+  put32(16, pc)
+  put32(20, 0)
+  return 0
+end
+
+; запись выхода: out.up = заголовок + код (24 + pc байтов, один вызов
+; WriteFile); отказы открытия/записи — коды 8/9
+func write_out
+  var fh
+  var rc
+  var n
+  fh = CreateFile2(w2, 1073741824, 0, 2, 0)
+  if fh == -1
+    print_error(s_oout, len(s_oout), 8)
+  end
+  n = 24 + pc
+  rc = WriteFile(fh, outbuf, n, &written, 0)
+  if rc == 0
+    print_error(s_wout, len(s_wout), 9)
+  end
+  CloseHandle(fh)
+  return 0
+end

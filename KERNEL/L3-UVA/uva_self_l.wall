@@ -1,0 +1,69 @@
+; uva_self_l.wall — проход 1 ассемблера uva.wall (E7.3-1)
+; Паспорт: KERNEL/L3-UVA/uva_self_l.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь L — структурный разбор исходника (K3-L001 pass1):
+; по строкам (line_next) — комментарии/пустые пропускаются, директива
+; .mem (одна, число 0..67108864; повторная/не одно число/плохое число/
+; вне диапазона/неизвестная директива — ERR=FORMAT AT=<строка>),
+; инструкция halt (+6 к pc). Операнды НЕ разбираются (как проход 1
+; оракула: ошибки операндов — проход 2); инструкция без .mem —
+; ERR=FORMAT AT=0001 (строка 1 — как AsmError(1) оракула); нет .mem
+; вовсе (включая пустой вход) — AT=0001; .mem без инструкций —
+; ERR=CODE0 (как make_up оракула).
+; Срез 1: известная мнемоника — только halt; метки и остальные 17
+; мнемоник — срезы E7.3-2+ (пока ERR=FORMAT AT=<строка>).
+
+; проход 1: memsize (-1 = нет) + pc (длина кода); ошибки — fail_at
+; (идиома итератора: line_next вызывается ВПЕРЁД — тело не выполняется
+; после исчерпания входа, иначе lna/lne остались бы от последней строки
+; и она обработалась бы дважды)
+func pass1
+  var go
+  memsize = -1
+  pc = 0
+  lpos = 0
+  lln = 0
+  go = line_next()
+  while go == 1
+    if lna < lne
+      tokenize(lna, lne)
+      if tcnt != 0
+        if getb(srcbuf, tstart[0]) == 46
+          if tok_is(0, s_dotmem, len(s_dotmem)) == 1
+            if memsize != -1
+              fail_at(lln)
+            end
+            if tcnt != 2
+              fail_at(lln)
+            end
+            if parse_num(1) == 0
+              fail_at(lln)
+            end
+            if nval < 0 || nval > 67108864
+              fail_at(lln)
+            end
+            memsize = nval
+          else
+            fail_at(lln)
+          end
+        else
+          if tok_is(0, s_halt, len(s_halt)) == 1
+            if memsize == -1
+              fail_at(1)
+            end
+            pc = pc + 6
+          else
+            fail_at(lln)
+          end
+        end
+      end
+    end
+    go = line_next()
+  end
+  if memsize == -1
+    fail_at(1)
+  end
+  if pc == 0
+    print_error(s_code0, len(s_code0), 6)
+  end
+  return 0
+end

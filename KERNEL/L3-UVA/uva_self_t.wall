@@ -1,0 +1,220 @@
+; uva_self_t.wall — токены и числа ассемблера uva.wall (E7.3-1)
+; Паспорт: KERNEL/L3-UVA/uva_self_t.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь T — лексический уровень исходника .uva: сравнение
+; токена с литералом (K3-T001 tok_is), разбиение сегмента на токены
+; (K3-T002 tokenize — разделители как _toks оракула: пробел/таб/CR/
+; VT/FF/запятая), разбор числа imm32 (K3-T003 parse_num — десятичное
+; со знаком или 0x-hex, диапазон -2^31..2^32-1 как _num оракула,
+; переполнение ловится при накоплении — v >> 32 != 0), подготовка
+; строки (K3-T004 line_trim — срез комментария ';' + края-разделители,
+; как raw.find(';') + strip() оракула) и итератор строк (K3-T005
+; line_next — разбиение ТОЛЬКО по LF, как text.split('\n') оракула:
+; одиночный CR внутри строки — разделитель токенов, не конец строки;
+; хвост после последнего LF — строка; пустой вход — одна пустая).
+; Токены — глобали: tcnt (число; строки из одних разделителей дают 0 —
+; пропуск, как фиксированный оракул E7.3-1), tstart[12]/tend[12]
+; (позиции в srcbuf; первые 12 токенов, дальше — только счёт).
+
+; токен ti == литерал s длины slen? 1 = да, 0 = нет
+func tok_is(ti, s, slen)
+  var n
+  var k
+  var c
+  var d
+  n = tend[ti] - tstart[ti]
+  if n != slen
+    return 0
+  end
+  k = 0
+  while k < n
+    c = getb(srcbuf, tstart[ti] + k)
+    d = getb(s, k)
+    if c != d
+      return 0
+    end
+    k = k + 1
+  end
+  return 1
+end
+
+; сегмент [a, b) -> токены tstart/tend + tcnt; разделители: 32 пробел,
+; 9 таб, 44 запятая, 13 CR, 11 VT, 12 FF (как [,\s]+ оракула без LF)
+func tokenize(a, b)
+  var i
+  var s
+  var c
+  var go
+  i = a
+  tcnt = 0
+  go = 1
+  while go == 1
+    while i < b
+      c = getb(srcbuf, i)
+      if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+        i = i + 1
+      else
+        break
+      end
+    end
+    if i >= b
+      go = 0
+    else
+      s = i
+      while i < b
+        c = getb(srcbuf, i)
+        if c == 32 || c == 9 || c == 44 || c == 13 || c == 11 || c == 12
+          break
+        else
+          i = i + 1
+        end
+      end
+      if tcnt < 12
+        tstart[tcnt] = s
+        tend[tcnt] = i
+      end
+      tcnt = tcnt + 1
+    end
+  end
+  return 0
+end
+
+; токен ti -> глобаль nval (число imm32); возврат 1 = успех, 0 = плохо
+; (десятичное со знаком / 0x-hex со знаком; диапазон -2147483648..
+; 4294967295; переполнение — v >> 32 != 0 прямо в цикле накопления)
+func parse_num(ti)
+  var a
+  var b
+  var i
+  var v
+  var sign
+  var c
+  var hex
+  a = tstart[ti]
+  b = tend[ti]
+  i = a
+  sign = 1
+  c = getb(srcbuf, i)
+  if c == 45
+    sign = -1
+    i = i + 1
+  else
+    if c == 43
+      i = i + 1
+    end
+  end
+  if i >= b
+    return 0
+  end
+  hex = 0
+  c = getb(srcbuf, i)
+  if c == 48
+    if i + 1 < b
+      c = getb(srcbuf, i + 1)
+      if c == 120
+        hex = 1
+        i = i + 2
+      end
+    end
+  end
+  if i >= b
+    return 0
+  end
+  v = 0
+  while i < b
+    c = getb(srcbuf, i)
+    if hex == 1
+      if c >= 48 && c <= 57
+        v = v * 16 + c - 48
+      else
+        if c >= 65 && c <= 70
+          v = v * 16 + c - 55
+        else
+          if c >= 97 && c <= 102
+            v = v * 16 + c - 87
+          else
+            return 0
+          end
+        end
+      end
+    else
+      if c >= 48 && c <= 57
+        v = v * 10 + c - 48
+      else
+        return 0
+      end
+    end
+    if v >> 32 != 0
+      return 0
+    end
+    i = i + 1
+  end
+  if sign == -1
+    if v > 2147483647 + 1
+      return 0
+    end
+    v = -v
+  end
+  nval = v
+  return 1
+end
+
+; сегмент строки [a, b) -> lna/lne: срез комментария ';' (первый),
+; затем края-разделители (32 9 13 11 12 — как strip() оракула);
+; lna >= lne — строка пуста
+func line_trim(a, b)
+  var i
+  var c
+  i = a
+  while i < b
+    c = getb(srcbuf, i)
+    if c == 59
+      b = i
+      break
+    end
+    i = i + 1
+  end
+  while a < b
+    c = getb(srcbuf, a)
+    if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+      a = a + 1
+    else
+      break
+    end
+  end
+  while b > a
+    c = getb(srcbuf, b - 1)
+    if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+      b = b - 1
+    else
+      break
+    end
+  end
+  lna = a
+  lne = b
+  return 0
+end
+
+; итератор строк (только LF — как split('\n') оракула): от глобали
+; lpos берёт следующую строку, lln = её номер (с 1), lna/lne — текст
+; после line_trim; lpos продвигается за LF; возврат 1 = строка взята,
+; 0 = вход исчерпан (пустой вход — одна пустая строка, хвостовой
+; сегмент после последнего LF — тоже строка)
+func line_next
+  var t
+  var c
+  if lpos > srclen
+    return 0
+  end
+  lln = lln + 1
+  t = lpos
+  while t < srclen
+    c = getb(srcbuf, t)
+    if c == 10
+      break
+    end
+    t = t + 1
+  end
+  line_trim(lpos, t)
+  lpos = t + 1
+  return 1
+end
