@@ -1,10 +1,11 @@
-"""lab_t_vm.py — секция 13 батареи: оракул UNIVM (SPEC/12 ISA v0 + SPEC/13).
+"""lab_t_vm.py — секция 13 батареи: оракул UNIVM (SPEC/12 v0+v1 + SPEC/13 v1/v2).
 
 Вход:  колбэк check из lab_verify (kpath/kfile/kernel_host — единая
          сигнатура секций; здесь не используются: у оракула нет
          артефактов KERNEL — ядро kernel.exe появится на E7.2).
-Выход: проверки T-E7-01..08 (E7.1).
-Функция: (1) якорные кодировки всех 18 опкодов, выписанные вручную
+Выход: проверки T-E7-01..08 (E7.1, ISA v0 + .UP v1) + T-E7-26..31
+         (E7.4-1, ISA v1 + .UP v2).
+Функция: (1) якорные кодировки всех 18 опкодов v0, выписанные вручную
          по SPEC/12 п. 4-5 (независимый свидетель — как якоря ENC);
          (2) отвержение некорректных исходников ассемблера с номерами
          строк; (3) отвержение контейнеров .UP (причины SPEC/13 п. 4);
@@ -17,191 +18,28 @@
          stq/ldq, эталоны регистров и памяти, код возврата 7;
          (8) окно устройств: консоль по окно+0, окно+1 игнорируется,
          чтение окна = 0. Границы: заворот адреса, memsize=0,
-         предел шагов (trap 6) — в блоке 8.
+         предел шагов (trap 6) — в блоке 8; (9) E7.4-1: якоря 6
+         опкодов v1 (mul/div/mod/sra/call/ret — T-E7-26), семантика
+         mul/div/mod/sra с заворотом и знаковым sra (T-E7-27),
+         демо-факториал 5 рекурсией через стек вызовов + программный
+         стек r13 (T-E7-28, «U-VM1-OK 78»), ловушки 5/7 с точными
+         шагами и порядком проверок (T-E7-29), контейнер v2:
+         секция данных .data -> RAM[0:datalen] + отказы VER/RES/LEN/
+         DATA (T-E7-30, «U-DATA-OK 61»), детерминизм v1/v2 (T-E7-31).
 """
 import lab_vm
-
-# --- T-E7-01: якорные кодировки (ручные, SPEC/12 п. 4-5) ---------------
-# (строка ассемблера, hex-байты инструкции; выписано вручную по SPEC)
-ANCHORS = [
-    ("const r1, 65536", "011000000100"),
-    ("mov r2, r3", "022300"),
-    ("add r4, r5, r6", "034506"),
-    ("sub r7, r8, r9", "047809"),
-    ("and r1, r2, r3", "051203"),
-    ("or r1, r2, r3", "061203"),
-    ("xor r1, r2, r3", "071203"),
-    ("shl r1, r2, r3", "081203"),
-    ("shr r1, r2, r3", "091203"),
-    ("lt r1, r2, r3", "0A1203"),
-    ("eq r1, r2, r3", "0B1203"),
-    ("ldb r1, r2+16", "0C1210000000"),
-    ("stb r1+16, r2", "0D1210000000"),
-    ("ldq r1, r2-8", "0E12F8FFFFFF"),
-    ("stq r1+0, r2", "0F1200000000"),
-    ("jmp 100", "100064000000"),
-    ("jnz r3, 200", "1103C8000000"),
-    ("halt 0", "120000000000"),
-]
-
-# --- T-E7-04: демо (аналог DEMO_WALL «U-WALL-OK 37» на UNIVM) ---------
-DEMO_VM = """\
-; UNIVERSAL / UNIVM v0 / демонстрация ISA: строка в RAM через stb,
-; сумма 1..10 = 55 = 0x37, hex-цифры, печать регистром консоли.
-; Печатает "U-VM-OK 37\\r\\n" и выходит (142 шага).
-.mem 65536
-
-const r1, 0          ; база строки
-const r2, 85         ; 'U'
-stb r1+0, r2
-const r2, 45         ; '-'
-stb r1+1, r2
-const r2, 86         ; 'V'
-stb r1+2, r2
-const r2, 77         ; 'M'
-stb r1+3, r2
-const r2, 45         ; '-'
-stb r1+4, r2
-const r2, 79         ; 'O'
-stb r1+5, r2
-const r2, 75         ; 'K'
-stb r1+6, r2
-const r2, 32         ; ' '
-stb r1+7, r2
-const r2, 13         ; '\\r'
-stb r1+10, r2
-const r2, 10         ; '\\n'
-stb r1+11, r2
-
-const r3, 1          ; i
-const r4, 0          ; s
-const r5, 1          ; шаг
-const r6, 11         ; граница: i < 11
-loop:
-add r4, r4, r3
-add r3, r3, r5
-lt r7, r3, r6
-jnz r7, loop
-
-const r2, 4          ; старшая тетрада: 55 >> 4 = 3
-shr r7, r4, r2
-const r2, 15
-and r7, r7, r2
-const r2, 48
-add r7, r7, r2       ; '3'
-stb r1+8, r7
-const r2, 15         ; младшая: 55 & 15 = 7
-and r7, r4, r2
-const r2, 48
-add r7, r7, r2       ; '7'
-stb r1+9, r7
-
-const r3, 65536      ; devbase: регистр консоли (окно+0)
-const r1, 0          ; индекс
-const r5, 1
-const r6, 12
-print:
-ldb r2, r1+0         ; байт строки
-stb r3+0, r2         ; вывод в консоль
-add r1, r1, r5
-lt r7, r1, r6
-jnz r7, print
-halt 0
-"""
-
-# --- T-E7-07: ops-программа (покрытие остальных опкодов) ---------------
-OPS_VM = """\
-; mov/sub/or/xor/shl/shr/eq/jmp/stq/ldq: ((20-6)|1)^4 = 11; 11<<6 = 704;
-; 704>>3 = 88; проверка eq; слово в RAM и обратно. halt 7.
-; Эталоны: r3=88, r4=1, r15=88, r6=88, mem64[100]=88; 19 шагов.
-.mem 4096
-
-const r1, 20
-const r2, 6
-mov r3, r1
-sub r3, r3, r2
-const r4, 1
-or r3, r3, r4
-const r4, 4
-xor r3, r3, r4
-shl r3, r3, r2
-const r4, 3
-shr r3, r3, r4
-const r4, 88
-eq r4, r3, r4
-mov r15, r3
-jmp skip
-const r15, 0         ; пропускается jmp
-skip:
-const r5, 100
-stq r5+0, r15
-ldq r6, r5+0
-halt 7
-"""
-
-# --- T-E7-08: окно устройств -------------------------------------------
-DEV_VM = """\
-; консоль = окно+0 (memsize); окно+1 — резерв (запись игнорируется);
-; чтение окна = 0. Печатает "AA"; r3 = 0; 7 шагов.
-.mem 4096
-
-const r1, 4096
-const r2, 65
-stb r1+0, r2
-stb r1+1, r2
-ldb r3, r1+0
-stb r1+0, r2
-halt 0
-"""
-
-# --- T-E7-02: отвержение ассемблера (номер строки с 1) -----------------
-ASM_ERRORS = [
-    ("неизвестная мнемоника", ".mem 4096\nfoo r1, 5\nhalt 0\n", 2),
-    ("регистр вне диапазона", ".mem 4096\nconst r16, 5\nhalt 0\n", 2),
-    ("заглавный регистр", ".mem 4096\nconst R1, 5\nhalt 0\n", 2),
-    ("imm вне int32", ".mem 4096\nconst r1, 9999999999\nhalt 0\n", 2),
-    ("нет директивы .mem", "const r1, 5\nhalt 0\n", 1),
-    ("повторная .mem", ".mem 4096\n.mem 8192\nhalt 0\n", 2),
-    ("неизвестная метка", ".mem 4096\njmp nowhere\nhalt 0\n", 2),
-    ("дубликат метки", ".mem 4096\nl:\nl:\nhalt 0\n", 3),
-    ("лишний операнд", ".mem 4096\nadd r1, r2, r3, r4\nhalt 0\n", 2),
-    ("мало операндов", ".mem 4096\nadd r1, r2\nhalt 0\n", 2),
-    ("stb: значение первым", ".mem 4096\nstb r2, r1+0\nhalt 0\n", 2),
-    ("отрицательная память", ".mem -1\nhalt 0\n", 1),
-    ("память сверх предела", ".mem 999999999\nhalt 0\n", 1),
-]
-
-
-def _up_err(name):
-    """Контейнер с полем по имени (заголовок 24 Б + 1 байт кода)."""
-    head = {
-        "сигнатура": b"XP01", "версия": b"UP01",
-    }[name] if name in ("сигнатура", "версия") else b"UP01"
-    ver = 2 if name == "версия" else 1
-    mem = 67108865 if name == "memsize сверх" else 4096
-    code = 0 if name == "codesize 0" else 1
-    res = 1 if name == "res != 0" else 0
-    body = b"\x12" if code else b""
-    if name == "короткий файл":
-        return b"UP0"
-    data = (head + ver.to_bytes(4, "little") + mem.to_bytes(8, "little")
-            + code.to_bytes(4, "little") + res.to_bytes(4, "little") + body)
-    if name == "лишние байты":
-        data += b"\x00"
-    return data
-
-
-UP_ERRORS = ["короткий файл", "сигнатура", "версия", "memsize сверх",
-             "codesize 0", "лишние байты", "res != 0"]
-
+import lab_up
+from lab_t_vm_corpus import (ANCHORS, V1_ANCHORS, DEMO_VM, OPS_VM,
+                              DEV_VM, OPS2_VM, FACT_VM, DATA_VM,
+                              ASM_ERRORS, UP_ERRORS, V2_ERRORS, _up_err)
 
 def run(check, kpath, kfile, kernel_host):
-    """Секция 13: T-E7-01..08 (оракул UNIVM, SPEC/12 + SPEC/13)."""
+    """Секция 13: T-E7-01..08 + T-E7-26..31 (оракул UNIVM, SPEC/12-13)."""
     # T-E7-01: якорные кодировки — ассемблер == ручным байтам SPEC/12
     bad = []
     for line, want in ANCHORS:
         data = lab_vm.assemble(".mem 4096\n%s\nhalt 0\n" % line)
-        _mem, code = lab_vm.parse_up(data)
+        _mem, code, _dat = lab_vm.parse_up(data)
         got = code[:len(want) // 2].hex().upper()
         if got != want:
             bad.append("%s: %s != %s" % (line, got, want))
@@ -318,3 +156,106 @@ def run(check, kpath, kfile, kernel_host):
           and s.trap == 6 and s.steps == 100,
           "AA=%r r3=%d заворот trap=%d mem0=%r ldq trap=%d цикл trap=%d"
           % (r.console, r.regs[3], w.trap, z.console, q.trap, s.trap))
+
+    # T-E7-26: якорные кодировки v1 — ассемблер == ручным байтам SPEC/12
+    bad = []
+    for line, want in V1_ANCHORS:
+        data = lab_vm.assemble(".mem 4096\n%s\nhalt 0\n" % line)
+        _mem, code, _dat = lab_vm.parse_up(data)
+        got = code[:len(want) // 2].hex().upper()
+        if got != want:
+            bad.append("%s: %s != %s" % (line, got, want))
+    check("T-E7-26 якорные кодировки ISA v1 (6 опкодов)", not bad,
+          "; ".join(bad[:2]))
+
+    # T-E7-27: семантика mul/div/mod/sra — регистры-эталоны
+    r = lab_vm.run_asm(OPS2_VM)
+    check("T-E7-27 mul/div/mod/sra: заворот, частные, знаковый sra"
+          " (24 шага)",
+          r.exit_code == 0 and r.trap == 0 and r.steps == 24
+          and r.regs[3] == 0 and r.regs[4] == 83810205
+          and r.regs[5] == 14 and r.regs[6] == 2 and r.regs[7] == 0
+          and r.regs[8] == 0 and r.regs[9] == 16
+          and r.regs[10] == (1 << 64) - 16 and r.regs[11] == (1 << 64) - 1
+          and r.regs[12] == (1 << 64) - 256,
+          "r3=%d r4=%d r5=%d r6=%d r10=%X r11=%X шаги=%d"
+          % (r.regs[3], r.regs[4], r.regs[5], r.regs[6], r.regs[10],
+             r.regs[11], r.steps))
+
+    # T-E7-28: демо v1 — факториал рекурсией (стек вызовов + r13)
+    r = lab_vm.run_asm(FACT_VM)
+    check("T-E7-28 демо v1: 5! рекурсией -> 'U-VM1-OK 78' (188 шагов,"
+          " r13 баланс)",
+          r.console == b"U-VM1-OK 78\r\n" and r.exit_code == 0
+          and r.trap == 0 and r.steps == 188 and r.regs[4] == 120
+          and r.regs[13] == 4096,
+          "консоль=%r r4=%d r13=%d шаги=%d"
+          % (r.console, r.regs[4], r.regs[13], r.steps))
+
+    # T-E7-29: ловушки 5/7 с точными шагами и порядком проверок
+    v1_traps = [
+        ("call: самовызов -> переполнение",
+         lab_vm.assemble(".mem 4096\nf: call f\n"), 5, 1024),
+        ("ret при пустом стеке",
+         lab_vm.assemble(".mem 4096\nret\n"), 5, 0),
+        ("div на ноль",
+         lab_vm.assemble(".mem 4096\nconst r1, 5\nconst r2, 0\n"
+                         "div r3, r1, r2\nhalt 0\n"), 7, 2),
+        ("mod на ноль",
+         lab_vm.assemble(".mem 4096\nconst r1, 5\nconst r2, 0\n"
+                         "mod r3, r1, r2\nhalt 0\n"), 7, 2),
+        ("call rd!=0 (поле, не стек)",
+         lab_vm.make_up(4096, bytes([0x17, 0x03, 0, 0, 0, 0])), 1, 0),
+        ("call обрезан (ловушка 2 до исполнения)",
+         lab_vm.make_up(4096, bytes([0x17, 0x00, 0])), 2, 0),
+        ("div rb=16 (поле, не ноль)",
+         lab_vm.make_up(4096, bytes([0x14, 0x12, 0x10])), 1, 0),
+        ("опкод 0x19 вне v1",
+         lab_vm.make_up(4096, bytes([0x19, 0x00, 0x00])), 1, 0),
+    ]
+    bad = []
+    for name, data, want_trap, want_steps in v1_traps:
+        rr = lab_vm.run_up(data)
+        if rr.trap != want_trap or rr.steps != want_steps:
+            bad.append("%s: trap=%d шаги=%d" % (name, rr.trap, rr.steps))
+    check("T-E7-29 ловушки 5/7 (%d случаев)" % len(v1_traps), not bad,
+          "; ".join(bad[:2]))
+
+    # T-E7-30: контейнер v2 — секция данных: сборка/разбор/инициализация
+    up = lab_vm.assemble(DATA_VM)
+    ver = int.from_bytes(up[4:8], "little")
+    off = int.from_bytes(up[20:24], "little")
+    mem, code, dat = lab_vm.parse_up(up)
+    want_dat = bytes.fromhex("552D444154412D4F4B2030300D0A")
+    v2_ok = (ver == 2 and off == 24 + len(code) and len(up) == off + 14
+             and dat == want_dat and up == lab_up.make_up(4096, code, dat))
+    r = lab_vm.run_up(up)
+    d0 = lab_vm.assemble(DEMO_VM)              # без .data — остаётся v1
+    bad = []
+    for name, make, want in V2_ERRORS:
+        try:
+            lab_up.parse_up(make())
+            bad.append("%s: не отвергнуто" % name)
+        except lab_up.UpError as e:
+            if e.reason != want:
+                bad.append("%s: %s != %s" % (name, e.reason, want))
+    check("T-E7-30 контейнер v2: .data -> RAM + отказы (%d)" % len(V2_ERRORS),
+          v2_ok and r.console == b"U-DATA-OK 61\r\n" and r.exit_code == 0
+          and r.trap == 0 and r.steps == 89
+          and r.mem[:10] == want_dat[:10] and r.mem[10] == 0x36
+          and r.mem[11] == 0x31 and r.mem[12:14] == b"\r\n"
+          and d0[:8] == b"UP01\x01\x00\x00\x00" and d0[20:24] == b"\x00" * 4
+          and not bad,
+          "консоль=%r шаги=%d; %s" % (r.console, r.steps,
+                                      "; ".join(bad[:2])))
+
+    # T-E7-31: детерминизм v1/v2 — два прогона идентичны целиком
+    a1, a2 = lab_vm.run_asm(FACT_VM), lab_vm.run_asm(FACT_VM)
+    b1, b2 = lab_vm.run_asm(DATA_VM), lab_vm.run_asm(DATA_VM)
+    check("T-E7-31 детерминизм v1/v2 (факториал + данные)",
+          (a1.console, a1.exit_code, a1.steps, a1.trap, a1.regs, a1.mem)
+          == (a2.console, a2.exit_code, a2.steps, a2.trap, a2.regs, a2.mem)
+          and (b1.console, b1.exit_code, b1.steps, b1.trap, b1.regs, b1.mem)
+          == (b2.console, b2.exit_code, b2.steps, b2.trap, b2.regs, b2.mem)
+          and a1.steps == 188 and b1.steps == 89,
+          "FACT шаги=%d DATA шаги=%d" % (a1.steps, b1.steps))

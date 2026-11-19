@@ -28,7 +28,7 @@ OK = [
 for i, src in enumerate(OK):
     up = lab_vm.assemble(src)
     print("OK %2d %-28r -> %s" % (i, src[:24], up[24:].hex()))
-    m, code = lab_vm.parse_up(up)
+    m, code, dat = lab_vm.parse_up(up)   # 3-кортеж с E7.4-1 (lab_up)
     r = lab_vm.run_up(up)
     print("        код=%d" % r.exit_code)
 

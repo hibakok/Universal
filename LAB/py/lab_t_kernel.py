@@ -177,7 +177,7 @@ def run(check, kpath, kfile, kernel_host):
         conts = [
             ("короткий", b"UP0"),
             ("подпись", _up(0, goodsig, sig=b"XP01")),
-            ("версия", _up(0, goodsig, ver=2)),
+            ("версия", _up(0, goodsig, ver=3)),   # v2 валидна с E7.4-1
             ("mem+1", _up(67108865, goodsig)),
             ("mem hi", _up(4294967296, goodsig)),
             ("codesize 0", _up(0, b"")),
@@ -221,7 +221,7 @@ def run(check, kpath, kfile, kernel_host):
         # T-E7-13: ловушки 1/2 — диффтест диагностики (trap/шаги/код 1)
         traps = [
             ("опкод 0", _up(0, b"\x00\x00\x00")),
-            ("опкод 19", _up(0, b"\x13\x00\x00")),
+            ("опкод 25", _up(0, b"\x19\x00\x00")),  # 13..18 — v1 (E7.4-1)
             ("halt rd", _up(0, b"\x12\x01\x05\x00\x00\x00")),
             ("halt усечён", _up(0, b"\x12\x00")),
             ("halt 1 байт", _up(0, b"\x12")),
