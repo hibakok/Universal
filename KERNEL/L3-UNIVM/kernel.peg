@@ -1,0 +1,9 @@
+; UNIVERSAL / PEG v1 / обёртка программы ядра UNIVM (WALL, SPEC/11 п.6)
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+; Область импортов — фиксированная 0x200 (SPEC/11 п.6), вход 0x1200
+!module kernel
+!entry 1200
+!idata 1000 28
+!iat 1028 48
+!stackcom 4000
+!heapcom 4000

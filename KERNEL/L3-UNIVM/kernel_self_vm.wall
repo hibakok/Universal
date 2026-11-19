@@ -1,0 +1,105 @@
+; kernel_self_vm.wall — цикл интерпретатора UNIVM, срез E7.2-1 (E7.2)
+; Паспорт: KERNEL/L3-UNIVM/kernel_self_vm.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь V ядра — K3-V001 interp (цикл: порядок проверок
+; SPEC/12 п. 7 — выборка/опкод/длина/поля/исполнение), K3-V002 op_halt
+; (останов: rd-заполнитель + imm32 = код возврата, шаг считается),
+; K3-V003 fail_trap (диагностика «U-L3-UNIVM TRAP=n STEPS=s», код 1)
+; и хелперы K3-C006 copy_str / K3-C007 out_dec (десятичные числа в
+; буфер — diagnose-строки). Срез E7.2-1: опкоды 01..11 не исполнены —
+; ловушка 1 (заглушка среза; const/mov/ALU — срез E7.2-2, память — 3,
+; переходы — 4); для опкодов 00/13+ ловушка 1 — корректна по SPEC/12
+; п. 7 (2). RAM не распределяется: обращений к памяти в срезе нет.
+; Консоль среза 1 пуста по построению (устройства — срез E7.2-3).
+
+; копия n байтов с адреса src в dst с позиции k; возврат — новая позиция
+func copy_str(dst, k, src, n)
+  var j
+  var c
+  j = 0
+  while j < n
+    c = getb(src, j)
+    setb(dst, k + j, c)
+    j = j + 1
+  end
+  return k + n
+end
+
+; десятичная запись числа v (>= 0, < 2^31) в dst с позиции k,
+; без ведущих нулей; возврат — новая позиция
+func out_dec(dst, k, v)
+  var t[20]
+  var j
+  var n
+  n = 0
+  if v == 0
+    setb(dst, k, 48)
+    return k + 1
+  end
+  while v > 0
+    setb(t, n, 48 + v % 10)
+    v = v / 10
+    n = n + 1
+  end
+  j = 0
+  while j < n
+    setb(dst, k + j, getb(t, n - 1 - j))
+    j = j + 1
+  end
+  return k + n
+end
+
+; диагностика ловушки n со счётчиком шагов steps и выход кодом 1
+; (контракт E7.2: «U-L3-UNIVM TRAP=<n> STEPS=<s>\r\n»)
+func fail_trap(n)
+  var k
+  k = 0
+  k = copy_str(trapbuf, k, s_trap, len(s_trap))
+  k = out_dec(trapbuf, k, n)
+  k = copy_str(trapbuf, k, s_steps, len(s_steps))
+  k = out_dec(trapbuf, k, steps)
+  k = copy_str(trapbuf, k, s_crlf, len(s_crlf))
+  written = 0
+  WriteFile(hstdout, trapbuf, k, &written, 0)
+  ExitProcess(1)
+  return 0
+end
+
+; исполнение halt (F3, опкод 0x12) по pc: проверка поля rd и останов.
+; Проверки (3) длина и (1)(2) уже сделаны в interp; здесь (4)(5):
+; rd-заполнитель -> ловушка 1; imm32 = код возврата; шаг считается
+func op_halt
+  var rd
+  var imm
+  rd = getb(codebuf, pc + 1)
+  if rd != 0
+    fail_trap(1)
+  end
+  imm = rd32(codebuf, pc + 2)
+  steps = steps + 1
+  ExitProcess(imm)
+  return 0
+end
+
+; цикл интерпретатора среза E7.2-1: halt; порядок проверок — SPEC/12
+; п. 7: (1) pc за кодом -> ловушка 2; (2) опкод: 0x12 -> halt-плечо,
+; прочее -> ловушка 1; (3) pc+6 за кодом -> ловушка 2; (4)(5) в op_halt
+func interp
+  var op
+  var go
+  go = 1
+  while go == 1
+    if pc >= codesize
+      fail_trap(2)
+    end
+    op = getb(codebuf, pc)
+    if op == 18
+      if pc + 6 > codesize
+        fail_trap(2)
+      end
+      op_halt()
+    else
+      fail_trap(1)
+    end
+  end
+  return 0
+end

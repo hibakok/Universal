@@ -1,0 +1,81 @@
+; kernel.wall — ядро UNIVM (M3-UNIVM, этап E7.2): корень с разрезом
+; Паспорт: KERNEL/L3-UNIVM/kernel.wall | слой: L3 (исходник — WALL, слой L2)
+; | роль: корень ядра виртуальной машины UNIVM — читает внешнюю
+; программу .UP (SPEC/13) по пути из командной строки и исполняет её
+; по ISA SPEC/12 (диффтест с оракулом LAB/py/lab_vm.py — правило R8).
+; Разрез — механизм SPEC/10 (как wall.wall): корень держит объявления и
+; main, части — функции по ветвям (сервис C / контейнер U / интерпретатор V).
+; Срез E7.2-1: разбор .UP полный (SPEC/13 п. 4, порядок отказов — как
+; оракул parse_up); исполнение — halt (0x12): порядок проверок SPEC/12
+; п. 7, код возврата = imm32; опкоды 01..11 — ловушка 1 (заглушка
+; среза, исполнение — срезы E7.2-2..4); RAM не распределяется (обращений
+; к памяти в срезе нет); предел шагов 200 млн — срез E7.2-4.
+; Контракт ядра (строки/коды/диагностика ловушек) — SPEC/13 п. 4,
+; карточка CARD.md, тесты TESTS/T-L3-UNIVM.md (T-E7-09+).
+; Сборка (полный круг, инструменты ядра; обёртка — kernel.peg):
+;   splice.exe kernel.wall kernel_s.flat
+;   wall.exe   kernel_s.flat kernel_s.b2
+;   enc.exe    kernel_s.b2   kernel_s.brick
+;   brick.exe  kernel_s.brick kernel_s.bin
+;   pegen.exe  kernel_s.bin  kernel.peg kernel.exe
+; Запуск: kernel.exe <файл.up>; справка — без аргументов (код 2).
+
+ext GetStdHandle
+ext WriteFile
+ext ExitProcess
+ext GetCommandLineA
+ext CreateFile2
+ext ReadFile
+ext CloseHandle
+ext GlobalAlloc
+
+var hstdout
+var cmdline
+var written
+var wlen
+var arg1[64]
+var w1[64]
+var hdrbuf[8]
+var codebuf
+var codesize
+var memsize
+var pc
+var steps
+var got
+var trapbuf[48]
+
+str s_use = 'U-L3-UNIVM CMDS: KERNEL <FILE.UP>\r\n'
+str s_long = 'U-L3-UNIVM ERR=LONG NAME\r\n'
+str s_oup = 'U-L3-UNIVM ERR=OPEN UP\r\n'
+str s_rup = 'U-L3-UNIVM ERR=READ UP\r\n'
+str s_sig = 'U-L3-UNIVM ERR=SIG\r\n'
+str s_ver = 'U-L3-UNIVM ERR=VER\r\n'
+str s_mem = 'U-L3-UNIVM ERR=MEM\r\n'
+str s_code0 = 'U-L3-UNIVM ERR=CODE0\r\n'
+str s_len = 'U-L3-UNIVM ERR=LEN\r\n'
+str s_res = 'U-L3-UNIVM ERR=RES\r\n'
+str s_trap = 'U-L3-UNIVM TRAP='
+str s_steps = ' STEPS='
+str s_crlf = '\r\n'
+
+!include kernel_self_c.wall
+!include kernel_self_up.wall
+!include kernel_self_vm.wall
+
+func main
+  var i
+  var fh
+  hstdout = GetStdHandle(-11)
+  cmdline = GetCommandLineA()
+  i = skip0()
+  i = read_arg(arg1, i)
+  check_end(i)
+  widen(w1, arg1, wlen)
+  fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+  if fh == -1
+    print_error(s_oup, len(s_oup), 4)
+  end
+  read_up(fh)
+  CloseHandle(fh)
+  interp()
+end

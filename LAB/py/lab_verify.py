@@ -47,7 +47,13 @@
             1..10, hex-цифры, консоль-устройство; 142 шага),
             ловушки 1-4 с шагами, детерминизм, ops-программа
             (ALU/jmp/слова), окно устройств + границы (заворот
-            адреса, memsize=0, предел шагов — trap 6).
+            адреса, memsize=0, предел шагов — trap 6);
+         14) ядро kernel.exe (lab_t_kernel, E7.2-1 — каркас M3-UNIVM
+            на WALL): фикс-пункт воспроизводимости артефактов из
+            kernel.wall (wall/enc/brick/pegen — эмуляция), контракт
+            CLI/контейнера .UP, диффтест с оракулом UNIVM на корпусе
+            среза (halt-программы, ловушки 1/2 — консоль/код/шаги),
+            детерминизм.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -70,6 +76,7 @@ import lab_t_wall
 import lab_t_wall2
 import lab_t_wall3
 import lab_t_wallself
+import lab_t_kernel
 import lab_t_vm
 import lab_x86
 
@@ -96,11 +103,13 @@ SHA = {
                        "EB810057AF6CD5C2",
     "L2-WALL/wall": "FE41C2B77C6759FB9F7D08FDF561D7799F04BDD70387C7307EFFBE"
                     "1D61482BC3",
+    "L3-UNIVM/kernel": "5D8CD3DE26D136F7B8609395B8E771E45A9685E5F508E0742361"
+                       "A36B747F2D52",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
 MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice",
-                        "L2-WALL/wall")]
+                        "L2-WALL/wall", "L3-UNIVM/kernel")]
 
 PASS, FAIL = [], []
 
@@ -149,10 +158,10 @@ def t_pe_invariants():
     for m in SHA:                       # включая enc (E6.2)
         pe = lab_pe.load(kpath("%s.exe" % m))
         bad = lab_pe.check_spec04(pe)
-        if m == "L2-WALL/wall":
-            # E6.4d-5/3-2: wall.exe — программа, скомпилированная WALL
-            # (самосборный артефакт из wall.wall): вход 0x1200 после
-            # фиксированной области импортов 0x200 — документированное
+        if m in ("L2-WALL/wall", "L3-UNIVM/kernel"):
+            # wall.exe и kernel.exe — программы, скомпилированные WALL
+            # (самосборные артефакты из wall.wall/kernel.wall): вход 0x1200
+            # после фиксированной области импортов 0x200 — документированное
             # отклонение SPEC/11 п.6 (батарея проверяет его явно —
             # T-E6-22/T-E6-33; фильтр тот же, что в T-E6-30)
             bad = [b for b in bad if b != "точка входа != 0x1000"]
@@ -448,6 +457,7 @@ def main():
     lab_t_wall3.run(check, kpath, kfile, kernel_host)
     lab_t_wallself.run(check, kpath, kfile, kernel_host)
     lab_t_vm.run(check, kpath, kfile, kernel_host)
+    lab_t_kernel.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

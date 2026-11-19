@@ -1,0 +1,78 @@
+; kernel_self_up.wall — чтение и разбор контейнера .UP (E7.2-1)
+; Паспорт: KERNEL/L3-UNIVM/kernel_self_up.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь U ядра — K3-U001 rd32 (LE u32 из буфера, байтыgetb)
+; и K3-U002 read_up: чтение .UP по хэндлу файла (заголовок 24 Б ->
+; код ровно codesize байт -> контрольный байт) и разбор SPEC/13 с
+; точными отказами SIG/VER/MEM/CODE0/LEN/RES — В ЭТОМ ПОРЯДКЕ (как
+; оракул parse_up, SPEC/13 п. 4; LEN проверяется после CODE0 по числу
+; прочитанных байтов, RES — последним). memsize — u64: > 64 МиБ это
+; ненулевой старший dword ИЛИ низ > 64 МиБ (беззнаковое сравнение без
+; u64-литералей). Код — GlobalAlloc(0, codesize) -> глобаль codebuf.
+; Отказ распределения сведён в ERR=READ UP (код 5) — как каркас wall.
+
+; LE u32 по байтовому смещению i буфера base (rd32 = read dword)
+func rd32(base, i)
+  return getb(base, i) + 256 * getb(base, i + 1) + 65536 * getb(base, i + 2) + 16777216 * getb(base, i + 3)
+end
+
+; чтение и разбор .UP: хэндл fh -> глобали codebuf/codesize/memsize
+func read_up(fh)
+  var rc
+  ; --- заголовок: 24 байта в hdrbuf
+  got = 0
+  rc = ReadFile(fh, hdrbuf, 24, &got, 0)
+  if rc == 0
+    print_error(s_rup, len(s_rup), 5)
+  end
+  if got < 24
+    print_error(s_sig, len(s_sig), 6)
+  end
+  ; сигнатура UP01 = 55 50 30 31 (ASCII)
+  if getb(hdrbuf, 0) != 85 || getb(hdrbuf, 1) != 80 || getb(hdrbuf, 2) != 48 || getb(hdrbuf, 3) != 49
+    print_error(s_sig, len(s_sig), 6)
+  end
+  ; версия контейнера — ровно 1
+  if rd32(hdrbuf, 4) != 1
+    print_error(s_ver, len(s_ver), 6)
+  end
+  ; memsize u64 LE: старший dword ненулевой или низ > 64 МиБ
+  if rd32(hdrbuf, 12) != 0
+    print_error(s_mem, len(s_mem), 6)
+  end
+  memsize = rd32(hdrbuf, 8)
+  if memsize > 67108864
+    print_error(s_mem, len(s_mem), 6)
+  end
+  ; codesize u32: 0 недопустим
+  codesize = rd32(hdrbuf, 16)
+  if codesize == 0
+    print_error(s_code0, len(s_code0), 6)
+  end
+  ; --- код: ровно codesize байт в GlobalAlloc-буфер
+  codebuf = GlobalAlloc(0, codesize)
+  if codebuf == 0
+    print_error(s_rup, len(s_rup), 5)
+  end
+  got = 0
+  rc = ReadFile(fh, codebuf, codesize, &got, 0)
+  if rc == 0
+    print_error(s_rup, len(s_rup), 5)
+  end
+  if got < codesize
+    print_error(s_len, len(s_len), 6)
+  end
+  ; файл обязан кончиться вместе с кодом: контрольный байт
+  got = 0
+  rc = ReadFile(fh, hdrbuf, 1, &got, 0)
+  if rc == 0
+    print_error(s_rup, len(s_rup), 5)
+  end
+  if got != 0
+    print_error(s_len, len(s_len), 6)
+  end
+  ; --- резерв — последним (порядок SPEC/13 п. 4)
+  if rd32(hdrbuf, 20) != 0
+    print_error(s_res, len(s_res), 6)
+  end
+  return 0
+end

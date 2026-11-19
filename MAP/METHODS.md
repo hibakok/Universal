@@ -402,3 +402,16 @@
 | K2-D008 | strtab2 | D | готов | `MAP/M2-WALL.md` |
 | K2-D010 | импорты | D | готов | `MAP/M2-WALL.md` |
 | K2-D011 | bss | D | готов | `MAP/M2-WALL.md` |
+| K3-C001 | skip0 | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C002 | read_arg | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C003 | check_end | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C004 | widen | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C005 | print_error | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C006 | copy_str | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C007 | out_dec | C | готов | `MAP/M3-UNIVM.md` |
+| K3-U001 | rd32 | U | готов | `MAP/M3-UNIVM.md` |
+| K3-U002 | read_up | U | готов | `MAP/M3-UNIVM.md` |
+| K3-V001 | interp | V | готов | `MAP/M3-UNIVM.md` |
+| K3-V002 | op_halt | V | готов | `MAP/M3-UNIVM.md` |
+| K3-V003 | fail_trap | V | готов | `MAP/M3-UNIVM.md` |
+| K3-X001 | main | X | готов | `MAP/M3-UNIVM.md` |
