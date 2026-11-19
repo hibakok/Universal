@@ -12,9 +12,9 @@
 |---|---|---|
 | `DOCS/00-MANIFEST.md` | миссия, требования, границы проекта | 57 |
 | `DOCS/01-METHODOLOGY.md` | кирпичи, ветви, слои, 10 правил | 93 |
-| `DOCS/02-AI-NAVIGATION.md` | протокол навигации, таблица типовых задач (+ядро kernel.exe — E7.2-1..2; ловушка №23) | 115 |
+| `DOCS/02-AI-NAVIGATION.md` | протокол навигации, таблица типовых задач (+ядро kernel.exe — E7.2-1..2; №23 закрыт E7.2-2F) | 115 |
 | `DOCS/03-ROADMAP.md` | этапы E0..E10+, критерии готовности | 500 |
-| `DOCS/03a-HISTORY.md` | детальная история выполненных этапов (+ срезы этапа 7 — E7.1/E7.2-1/E7.2-2, сессия 46) | 320 |
+| `DOCS/03a-HISTORY.md` | детальная история выполненных этапов (+ срезы этапа 7 — E7.1/E7.2-1/E7.2-2, сессия 46) | 365 |
 | `DOCS/04-RULES-OF-CHANGE.md` | регламент изменений и коммитов | 59 |
 
 ## SPEC/ — формальные спецификации
@@ -40,7 +40,7 @@
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `MAP/INDEX.md` | этот файл | 335 |
+| `MAP/INDEX.md` | этот файл | 344 |
 | `MAP/METHODS.md` | указатель реестра кирпичей (одна строка на кирпич; +23 K3-* — E7.2-1..2) | 428 |
 | `MAP/M0-SEED.md` | карточки кирпичей M0-SEED (8) | 130 |
 | `MAP/M0-SEED2.md` | карточки кирпичей M0-SEED2 (19) | 299 |
@@ -52,7 +52,7 @@
 | `MAP/M1-ENC-E.md` | карточки ветви E модуля M1-ENC (кодирование, 23; E033 imul — E6.4c) | 310 |
 | `MAP/M1-ENC-S.md` | служебные ветви M1-ENC: H/U/F/D (14) | 193 |
 | `MAP/M1-SPLICE.md` | карточки кирпичей M1-SPLICE (27) | 431 |
-| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (107) | 499 |
+| `MAP/M2-WALL.md` | карточки кирпичей M2-WALL (107) | 500 |
 | `MAP/M3-UNIVM.md` | карточки кирпичей M3-UNIVM (23 — срезы E7.2-1..2: ветви C/U/V/X + ALU K3-V101..V111) | 380 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы | 44 |
 
@@ -129,13 +129,13 @@
 | `KERNEL/L1-SPLICE/BYTECODE.md` | сводка образа, карта кирпичей, данные, импорты, история образа | 124 |
 | `KERNEL/L1-SPLICE/VERIFY.md` | SHA-256, уровни, журнал дефектов E6.3, история пределов | 111 |
 | `KERNEL/L2-WALL/CARD.md` | карточка модуля M2-WALL (компилятор WALL v1/v2) | 208 |
-| `KERNEL/L2-WALL/wall.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E6.4d-5/3-2): выход wall.exe(wall.wall), плоский, 1009314 Б — T-E6-49a | — |
+| `KERNEL/L2-WALL/wall.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E6.4d-5/3-2; E7.2-2F): выход wall.exe(wall.wall), плоский, 1011099 Б — T-E6-49a | — |
 | `KERNEL/L2-WALL/wall.wall` | само-исходник на WALL v2 — КОРЕНЬ с разрезом SPEC/10 (E6.4d-2/3..4/3c-3): ext/var/str + main + 18 частей; CLI == wall.exe, чтение, GlobalAlloc, проходы 0/1 + проход 2 (срезы A..C-3) | 338 |
 | `KERNEL/L2-WALL/wall_self_c.wall` | часть каркаса: сервис — print_error/skip0/read_arg/widen (E6.4d-1) | 147 |
 | `KERNEL/L2-WALL/wall_self_n.wall` | часть каркаса: проход 0 на WALL (E6.4d-2/2) — stq, fail_format, lex_line, pass0; карта текстов smem | 262 |
 | `KERNEL/L2-WALL/wall_self_pe.wall` | часть каркаса: хелперы прохода 1 (E6.4d-2/3..3/2) — getq, tok_next, kw_lookup, chk_name, names_find/_ci/add, local_find (P008), max2/tok_is1 (экономия меток), arr_size, at_end/want_id/want_sym1; таблицы tabmem | 434 |
 | `KERNEL/L2-WALL/wall_self_ph.wall` | часть каркаса: уровни выражений стат-режимом (E6.4d-3/2) — p_expr (P010), p_mul (P011), p_mdm (P01A), p_unary (P012); курсор pcur/ple | 77 |
-| `KERNEL/L2-WALL/wall_self_pp.wall` | часть каркаса: первичные + индексация (E6.4d-3/2; эмит-плечи E6.4d-4/3c-2/1..2/2) — p_prim (P013: откат outcur + перепознание базы d+k), pp_prim0 (P013a: число/скобки/&имя/getb/len/вызов/имя), pp_pcount (P01B), pp_pairs (P01C: статы + эмит T-склад/хвост), pp_strchk (P01E) | 292 |
+| `KERNEL/L2-WALL/wall_self_pp.wall` | часть каркаса: первичные + индексация (E6.4d-3/2; эмит-плечи E6.4d-4/3c-2/1..2/2) — p_prim (P013: откат outcur + перепознание базы d+k), pp_prim0 (P013a: число/скобки/&имя/getb/len/вызов/имя), pp_pcount (P01B; фикс №23 E7.2-2F: двухсимвольный оператор глубины 0 — завершитель скана), pp_pairs (P01C: статы + эмит T-склад/хвост), pp_strchk (P01E) | 302 |
 | `KERNEL/L2-WALL/wall_self_pa.wall` | часть каркаса: вызовы и astore-проверка (E6.4d-3/2; эмит-механика E6.4d-4/3c-2/2) — p_args (P014: стейджинг после каждого аргумента; фикс №19+№21), pa_stage (P017: C(base+cnt+1)/S5), p_call_tail (P015), emit_argload, call_stats (P016), astore_chk (P01D; фикс №22: копия lay-окна — только стат pc_mode == 0) | 261 |
 | `KERNEL/L2-WALL/wall_self_pc.wall` | часть каркаса: условие if/while (E6.4d-3/3; эмит-плечо C-3) — p_cond (P018: стат — сравнения, '&&'/'||', maxd, v2flag; эмит — m-скан дизъюнктов, операнды на глубине 2 + T1-склад + «M cmp r10, r11» + jcc-инверсии + d/t-метки; параметры pfx/e/k) | 192 |
 | `KERNEL/L2-WALL/wall_self_pd.wall` | часть каркаса: объявления + заголовки func прохода 1 (E6.4d-2/3..2/4) — p1_decl (S003): var/str/ext; p1_funchdr (S004) + fh_param (S00E): larr/bstk/ftab; окно дублей — local_find | 208 |
@@ -149,11 +149,11 @@
 | `KERNEL/L2-WALL/wall_self_y.wall` | часть каркаса: проход 2, срезы A+B+C-1+C-2/1..2/3+C-3 (E6.4d-4/3a..3c-3) — pass2 (Y001: пролог + цикл строк по smem + pc_mode=1 + СЕКЦИИ ДАННЫХ при непустых scount/vcount + предел nlab), emit_header/imports/entry (E015/E026/E016) + p2_line (Y002: cmt_ptr/cmt_len, плечи 0/4..8 + 9 setb + имя-цепочка p2_namestmt + 12/13 p2s_break/p2s_continue), p2_funchdr (Y00A: + st_p2maxd/maxc/nbase + окно lay из ftab), p2s_var/end/if/while/else (эмитция функций + bstk + GUARD: p2s_if — p_cond(0, e, k); p2s_while — :_w<k> + p_cond(1, 1, k); p2s_else — jmp $_if<ke> + :_if<k>; p2s_end — while: обратный jmp + :_w<ke>, if/else: :_if<ke>) и p2s_return (Y008: выражение p_expr(1) эмит-режимом + «M mov rax, r10» + эпилог) | 460 |
 | `KERNEL/L2-WALL/wall_self_t.wall` | часть каркаса: СТАТЫ-ИМЕНА эмит-режимом (E6.4d-4/3c-2/3) — emit_sstore (E02D: стейджинг S-слота s(i) = nbase+maxd+maxc+i+1), p2s_setb (Y009: S0/S1/S2 + «M mov r10/r11/al, [rbp-S]» + «M mov [r10+r11], al» — байтовая запись, индекс БЕЗ *8) и p2_namestmt (Y00B: вызов-утверждение pc_extflg+p_args(1)+p_call_tail(0); astore — pp_pcount+astore_chk+база emit_load / цепочка pp_prim0(k)+pp_pairs(1,k-1)+S0/S1/S2 ПОРОЗНЬ+хвост shl 3/add/«M mov [r10], r11»; присваивание локали «M mov [rbp-X], r10» / глобали «M mov [rip+$имя], r10» — цель валидируется здесь, как Y00B wall.exe) | 197 |
 | `KERNEL/L2-WALL/wall_self_pg.wall` | часть каркаса: GUARD-ЭМИТТЕРЫ и break/continue (E6.4d-4/3c-3, срез C-3) — jcc_name (инверсии jne je jge jg jle jl по индексу 0..5, if-цепочка), emit_jcc_line (E029: «M j<инв> $<pfx><k>[e]»), emit_jmp_line (E02A: «M jmp $<pfx><k>[e]»), emit_iflab (E02B) / emit_wlab (E02C: «:_if/_w<k>[e]», nlab++), emit_jccd (E036: «M j<инв> $<pfx><k>d<i>»), emit_jmpt (E037: «M jmp $<pfx><k>t»), emit_glab (E038: «:<pfx><k>d<i>»/«t») + p2s_break/p2s_continue (Y00C: «M jmp $_w<k>[e]», общий хвост p2s_brk — скан bstk до kind 4) | 197 |
-| `KERNEL/L2-WALL/wall.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(wall.b2), 956497 Б — T-E6-49b | — |
+| `KERNEL/L2-WALL/wall.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(wall.b2), 958213 Б — T-E6-49b | — |
 | `KERNEL/L2-WALL/wall.peg` | обёртка — КОНСТАНТА SPEC/11 п.6 (!module wall; вход 1200, idata 1000 28, iat 1028 48; E6.4d-5/3-2) | 9 |
-| `KERNEL/L2-WALL/wall.exe` | ГЕНЕРИРУЕМЫЙ артефакт: brick+pegen+wall.peg — 87040 Б, вход 0x1200, импорты-восьмёрка (CreateFile2+GlobalAlloc); SHA-256 FE41C2B7… — T-E6-49b | — |
-| `KERNEL/L2-WALL/BYTECODE.md` | карта самосборного образа: сводка, 117 функций (RVA), данные, воспроизведение (E6.4d-5/3-2) | 233 |
-| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 17 дефектов (№23 — ОТКРЫТ, план E7.2-2F; + срезы 1-3, E6.4d-1..2/1) | 500 |
+| `KERNEL/L2-WALL/wall.exe` | ГЕНЕРИРУЕМЫЙ артефакт: brick+pegen+wall.peg — 87040 Б, вход 0x1200, импорты-восьмёрка (CreateFile2+GlobalAlloc); SHA-256 B2AC45F4… (E7.2-2F) — T-E6-49b | — |
+| `KERNEL/L2-WALL/BYTECODE.md` | карта самосборного образа: сводка, 117 функций (RVA), данные, воспроизведение (E6.4d-5/3-2) | 248 |
+| `KERNEL/L2-WALL/VERIFY.md` | проверка, журнал 18 закрытых дефектов (№23 закрыт E7.2-2F; §1 актуализирован; + срезы 1-3, E6.4d-1..2/1) | 494 |
 | `KERNEL/L2-WALL/VERIFY-E6D.md` | журнал верификации самохостинга E6.4d-2/2..3/1 (VERIFY.md у лимита 500) | 481 |
 | `KERNEL/L2-WALL/VERIFY-E6D2.md` | журнал верификации самохостинга E6.4d-3/2+ (продолжение; VERIFY-E6D.md у лимита 500) | 224 |
 | `KERNEL/L2-WALL/VERIFY-E6D3.md` | журнал верификации самохостинга E6.4d-4/2..4/3c-1 | 117 |
@@ -168,13 +168,13 @@
 | `KERNEL/L3-UNIVM/kernel.wall` | корень ядра с разрезом (SPEC/10): 8 ext, 15 var (вкл. regs[16] — регистры UNIVM), 13 str, main (CLI -> чтение -> разбор -> исполнение) | 86 |
 | `KERNEL/L3-UNIVM/kernel_self_c.wall` | часть ядра: сервис — print_error, skip0, read_arg, check_end (один аргумент строго), widen | 174 |
 | `KERNEL/L3-UNIVM/kernel_self_up.wall` | часть ядра: контейнер — rd32 (LE u32), read_up (чтение + разбор SPEC/13, порядок отказов == оракул parse_up) | 78 |
-| `KERNEL/L3-UNIVM/kernel_self_vm.wall` | часть ядра: интерпретатор — interp (цикл, порядок проверок SPEC/12 п. 7, длина всех валидных опкодов), op_const..op_eq (11 ALU-кирпичей, regs[16]), op_halt, fail_trap (TRAP/STEPS), copy_str, out_dec | 422 |
-| `KERNEL/L3-UNIVM/kernel.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E7.2-2): wall.exe(kernel.wall), плоский, 134675 Б — T-E7-09 | — |
-| `KERNEL/L3-UNIVM/kernel.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(kernel.b2), 125874 Б — T-E7-09 | — |
+| `KERNEL/L3-UNIVM/kernel_self_vm.wall` | часть ядра: интерпретатор — interp (цикл, порядок проверок SPEC/12 п. 7, длина всех валидных опкодов), op_const..op_eq (11 ALU-кирпичей, regs[16]; E7.2-2F: скобки-обход №23 в op_eq сняты — прямой «regs[ra] == regs[b2]»), op_halt, fail_trap (TRAP/STEPS), copy_str, out_dec | 420 |
+| `KERNEL/L3-UNIVM/kernel.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E7.2-2; E7.2-2F — без скобок в op_eq): wall.exe(kernel.wall), плоский, 134631 Б — T-E7-09 | — |
+| `KERNEL/L3-UNIVM/kernel.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(kernel.b2), 125830 Б — T-E7-09 | — |
 | `KERNEL/L3-UNIVM/kernel.peg` | обёртка — константа SPEC/11 п.6 (!module kernel; вход 1200, idata 1000 28, iat 1028 48) | 9 |
 | `KERNEL/L3-UNIVM/kernel.exe` | ГЕНЕРИРУЕМЫЙ артефакт: brick+pegen+kernel.peg — 16384 Б, вход 0x1200, импорты-восьмёрка; SHA-256 9B33FDFD… — T-E7-09 | — |
 | `KERNEL/L3-UNIVM/BYTECODE.md` | карта образа ядра: сводка, 24 функции (RVA), данные (вкл. regs[16]), воспроизведение | 89 |
-| `KERNEL/L3-UNIVM/VERIFY.md` | подлинность + уровни проверки + журнал срезов | 58 |
+| `KERNEL/L3-UNIVM/VERIFY.md` | подлинность + уровни проверки + журнал срезов | 67 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -186,7 +186,7 @@
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `TESTS/POLICY.md` | политика быстрых и глубоких тестов | 175 |
+| `TESTS/POLICY.md` | политика быстрых и глубоких тестов | 176 |
 | `TESTS/T-L0-SEED.md` | тест-план семени T-M0-01..T-M0-05 | 66 |
 | `TESTS/T-L0-SEED2.md` | тест-план семени-2 T-M2-01..T-M2-12 | 109 |
 | `TESTS/T-L0-HXDUMP.md` | тест-план hxdump T-M3-01..T-M3-13 | 126 |
@@ -195,14 +195,14 @@
 | `TESTS/T-L1-BRICK.md` | тест-план brick T-M6-01..T-M6-17, T-E6-36 | 153 |
 | `TESTS/T-L1-ENC.md` | тест-план enc: оракул T-E6-01..04 + инструмент T-E6-05..11b (E6.2; рост ISA E6.4c; предел 256 КиБ E6.4e-1) | 120 |
 | `TESTS/T-L1-SPLICE.md` | тест-план splice: оракул + инструмент T-E6-12..18, T-E6-16b (E6.3, E6.4e-2) | 97 |
-| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + инструмент + срезы + секция 11 + самохостинг (E6.4d-5/1..2, T-E6-59/60) | 493 |
+| `TESTS/T-L2-WALL.md` | тест-план WALL: оракул v1/v2 + инструмент + срезы + секция 11 + самохостинг (E6.4d-5/1..2, T-E6-59/60) + фикс №23 (E7.2-2F, T-E6-61) | 482 |
 | `TESTS/T-L3-UNIVM.md` | тест-план UNIVM: оракул T-E7-01..08 (E7.1) + ядро kernel.exe T-E7-09..15 (E7.2-1..2) | 150 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `LAB/README.md` | статус и правила лаборатории | 208 |
+| `LAB/README.md` | статус и правила лаборатории | 210 |
 | `LAB/py/lab_pe.py` | разбор PE32+ + инварианты SPEC/04 | 178 |
 | `LAB/py/lab_atom.py` | оракул ATOM v1 (SPEC/03) | 68 |
 | `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08; метки 1024, imagebuf 0x40010 — E6.4e-3) | 317 |
@@ -234,11 +234,11 @@
 | `LAB/py/lab_vm.py` | оракул UNIVM v0 (SPEC/12 + SPEC/13): исполнитель (регистры/память/консоль/ловушки/шаги) + мини-ассемблер (метки, .mem) — E7.1 | 455 |
 | `LAB/py/lab_t_vm.py` | секция 13 батареи: оракул UNIVM — T-E7-01..08 (якоря 18 опкодов, отвержения, демо 142 шага, ловушки, детерминизм, ops, устройства) | 320 |
 | `LAB/py/lab_t_kernel.py` | секция 14 батареи: ядро kernel.exe — T-E7-09..15 (фикс-пункт артефактов, CLI/контейнер, диффтест halt/ловушки/ALU среза 2, детерминизм; E7.2-1..2) | 338 |
-| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход; 157 проверок — с E7.2-2) | 471 |
+| `LAB/py/lab_verify.py` | батарея всех проверок (главный вход; 158 проверок — с E7.2-2F) | 474 |
 | `LAB/py/lab_t_exe.py` | секции 7-8b батареи: инструменты enc/splice/brick (T-E6-05..11b, 12..18b, 36; пределы enc 2 МиБ (E6.4g-5) и brick 512 КиБ/2048 меток — E6.4f) | 353 |
 | `LAB/py/lab_t_wall.py` | секция 9 батареи: оракул WALL v1+v2 (T-E6-19..24, 31..35) | 229 |
 | `LAB/py/lab_t_wall2.py` | секция 10 батареи: инструмент wall.exe (T-E6-25..30 + T-E6-50 — предел меток выхода 2000, граница 2000/2001; E6.4d-3/3-1) | 170 |
-| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 + фикс №19 (T-E6-37..48, 51; big_source2, DEMO_NEST-круг) | 258 |
+| `LAB/py/lab_t_wall3.py` | секция 11 батареи: инструмент wall.exe — v2 срезы 1-3 + 4a/4b/5 + фикс №19 (T-E6-37..48, 51; big_source2, DEMO_NEST-круг) + якоря фикса №23 (T-E6-61) | 312 |
 | `LAB/py/lab_t_wallself.py` | секция 12 батареи: каркас wall.wall (splice-корень) == оракулу + круг + CLI == wall.exe (19 путей) + проход 0+1 == оракулу parse (T-E6-49a/b/c/d) + эмитция пролога/функций/данных (T-E6-52/54) + выражения (T-E6-55) + вызовы/getb/индексация (T-E6-56) + статы-имена (T-E6-57) + guard-группа (T-E6-58) | 500 |
 | `LAB/py/lab_t_wallself_final.py` | секция 12b батареи: финал E6.4d-5 шаг 1 — канарейки круга, 6 DEMO-программ компилируются КАРКАСОМ, полный круг до эмуляции (T-E6-59) | 86 |
 | `LAB/py/lab_t_wallself_emit_cases.py` | источники тестов эмитции T-E6-55/56/57 (срезы C-2/1..2/3; только данные — прогонщик lab_t_wallself.py; выделен по лимиту 500 строк) | 123 |
@@ -246,7 +246,7 @@
 | `LAB/py/lab_t_wallself_model.py` | модель класса эквивалентности каркаса (E6.4d-3/2..3/3): _expect_line по строкам _lex — perr/cerr, стек блоков bstk (func/if/else/while), kw-патологии str/ext (_kw_falls) | 225 |
 | `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона) | 4263 |
 | `LAB/ai/kernel_test.py` | (частное) построитель M3-UNIVM: kernel.wall -> артефакты (конвейер — эмуляция) + корпус срезов 1-2 с отчётом (E7.2-2) | 100 |
-| `LAB/ai/wall_ppc_probe.py` | (частное) матрица воспроизведений дефекта №23 wall.exe (pp_pcount, 17 сниппетов: оракул vs wall.exe; приёмный критерий фикса E7.2-2F — 0 расхождений) | 87 |
+| `LAB/ai/wall_ppc_probe.py` | (частное) матрица-зонд дефекта №23 wall.exe (pp_pcount, 17 сниппетов: оракул vs wall.exe; ЗАКРЫТ E7.2-2F — 0 расхождений; регресс-зонд) | 84 |
 | `LAB/ai/kernel_labelmap.py` | (частное) карта меток kernel.brick (RVA) — обновление BYTECODE.md (E7.2-1) | 33 |
 | `LAB/ai/enc_build.py` | (частное) построитель M1-ENC: enc.b2 -> артефакты + карта меток | 469 |
 | `LAB/ai/enc_build_lim.py` | (частное) пересборка M1-ENC + dev-тесты предела 256 КиБ (E6.4e-1; исторический — границы в духе своей эпохи) | 267 |
@@ -301,12 +301,21 @@ LAB — измерительный прибор (Python только здесь)
   ветви C/U/V/X, срезы E7.2-1..2: +K3-V101..V111 ALU).
 - Модулей: **10** (M0-SEED, M0-SEED2, M0-HXDUMP, M0-HEXGEN, M0-PEGEN,
   M1-BRICK, M1-ENC, M1-SPLICE, M2-WALL, M3-UNIVM).
-- Тестов: **156** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
+- Тестов: **157** (T-M0-01..05, T-M2-01..12, T-M3-01..13, T-M4-01..14,
   T-M5-01..17, T-M6-01..17, T-E6-01..48 + T-E6-10b + T-E6-16b,
-  T-E6-49a/b/c/d + T-E6-53..60, T-E7-01..08 — E7.1, T-E7-09..14 —
-  E7.2-1, T-E7-15 — E7.2-2; автоматических в батарее — 157).
-- Этап: **E7.2-2 ВЫПОЛНЕН (сессия 46) — ядро kernel.exe (M3-UNIVM):
-  регистры + ALU.** 11 кирпичей K3-V101..V111 (const/mov/add/sub/and/
+  T-E6-49a/b/c/d + T-E6-53..60, T-E6-61 — E7.2-2F, T-E7-01..08 — E7.1,
+  T-E7-09..14 — E7.2-1, T-E7-15 — E7.2-2; автоматических в батарее — 158).
+- Этап: **E7.2-2F ВЫПОЛНЕН (сессия 47) — фикс дефекта №23 wall.exe
+  (pp_pcount).** Двухсимвольный оператор глубины 0 — завершитель
+  скана пар [..] в wall_self_pp.wall (+11 строк); артефакты wall
+  пересобраны конвейером фикс-пункта (548 707 240 шагов, s2.b2 ==
+  wall.b2 байт-в-байт; тело 86185 → 86307); зонд wall_ppc_probe.py —
+  0/17 расхождений (до фикса — 8); якорь T-E6-61 (секция 11);
+  скобки-обход в op_eq ядра сняты (kernel.exe байт-в-байт тот же).
+  Батарея 157 → 158/158. Далее — E7.2-3 (память + устройства);
+  план срезов — DOCS/03-ROADMAP этап 7.
+- Предыдущий: **E7.2-2 ВЫПОЛНЕН (сессия 46) — ядро kernel.exe
+  (M3-UNIVM): регистры + ALU.** 11 кирпичей K3-V101..V111 (const/mov/add/sub/and/
   or/xor/shl/shr/lt/eq — по кирпичу на опкод; массив regs[16], r0
   равноправен); interp: проверка длины для всех валидных опкодов
   01..12 (обрезка — ловушка 2 ДО заглушки, как оракул). Корпус
@@ -317,8 +326,7 @@ LAB — измерительный прибор (Python только здесь)
   (pp_pcount — двухсимвольные операторы не завершают скан пар
   индексации: «индекс == индекс» — ложный ERR=FORMAT; обход — скобки
   в op_eq, фикс — отдельный срез; журнал — KERNEL/L2-WALL/VERIFY.md
-  §4). Батарея 156 → 157/157. Далее — фикс №23, затем E7.2-3
-  (память + устройства); план срезов — DOCS/03-ROADMAP этап 7.
+  §4). Батарея 156 → 157/157.
 - История E6.4d (ВЫПОЛНЕН, сессия 43): самохостинг замкнут —
   артефакты wall.b2/wall.brick/wall.exe := самосборная сборка из
   wall.wall (фикс-пункт 548 385 615 шагов — T-E6-49a/49b на каждом

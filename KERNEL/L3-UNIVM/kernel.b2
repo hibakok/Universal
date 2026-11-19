@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 757 строк; функций: 24; ext: 8; str: 13; глобальных var: 15
+; исходник: 755 строк; функций: 24; ext: 8; str: 13; глобальных var: 15
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -2632,27 +2632,27 @@ M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
 :_if56e
-M lea r10, [rip+$regs] ; if regs[ra] == (regs[b2])
-M mov [rbp-30], r10 ; if regs[ra] == (regs[b2])
-M mov r10, [rbp-20] ; if regs[ra] == (regs[b2])
-M shl r10, 3 ; if regs[ra] == (regs[b2])
-M mov r11, r10 ; if regs[ra] == (regs[b2])
-M mov r10, [rbp-30] ; if regs[ra] == (regs[b2])
-M add r10, r11 ; if regs[ra] == (regs[b2])
-M mov r10, [r10] ; if regs[ra] == (regs[b2])
-M mov [rbp-28], r10 ; if regs[ra] == (regs[b2])
-M lea r10, [rip+$regs] ; if regs[ra] == (regs[b2])
-M mov [rbp-30], r10 ; if regs[ra] == (regs[b2])
-M mov r10, [rbp-10] ; if regs[ra] == (regs[b2])
-M shl r10, 3 ; if regs[ra] == (regs[b2])
-M mov r11, r10 ; if regs[ra] == (regs[b2])
-M mov r10, [rbp-30] ; if regs[ra] == (regs[b2])
-M add r10, r11 ; if regs[ra] == (regs[b2])
-M mov r10, [r10] ; if regs[ra] == (regs[b2])
-M mov r11, r10 ; if regs[ra] == (regs[b2])
-M mov r10, [rbp-28] ; if regs[ra] == (regs[b2])
-M cmp r10, r11 ; if regs[ra] == (regs[b2])
-M jne $_if57 ; if regs[ra] == (regs[b2])
+M lea r10, [rip+$regs] ; if regs[ra] == regs[b2]
+M mov [rbp-30], r10 ; if regs[ra] == regs[b2]
+M mov r10, [rbp-20] ; if regs[ra] == regs[b2]
+M shl r10, 3 ; if regs[ra] == regs[b2]
+M mov r11, r10 ; if regs[ra] == regs[b2]
+M mov r10, [rbp-30] ; if regs[ra] == regs[b2]
+M add r10, r11 ; if regs[ra] == regs[b2]
+M mov r10, [r10] ; if regs[ra] == regs[b2]
+M mov [rbp-28], r10 ; if regs[ra] == regs[b2]
+M lea r10, [rip+$regs] ; if regs[ra] == regs[b2]
+M mov [rbp-30], r10 ; if regs[ra] == regs[b2]
+M mov r10, [rbp-10] ; if regs[ra] == regs[b2]
+M shl r10, 3 ; if regs[ra] == regs[b2]
+M mov r11, r10 ; if regs[ra] == regs[b2]
+M mov r10, [rbp-30] ; if regs[ra] == regs[b2]
+M add r10, r11 ; if regs[ra] == regs[b2]
+M mov r10, [r10] ; if regs[ra] == regs[b2]
+M mov r11, r10 ; if regs[ra] == regs[b2]
+M mov r10, [rbp-28] ; if regs[ra] == regs[b2]
+M cmp r10, r11 ; if regs[ra] == regs[b2]
+M jne $_if57 ; if regs[ra] == regs[b2]
 M lea r10, [rip+$regs] ; regs[rd] = 1
 M mov [rbp-40], r10 ; regs[rd] = 1
 M mov r10, [rbp-18] ; regs[rd] = 1
@@ -2665,7 +2665,7 @@ M shl r11, 3 ; regs[rd] = 1
 M add r10, r11 ; regs[rd] = 1
 M mov r11, [rbp-50] ; regs[rd] = 1
 M mov [r10], r11 ; regs[rd] = 1
-M jmp $_if57e ; if regs[ra] == (regs[b2])
+M jmp $_if57e ; if regs[ra] == regs[b2]
 :_if57
 M lea r10, [rip+$regs] ; regs[rd] = 0
 M mov [rbp-40], r10 ; regs[rd] = 0

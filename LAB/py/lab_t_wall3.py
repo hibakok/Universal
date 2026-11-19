@@ -33,6 +33,11 @@
          (якоря v1) и корпус T-E6-49d автоматически (+2 записи);
          новый T-E6-51 — полный круг DEMO_NEST (семантическая канарейка
          баз C-слотов: старый стейджинг печатал бы «U-NEST-OK 54»).
+         (E7.2-2F, фикс №23) новый T-E6-61 — якоря фикса pp_pcount:
+         двухсимвольный оператор (== != <= >= << >> && ||) после
+         индекса — завершитель скана пар; 17 сниппетов зонда
+         wall_ppc_probe.py сверяются с оракулом БАЙТ-В-БАЙТ (сильнее
+         зонда: не только OK/ERR, но и полный выход).
 """
 import os
 import tempfile
@@ -253,6 +258,55 @@ def _t_slice5(check, kpath):
           "шагов=%d" % r.steps)
 
 
+# --- T-E6-61 (E7.2-2F): якоря фикса дефекта №23 (pp_pcount) ------------
+# Матрица сниппетов зонда LAB/ai/wall_ppc_probe.py (двухсимвольный
+# оператор после индекса): до фикса 8 сниппетов давали ложный
+# ERR=FORMAT (пары правого операнда засчитывались в цепочку левого:
+# k завышался -> pp_pairs требовал вторую '['). Проверка сильнее зонда:
+# полный выход wall.exe == оракулу БАЙТ-В-БАЙТ (не только OK/ERR).
+def _pp_case(body):
+    """Сниппет: глобальные массивы g/h, main с одним условием/выражением."""
+    return ("var g[4]\nvar h[4]\nfunc main\n  var i\n  var x\n"
+            "  i = 1\n  x = 2\n" + body + "  return 0\nend\n")
+
+
+PP_CASES = [
+    ("x < g[i] (односимв., левый var)", "  if x < g[i]\n    i = 3\n  end\n"),
+    ("g[i] < h[i] (односимв., оба индекса)",
+     "  if g[i] < h[i]\n    i = 3\n  end\n"),
+    ("x == g[i] (двухсимв., левый var)", "  if x == g[i]\n    i = 3\n  end\n"),
+    ("g[i] == 5 (правое число)", "  if g[i] == 5\n    i = 3\n  end\n"),
+    ("g[i] == x (правый var)", "  if g[i] == x\n    i = 3\n  end\n"),
+    ("g[i] == h[i] (оба индекса)", "  if g[i] == h[i]\n    i = 3\n  end\n"),
+    ("g[i] != h[i]", "  if g[i] != h[i]\n    i = 3\n  end\n"),
+    ("g[i] <= h[i]", "  if g[i] <= h[i]\n    i = 3\n  end\n"),
+    ("g[i] >= h[i]", "  if g[i] >= h[i]\n    i = 3\n  end\n"),
+    ("g[i] == (h[i]) скобки", "  if g[i] == (h[i])\n    i = 3\n  end\n"),
+    ("g[i] == h[i] + 1 (скобка правее)",
+     "  if g[i] == h[i] + 1\n    i = 3\n  end\n"),
+    ("g[i] == h[j] && x < 3 (цепочка)",
+     "  if g[i] == h[i] && x < 3\n    i = 3\n  end\n"),
+    ("g[i] == h[i] || x < 3 (дизъюнкт)",
+     "  if g[i] == h[i] || x < 3\n    i = 3\n  end\n"),
+    ("g[i] = g[i] << h[i] (выражение)", "  g[i] = g[i] << h[i]\n"),
+    ("g[i] = g[i] << (h[i]) скобки", "  g[i] = g[i] << (h[i])\n"),
+    ("g[i] = g[i] + h[i] (односимв.)", "  g[i] = g[i] + h[i]\n"),
+    ("g[h[i]] вложенный индекс", "  if g[h[i]] == 5\n    i = 3\n  end\n"),
+]
+
+
+def _t_fix23(check, kpath):
+    """T-E6-61 (E7.2-2F): якоря фикса №23 — 17 сниппетов зонда
+    wall_ppc_probe.py: wall.exe == оракулу байт-в-байт (8 из них до
+    фикса отвергались ложно — «индекс == индекс» / «индекс << индекс»)."""
+    wall = kpath("L2-WALL/wall.exe")
+    bad = [n for n, b in PP_CASES if not _eq_oracle(wall, _pp_case(b))[0]]
+    check("T-E6-61 якоря фикса №23 (pp_pcount): двухсимвольный оператор "
+          "после индекса (%d) == оракулу" % len(PP_CASES), not bad,
+          "; ".join(bad[:3]))
+
+
 def run(check, kpath, kfile, kernel_host):
     _t_wall_v2(check, kpath, kfile, kernel_host)
     _t_slice5(check, kpath)
+    _t_fix23(check, kpath)

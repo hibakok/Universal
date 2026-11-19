@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 757 строк; функций: 24; ext: 8; str: 13; глобальных var: 15
+; исходник: 755 строк; функций: 24; ext: 8; str: 13; глобальных var: 15
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -2632,27 +2632,27 @@ H 4C 89 55 C8 ; fail_trap(1)
 H 48 8B 4D C8 ; fail_trap(1)
 H E8 $fail_trap ; fail_trap(1)
 :_if56e
-H 4C 8D 15 $regs ; if regs[ra] == (regs[b2])
-H 4C 89 55 D0 ; if regs[ra] == (regs[b2])
-H 4C 8B 55 E0 ; if regs[ra] == (regs[b2])
-H 49 C1 E2 03 ; if regs[ra] == (regs[b2])
-H 4D 89 D3 ; if regs[ra] == (regs[b2])
-H 4C 8B 55 D0 ; if regs[ra] == (regs[b2])
-H 4D 01 DA ; if regs[ra] == (regs[b2])
-H 4D 8B 12 ; if regs[ra] == (regs[b2])
-H 4C 89 55 D8 ; if regs[ra] == (regs[b2])
-H 4C 8D 15 $regs ; if regs[ra] == (regs[b2])
-H 4C 89 55 D0 ; if regs[ra] == (regs[b2])
-H 4C 8B 55 F0 ; if regs[ra] == (regs[b2])
-H 49 C1 E2 03 ; if regs[ra] == (regs[b2])
-H 4D 89 D3 ; if regs[ra] == (regs[b2])
-H 4C 8B 55 D0 ; if regs[ra] == (regs[b2])
-H 4D 01 DA ; if regs[ra] == (regs[b2])
-H 4D 8B 12 ; if regs[ra] == (regs[b2])
-H 4D 89 D3 ; if regs[ra] == (regs[b2])
-H 4C 8B 55 D8 ; if regs[ra] == (regs[b2])
-H 4D 39 DA ; if regs[ra] == (regs[b2])
-H 0F 85 $_if57 ; if regs[ra] == (regs[b2])
+H 4C 8D 15 $regs ; if regs[ra] == regs[b2]
+H 4C 89 55 D0 ; if regs[ra] == regs[b2]
+H 4C 8B 55 E0 ; if regs[ra] == regs[b2]
+H 49 C1 E2 03 ; if regs[ra] == regs[b2]
+H 4D 89 D3 ; if regs[ra] == regs[b2]
+H 4C 8B 55 D0 ; if regs[ra] == regs[b2]
+H 4D 01 DA ; if regs[ra] == regs[b2]
+H 4D 8B 12 ; if regs[ra] == regs[b2]
+H 4C 89 55 D8 ; if regs[ra] == regs[b2]
+H 4C 8D 15 $regs ; if regs[ra] == regs[b2]
+H 4C 89 55 D0 ; if regs[ra] == regs[b2]
+H 4C 8B 55 F0 ; if regs[ra] == regs[b2]
+H 49 C1 E2 03 ; if regs[ra] == regs[b2]
+H 4D 89 D3 ; if regs[ra] == regs[b2]
+H 4C 8B 55 D0 ; if regs[ra] == regs[b2]
+H 4D 01 DA ; if regs[ra] == regs[b2]
+H 4D 8B 12 ; if regs[ra] == regs[b2]
+H 4D 89 D3 ; if regs[ra] == regs[b2]
+H 4C 8B 55 D8 ; if regs[ra] == regs[b2]
+H 4D 39 DA ; if regs[ra] == regs[b2]
+H 0F 85 $_if57 ; if regs[ra] == regs[b2]
 H 4C 8D 15 $regs ; regs[rd] = 1
 H 4C 89 55 C0 ; regs[rd] = 1
 H 4C 8B 55 E8 ; regs[rd] = 1
@@ -2665,7 +2665,7 @@ H 49 C1 E3 03 ; regs[rd] = 1
 H 4D 01 DA ; regs[rd] = 1
 H 4C 8B 5D B0 ; regs[rd] = 1
 H 4D 89 1A ; regs[rd] = 1
-H E9 $_if57e ; if regs[ra] == (regs[b2])
+H E9 $_if57e ; if regs[ra] == regs[b2]
 :_if57
 H 4C 8D 15 $regs ; regs[rd] = 0
 H 4C 89 55 C0 ; regs[rd] = 0

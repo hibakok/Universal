@@ -26,7 +26,8 @@ import lab_run
 
 # E6.4d-5/3-2: wall.exe — самосборный артефакт из wall.wall (модуль
 # wall, константа SPEC/11 п.6; DOS-заглушка «Universal L0 wall.»)
-WALL_SHA = ("FE41C2B77C6759FB9F7D08FDF561D7799F04BDD70387C7307EFFBE1D61482BC3")
+WALL_SHA = ("B2AC45F43CCC6FD66489A0F4327850105CC9B6BDE42FE98495DAFA0A46EE1CF7")
+# E7.2-2F: пересборка wall после фикса №23 (pp_pcount)
 
 
 def _t_wall_exe(check, kpath, kfile, kernel_host):
