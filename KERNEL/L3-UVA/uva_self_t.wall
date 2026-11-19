@@ -1,4 +1,4 @@
-; uva_self_t.wall — токены и числа ассемблера uva.wall (E7.3-2)
+; uva_self_t.wall — токены и числа ассемблера uva.wall (E7.3-3)
 ; Паспорт: KERNEL/L3-UVA/uva_self_t.wall | слой: L3 (исходник — WALL)
 ; | роль: ветвь T — лексический уровень исходника .uva: сравнение
 ; токена с литералом (K3-T001 tok_is), разбиение сегмента на токены
@@ -17,6 +17,9 @@
 ; K3-T007 parse_reg — разбор регистра r0..r15 в nval (как _reg
 ; оракула: r0..r9 — 2 символа; r10..r15 — 3, вторая цифра строго 1;
 ; регистр отсутствует/за пределами — 0).
+; E7.3-3: K3-T008 parse_memop — операнд памяти rA[+смещ] как _memop
+; оракула (рег в nval, смещение в moff; смещение без проверки
+; диапазона — копится mod 2^64, младшие 32 бита даёт кодирование).
 ; Токены — глобали: tcnt (число; строки из одних разделителей дают 0 —
 ; пропуск, как фиксированный оракул E7.3-1), tstart[12]/tend[12]
 ; (позиции в srcbuf; первые 12 токенов, дальше — только счёт).
@@ -298,4 +301,119 @@ func parse_reg(ti)
     end
   end
   return 0
+end
+
+; токен ti -> операнд памяти rA[+смещ] (как _memop оракула
+; r([0-9]|1[0-5]) с бэктрекингом regex: rN затем конец/знак, при
+; неудаче r1X): глобали nval = номер регистра 0..15, moff = смещение;
+; возврат 1 = успех, 0 = плохо. Смещение [+-](dec|0x-hex): '0x' —
+; строчная x, hex-цифры обеих регистров; копится mod 2^64 БЕЗ
+; проверки диапазона (как оракул: int() без диапазона, маска —
+; при кодировании; перенос mod 2^64 даёт те же младшие 32 бита —
+; гомоморфизм колец); знак '-' — дополнение до двух. r1/r11/r15 без
+; смещения — валидны (смещ 0); r16/r19/r01/r3x — не операнд.
+func parse_memop(ti)
+  var a
+  var b
+  var p
+  var c
+  var d
+  var reg
+  var sign
+  var v
+  var hex
+  var i
+  a = tstart[ti]
+  b = tend[ti]
+  reg = -1
+  p = b
+  if b - a >= 2
+    if getb(srcbuf, a) == 114
+      c = getb(srcbuf, a + 1)
+      if c >= 48 && c <= 57
+        if b - a == 2
+          reg = c - 48
+        else
+          d = getb(srcbuf, a + 2)
+          if d == 43 || d == 45
+            reg = c - 48
+            p = a + 2
+          else
+            ; откат на r1X (бэктрекинг: r1 + цифра 0..5)
+            if c == 49
+              if d >= 48 && d <= 53
+                reg = d - 38
+                if b - a > 3
+                  d = getb(srcbuf, a + 3)
+                  if d == 43 || d == 45
+                    p = a + 3
+                  else
+                    reg = -1
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  if reg == -1
+    return 0
+  end
+  if p >= b
+    nval = reg
+    moff = 0
+    return 1
+  end
+  ; смещение: [p] = знак (43 '+' / 45 '-'), [p+1..b) = число
+  sign = 1
+  if getb(srcbuf, p) == 45
+    sign = -1
+  end
+  i = p + 1
+  hex = 0
+  if getb(srcbuf, i) == 48
+    if i + 1 < b
+      if getb(srcbuf, i + 1) == 120
+        hex = 1
+        i = i + 2
+      end
+    end
+  end
+  if i >= b
+    return 0
+  end
+  v = 0
+  while i < b
+    c = getb(srcbuf, i)
+    if hex == 1
+      if c >= 48 && c <= 57
+        v = v * 16 + c - 48
+      else
+        if c >= 65 && c <= 70
+          v = v * 16 + c - 55
+        else
+          if c >= 97 && c <= 102
+            v = v * 16 + c - 87
+          else
+            return 0
+          end
+        end
+      end
+    else
+      if c >= 48 && c <= 57
+        v = v * 10 + c - 48
+      else
+        return 0
+      end
+    end
+    i = i + 1
+  end
+  if sign == -1
+    v = -v
+  end
+  nval = reg
+  moff = v
+  return 1
 end

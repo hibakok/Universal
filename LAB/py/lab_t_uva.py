@@ -2,22 +2,26 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-19..24 (срезы E7.3-1..2 — каркас ассемблера .uva ->
-       .UP на WALL + таблица мнемоник/регистры/кодировка F1): сборка
-       конвейером инструментов под эмуляцией (фикс-пункт воспроизводимости
-       артефактов), контракт CLI, диффтест с ассемблером оракула
-       lab_vm.assemble байт-в-байт (halt-корпус среза 1 + F1-корпус среза
-       2: mov/9 АЛУ, регистры r0..r15, ошибки операндов/регистров),
-       отвержение с номерами строк (== AsmError.line оракула), контракт
-       CODE0 (пустая программа) и сквозной круг uva -> kernel.exe.
+Выход: проверки T-E7-19..24 (срезы E7.3-1..3 — каркас ассемблера .uva ->
+       .UP на WALL + таблица мнемоник/регистры/кодировка F1 + F2 const/
+       память): сборка конвейером инструментов под эмуляцией (фикс-пункт
+       воспроизводимости артефактов), контракт CLI, диффтест с ассемблером
+       оракула lab_vm.assemble байт-в-байт (halt-корпус среза 1 + F1-корпус
+       среза 2 + F2-корпус среза 3: const/ldb/stb/ldq/stq, операнды памяти
+       rA[+смещ] со знаком и hex, смещения без проверки диапазона —
+       маскируются, ошибки операндов/регистров), отвержение с номерами
+       строк (== AsmError.line оракула), контракт CODE0 (пустая программа)
+       и сквозной круг uva -> kernel.exe (в т.ч. F2 с выводом в консоль
+       через окно устройств).
 Функция: доказать, что ассемблер uva.exe (KERNEL/L3-UVA) собирается из
          uva.wall самими инструментами репозитория байт-в-байт и
-         повторяет ассемблер оракула на классе срезов 1-2 (.mem + halt +
-         mov/АЛУ).
-Срез 2: все 18 мнемоник распознаются в проходе 1 (длины F1/F2/F3);
-         кодируются halt (F3, срез 1) и F1 (mov + 9 АЛУ); const/ldb/stb/
-         ldq/stq (F2) и jmp/jnz + метки — срезы E7.3-3/4 (диффтест на них
-         не входит в корпус: валидные программы этих форм оракул
+         повторяет ассемблер оракула на классе срезов 1-3 (.mem + halt +
+         mov/АЛУ + const/память).
+Срез 3: F2 кодируются целиком (const + ldb/stb/ldq/stq); операнд памяти
+         rA[+смещ] — с бэктрекингом rN/r1X и накоплением mod 2^64 без
+         проверки диапазона (маска младших 32 бит — при кодировании,
+         как _i32 оракула); jmp/jnz + метки — срез E7.3-4 (диффтест на
+         них не входит в корпус: валидные программы этих форм оракул
          собирает, а uva — ещё нет; строки ошибок совпадают на любом
          невалидном операнде этих строк — оба отвергают на строке).
 """
@@ -119,6 +123,47 @@ OK_CASES = [
     (b"f1 no final lf", b".mem 8\nmov r1, r2\nhalt 0"),
     (b"f1 r10-15", b".mem 8\nmov r10, r11\nadd r12, r13, r14\n"
                      b"lt r15, r0, r1\nhalt 0\n"),
+    # F2 (срез E7.3-3): const + ldb/stb/ldq/stq, операнды rA[+смещ]
+    (b"const", b".mem 8\nconst r1, 5\nhalt 0\n"),
+    (b"const r0", b".mem 8\nconst r0, 0\nhalt 0\n"),
+    (b"const r15 -1", b".mem 8\nconst r15, -1\nhalt 0\n"),
+    (b"const hex", b".mem 8\nconst r1, 0x10\nhalt 0\n"),
+    (b"const -hex", b".mem 8\nconst r1, -0x10\nhalt 0\n"),
+    (b"const max u32", b".mem 8\nconst r1, 4294967295\nhalt 0\n"),
+    (b"const min i32", b".mem 8\nconst r1, -2147483648\nhalt 0\n"),
+    (b"const +5", b".mem 8\nconst r1, +5\nhalt 0\n"),
+    (b"ldb no off", b".mem 8\nldb r1, r2\nhalt 0\n"),
+    (b"ldb +16", b".mem 8\nldb r1, r2+16\nhalt 0\n"),
+    (b"ldb -8", b".mem 8\nldb r1, r2-8\nhalt 0\n"),
+    (b"ldb r15", b".mem 8\nldb r1, r15\nhalt 0\n"),
+    (b"ldb r15 hex", b".mem 8\nldb r0, r15+0x100\nhalt 0\n"),
+    (b"ldb r11 bare", b".mem 8\nldb r1, r11\nhalt 0\n"),
+    (b"ldb r10+5", b".mem 8\nldb r1, r10+5\nhalt 0\n"),
+    (b"ldb r15+3", b".mem 8\nldb r1, r15+3\nhalt 0\n"),
+    (b"ldb lead zeros", b".mem 8\nldb r1, r2+007\nhalt 0\n"),
+    (b"ldb -0", b".mem 8\nldb r1, r2-0\nhalt 0\n"),
+    (b"ldb hex AB", b".mem 8\nldb r1, r2+0xAB\nhalt 0\n"),
+    (b"ldb hex ab", b".mem 8\nldb r1, r2+0xab\nhalt 0\n"),
+    (b"stb", b".mem 8\nstb r2+16, r1\nhalt 0\n"),
+    (b"stb -hex", b".mem 8\nstb r2-0x10, r1\nhalt 0\n"),
+    (b"stq", b".mem 8\nstq r2-1, r15\nhalt 0\n"),
+    (b"stq r11 bare", b".mem 8\nstq r11, r1\nhalt 0\n"),
+    (b"ldq", b".mem 8\nldq r0, r15+3\nhalt 0\n"),
+    (b"f2 all 5", b".mem 64\nconst r1, 7\nldb r2, r1+8\nstb r1+16, r2\n"
+                     b"ldq r3, r1+24\nstq r1+32, r3\nhalt 0\n"),
+    (b"f2+f1 mixed", b".mem 64\nconst r1, 5\nmov r2, r1\nadd r3, r1, r2\n"
+                       b"stq r3, r1\nldb r4, r1\nhalt 9\n"),
+    # смещения без проверки диапазона — маскируются (как _i32 оракула;
+    # накопление mod 2^64 даёт те же младшие 32 бита)
+    (b"off 2^31", b".mem 8\nldb r1, r2+2147483648\nhalt 0\n"),
+    (b"off max u32", b".mem 8\nldb r1, r2+4294967295\nhalt 0\n"),
+    (b"off 2^32", b".mem 8\nldb r1, r2+4294967296\nhalt 0\n"),
+    (b"off huge", b".mem 8\nldb r1, r2+99999999999999999999\nhalt 0\n"),
+    (b"off 2^32 hex", b".mem 8\nstb r2+0x100000000, r1\nhalt 0\n"),
+    (b"stb off 2^32", b".mem 8\nstb r2+4294967296, r1\nhalt 0\n"),
+    (b"f2 crlf", b".mem 8\r\nconst r1, 5\r\nstb r1+0, r1\r\nhalt 0\r\n"),
+    (b"f2 comment", b".mem 8\nconst r1, 5 ; c\nstb r1+0, r1\nhalt 0\n"),
+    (b"f2 no final lf", b".mem 8\nconst r1, 5\nstb r1+0, r1\nhalt 0"),
 ]
 
 # отвержение: uva AT=XXXX == строка AsmError оракула (первая ошибка)
@@ -163,6 +208,40 @@ ERR_CASES = [
     ("регистр r-1", b".mem 8\nmov r-1, r1\nhalt 0\n"),
     ("мнемоника-префикс (haltx)", b".mem 8\nhaltx 0\nhalt 0\n"),
     ("mov + константа r16 позже", b".mem 8\nmov r1, r2\nconst r16, 5\n"),
+    # F2 (срез E7.3-3): счёт операндов, регистры, операнды памяти
+    ("const 1 операнд", b".mem 8\nconst r1\nhalt 0\n"),
+    ("const 3 операнда", b".mem 8\nconst r1, 5, 6\nhalt 0\n"),
+    ("const плохой reg", b".mem 8\nconst r16, 5\nhalt 0\n"),
+    ("const плохое число", b".mem 8\nconst r1, abc\nhalt 0\n"),
+    ("const вне imm32", b".mem 8\nconst r1, 9999999999\nhalt 0\n"),
+    ("const число первым", b".mem 8\nconst 5, r1\nhalt 0\n"),
+    ("const memop значением", b".mem 8\nconst r1, r2+5\nhalt 0\n"),
+    ("const reg вместо числа", b".mem 8\nconst r1, r2\nhalt 0\n"),
+    ("ldb 1 операнд", b".mem 8\nldb r1\nhalt 0\n"),
+    ("ldb 3 операнда", b".mem 8\nldb r1, r2, r3\nhalt 0\n"),
+    ("ldb плохой rd", b".mem 8\nldb r16, r2\nhalt 0\n"),
+    ("ldb rd заглавный", b".mem 8\nldb R1, r2\nhalt 0\n"),
+    ("ldb плохой memop", b".mem 8\nldb r1, x2\nhalt 0\n"),
+    ("ldb число-адрес", b".mem 8\nldb r1, 5\nhalt 0\n"),
+    ("ldb знак без числа", b".mem 8\nldb r1, r2+\nhalt 0\n"),
+    ("ldb плюс-минус", b".mem 8\nldb r1, r2+-5\nhalt 0\n"),
+    ("ldb двойной плюс", b".mem 8\nldb r1, r2++5\nhalt 0\n"),
+    ("ldb r16 memop", b".mem 8\nldb r1, r16+5\nhalt 0\n"),
+    ("ldb r01 memop", b".mem 8\nldb r1, r01+5\nhalt 0\n"),
+    ("ldb r19 memop", b".mem 8\nldb r1, r19\nhalt 0\n"),
+    ("ldb r3x memop", b".mem 8\nldb r1, r3x\nhalt 0\n"),
+    ("ldb hex без цифр", b".mem 8\nldb r1, r2+0x\nhalt 0\n"),
+    ("ldb 0X заглавная", b".mem 8\nldb r1, r2+0X10\nhalt 0\n"),
+    ("ldb memop первым", b".mem 8\nldb r2+5, r1\nhalt 0\n"),
+    ("memop с пробелом", b".mem 8\nldb r1, r2 +5\nhalt 0\n"),
+    ("stb 1 операнд", b".mem 8\nstb r2\nhalt 0\n"),
+    ("stb 3 операнда", b".mem 8\nstb r2+1, r1, r3\nhalt 0\n"),
+    ("stb плохой memop", b".mem 8\nstb r2*, r1\nhalt 0\n"),
+    ("stb плохой val reg", b".mem 8\nstb r2+1, r16\nhalt 0\n"),
+    ("stq плохой memop", b".mem 8\nstq x1+2, r3\nhalt 0\n"),
+    ("ldq 3 операнда", b".mem 8\nldq r1, r2, r3\nhalt 0\n"),
+    ("f2 ошибка в 3-й строке", b".mem 8\nconst r1, 5\nldb r1, r2+\nhalt 0\n"),
+    ("stq hex без цифр", b".mem 8\nstq r2+0x, r1\nhalt 0\n"),
 ]
 
 # CODE0: .mem есть, инструкций нет (как make_up оракула)
@@ -218,7 +297,7 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-20 CLI ассемблера: справка/имя/вход/предел (%d)"
               % len(cases), not bad, "; ".join(bad[:2]))
 
-        # T-E7-21: halt-корпус — uva(b.up) == ассемблеру оракула
+        # T-E7-21: корпус — uva(b.up) == ассемблеру оракула
         bad = []
         for name, src in OK_CASES:
             try:
@@ -230,7 +309,7 @@ def run(check, kpath, kfile, kernel_host):
             if code != 0 or got != want:
                 bad.append("%s: код=%s %r" % (name, code,
                                               (got or b"")[:30]))
-        check("T-E7-21 halt-корпус: uva == оракулу assemble (%d)"
+        check("T-E7-21 корпус: uva == оракулу assemble (%d)"
               % len(OK_CASES), not bad, "; ".join(bad[:2]))
 
         # T-E7-22: отвержение — AT=XXXX == строке AsmError оракула
@@ -275,22 +354,29 @@ def run(check, kpath, kfile, kernel_host):
               % len(CODE0_CASES), not bad, "; ".join(bad[:2]))
 
         # T-E7-24: сквозной круг uva -> kernel.exe (внешняя программа
-        # собирается ассемблером и исполняется ядром; F1 — срез 2)
-        # + детерминизм
+        # собирается ассемблером и исполняется ядром; F1 — срез 2,
+        # F2 — срез 3: const/stb/stq/ldq + вывод в консоль окном
+        # устройств) + детерминизм
         bad = []
-        for name, src, want_code in [
-                (b"halt 42", b".mem 8\nhalt 42\n", 42),
-                (b"halt 37 mem0", b".mem 0\nhalt 37\n", 37),
-                (b"first halt", b".mem 4096\nhalt 0\nhalt 1\n", 0),
+        for name, src, want_code, want_out in [
+                (b"halt 42", b".mem 8\nhalt 42\n", 42, b""),
+                (b"halt 37 mem0", b".mem 0\nhalt 37\n", 37, b""),
+                (b"first halt", b".mem 4096\nhalt 0\nhalt 1\n", 0, b""),
                 (b"mov+add", b".mem 8\nmov r1, r2\nadd r3, r1, r2\n"
-                              b"halt 7\n", 7)]:
+                              b"halt 7\n", 7, b""),
+                (b"f2 console", b".mem 8\nconst r1, 8\nconst r2, 65\n"
+                                 b"stb r1+0, r2\nhalt 0\n", 0, b"A"),
+                (b"f2 ram+dev", b".mem 4096\nconst r1, 0\nconst r2, 5\n"
+                                 b"stq r1+0, r2\nldq r3, r1\nconst r4, 65\n"
+                                 b"add r5, r3, r4\nconst r6, 4096\n"
+                                 b"stb r6+0, r5\nhalt 0\n", 0, b"F")]:
             out, code, got = _uva(uexe, src)
             if code != 0 or got is None:
                 bad.append("%s: сборка код=%s" % (name, code))
                 continue
             k = lab_run.run_kv(kpath("L3-UNIVM/kernel.exe"),
                                ["t.up"], {"t.up": got})
-            if k.exit_code != want_code or k.stdout != b"":
+            if k.exit_code != want_code or k.stdout != want_out:
                 bad.append("%s: ядро код=%s %r" % (name,
                                                    k.exit_code,
                                                    k.stdout[:20]))
@@ -298,7 +384,7 @@ def run(check, kpath, kfile, kernel_host):
         o2, c2, g2 = _uva(uexe, OK_CASES[0][1])
         if not (c1 == c2 == 0 and g1 == g2 and g1 is not None):
             bad.append("детерминизм: код %s/%s" % (c1, c2))
-        check("T-E7-24 круг uva -> kernel.exe (4) + детерминизм",
+        check("T-E7-24 круг uva -> kernel.exe (6) + детерминизм",
               not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(uexe)

@@ -1,7 +1,7 @@
 # Реестр кирпичей — указатель
 
 Паспорт файла: MAP/METHODS.md | слой: все | роль: указатель реестра кирпичей
-(314 кирпичей; +21 K3-* — срезы E7.3-1..2 ассемблера M3-UVA).
+(316 кирпичей; +23 K3-* — срезы E7.3-1..3 ассемблера M3-UVA).
 
 Формат карточки: `SPEC/01-METHOD-CARD.md`. Идентификаторы вечны и не
 переиспользуются (правило R5). Поиск: по ID в таблице ниже, затем —
@@ -448,10 +448,12 @@
 | K3-T005 | line_next | T | готов | `MAP/M3-UVA.md` |
 | K3-T006 | mn_find | T | готов | `MAP/M3-UVA.md` |
 | K3-T007 | parse_reg | T | готов | `MAP/M3-UVA.md` |
+| K3-T008 | parse_memop | T | готов | `MAP/M3-UVA.md` |
 | K3-L001 | pass1 | L | готов | `MAP/M3-UVA.md` |
 | K3-E001 | pass2 | E | готов | `MAP/M3-UVA.md` |
 | K3-E002 | enc_halt | E | готов | `MAP/M3-UVA.md` |
 | K3-E003 | enc_f1 | E | готов | `MAP/M3-UVA.md` |
+| K3-E004 | enc_f2 | E | готов | `MAP/M3-UVA.md` |
 | K3-W001 | make_header | W | готов | `MAP/M3-UVA.md` |
 | K3-W002 | put32 | W | готов | `MAP/M3-UVA.md` |
 | K3-W003 | write_out | W | готов | `MAP/M3-UVA.md` |
