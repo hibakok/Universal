@@ -1,0 +1,222 @@
+; kernel_self_mem.wall — память и окно устройств ядра, срез E7.2-3 (E7.2)
+; Паспорт: KERNEL/L3-UNIVM/kernel_self_mem.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь M ядра — K3-M001 get_ram (RAM = GlobalAlloc(0, memsize) +
+; обнуление — SPEC/12 п. 3.2 «старт — нули»; отказ — ERR=READ UP (5), как
+; распределение кода) и 4 кирпича опкодов памяти: K3-M101 op_ldb (0x0C),
+; K3-M102 op_stb (0x0D), K3-M103 op_ldq (0x0E), K3-M104 op_stq (0x0F) —
+; по кирпичу на опкод (переходы 10..11 — срез E7.2-4).
+;
+; Адресация — SPEC/12 п. 3.3: адрес = (базовый регистр + знаковый imm32)
+; mod 2^64 — аппаратное сложение WALL заворачивается так же, битовый образ
+; адреса совпадает с оракулом. Границы беззнаковые: байт — [0,
+; memsize+4096) (RAM или окно), слово — только RAM и целиком (addr+8 <=
+; memsize). Оба предела < 2^31 (memsize <= 2^26 по SPEC/13), поэтому фильтр
+; «a >> 31 != 0» (логический сдвиг) отсекает всякий адрес >= 2^31 как
+; недопустимый, а ПОСЛЕ фильтра знаковые сравнения WALL (64-бит)
+; эквивалентны беззнаковым (операнды в [0, 2^31)) — сравнения с
+; memsize+4096 и memsize точны. Слова — 8 байт LE по любому адресу
+; (выравнивание не требуется): сборка/разбор байтами (стиль rd32),
+; сдвиги 8..56.
+;
+; Окно устройств — SPEC/12 п. 6: [memsize, memsize+4096); окно+0 — регистр
+; данных консоли: stb пишет байт в stdout немедленно (WriteFile байтом;
+; «к моменту останова» п. 6 — порядок байтов = порядок записи), ldb
+; читает 0; окно+1..4095 — резерв: запись игнорируется, чтение 0. Словный
+; доступ к окну невозможен: addr+8 > memsize всегда -> ловушка 3/4
+; (SPEC/12 п. 6 «регистры устройств v0 байтовые»).
+;
+; Порядок проверок — SPEC/12 п. 7: (1)-(3) — в interp (K3-V001); у
+; F2-памяти оба ниблна rd:ra — номера регистров 0..15 (ловушка 1
+; невозможна), (5) исполнение -> ловушки 3 (чтение) / 4 (запись);
+; инструкция с ловушкой шагом не считается. RAM не распределяется при
+; memsize = 0 (ram = 0; обращений к RAM быть не может — только окно).
+
+; RAM программы: GlobalAlloc(0, memsize) + обнуление (старт — нули,
+; SPEC/12 п. 3.2; контракт оракула — bytearray(memsize)). Обнуление —
+; qword-цикл (ram[zi] = 0 — astore по адресу из ЗНАЧЕНИЯ ram) + хвост
+; до 7 байт setb. Отказ GlobalAlloc — ERR=READ UP (5), как отказ
+; распределения кода (каркас E7.2-1). Вызов — из read_up (после
+; успешного разбора контейнера: все отказы .UP уже позади).
+func get_ram
+  var zi
+  var zlim
+  ram = 0
+  if memsize > 0
+    ram = GlobalAlloc(0, memsize)
+    if ram == 0
+      print_error(s_rup, len(s_rup), 5)
+    end
+    zlim = memsize >> 3
+    zi = 0
+    while zi < zlim
+      ram[zi] = 0
+      zi = zi + 1
+    end
+    zi = zlim << 3
+    while zi < memsize
+      setb(ram, zi, 0)
+      zi = zi + 1
+    end
+  end
+  return 0
+end
+
+; исполнение ldb (F2, опкод 0x0C) по pc: rd := sext8(байт по адресу
+; ra+imm32) — RAM; окно -> 0 (SPEC/12 п. 6); вне — ловушка 3. Проверки
+; (1)-(3) — в interp; (4) у F2-памяти невозможна (оба ниблна —
+; регистры); (5) исполнение; pc += 6, шаг считается. sext8: байт >= 128
+; -> вычесть 256 — арифметика WALL заворачивается mod 2^64, битовый
+; образ знакового расширения тот же, что у оракула (v - 256) & M64
+func op_ldb
+  var b1
+  var rd
+  var ra
+  var imm
+  var a
+  var v
+  b1 = getb(codebuf, pc + 1)
+  rd = b1 >> 4
+  ra = b1 & 15
+  imm = rd32(codebuf, pc + 2)
+  if (imm >> 31) == 1
+    imm = imm - (1 << 32)
+  end
+  a = regs[ra] + imm
+  if a >> 31 != 0
+    fail_trap(3)
+  end
+  if a >= memsize + 4096
+    fail_trap(3)
+  end
+  if a < memsize
+    v = getb(ram, a)
+    if v >= 128
+      v = v - 256
+    end
+    regs[rd] = v
+  else
+    regs[rd] = 0
+  end
+  pc = pc + 6
+  steps = steps + 1
+  return 0
+end
+
+; исполнение stb (F2, опкод 0x0D) по pc: байт regs[ra] по адресу
+; rd+imm32 — RAM; окно+0 — консоль (байт -> stdout, WriteFile байтом,
+; немедленно); окно+1..4095 — игнор (резерв); вне — ловушка 4.
+; rd — база, ra — источник (SPEC/12 п. 5). Проверки (1)-(3) — в interp;
+; pc += 6, шаг считается
+func op_stb
+  var b1
+  var rd
+  var ra
+  var imm
+  var a
+  var ob
+  b1 = getb(codebuf, pc + 1)
+  rd = b1 >> 4
+  ra = b1 & 15
+  imm = rd32(codebuf, pc + 2)
+  if (imm >> 31) == 1
+    imm = imm - (1 << 32)
+  end
+  a = regs[rd] + imm
+  if a >> 31 != 0
+    fail_trap(4)
+  end
+  if a >= memsize + 4096
+    fail_trap(4)
+  end
+  if a < memsize
+    setb(ram, a, regs[ra] & 255)
+  else
+    if a == memsize
+      setb(&ob, 0, regs[ra] & 255)
+      written = 0
+      WriteFile(hstdout, &ob, 1, &written, 0)
+    end
+  end
+  pc = pc + 6
+  steps = steps + 1
+  return 0
+end
+
+; исполнение ldq (F2, опкод 0x0E) по pc: rd := слово LE по адресу
+; ra+imm32 — только RAM и целиком (addr+8 <= memsize; окно словным
+; доступом запрещено — SPEC/12 п. 6), иначе ловушка 3. Сборка слова
+; байтами (сдвиги 8..56; выравнивание не требуется — п. 3.3);
+; pc += 6, шаг считается
+func op_ldq
+  var b1
+  var rd
+  var ra
+  var imm
+  var a
+  var q
+  b1 = getb(codebuf, pc + 1)
+  rd = b1 >> 4
+  ra = b1 & 15
+  imm = rd32(codebuf, pc + 2)
+  if (imm >> 31) == 1
+    imm = imm - (1 << 32)
+  end
+  a = regs[ra] + imm
+  if a >> 31 != 0
+    fail_trap(3)
+  end
+  if a + 8 > memsize
+    fail_trap(3)
+  end
+  q = getb(ram, a)
+  q = q | (getb(ram, a + 1) << 8)
+  q = q | (getb(ram, a + 2) << 16)
+  q = q | (getb(ram, a + 3) << 24)
+  q = q | (getb(ram, a + 4) << 32)
+  q = q | (getb(ram, a + 5) << 40)
+  q = q | (getb(ram, a + 6) << 48)
+  q = q | (getb(ram, a + 7) << 56)
+  regs[rd] = q
+  pc = pc + 6
+  steps = steps + 1
+  return 0
+end
+
+; исполнение stq (F2, опкод 0x0F) по pc: слово LE regs[ra] по адресу
+; rd+imm32 — только RAM и целиком (addr+8 <= memsize), иначе ловушка 4.
+; Разбор слова байтами (сдвиги 8..56, & 255); rd — база, ra — источник
+; (SPEC/12 п. 5). Проверки (1)-(3) — в interp; pc += 6, шаг считается
+func op_stq
+  var b1
+  var rd
+  var ra
+  var imm
+  var a
+  var v
+  b1 = getb(codebuf, pc + 1)
+  rd = b1 >> 4
+  ra = b1 & 15
+  imm = rd32(codebuf, pc + 2)
+  if (imm >> 31) == 1
+    imm = imm - (1 << 32)
+  end
+  a = regs[rd] + imm
+  if a >> 31 != 0
+    fail_trap(4)
+  end
+  if a + 8 > memsize
+    fail_trap(4)
+  end
+  v = regs[ra]
+  setb(ram, a, v & 255)
+  setb(ram, a + 1, (v >> 8) & 255)
+  setb(ram, a + 2, (v >> 16) & 255)
+  setb(ram, a + 3, (v >> 24) & 255)
+  setb(ram, a + 4, (v >> 32) & 255)
+  setb(ram, a + 5, (v >> 40) & 255)
+  setb(ram, a + 6, (v >> 48) & 255)
+  setb(ram, a + 7, (v >> 56) & 255)
+  pc = pc + 6
+  steps = steps + 1
+  return 0
+end

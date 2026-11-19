@@ -409,9 +409,14 @@
 | K3-C005 | print_error | C | готов | `MAP/M3-UNIVM.md` |
 | K3-C006 | copy_str | C | готов | `MAP/M3-UNIVM.md` |
 | K3-C007 | out_dec | C | готов | `MAP/M3-UNIVM.md` |
+| K3-M001 | get_ram | M | готов | `MAP/M3-UNIVM.md` |
+| K3-M101 | op_ldb | M | готов | `MAP/M3-UNIVM.md` |
+| K3-M102 | op_stb | M | готов | `MAP/M3-UNIVM.md` |
+| K3-M103 | op_ldq | M | готов | `MAP/M3-UNIVM.md` |
+| K3-M104 | op_stq | M | готов | `MAP/M3-UNIVM.md` |
 | K3-U001 | rd32 | U | готов | `MAP/M3-UNIVM.md` |
 | K3-U002 | read_up | U | готов | `MAP/M3-UNIVM.md` |
-| K3-V001 | interp | V | готов (срез 2) | `MAP/M3-UNIVM.md` |
+| K3-V001 | interp | V | готов (срез 3) | `MAP/M3-UNIVM.md` |
 | K3-V002 | op_halt | V | готов | `MAP/M3-UNIVM.md` |
 | K3-V003 | fail_trap | V | готов | `MAP/M3-UNIVM.md` |
 | K3-V101 | op_const | V | готов | `MAP/M3-UNIVM.md` |
