@@ -26,6 +26,7 @@ import lab_l2_cc                          # noqa: E402
 import lab_l2_mdm                         # noqa: E402
 import lab_l2_prog                        # noqa: E402
 import lab_run                            # noqa: E402
+import lab_win                            # noqa: E402
 import lab_splice                         # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -70,9 +71,15 @@ def kernel_host():
 
 
 def build_skeleton():
-    """Полный круг сборки EXE каркаса; вернуть (exe, b2)."""
+    """Полный круг сборки EXE каркаса; вернуть (exe, b2).
+    E6.4d-5/3-2: wall.exe — самосборный, компиляция wall.wall им самим
+    (~0.55 млрд шагов) — выше дефолтного лимита lab_run 200 млн:
+    прямой вызов lab_win.Machine.run(max_steps=2 млрд); обёртка —
+    wall.peg (константа SPEC/11 п.6): построенный каркас байт-в-байт
+    равен артефакту wall.exe."""
     src = lab_splice.splice("L2-WALL/wall.wall", kernel_host())
-    r = lab_run.run_kv(WALL, ["s.wall", "s.b2"], {"s.wall": src})
+    m = lab_win.Machine(WALL, ["s.wall", "s.b2"], {"s.wall": src})
+    r = m.run(max_steps=2_000_000_000)
     if r.exit_code != 0:
         return None, None
     b2 = r.files["s.b2"]
@@ -85,7 +92,8 @@ def build_skeleton():
     if r3.exit_code != 0:
         return None, None
     h["s.bin"] = r3.files["s.bin"]
-    h["s.peg"] = lab_l2_prog.DEMO_WALL_PEG.encode()
+    h["s.peg"] = open(os.path.join(KERNEL, "L2-WALL", "wall.peg"),
+                       "rb").read()
     r4 = lab_run.run_kv(PEGEN, ["s.bin", "s.peg", "s.exe"], h)
     if r4.exit_code != 0 or "s.exe" not in r4.files:
         return None, None

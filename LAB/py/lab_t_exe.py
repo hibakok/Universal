@@ -225,11 +225,13 @@ def _t_splice(check, kpath, kfile, kernel_host):
           "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
 
     # T-E6-17: инструмент == оракулу на корнях репозитория (4 разреза;
-    #    с E6.4e-2 и wall.b2 — крупнейший потребитель пределов)
+    #    с E6.4d-5/3-2 — l2-wall/wall.wall: wall.b2 теперь ГЕНЕРИРУЕМЫЙ
+    #    плоский артефакт ~1 МБ (выше предела splice), крупнейший
+    #    потребитель пределов — корень каркаса wall.wall, 19 частей)
     kh = kernel_host()
     bad = []
     for root in ("l1-enc/enc.b2", "l1-brick/brick.brick",
-                 "l1-splice/splice.b2", "l2-wall/wall.b2"):
+                 "l1-splice/splice.b2", "l2-wall/wall.wall"):
         want = lab_splice.splice(root, kh)
         r = lab_run.run_kv(splice_exe, [root, "t.flat"], kh)
         if not (r.exit_code == 0 and r.files.get("t.flat") == want):

@@ -218,34 +218,48 @@ def run(check, kpath, kfile, kernel_host):
     pegen_exe = kpath("L0-PEGEN/pegen.exe")
 
     # T-E6-49a: компиляция каркаса (корень+части, splice-оракул) ==
-    # оракулу байт-в-байт
+    # оракулу байт-в-байт; С E6.4d-5/3-2 (самохостинг замкнут) это ещё и
+    # ФИКСПУНКТ самосборки: wall.exe — самосборный артефакт из wall.wall,
+    # поэтому его выход обязан совпасть и с артефактом wall.b2
     src = b""
     r = None
     try:
         src = lab_splice.splice("L2-WALL/wall.wall", kernel_host())
-        r = lab_run.run_kv(wall, ["s.wall", "s.b2"], {"s.wall": src})
+        # E6.4d-5/3-2: wall.exe — самосборный; компиляция wall.wall им
+        # самим — ФИКСПУНКТ (~0.55 млрд шагов, выше лимита lab_run
+        # 200 млн): прямой lab_win с лимитом 2 млрд (как wall_self_diff)
+        m = lab_win.Machine(wall, ["s.wall", "s.b2"], {"s.wall": src})
+        r = m.run(max_steps=2_000_000_000)
         ok = r.exit_code == 0
         if ok:
             oracle = lab_l2.compile_wall(src.decode("latin1")).encode()
-            ok = r.files.get("s.b2") == oracle
+            ok = r.files.get("s.b2") == oracle and \
+                r.files.get("s.b2") == kfile("L2-WALL/wall.b2")
     except Exception as e:                    # noqa: BLE001 — любая = провал
         ok = False
         r = type("R", (), {"exit_code": "EXC:" + repr(e)})()
-    check("T-E6-49a каркас wall.wall == оракулу (байт-в-байт)", ok,
+    check("T-E6-49a фикс-пункт: wall.wall == оракулу == артефакту "
+          "wall.b2 (байт-в-байт)", ok,
           "код=%s" % r.exit_code)
 
-    # T-E6-49b: полный круг каркаса: enc -> brick -> pegen -> EXE
+    # T-E6-49b: полный круг каркаса — АРТЕФАКТЫ ВОСПРОИЗВОДИМЫ из
+    # wall.wall (E6.4d-5/3-2): enc -> wall.brick, brick+pegen+wall.peg
+    # (константа SPEC/11 п.6, !module wall) -> wall.exe — каждый шаг
+    # обязан дать байт-в-байт артефакты репозитория
     h = {"s.b2": r.files.get("s.b2", b"")}
     r2 = lab_run.run_kv(enc_exe, ["s.b2", "s.brick"], h)
     h["s.brick"] = r2.files.get("s.brick", b"")
     r3 = lab_run.run_kv(brick_exe, ["s.brick", "s.bin"], h)
     h["s.bin"] = r3.files.get("s.bin", b"")
-    h["s.peg"] = lab_l2_prog.DEMO_WALL_PEG.encode()
+    h["s.peg"] = kfile("L2-WALL/wall.peg")
     r4 = lab_run.run_kv(pegen_exe, ["s.bin", "s.peg", "s.exe"], h)
     exe = r4.files.get("s.exe", b"")
-    check("T-E6-49b полный круг каркаса (enc+brick+pegen)",
+    check("T-E6-49b полный круг: артефакты wall.brick/wall.exe "
+          "воспроизводимы из wall.wall",
           bool(r2.exit_code == 0 and r3.exit_code == 0 and
-               r4.exit_code == 0 and exe),
+               r4.exit_code == 0 and exe and
+               h["s.brick"] == kfile("L2-WALL/wall.brick") and
+               exe == kfile("L2-WALL/wall.exe")),
           "коды=%s/%s/%s" % (r2.exit_code, r3.exit_code, r4.exit_code))
 
     # T-E6-49c: CLI-поведение каркаса == wall.exe (байт-в-байт)

@@ -84,7 +84,8 @@ SHA = {
                 "5872FCB83E90",
     "L1-SPLICE/splice": "E5C974173A7028A664A44DDC572D182B7855497694217F35"
                        "EB810057AF6CD5C2",
-    "L2-WALL/wall": "295730EF1D170D04652E7DD398C0F6A3EB957E4D65F060D66859C3D64774C661",
+    "L2-WALL/wall": "FE41C2B77C6759FB9F7D08FDF561D7799F04BDD70387C7307EFFBE"
+                    "1D61482BC3",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
@@ -138,6 +139,13 @@ def t_pe_invariants():
     for m in SHA:                       # включая enc (E6.2)
         pe = lab_pe.load(kpath("%s.exe" % m))
         bad = lab_pe.check_spec04(pe)
+        if m == "L2-WALL/wall":
+            # E6.4d-5/3-2: wall.exe — программа, скомпилированная WALL
+            # (самосборный артефакт из wall.wall): вход 0x1200 после
+            # фиксированной области импортов 0x200 — документированное
+            # отклонение SPEC/11 п.6 (батарея проверяет его явно —
+            # T-E6-22/T-E6-33; фильтр тот же, что в T-E6-30)
+            bad = [b for b in bad if b != "точка входа != 0x1000"]
         check("PE инварианты SPEC/04 %s" % m.split("/")[-1], not bad,
               "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
 

@@ -24,7 +24,9 @@ import lab_pe
 import lab_pegen
 import lab_run
 
-WALL_SHA = ("295730EF1D170D04652E7DD398C0F6A3EB957E4D65F060D66859C3D64774C661")
+# E6.4d-5/3-2: wall.exe — самосборный артефакт из wall.wall (модуль
+# wall, константа SPEC/11 п.6; DOS-заглушка «Universal L0 wall.»)
+WALL_SHA = ("FE41C2B77C6759FB9F7D08FDF561D7799F04BDD70387C7307EFFBE1D61482BC3")
 
 
 def _t_wall_exe(check, kpath, kfile, kernel_host):
@@ -114,9 +116,11 @@ def _t_wall_exe(check, kpath, kfile, kernel_host):
         bad.append("цепочка импортов пуста (idata мимо :idt)")
     else:
         names = [n for n, _r in pe["imports"][0]["funcs"]]
+        # E6.4d-5/3-2: самосборный wall.exe импортирует ВОСЬМЁРКУ (каркас
+        # на WALL: CreateFile2 + GlobalAlloc вместо CreateFileA)
         if names[:2] != ["GetStdHandle", "WriteFile"] or \
-                names[-1] != "CloseHandle" or len(names) != 7:
-            bad.append("имена импортов не kernel32-семёрка: %r" % names[:2])
+                names[-1] != "GlobalAlloc" or len(names) != 8:
+            bad.append("имена импортов не kernel32-восьмёрка: %r" % names[:2])
     check("T-E6-30 PE инварианты SPEC/04 wall.exe", not bad,
           "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
 
