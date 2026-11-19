@@ -38,7 +38,16 @@
             lab_t_wallself_final): канарейки круга — 6 DEMO-
             программ компилируются КАРКАСОМ до эмуляции (T-E6-59;
             шаг 2 — big-исходники каркасом — приёмочная проверка
-            LAB/ai/wall_self_canary.py).
+            LAB/ai/wall_self_canary.py);
+         13) оракул UNIVM (lab_t_vm, E7.1 — этап 7 начат): якорные
+            кодировки всех 18 опкодов SPEC/12 (ручные, независимый
+            свидетель), отвержение ассемблера с номерами строк,
+            отвержение контейнеров .UP (причины SPEC/13 п. 4),
+            демо-круг «U-VM-OK 37» (строка в RAM через stb, сумма
+            1..10, hex-цифры, консоль-устройство; 142 шага),
+            ловушки 1-4 с шагами, детерминизм, ops-программа
+            (ALU/jmp/слова), окно устройств + границы (заворот
+            адреса, memsize=0, предел шагов — trap 6).
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -61,6 +70,7 @@ import lab_t_wall
 import lab_t_wall2
 import lab_t_wall3
 import lab_t_wallself
+import lab_t_vm
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -437,6 +447,7 @@ def main():
     lab_t_wall2.run(check, kpath, kfile, kernel_host)
     lab_t_wall3.run(check, kpath, kfile, kernel_host)
     lab_t_wallself.run(check, kpath, kfile, kernel_host)
+    lab_t_vm.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
