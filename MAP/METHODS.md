@@ -419,7 +419,8 @@
 | K3-M103 | op_ldq | M | готов | `MAP/M3-UNIVM.md` |
 | K3-M104 | op_stq | M | готов | `MAP/M3-UNIVM.md` |
 | K3-U001 | rd32 | U | готов | `MAP/M3-UNIVM.md` |
-| K3-U002 | read_up | U | готов | `MAP/M3-UNIVM.md` |
+| K3-U002 | read_up | U | готов (v2 — E7.4-2a) | `MAP/M3-UNIVM.md` |
+| K3-U003 | read_data | U | готов (E7.4-2a) | `MAP/M3-UNIVM.md` |
 | K3-V001 | interp | V | готов (финал E7.2) | `MAP/M3-UNIVM-V.md` |
 | K3-V002 | op_halt | V | готов | `MAP/M3-UNIVM-V.md` |
 | K3-V003 | fail_trap | V | готов | `MAP/M3-UNIVM-V.md` |

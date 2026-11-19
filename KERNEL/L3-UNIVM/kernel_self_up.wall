@@ -1,27 +1,41 @@
-; kernel_self_up.wall — чтение и разбор контейнера .UP (E7.2-1)
+; kernel_self_up.wall — чтение и разбор контейнера .UP (E7.2-1; v2 — E7.4-2a)
 ; Паспорт: KERNEL/L3-UNIVM/kernel_self_up.wall | слой: L3 (исходник — WALL)
-; | роль: ветвь U ядра — K3-U001 rd32 (LE u32 из буфера, байтыgetb)
-; и K3-U002 read_up: чтение .UP по хэндлу файла (заголовок 24 Б ->
-; код ровно codesize байт -> контрольный байт) и разбор SPEC/13 с
-; точными отказами SIG/VER/MEM/CODE0/LEN/RES — В ЭТОМ ПОРЯДКЕ (как
-; оракул parse_up, SPEC/13 п. 4; LEN проверяется после CODE0 по числу
-; прочитанных байтов, RES — последним). memsize — u64: > 64 МиБ это
-; ненулевой старший dword ИЛИ низ > 64 МиБ (беззнаковое сравнение без
-; u64-литералей). Код — GlobalAlloc(0, codesize) -> глобаль codebuf.
-; Отказ распределения сведён в ERR=READ UP (код 5) — как каркас wall.
-; E7.2-3: после успешного разбора (RES-проверка — последняя) — RAM
-; программы: get_ram() (ветвь M) — GlobalAlloc(0, memsize) + обнуление,
-; глобаль ram; отказ — тот же ERR=READ UP (5). Контейнер разобран
-; полностью ДО распределения RAM — порядок отказов .UP не меняется.
+; | роль: ветвь U ядра — K3-U001 rd32 (LE u32 из буфера, байты),
+; K3-U002 read_up (заголовок 24 Б -> код ровно codesize Б -> контрольный
+; байт -> ветвление v1/v2) и K3-U003 read_data (секция данных v2 ->
+; RAM[0:datalen]).
+; Отказы — В ПОРЯДКЕ ОРАКУЛА parse_up (SPEC/13 п. 4): SIG -> VER ->
+; MEM -> CODE0 -> LEN (код обрезан — по числу прочитанных байтов) ->
+; RES (dataoff-мусор / данные заявлены и отсутствуют) -> DATA
+; (datalen > memsize). LEN для v1/v2-без-данных: файл обязан кончиться
+; кодом — контрольный байт после кода (got != 0 -> LEN; для v2 с
+; dataoff = 24+codesize этот байт — ПЕРВЫЙ БАЙТ ДАННЫХ). memsize —
+; u64: > 64 МиБ это ненулевой старший dword ИЛИ низ > 64 МиБ
+; (беззнаковое сравнение без u64-литералей). Код — GlobalAlloc(0,
+; codesize) -> глобаль codebuf; отказ распределения — ERR=READ UP
+; (код 5), как каркас wall.
+; E7.2-3: RAM — get_ram() (ветвь M) после ВСЕХ отказов контейнера
+; (v1/v2-без-данных) — порядок отказов .UP не меняется.
+; E7.4-2a (SPEC/13 п. 2.1): версия контейнера — 1 ИЛИ 2 (v1-файлы
+; валидны навсегда; иная — VER). Поле @20 = dataoff: v1 — резерв,
+; обязан быть нулём (RES); v2 — 0 (данных нет, эквивалент v1) или
+; ровно 24+codesize (RES — мусор не молчит). При dataoff = 24+codesize
+; за кодом следует секция данных до конца файла: datalen >= 1
+; (пустая — RES «заявлены и отсутствуют»), байты -> RAM[0:datalen]
+; при загрузке — чтение В RAM кусками (K3-U003); datalen > memsize —
+; DATA (последний отказ в порядке; RAM для данных распределяется ДО
+; чтения — DATA по-прежнему после RES, контракт порядка цел).
 
 ; LE u32 по байтовому смещению i буфера base (rd32 = read dword)
 func rd32(base, i)
   return getb(base, i) + 256 * getb(base, i + 1) + 65536 * getb(base, i + 2) + 16777216 * getb(base, i + 3)
 end
 
-; чтение и разбор .UP: хэндл fh -> глобали codebuf/codesize/memsize
+; чтение и разбор .UP: хэндл fh -> глобали codebuf/codesize/memsize/ram
 func read_up(fh)
   var rc
+  var ver
+  var dataoff
   ; --- заголовок: 24 байта в hdrbuf
   got = 0
   rc = ReadFile(fh, hdrbuf, 24, &got, 0)
@@ -35,8 +49,9 @@ func read_up(fh)
   if getb(hdrbuf, 0) != 85 || getb(hdrbuf, 1) != 80 || getb(hdrbuf, 2) != 48 || getb(hdrbuf, 3) != 49
     print_error(s_sig, len(s_sig), 6)
   end
-  ; версия контейнера — ровно 1
-  if rd32(hdrbuf, 4) != 1
+  ; версия контейнера — 1 или 2 (E7.4-2a: v2 — секция данных, SPEC/13)
+  ver = rd32(hdrbuf, 4)
+  if ver != 1 && ver != 2
     print_error(s_ver, len(s_ver), 6)
   end
   ; memsize u64 LE: старший dword ненулевой или низ > 64 МиБ
@@ -65,21 +80,96 @@ func read_up(fh)
   if got < codesize
     print_error(s_len, len(s_len), 6)
   end
-  ; файл обязан кончиться вместе с кодом: контрольный байт
+  ; --- контрольный байт: конец кода (v1 / v2-без-данных — LEN) или
+  ; первый байт секции данных (v2, dataoff = 24+codesize)
+  got = 0
+  rc = ReadFile(fh, hdrbuf, 1, &got, 0)
+  if rc == 0
+    print_error(s_rup, len(s_rup), 5)
+  end
+  dataoff = rd32(hdrbuf, 20)
+  if ver == 1
+    ; v1: файл обязан кончиться кодом; резерв — нуль (LEN раньше RES)
+    if got != 0
+      print_error(s_len, len(s_len), 6)
+    end
+    if dataoff != 0
+      print_error(s_res, len(s_res), 6)
+    end
+    ; --- RAM программы: после ВСЕХ отказов контейнера
+    get_ram()
+  else
+    ; v2: dataoff = 0 — данных нет; 24+codesize — секция данных
+    if dataoff == 0
+      if got != 0
+        print_error(s_len, len(s_len), 6)
+      end
+      ; --- RAM программы: после ВСЕХ отказов контейнера
+      get_ram()
+    else
+      if dataoff != 24 + codesize
+        print_error(s_res, len(s_res), 6)
+      end
+      if got == 0
+        print_error(s_res, len(s_res), 6)
+      end
+      ; данные есть (datalen >= 1): memsize = 0 — не влезает (DATA)
+      if memsize == 0
+        print_error(s_data, len(s_data), 6)
+      end
+      ; --- RAM + секция данных -> RAM[0:datalen] (K3-U003)
+      read_data(fh)
+    end
+  end
+  return 0
+end
+
+; чтение секции данных v2 в RAM (E7.4-2a): вызывается read_up, когда
+; dataoff = 24+codesize и первый байт данных уже в hdrbuf[0]
+; (контрольное чтение доказало «данные есть»). RAM — get_ram
+; (GlobalAlloc(0, memsize) + обнуление), первый байт — setb в RAM[0];
+; далее чтение кусками до 4096 Б ПРЯМО В RAM (граница: want =
+; memsize - k, за предел не читаем). Конец файла — got = 0 или
+; короткое чтение (got < want); после цикла контрольный байт: байт
+; за границей RAM -> DATA (datalen > memsize, SPEC/13 п. 4; короткое
+; чтение даёт got = 0 — тот же зонд безвреден). Отказ ReadFile —
+; ERR=READ UP (5), как везде в read_up.
+func read_data(fh)
+  var rc
+  var k
+  var want
+  get_ram()
+  setb(ram, 0, getb(hdrbuf, 0))
+  k = 1
+  ; данные в RAM[1:]: k < memsize (want >= 1), заполнение ровно
+  ; memsize выходит из цикла по условию
+  while k < memsize
+    want = 4096
+    if memsize - k < want
+      want = memsize - k
+    end
+    got = 0
+    rc = ReadFile(fh, ram + k, want, &got, 0)
+    if rc == 0
+      print_error(s_rup, len(s_rup), 5)
+    end
+    if got == 0
+      break
+    end
+    k = k + got
+    if got < want
+      break
+    end
+  end
+  ; конец файла или RAM заполнена ровно (k == memsize): один байт
+  ; за границей? -> DATA
   got = 0
   rc = ReadFile(fh, hdrbuf, 1, &got, 0)
   if rc == 0
     print_error(s_rup, len(s_rup), 5)
   end
   if got != 0
-    print_error(s_len, len(s_len), 6)
+    print_error(s_data, len(s_data), 6)
   end
-  ; --- резерв — последним (порядок SPEC/13 п. 4)
-  if rd32(hdrbuf, 20) != 0
-    print_error(s_res, len(s_res), 6)
-  end
-  ; --- RAM программы (E7.2-3): GlobalAlloc(0, memsize) + обнуление —
-  ; после ВСЕХ отказов контейнера (порядок отказов .UP не меняется)
-  get_ram()
   return 0
 end

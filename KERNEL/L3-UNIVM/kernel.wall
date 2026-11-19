@@ -22,6 +22,12 @@
 ; KERNEL <FILE.UP> [STEPS]. Все 18 опкодов ISA v0 исполняются;
 ; порядок проверок — SPEC/12 п. 7; для опкодов 00/13+ ловушка 1 —
 ; сразу (п. 7 (2)).
+; Срез E7.4-2a: контейнер .UP v2 (SPEC/13 п. 2.1) — поле резерва стало
+; dataoff: 0 — данных нет (файл кончается кодом, как v1; v1-файлы
+; валидны навсегда), 24+codesize — за кодом секция данных до конца
+; файла, datalen >= 1, байты копируются в RAM[0:datalen] при загрузке
+; (до первой инструкции); отказы LEN/RES/DATA — в порядке оракула
+; parse_up; новое сообщение ERR=DATA (длиннее RAM).
 ; Контракт ядра (строки/коды/диагностика ловушек) — SPEC/13 п. 4,
 ; карточка CARD.md, тесты TESTS/T-L3-UNIVM.md (T-E7-09+).
 ; Сборка (полный круг, инструменты ядра; обёртка — kernel.peg):
@@ -69,6 +75,7 @@ str s_mem = 'U-L3-UNIVM ERR=MEM\r\n'
 str s_code0 = 'U-L3-UNIVM ERR=CODE0\r\n'
 str s_len = 'U-L3-UNIVM ERR=LEN\r\n'
 str s_res = 'U-L3-UNIVM ERR=RES\r\n'
+str s_data = 'U-L3-UNIVM ERR=DATA\r\n'
 str s_trap = 'U-L3-UNIVM TRAP='
 str s_steps = ' STEPS='
 str s_crlf = '\r\n'

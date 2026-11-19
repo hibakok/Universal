@@ -2,10 +2,11 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-09..18 (срезы E7.2-1..4 ядра на WALL):
-       сборка ядра конвейером инструментов под эмуляцией (фикс-пункт
-       воспроизводимости артефактов), контракт CLI/контейнера .UP,
-       диффтест ядра с оракулом lab_vm на корпусе срезов.
+Выход: проверки T-E7-09..18 + T-E7-32 (срезы E7.2-1..4 ядра на WALL
+       + E7.4-2a контейнер v2): сборка ядра конвейером инструментов
+       под эмуляцией (фикс-пункт воспроизводимости артефактов), контракт
+       CLI/контейнера .UP, диффтест ядра с оракулом lab_vm на корпусе
+       срезов.
 Функция: доказать, что ядро kernel.exe (KERNEL/L3-UNIVM) собирается из
          kernel.wall самими инструментами репозитория (wall/enc/brick/
          pegen) байт-в-байт и исполняет программы .UP в точном
@@ -23,6 +24,10 @@ E7.2-2: регистры + ALU (опкоды 01..0B) — декодирован�
 dev) и ПРЕДЕЛ ШАГОВ: trap 6, лимит — необязательный 2-й аргумент
 CLI (0..2147483647, умолчание 200 млн), проверка ДО выборки
 инструкции — как параметр max_steps оракула run().
+Срез E7.4-2a: контейнер .UP v2 — ядро принимает версии {1, 2} и
+секцию данных (dataoff = 24+codesize): данные -> RAM[0:datalen]
+при загрузке; отказы LEN/RES/DATA — в порядке оракула parse_up;
+диффтест v0-программ с .data (данные наблюдаемы ldb + консоль).
 Корпуса программ — lab_t_kernel_corpus.py (данные; лимит 500 строк).
 """
 import os
@@ -44,6 +49,20 @@ def _up(mem, code, ver=1, res=0, tail=b"", sig=b"UP01", sig_pad=b""):
     return (sig + ver.to_bytes(4, "little") + mem.to_bytes(8, "little")
             + len(code).to_bytes(4, "little") + res.to_bytes(4, "little")
             + sig_pad + code + tail)
+
+
+def _v2(mem, code, data):
+    """Контейнер v2 с секцией данных (dataoff = 24+codesize)."""
+    return (b"UP01" + (2).to_bytes(4, "little") + mem.to_bytes(8, "little")
+            + len(code).to_bytes(4, "little")
+            + (24 + len(code)).to_bytes(4, "little") + code + data)
+
+
+def _v2n(mem, code):
+    """Контейнер v2 без данных (dataoff = 0 — v1-эквивалент)."""
+    return (b"UP01" + (2).to_bytes(4, "little") + mem.to_bytes(8, "little")
+            + len(code).to_bytes(4, "little")
+            + (0).to_bytes(4, "little") + code)
 
 
 def build(kpath, kfile, kernel_host):
@@ -172,18 +191,33 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-10 CLI ядра: справка/лишний/длина/открытие/предел (%d)"
               % len(cases), not bad, "; ".join(bad[:2]))
 
-        # T-E7-11: контейнер .UP — отказы SPEC/13 п. 4 (порядок как оракул)
+        # T-E7-11: контейнер .UP — отказы SPEC/13 п. 4 (порядок как оракул);
+        # E7.4-2a: v2 — отказы LEN (код обрезан/лишний байт при dataoff=0),
+        # RES (dataoff-мусор, данные заявлены и отсутствуют), DATA
+        # (длиннее RAM; memsize = 0)
         goodsig = b"\x12\x00\x00\x00\x00\x00"
         conts = [
             ("короткий", b"UP0"),
             ("подпись", _up(0, goodsig, sig=b"XP01")),
-            ("версия", _up(0, goodsig, ver=3)),   # v2 валидна с E7.4-1
+            ("версия", _up(0, goodsig, ver=3)),   # v2 валидна с E7.4-2a
             ("mem+1", _up(67108865, goodsig)),
             ("mem hi", _up(4294967296, goodsig)),
             ("codesize 0", _up(0, b"")),
             ("LEN короткий", _up(0, goodsig)[:-1]),
             ("LEN длинный", _up(0, goodsig, tail=b"\x00")),
             ("res", _up(0, goodsig, res=1)),
+            ("v2 LEN: код обрезан", _up(0, goodsig, ver=2, res=30)[:-1]),
+            ("v2 LEN: лишний байт при dataoff=0",
+             _up(0, goodsig, ver=2, tail=b"\x00")),
+            ("v2 RES: dataoff мусор", _up(0, goodsig, ver=2, res=999)),
+            ("v2 RES: dataoff мусор + данные",
+             _up(8, goodsig, ver=2, res=999, tail=b"\x41")),
+            ("v2 RES: данные заявлены, нет байтов",
+             _up(0, goodsig, ver=2, res=30)),
+            ("v2 DATA: 9 Б > memsize 8",
+             _up(8, goodsig, ver=2, res=30, tail=b"\x01" * 9)),
+            ("v2 DATA: 1 Б > memsize 0",
+             _up(0, goodsig, ver=2, res=30, tail=b"\x41")),
         ]
         bad = []
         for name, data in conts:
@@ -197,7 +231,7 @@ def run(check, kpath, kfile, kernel_host):
             if r.stdout != want or r.exit_code != 6:
                 bad.append("%s: %r код=%s" % (name, r.stdout[:26],
                                              r.exit_code))
-        check("T-E7-11 контейнер: отказы SIG/VER/MEM/CODE0/LEN/RES (%d)"
+        check("T-E7-11 контейнер: отказы SIG/VER/MEM/CODE0/LEN/RES/DATA (%d)"
               % len(conts), not bad, "; ".join(bad[:2]))
 
         # T-E7-12: halt-программы — диффтест с оракулом (консоль/код)
@@ -299,5 +333,25 @@ def run(check, kpath, kfile, kernel_host):
             _diff(bad, kexe, name, lab_vm.assemble(src), lim)
         check("T-E7-18 предел шагов: trap 6 == оракулу (%d)"
               % len(corpus.LIM_RUNS), not bad, "; ".join(bad[:2]))
+
+        # T-E7-32: контейнер v2 — секция данных -> RAM[0:datalen]
+        # (E7.4-2a): диффтест с оракулом на v0-программах (.data —
+        # сборка ассемблера оракула, контейнер v2); данные 4196 Б —
+        # длиннее куска чтения ядра (4096: граница цикла read_data);
+        # v2 dataoff=0 — v1-эквивалент (вывод == v1-контейнеру).
+        bad = []
+        for name, src in corpus.DATA_RUNS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        _mem, _code, _d = lab_vm.parse_up(
+            lab_vm.assemble(corpus.DATA_CHUNK_SRC))
+        _diff(bad, kexe, "data 4196 Б (куски чтения 4096)",
+              _v2(_mem, _code, corpus.DATA_CHUNK))
+        _mem, _code, _d = lab_vm.parse_up(
+            lab_vm.assemble(corpus.DATA_NODATA_SRC))
+        _diff(bad, kexe, "v1-контейнер (регрессия)",
+              lab_vm.make_up(_mem, _code))
+        _diff(bad, kexe, "v2 dataoff=0 (v1-эквивалент)", _v2n(_mem, _code))
+        check("T-E7-32 контейнер v2: данные -> RAM == оракулу (%d)"
+              % (len(corpus.DATA_RUNS) + 3), not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(kexe)

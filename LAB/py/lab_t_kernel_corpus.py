@@ -341,3 +341,119 @@ LIM_RUNS = [
     ("предел 0: trap 6 до первой инструкции", LIM_HALTED, 0),
     ("предел 1: один шаг перехода", LIM_LOOP_JMP, 1),
 ]
+
+# --- Срез E7.4-2a: контейнер v2 — секция данных -> RAM --------------------
+# Программы v0 (только опкоды ISA v0: v1-опкоды ядру ещё не поданы —
+# срезы E7.4-2b/c): ассемблер оракула с .data собирает v2 (make_up);
+# данные наблюдаемы через ldb (RAM[0:datalen]) и печать окном+0.
+
+# Печать данных: .data «HELLO!» -> RAM[0:6], ldb по адресам 0..5,
+# вывод окном+0, halt 7.
+DATA_ECHO = """\
+.mem 64
+.data 48 45 4C 4C 4F 21
+const r1, 64
+const r3, 0
+ldb r2, r3+0
+stb r1+0, r2
+ldb r2, r3+1
+stb r1+0, r2
+ldb r2, r3+2
+stb r1+0, r2
+ldb r2, r3+3
+stb r1+0, r2
+ldb r2, r3+4
+stb r1+0, r2
+ldb r2, r3+5
+stb r1+0, r2
+halt 7
+"""
+
+# Порядок байтов данных: .data 16 Б, печать позиций 0/15/8/7 — байты
+# попадают в RAM в порядке файла (data[15] в RAM[15], data[8] в RAM[8]).
+DATA_LE = """\
+.mem 128
+.data 11 22 33 44 55 66 77 88 FE DC BA 98 76 54 32 10
+const r1, 128
+const r3, 0
+ldb r2, r3+0
+stb r1+0, r2
+ldb r2, r3+15
+stb r1+0, r2
+ldb r2, r3+8
+stb r1+0, r2
+ldb r2, r3+7
+stb r1+0, r2
+halt 5
+"""
+
+# Данные + перезапись кодом: RAM[2] = 'B' поверх 'A'; чтение 0/2/3 —
+# 'A''B''A' (перезапись не задевает соседние байты данных).
+DATA_OVERWRITE = """\
+.mem 64
+.data 41 41 41 41
+const r1, 64
+const r3, 0
+const r4, 66
+stb r3+2, r4
+ldb r2, r3+0
+stb r1+0, r2
+ldb r2, r3+2
+stb r1+0, r2
+ldb r2, r3+3
+stb r1+0, r2
+halt 3
+"""
+
+# datalen == memsize (данные заполняют RAM ровно: у ядра зонд за
+# границей — got = 0, валид): печать 7-го и 0-го байтов.
+DATA_EXACT = """\
+.mem 8
+.data 31 32 33 34 35 36 37 38
+const r1, 8
+const r3, 0
+ldb r2, r3+7
+stb r1+0, r2
+ldb r2, r3+0
+stb r1+0, r2
+halt 6
+"""
+
+DATA_RUNS = [
+    ("data: печать HELLO! (halt 7)", DATA_ECHO),
+    ("data: порядок байтов (0/15/8/7)", DATA_LE),
+    ("data + перезапись RAM кодом", DATA_OVERWRITE),
+    ("data: datalen == memsize (ровно RAM)", DATA_EXACT),
+]
+
+# Данные длиннее куска чтения ядра (4096 Б): 4196 = 1 + 4096 + 99,
+# печать data[4095]/data[4096]/data[4195]/data[0] -> QZZQ. Контейнер
+# собирается вручную (прогонщик: код без .data + 4196 Б данных —
+# заголовок v2 полями, как _up у refuzals).
+DATA_CHUNK_SRC = """\
+.mem 8192
+const r1, 8192
+const r3, 4095
+ldb r2, r3+0
+stb r1+0, r2
+ldb r2, r3+1
+stb r1+0, r2
+const r3, 4195
+ldb r2, r3+0
+stb r1+0, r2
+const r3, 0
+ldb r2, r3+0
+stb r1+0, r2
+halt 9
+"""
+DATA_CHUNK = b"Q" * 4096 + b"Z" * 100      # 4196 Б; вывод QZZQ
+
+# v2 без данных (dataoff = 0) — v1-эквивалент: печать A, halt 0
+# (сборка v1 и v2-без-данных из одного кода — вывод идентичный).
+DATA_NODATA_SRC = """\
+.mem 4096
+const r1, 4096
+const r2, 65
+stb r1+0, r2
+halt 0
+"""
