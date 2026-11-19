@@ -1,4 +1,4 @@
-"""uva_test.py — построитель и dev-тест ассемблера uva.exe (E7.3-3, LAB/ai;
+"""uva_test.py — построитель и dev-тест ассемблера uva.exe (E7.3-4, LAB/ai;
 НЕ часть системы UNIVERSAL — частный инструмент ИИ, как kernel_test.py).
 
 Вход:  KERNEL/L3-UVA/uva.wall (+ части uva_self_*.wall + uva.peg).
@@ -7,10 +7,13 @@
           enc.exe -> brick.exe -> pegen.exe; фикс-пункт закреплён
           в батарее — T-E7-19);
        2) сверка uva.b2 с оракулом WALL (lab_l2.compile_wall);
-       3) отчёт [OK]/[FAIL] по корпусу срезов 1-3 (CLI, .mem/halt,
-          кодировки F1/F2/halt, операнды памяти rA[+смещ], отвержение
-          с номерами строк, CODE0, сквозной круг uva -> kernel.exe —
-          вкл. вывод в консоль окном устройств) — прогон секции 15;
+       3) отчёт [OK]/[FAIL] по корпусу срезов 1-4 (CLI, .mem/halt,
+          кодировки F1/F2/F3, операнды памяти rA[+смещ], метки и цели
+          переходов, отвержение с номерами строк, CODE0, сквозной круг
+          uva -> kernel.exe — вкл. вывод в консоль окном устройств и
+          jnz-цикл/jmp-переход) + приёмка DoD этапа 7.3 (T-E7-25:
+          якоря T-E7-01 + программы T-E7-04..08 == оракулу) — прогон
+          секции 15;
        4) карта меток uva.brick (для BYTECODE.md — импорт label_map)
           и SHA-256 артефактов (для VERIFY.md).
 Запуск: python3 LAB/ai/uva_test.py  (из корня репозитория)
@@ -53,7 +56,7 @@ def kernel_host():
 
 
 def main():
-    print("=== uva_test: сборка ассемблера M3-UVA (E7.3-1) ===")
+    print("=== uva_test: сборка ассемблера M3-UVA (E7.3-4) ===")
     ok, a, note = lab_t_uva.build(kpath, kfile, kernel_host)
     print("[OK] сборка" if ok else "[FAIL] сборка", note)
     if not ok:

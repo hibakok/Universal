@@ -2,28 +2,26 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-19..24 (срезы E7.3-1..3 — каркас ассемблера .uva ->
-       .UP на WALL + таблица мнемоник/регистры/кодировка F1 + F2 const/
-       память): сборка конвейером инструментов под эмуляцией (фикс-пункт
-       воспроизводимости артефактов), контракт CLI, диффтест с ассемблером
-       оракула lab_vm.assemble байт-в-байт (halt-корпус среза 1 + F1-корпус
-       среза 2 + F2-корпус среза 3: const/ldb/stb/ldq/stq, операнды памяти
-       rA[+смещ] со знаком и hex, смещения без проверки диапазона —
-       маскируются, ошибки операндов/регистров), отвержение с номерами
-       строк (== AsmError.line оракула), контракт CODE0 (пустая программа)
-       и сквозной круг uva -> kernel.exe (в т.ч. F2 с выводом в консоль
-       через окно устройств).
+Выход: проверки T-E7-19..25 (срезы E7.3-1..4 — каркас ассемблера .uva
+       -> .UP на WALL + таблица мнемоник/регистры/кодировка F1 + F2 const/
+       память + F3 jmp/jnz с метками): сборка конвейером инструментов
+       под эмуляцией (фикс-пункт воспроизводимости артефактов), контракт
+       CLI, диффтест с ассемблером оракула lab_vm.assemble байт-в-байт
+       (halt-корпус среза 1 + F1-корпус среза 2 + F2-корпус среза 3 +
+       F3-корпус среза 4: jmp/jnz с числами/метками, метки до/после
+       .mem, несколько меток на строке, имена-мнемоники/регистры,
+       дубликаты, неизвестные метки — «jmp r5» без объявления — ошибка
+       МЕТКИ, не числа), отвержение с номерами строк (== AsmError.line
+       оракула), контракт CODE0 (пустая программа, в т.ч. только метки)
+       и сквозной круг uva -> kernel.exe (вкл. jnz-цикл и jmp-переход —
+       F3 исполняется ядром); T-E7-25 — приёмка DoD этапа 7.3: якорные
+       кодировки всех 18 опкодов (T-E7-01, ручные свидетели) и все
+       программы секции 13 (DEMO_VM/OPS_VM/DEV_VM — T-E7-04..08)
+       собираются uva == оракулу байт-в-байт.
 Функция: доказать, что ассемблер uva.exe (KERNEL/L3-UVA) собирается из
          uva.wall самими инструментами репозитория байт-в-байт и
-         повторяет ассемблер оракула на классе срезов 1-3 (.mem + halt +
-         mov/АЛУ + const/память).
-Срез 3: F2 кодируются целиком (const + ldb/stb/ldq/stq); операнд памяти
-         rA[+смещ] — с бэктрекингом rN/r1X и накоплением mod 2^64 без
-         проверки диапазона (маска младших 32 бит — при кодировании,
-         как _i32 оракула); jmp/jnz + метки — срез E7.3-4 (диффтест на
-         них не входит в корпус: валидные программы этих форм оракул
-         собирает, а uva — ещё нет; строки ошибок совпадают на любом
-         невалидном операнде этих строк — оба отвергают на строке).
+         повторяет ассемблер оракула на полном классе этапа 7.3
+         (.mem + все 18 мнемоник ISA v0 + метки).
 """
 import os
 import tempfile
@@ -31,6 +29,7 @@ import tempfile
 import lab_l2
 import lab_splice
 import lab_run
+import lab_t_vm
 import lab_vm
 
 S_USE = b"U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n"
@@ -164,6 +163,28 @@ OK_CASES = [
     (b"f2 crlf", b".mem 8\r\nconst r1, 5\r\nstb r1+0, r1\r\nhalt 0\r\n"),
     (b"f2 comment", b".mem 8\nconst r1, 5 ; c\nstb r1+0, r1\nhalt 0\n"),
     (b"f2 no final lf", b".mem 8\nconst r1, 5\nstb r1+0, r1\nhalt 0"),
+    # F3 (срез E7.3-4): jmp/jnz + метки
+    (b"jmp num", b".mem 8\njmp 100\nhalt 0\n"),
+    (b"jmp hex", b".mem 8\njmp 0x10\nhalt 0\n"),
+    (b"jmp +5", b".mem 8\njmp +5\nhalt 0\n"),
+    (b"jmp -1", b".mem 8\njmp -1\nhalt 0\n"),
+    (b"jmp min i32", b".mem 8\njmp -2147483648\nhalt 0\n"),
+    (b"jmp max u32", b".mem 8\njmp 4294967295\nhalt 0\n"),
+    (b"jnz num", b".mem 8\njnz r3, 200\nhalt 0\n"),
+    (b"jnz r15", b".mem 8\njnz r15, 0\nhalt 0\n"),
+    (b"label back", b".mem 8\nloop:\nadd r1, r1, r2\nlt r3, r1, r4\n"
+                      b"jnz r3, loop\nhalt 0\n"),
+    (b"label fwd", b".mem 8\njmp fwd\nhalt 1\nfwd: halt 2\n"),
+    (b"two labels one pc", b".mem 8\na: b: halt 5\njmp a\njmp b\n"),
+    (b"label before mem", b"base: .mem 8\nhalt 0\n"),
+    (b"trailing label", b".mem 8\nhalt 3\nend:\n"),
+    (b"label = mnemonic", b".mem 8\nadd:\nhalt 0\njmp add\n"),
+    (b"label = r5", b".mem 8\nr5:\njmp r5\nhalt 0\n"),
+    (b"label _x1", b".mem 8\n_x1:\njmp _x1\nhalt 0\n"),
+    (b"label cr after colon", b".mem 8\na:\rhalt 7\n"),
+    (b"label sep rest", b".mem 8\na: , ,\nhalt 0\n"),
+    (b"label + instr", b".mem 8\nx: const r1, 5\nhalt 0\n"),
+    (b"f3 no final lf", b".mem 8\njmp 0\nhalt 0"),
 ]
 
 # отвержение: uva AT=XXXX == строка AsmError оракула (первая ошибка)
@@ -242,18 +263,46 @@ ERR_CASES = [
     ("ldq 3 операнда", b".mem 8\nldq r1, r2, r3\nhalt 0\n"),
     ("f2 ошибка в 3-й строке", b".mem 8\nconst r1, 5\nldb r1, r2+\nhalt 0\n"),
     ("stq hex без цифр", b".mem 8\nstq r2+0x, r1\nhalt 0\n"),
+    # F3/метки (срез E7.3-4): синтаксис меток, таблица, операнды переходов
+    ("метка запятая после :", b".mem 8\na:,halt 0\n"),
+    ("метка запятая вторая", b".mem 8\na:, b: halt 0\n"),
+    ("метка пробел перед :", b".mem 8\na : halt 0\n"),
+    ("метка без пробела", b".mem 8\na:halt 0\n"),
+    ("метка заглавная", b".mem 8\nA: halt 0\n"),
+    ("метка с цифры", b".mem 8\n1a: halt 0\n"),
+    ("пустое имя метки", b".mem 8\n: halt 0\n"),
+    ("неизвестная метка jmp", b".mem 8\njmp nowhere\nhalt 0\n"),
+    ("jmp r5 без объявления", b".mem 8\njmp r5\nhalt 0\n"),
+    ("jnz r1, r5 без объявления", b".mem 8\njnz r1, r5\nhalt 0\n"),
+    ("дубликат метки", b".mem 8\nl:\nl:\nhalt 0\n"),
+    ("дубликат на одной строке", b".mem 8\na: a: halt 0\n"),
+    ("дубликат раньше ошибки", b".mem 8\na:\nhalt 0\na: foo\n"),
+    ("jmp без операндов", b".mem 8\njmp\nhalt 0\n"),
+    ("jmp 2 операнда", b".mem 8\njmp a, b\nhalt 0\n"),
+    ("jnz 1 операнд", b".mem 8\njnz r1\nhalt 0\n"),
+    ("jnz 3 операнда", b".mem 8\njnz r1, a, b\nhalt 0\n"),
+    ("jnz плохой reg", b".mem 8\njnz r19, 5\nhalt 0\n"),
+    ("jnz число-регистр", b".mem 8\njnz 1, 5\nhalt 0\n"),
+    ("jmp не число", b".mem 8\njmp a+b\nhalt 0\n"),
+    ("jmp дробное", b".mem 8\njmp 1.5\nhalt 0\n"),
+    ("jmp вне imm32", b".mem 8\njmp 4294967296\nhalt 0\n"),
+    ("jmp ниже imm32", b".mem 8\njmp -2147483649\nhalt 0\n"),
+    ("jmp hex без цифр", b".mem 8\njmp 0x\nhalt 0\n"),
+    ("halt метка", b".mem 8\nx:\nhalt x\n"),
 ]
 
-# CODE0: .mem есть, инструкций нет (как make_up оракула)
+# CODE0: .mem есть, инструкций нет (как make_up оракула; только метки —
+# тоже CODE0: pc == 0)
 CODE0_CASES = [
     ("только .mem", b".mem 8\n"),
     (".mem + комментарий", b".mem 8\n; comment\n\n"),
     (".mem + разделители", b".mem 8\n,,,\n"),
+    ("только метка", b".mem 8\nonly:\n"),
 ]
 
 
 def run(check, kpath, kfile, kernel_host):
-    """Секция 15: T-E7-19..24 (ассемблер uva.exe, срез E7.3-1)."""
+    """Секция 15: T-E7-19..25 (ассемблер uva.exe, срезы E7.3-1..4)."""
     # T-E7-19: сборка — фикс-пункт: uva.wall -> (wall/enc/brick/pegen,
     # эмуляция) -> артефакты байт-в-байт; uva.b2 == оракулу WALL
     ok, a, note = build(kpath, kfile, kernel_host)
@@ -356,7 +405,8 @@ def run(check, kpath, kfile, kernel_host):
         # T-E7-24: сквозной круг uva -> kernel.exe (внешняя программа
         # собирается ассемблером и исполняется ядром; F1 — срез 2,
         # F2 — срез 3: const/stb/stq/ldq + вывод в консоль окном
-        # устройств) + детерминизм
+        # устройств; F3 — срез 4: jnz-цикл и jmp-переход)
+        # + детерминизм
         bad = []
         for name, src, want_code, want_out in [
                 (b"halt 42", b".mem 8\nhalt 42\n", 42, b""),
@@ -369,7 +419,13 @@ def run(check, kpath, kfile, kernel_host):
                 (b"f2 ram+dev", b".mem 4096\nconst r1, 0\nconst r2, 5\n"
                                  b"stq r1+0, r2\nldq r3, r1\nconst r4, 65\n"
                                  b"add r5, r3, r4\nconst r6, 4096\n"
-                                 b"stb r6+0, r5\nhalt 0\n", 0, b"F")]:
+                                 b"stb r6+0, r5\nhalt 0\n", 0, b"F"),
+                (b"f3 jnz loop", b".mem 8\nconst r1, 0\nconst r2, 1\n"
+                                  b"const r3, 3\nl:\nadd r1, r1, r2\n"
+                                  b"lt r4, r1, r3\njnz r4, l\nhalt 5\n",
+                 5, b""),
+                (b"f3 jmp skip", b".mem 8\njmp skip\nhalt 1\nskip:\nhalt 2\n",
+                 2, b"")]:
             out, code, got = _uva(uexe, src)
             if code != 0 or got is None:
                 bad.append("%s: сборка код=%s" % (name, code))
@@ -384,7 +440,32 @@ def run(check, kpath, kfile, kernel_host):
         o2, c2, g2 = _uva(uexe, OK_CASES[0][1])
         if not (c1 == c2 == 0 and g1 == g2 and g1 is not None):
             bad.append("детерминизм: код %s/%s" % (c1, c2))
-        check("T-E7-24 круг uva -> kernel.exe (6) + детерминизм",
+        check("T-E7-24 круг uva -> kernel.exe (8) + детерминизм",
               not bad, "; ".join(bad[:2]))
+
+        # T-E7-25: DoD этапа 7.3 — полный корпус: якорные кодировки
+        # всех 18 опкодов (T-E7-01 — ручные свидетели, сверяются с
+        # байтами ВЫХОДА uva напрямую) и все программы секции 13
+        # (DEMO_VM/OPS_VM/DEV_VM — T-E7-04..08, у оракула — свидетели
+        # секции 14) собираются uva == оракулу байт-в-байт
+        bad = []
+        for line, want_hex in lab_t_vm.ANCHORS:
+            src = (".mem 64\n" + line + "\n").encode("latin1")
+            out, code, got = _uva(uexe, src)
+            if code != 0 or got is None or \
+                    got[24:].hex().upper() != want_hex:
+                bad.append("якорь %r: код=%s" % (line, code))
+        for name, prog in (("DEMO_VM", lab_t_vm.DEMO_VM),
+                           ("OPS_VM", lab_t_vm.OPS_VM),
+                           ("DEV_VM", lab_t_vm.DEV_VM)):
+            # UTF-8: кириллица в комментариях программ секции 13 — байты
+            # комментариев обрезаются до разбора (комментарий ';')
+            want = lab_vm.assemble(prog)
+            out, code, got = _uva(uexe, prog.encode("utf-8"))
+            if code != 0 or got != want:
+                bad.append("%s: код=%s" % (name, code))
+        check("T-E7-25 DoD 7.3: якоря T-E7-01 (%d) + программы "
+              "T-E7-04..08 (3) — uva == оракулу"
+              % len(lab_t_vm.ANCHORS), not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(uexe)

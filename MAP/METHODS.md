@@ -449,11 +449,16 @@
 | K3-T006 | mn_find | T | готов | `MAP/M3-UVA.md` |
 | K3-T007 | parse_reg | T | готов | `MAP/M3-UVA.md` |
 | K3-T008 | parse_memop | T | готов | `MAP/M3-UVA.md` |
+| K3-B001 | lab_skip | B | готов | `MAP/M3-UVA.md` |
+| K3-B002 | lab_find | B | готов | `MAP/M3-UVA.md` |
+| K3-B003 | lab_add | B | готов | `MAP/M3-UVA.md` |
+| K3-B004 | parse_target | B | готов | `MAP/M3-UVA.md` |
 | K3-L001 | pass1 | L | готов | `MAP/M3-UVA.md` |
 | K3-E001 | pass2 | E | готов | `MAP/M3-UVA.md` |
 | K3-E002 | enc_halt | E | готов | `MAP/M3-UVA.md` |
 | K3-E003 | enc_f1 | E | готов | `MAP/M3-UVA.md` |
 | K3-E004 | enc_f2 | E | готов | `MAP/M3-UVA.md` |
+| K3-E005 | enc_f3 | E | готов | `MAP/M3-UVA.md` |
 | K3-W001 | make_header | W | готов | `MAP/M3-UVA.md` |
 | K3-W002 | put32 | W | готов | `MAP/M3-UVA.md` |
 | K3-W003 | write_out | W | готов | `MAP/M3-UVA.md` |

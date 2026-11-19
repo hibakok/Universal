@@ -1,0 +1,153 @@
+; uva_self_b.wall — таблица меток ассемблера uva.wall (E7.3-4)
+; Паспорт: KERNEL/L3-UVA/uva_self_b.wall | слой: L3 (исходник — WALL)
+; | роль: ветвь B — метки исходника .uva: потребление префикса метки
+; (K3-B001 lab_skip — как regex оракула ^([a-z_][a-z0-9_]*):(\s+(.*))?$
+; на строке после line_trim: имя, ':' и ПОСЛЕ двоеточия конец строки
+; или пробел/таб/CR/VT/FF — НО НЕ запятая: 'a:,halt' меткой не является
+; и уходит в tokenize как неизвестная мнемоника 'a:,'/'a:', как у
+; оракула), поиск по таблице (K3-B002 lab_find — имена НЕ копируются:
+; в таблице границы [lsta, lend) в srcbuf, буфер исходника неизменен),
+; регистрация (K3-B003 lab_add — дубликат и переполнение таблицы —
+; ERR=FORMAT AT=<строка>, как AsmError('дубликат метки') оракула;
+; ёмкость 512 записей — прецедент brick.exe) и цель перехода
+; (K3-B004 parse_target — как _target оракула: токен-имя [a-z_]
+; [a-z0-9_]* ищется в таблице (промах = неизвестная метка, НЕ плохое
+; число: 'jmp r5' без объявления r5 — ошибка метки), иначе — parse_num).
+; Таблица — глобали корня uva.wall: lcnt, lsta[512], lend[512],
+; lval[512] (значение = pc на момент объявления — до добавления длины
+; инструкции этой строки, как pending_labels оракула); разобранный
+; префикс — nsa/nsb. Проход 1 регистрирует метки (lab_add), проход 2
+; только пропускает их (lab_skip без lab_add — структура проверена).
+
+; префикс метки на [lna, lne)? 1 = да: lna за ':' и разделителями,
+; имя — в nsa/nsb; 0 = нет (lna без изменений). Имя: [a-z_] затем
+; [a-z0-9_]*; после ':' обязателен конец строки или разделитель
+; 32/9/13/11/12 (запятая 44 НЕ годится — как (?:\s+(.*))? оракула)
+func lab_skip
+  var i
+  var c
+  if lna >= lne
+    return 0
+  end
+  c = getb(srcbuf, lna)
+  if c >= 97 && c <= 122 || c == 95
+    i = lna + 1
+    while i < lne
+      c = getb(srcbuf, i)
+      if c >= 97 && c <= 122 || c >= 48 && c <= 57 || c == 95
+        i = i + 1
+      else
+        break
+      end
+    end
+    if i < lne
+      if getb(srcbuf, i) == 58
+        if i + 1 < lne
+          c = getb(srcbuf, i + 1)
+          if c != 32 && c != 9 && c != 13 && c != 11 && c != 12
+            return 0
+          end
+        end
+        nsa = lna
+        nsb = i
+        lna = i + 1
+        while lna < lne
+          c = getb(srcbuf, lna)
+          if c == 32 || c == 9 || c == 13 || c == 11 || c == 12
+            lna = lna + 1
+          else
+            break
+          end
+        end
+        return 1
+      end
+    end
+  end
+  return 0
+end
+
+; имя [a, b) в srcbuf == имени метки j? поиск по таблице: возврат
+; индекса 0..lcnt-1 или -1 (нет). Сравнение: длины равны + все байты
+; (имена в таблице — границы в srcbuf, копии не хранятся)
+func lab_find(a, b)
+  var j
+  var k
+  var n
+  var ok
+  j = 0
+  while j < lcnt
+    n = lend[j] - lsta[j]
+    if n == b - a
+      k = 0
+      ok = 1
+      while k < n
+        if getb(srcbuf, lsta[j] + k) != getb(srcbuf, a + k)
+          ok = 0
+          break
+        end
+        k = k + 1
+      end
+      if ok == 1
+        return j
+      end
+    end
+    j = j + 1
+  end
+  return -1
+end
+
+; регистрация метки из nsa/nsb со значением pc (вызывается проходом 1
+; ДО добавления длины инструкции строки): дубликат — ERR=FORMAT
+; AT=<строка> (как «дубликат метки» оракула, строка ВТОРОГО вхождения),
+; таблица полна (512) — тот же выход (ёмкость — ограничение инструмента,
+; у оракула предела нет; прецедент brick.exe)
+func lab_add
+  if lcnt >= 512
+    fail_at(lln)
+  end
+  if lab_find(nsa, nsb) != -1
+    fail_at(lln)
+  end
+  lsta[lcnt] = nsa
+  lend[lcnt] = nsb
+  lval[lcnt] = pc
+  lcnt = lcnt + 1
+  return 0
+end
+
+; цель перехода jmp/jnz из токена ti -> nval; возврат 1 = успех,
+; 0 = плохо (неизвестная метка или плохое число — строку назначает
+; вызывающий). Как _target оракула: токен-имя [a-z_][a-z0-9_]*
+; (ЦЕЛИКОМ) ищется в таблице — промах = неизвестная метка ('jmp r5'
+; без объявления — ошибка метки, не числа); иначе — parse_num
+; (диапазон imm32; halt цели-метки НЕ принимает — enc_halt не меняется)
+func parse_target(ti)
+  var a
+  var b
+  var i
+  var c
+  var j
+  a = tstart[ti]
+  b = tend[ti]
+  c = getb(srcbuf, a)
+  if c >= 97 && c <= 122 || c == 95
+    i = a + 1
+    while i < b
+      c = getb(srcbuf, i)
+      if c >= 97 && c <= 122 || c >= 48 && c <= 57 || c == 95
+        i = i + 1
+      else
+        break
+      end
+    end
+    if i >= b
+      j = lab_find(a, b)
+      if j == -1
+        return 0
+      end
+      nval = lval[j]
+      return 1
+    end
+  end
+  return parse_num(ti)
+end
