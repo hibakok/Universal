@@ -6,19 +6,19 @@
 
 | Параметр | Значение |
 |---|---|
-| Файл | KERNEL/L3-UVA/uva.exe, 15360 байт (0x3C00) |
-| SHA-256 | 97D2EAC6E3F33F29D414D43CE08E0CB2B681D061F9BBC8D465CCCB80B0EDF537 |
-| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.3-1): сборка из uva.wall — wall.exe(splice(uva.wall)) -> uva.b2 -> enc -> uva.brick -> brick -> pegen + uva.peg. Воспроизводимость закреплена в батарее (T-E7-19); uva.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
-| Исходник | KERNEL/L3-UVA/uva.wall — корень + 5 частей uva_self_*.wall (WALL v2, разрез SPEC/10); склейка 717 строк, 21164 Б (8% предела входа 256 КиБ) |
-| Тело секции | 14681 байт (0x3959), RVA 0x1000, SRD 0x3A00 |
-| VirtualSize | 0x3959 (одна секция) |
+| Файл | KERNEL/L3-UVA/uva.exe, 17920 байт (0x4600) |
+| SHA-256 | 83F76ED9ECD9908CB1A12CC72D39B7F747E7192CB4A2427A158765C0639BAB67 |
+| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.3-2): сборка из uva.wall — wall.exe(splice(uva.wall)) -> uva.b2 -> enc -> uva.brick -> brick -> pegen + uva.peg. Воспроизводимость закреплена в батарее (T-E7-19); uva.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
+| Исходник | KERNEL/L3-UVA/uva.wall — корень + 5 частей uva_self_*.wall (WALL v2, разрез SPEC/10); склейка 870 строк, 26438 Б (10% предела входа 256 КиБ) |
+| Тело секции | 17293 байта (0x438D), RVA 0x1000 |
+| VirtualSize | 0x438D (одна секция) |
 | Точка входа | 0x1200 (:_entry — константа SPEC/11 п. 6: после фиксированной области импортов 0x200) |
 | idata / iat / intt | 0x1000 (0x28) / 0x1028 (0x48) / 0x1070 — фиксированная область импортов SPEC/11 п. 6 |
 | Импорты | kernel32.dll, 8 функций: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFile2, ReadFile, CloseHandle, GlobalAlloc |
 | DOS-заглушка | «Universal L0 uva. No DOS support.» (имя модуля — uva.peg) |
-| Меток в исходнике | 240 из 2048 (лимит brick; карта — LAB/ai/uva_test.py) |
-| Функций | 18 (карта — §2) + данные (§3) |
-| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E7-19: 40033371 + 8770334 + 3685750 + 5015 шагов) |
+| Меток в исходнике | 275 из 2048 (лимит brick; карта — LAB/ai/uva_test.py) |
+| Функций | 21 (карта — §2) + данные (§3) |
+| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E7-19: 49237826 + 10810897 + 4680888 + 5015 шагов) |
 
 ## 2. Карта функций (RVA — LAB/ai/uva_test.py по uva.brick)
 
@@ -40,40 +40,44 @@ MAP/M3-UVA.md).
   parse_num ............ 2466  токен -> nval (imm32, переполнение в цикле)
   line_trim ............ 2A5F  ';' + края-разделители -> lna/lne
   line_next ............ 2D66  итератор строк по LF (lln, lpos)
+  mn_find .............. 2EA0  токен -> индекс мнемоники 0..17 (-1 = нет)
+  parse_reg ............ 315C  токен -> nval = регистр r0..r15
 
 проходы (uva_self_l.wall / uva_self_e.wall):
-  pass1 ................ 2EA0  структура: .mem/halt, pc; «нет .mem» = 0001
-  enc_halt ............. 32CA  12 00 imm32 LE -> outbuf+24+at
-  pass2 ................ 339E  кодирование halt (чтение ВПЕРЁД)
+  pass1 ................ 3476  структура: .mem/мнемоники/длины; «нет .mem» = 0001
+  enc_halt ............. 38EE  12 00 imm32 LE -> outbuf+24+at
+  enc_f1 ............... 39C2  F1 op rd:ra rb -> outbuf+24+at (mov/АЛУ)
+  pass2 ................ 3CBF  кодирование F1 + halt (чтение ВПЕРЁД)
 
 контейнер (uva_self_w.wall):
-  put32 ................ 3586  LE u32 по смещению outbuf
-  make_header .......... 3662  заголовок .UP v1 (24 Б, SPEC/13 п. 2)
-  write_out ............ 37CD  CREATE_ALWAYS + WriteFile(24+pc)
+  put32 ................ 3F77  LE u32 по смещению outbuf
+  make_header .......... 4053  заголовок .UP v1 (24 Б, SPEC/13 п. 2)
+  write_out ............ 41BE  CREATE_ALWAYS + WriteFile(24+pc)
 
 вход (uva.wall):
-  main ................. 3972  CLI -> чтение -> pass1 -> pass2 -> запись
+  main ................. 4363  CLI -> чтение -> pass1 -> pass2 -> запись
 ```
 
 ## 3. Данные образа (RVA)
 
 Строки (CRLF-литералы диагностики, s_hexd — hex-цифры, s_up01 = 'UP01',
-s_dotmem = '.mem', s_halt = 'halt' — ключевые слова среза):
+s_dotmem = '.mem', s_mn — таблица 18 мнемоник ISA v0 через пробел
+в порядке опкодов 01..12):
 
 ```
-  s_use 3DA8  s_long 3DCF  s_osrc 3DE7  s_rsrc 3DFE  s_big 3E15
-  s_fmt 3E2B  s_code0 3E42  s_oout 3E56  s_wout 3E6D  s_hexd 3E85
-  s_up01 3E95  s_dotmem 3E99  s_halt 3E9D
+  s_use 4799  s_long 47C0  s_osrc 47D8  s_rsrc 47EF  s_big 4806
+  s_fmt 481C  s_code0 4833  s_oout 4847  s_wout 485E  s_hexd 4876
+  s_up01 4886  s_dotmem 488A  s_mn 488E
 ```
 
 Глобальные переменные (DZ 8; массивы — DZ 8n; нулевой старт):
 
 ```
-  hstdout 3EA1  cmdline 3EA9  written 3EB1  wlen 3EB9
-  arg1[64] 3EC1  arg2[64] 3FC1  w1[64] 40C1  w2[64] 41C1
-  srcbuf 42C1  srclen 42C9  outbuf 42D1  memsize 42D9  pc 42E1
-  lpos 42E9  lln 42F1  lna 42F9  lne 4301  tcnt 4309
-  tstart[12] 4311  tend[12] 4371  nval 43D1  fmtbuf[48] 43D9
+  hstdout 48D5  cmdline 48DD  written 48E5  wlen 48ED
+  arg1[64] 48F5  arg2[64] 4AF5  w1[64] 4CF5  w2[64] 4EF5
+  srcbuf 50F5  srclen 50FD  outbuf 5105  memsize 510D  pc 5115
+  lpos 511D  lln 5125  lna 512D  lne 5135  tcnt 513D
+  tstart[12] 5145  tend[12] 51A5  nval 5205  fmtbuf[48] 520D
 ```
 
 ## 4. Инварианты

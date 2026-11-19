@@ -1,4 +1,4 @@
-"""uva_test.py — построитель и dev-тест ассемблера uva.exe (E7.3-1, LAB/ai;
+"""uva_test.py — построитель и dev-тест ассемблера uva.exe (E7.3-2, LAB/ai;
 НЕ часть системы UNIVERSAL — частный инструмент ИИ, как kernel_test.py).
 
 Вход:  KERNEL/L3-UVA/uva.wall (+ части uva_self_*.wall + uva.peg).
@@ -7,9 +7,9 @@
           enc.exe -> brick.exe -> pegen.exe; фикс-пункт закреплён
           в батарее — T-E7-19);
        2) сверка uva.b2 с оракулом WALL (lab_l2.compile_wall);
-       3) отчёт [OK]/[FAIL] по корпусу среза 1 (CLI, .mem/halt,
-          кодировки, отвержение с номерами строк, CODE0, сквозной
-          круг uva -> kernel.exe) — прогон секции 15 батареи;
+       3) отчёт [OK]/[FAIL] по корпусу срезов 1-2 (CLI, .mem/halt,
+          кодировки F1/halt, отвержение с номерами строк, CODE0,
+          сквозной круг uva -> kernel.exe) — прогон секции 15 батареи;
        4) карта меток uva.brick (для BYTECODE.md — импорт label_map)
           и SHA-256 артефактов (для VERIFY.md).
 Запуск: python3 LAB/ai/uva_test.py  (из корня репозитория)

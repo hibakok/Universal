@@ -2,19 +2,24 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-19..24 (срез E7.3-1 — каркас ассемблера .uva ->
-       .UP на WALL): сборка конвейером инструментов под эмуляцией
-       (фикс-пункт воспроизводимости артефактов), контракт CLI,
-       диффтест с ассемблером оракула lab_vm.assemble байт-в-байт
-       (halt-корпус среза 1: числа dec/hex/знак, .mem 0..64 МиБ,
-       комментарии/пустые строки/CRLF/строки-разделители), отвержение
-       с номерами строк (== AsmError.line оракула), контракт CODE0
-       (пустая программа) и сквозной круг uva -> kernel.exe.
+Выход: проверки T-E7-19..24 (срезы E7.3-1..2 — каркас ассемблера .uva ->
+       .UP на WALL + таблица мнемоник/регистры/кодировка F1): сборка
+       конвейером инструментов под эмуляцией (фикс-пункт воспроизводимости
+       артефактов), контракт CLI, диффтест с ассемблером оракула
+       lab_vm.assemble байт-в-байт (halt-корпус среза 1 + F1-корпус среза
+       2: mov/9 АЛУ, регистры r0..r15, ошибки операндов/регистров),
+       отвержение с номерами строк (== AsmError.line оракула), контракт
+       CODE0 (пустая программа) и сквозной круг uva -> kernel.exe.
 Функция: доказать, что ассемблер uva.exe (KERNEL/L3-UVA) собирается из
          uva.wall самими инструментами репозитория байт-в-байт и
-         повторяет ассемблер оракула на классе среза 1 (.mem + halt).
-Срез 1: известная мнемоника — только halt; метки и мнемоники F1/F2/F3
-         — срезы E7.3-2+ (диффтест на них не входит в корпус).
+         повторяет ассемблер оракула на классе срезов 1-2 (.mem + halt +
+         mov/АЛУ).
+Срез 2: все 18 мнемоник распознаются в проходе 1 (длины F1/F2/F3);
+         кодируются halt (F3, срез 1) и F1 (mov + 9 АЛУ); const/ldb/stb/
+         ldq/stq (F2) и jmp/jnz + метки — срезы E7.3-3/4 (диффтест на них
+         не входит в корпус: валидные программы этих форм оракул
+         собирает, а uva — ещё нет; строки ошибок совпадают на любом
+         невалидном операнде этих строк — оба отвергают на строке).
 """
 import os
 import tempfile
@@ -97,6 +102,23 @@ OK_CASES = [
     (b"many halt", b".mem 16\nhalt 1\nhalt 2\nhalt 3\n"),
     (b"sep line", b".mem 8\n,,,\nhalt 0\n"),
     (b"comma sep", b".mem 8\nhalt , 0\n"),
+    # F1 (срез E7.3-2): mov + 9 АЛУ, регистры r0..r15
+    (b"mov", b".mem 8\nmov r1, r2\nhalt 0\n"),
+    (b"mov r0 r15", b".mem 8\nmov r0, r15\nhalt 0\n"),
+    (b"mov r15", b".mem 8\nmov r15, r15\nhalt 0\n"),
+    (b"add", b".mem 8\nadd r1, r2, r3\nhalt 0\n"),
+    (b"sub r15", b".mem 8\nsub r15, r15, r14\nhalt 0\n"),
+    (b"alu all 9", b".mem 8\nadd r1, r2, r3\nsub r4, r5, r6\n"
+                     b"and r7, r8, r9\nor r10, r11, r12\nxor r13, r14, r15\n"
+                     b"shl r1, r2, r3\nshr r4, r5, r6\nlt r7, r8, r9\n"
+                     b"eq r10, r11, r12\nhalt 0\n"),
+    (b"mov + alu", b".mem 8\nmov r1, r2\nadd r3, r1, r2\nhalt 5\n"),
+    (b"f1 no spaces", b".mem 8\nmov r1,r2\nadd r3,r1,r2\nhalt 5\n"),
+    (b"f1 crlf", b".mem 8\r\nmov r1, r2\r\nhalt 0\r\n"),
+    (b"f1 comment", b".mem 8\nmov r1, r2 ; c\nadd r3, r1, r2\nhalt 0\n"),
+    (b"f1 no final lf", b".mem 8\nmov r1, r2\nhalt 0"),
+    (b"f1 r10-15", b".mem 8\nmov r10, r11\nadd r12, r13, r14\n"
+                     b"lt r15, r0, r1\nhalt 0\n"),
 ]
 
 # отвержение: uva AT=XXXX == строка AsmError оракула (первая ошибка)
@@ -122,6 +144,25 @@ ERR_CASES = [
     ("не halt (r16)", b".mem 8\nconst r16, 5\nhalt 0\n"),
     ("заглавный HALT", b".mem 8\nHALT 0\n"),
     ("CR внутри строки", b".mem 8\rhalt 0\n"),
+    # F1 (срез E7.3-2): счёт операндов, регистры r0..r15
+    ("mov до .mem", b"mov r1, r2\nhalt 0\n"),
+    ("mov 1 операнд", b".mem 8\nmov r1\nhalt 0\n"),
+    ("mov 3 операнда", b".mem 8\nmov r1, r2, r3\nhalt 0\n"),
+    ("mov плохой rd", b".mem 8\nmov r16, r1\nhalt 0\n"),
+    ("mov плохой ra", b".mem 8\nmov r1, r16\nhalt 0\n"),
+    ("alu 2 операнда", b".mem 8\nadd r1, r2\nhalt 0\n"),
+    ("alu 4 операнда", b".mem 8\nadd r1, r2, r3, r4\nhalt 0\n"),
+    ("alu плохой rb", b".mem 8\nadd r1, r2, r16\nhalt 0\n"),
+    ("alu плохой ra", b".mem 8\nadd r1, r16, r2\nhalt 0\n"),
+    ("alu плохой rd", b".mem 8\nadd r16, r1, r2\nhalt 0\n"),
+    ("mov число", b".mem 8\nmov r1, 2\nhalt 0\n"),
+    ("alu число-операнд", b".mem 8\nadd r1, r2, 3\nhalt 0\n"),
+    ("регистр r01", b".mem 8\nmov r01, r2\nhalt 0\n"),
+    ("регистр заглавный", b".mem 8\nmov R1, r2\nhalt 0\n"),
+    ("регистр r0x", b".mem 8\nmov r0x, r1\nhalt 0\n"),
+    ("регистр r-1", b".mem 8\nmov r-1, r1\nhalt 0\n"),
+    ("мнемоника-префикс (haltx)", b".mem 8\nhaltx 0\nhalt 0\n"),
+    ("mov + константа r16 позже", b".mem 8\nmov r1, r2\nconst r16, 5\n"),
 ]
 
 # CODE0: .mem есть, инструкций нет (как make_up оракула)
@@ -234,12 +275,15 @@ def run(check, kpath, kfile, kernel_host):
               % len(CODE0_CASES), not bad, "; ".join(bad[:2]))
 
         # T-E7-24: сквозной круг uva -> kernel.exe (внешняя программа
-        # собирается ассемблером и исполняется ядром) + детерминизм
+        # собирается ассемблером и исполняется ядром; F1 — срез 2)
+        # + детерминизм
         bad = []
         for name, src, want_code in [
                 (b"halt 42", b".mem 8\nhalt 42\n", 42),
                 (b"halt 37 mem0", b".mem 0\nhalt 37\n", 37),
-                (b"first halt", b".mem 4096\nhalt 0\nhalt 1\n", 0)]:
+                (b"first halt", b".mem 4096\nhalt 0\nhalt 1\n", 0),
+                (b"mov+add", b".mem 8\nmov r1, r2\nadd r3, r1, r2\n"
+                              b"halt 7\n", 7)]:
             out, code, got = _uva(uexe, src)
             if code != 0 or got is None:
                 bad.append("%s: сборка код=%s" % (name, code))
@@ -254,7 +298,7 @@ def run(check, kpath, kfile, kernel_host):
         o2, c2, g2 = _uva(uexe, OK_CASES[0][1])
         if not (c1 == c2 == 0 and g1 == g2 and g1 is not None):
             bad.append("детерминизм: код %s/%s" % (c1, c2))
-        check("T-E7-24 круг uva -> kernel.exe (3) + детерминизм",
+        check("T-E7-24 круг uva -> kernel.exe (4) + детерминизм",
               not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(uexe)

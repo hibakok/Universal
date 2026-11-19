@@ -1,4 +1,4 @@
-; uva_self_t.wall — токены и числа ассемблера uva.wall (E7.3-1)
+; uva_self_t.wall — токены и числа ассемблера uva.wall (E7.3-2)
 ; Паспорт: KERNEL/L3-UVA/uva_self_t.wall | слой: L3 (исходник — WALL)
 ; | роль: ветвь T — лексический уровень исходника .uva: сравнение
 ; токена с литералом (K3-T001 tok_is), разбиение сегмента на токены
@@ -11,6 +11,12 @@
 ; line_next — разбиение ТОЛЬКО по LF, как text.split('\n') оракула:
 ; одиночный CR внутри строки — разделитель токенов, не конец строки;
 ; хвост после последнего LF — строка; пустой вход — одна пустая).
+; E7.3-2: K3-T006 mn_find — таблица всех 18 мнемоник ISA v0 (s_mn,
+; имена через пробел в порядке опкодов: индекс i => опкод i+1;
+; возвращается индекс 0..17 или -1 — как «имя in OPS» оракула) и
+; K3-T007 parse_reg — разбор регистра r0..r15 в nval (как _reg
+; оракула: r0..r9 — 2 символа; r10..r15 — 3, вторая цифра строго 1;
+; регистр отсутствует/за пределами — 0).
 ; Токены — глобали: tcnt (число; строки из одних разделителей дают 0 —
 ; пропуск, как фиксированный оракул E7.3-1), tstart[12]/tend[12]
 ; (позиции в srcbuf; первые 12 токенов, дальше — только счёт).
@@ -217,4 +223,79 @@ func line_next
   line_trim(lpos, t)
   lpos = t + 1
   return 1
+end
+
+; токен ti -> индекс мнемоники ISA v0 (0..17) или -1 (не мнемоника);
+; таблица s_mn: 18 имён через пробел в порядке опкодов SPEC/12 п. 5
+; (индекс i => опкод i+1); совпадение = равная длина + все байты
+func mn_find(ti)
+  var pos
+  var k
+  var j
+  var q
+  var ok
+  pos = 0
+  k = 0
+  while k < 18
+    j = pos
+    while j < len(s_mn)
+      if getb(s_mn, j) == 32
+        break
+      end
+      j = j + 1
+    end
+    if tend[ti] - tstart[ti] == j - pos
+      q = 0
+      ok = 1
+      while q < j - pos
+        if getb(srcbuf, tstart[ti] + q) != getb(s_mn, pos + q)
+          ok = 0
+          break
+        end
+        q = q + 1
+      end
+      if ok == 1
+        return k
+      end
+    end
+    pos = j + 1
+    k = k + 1
+  end
+  return -1
+end
+
+; токен ti -> глобаль nval (номер регистра 0..15); возврат 1 = успех,
+; 0 = плохо (как _reg оракула r([0-9]|1[0-5]): r0..r9 — 2 символа,
+; r10..r15 — 3 символа со второй цифрой 1; прочее — не регистр)
+func parse_reg(ti)
+  var n
+  var c
+  n = tend[ti] - tstart[ti]
+  if getb(srcbuf, tstart[ti]) != 114
+    return 0
+  end
+  if n == 2
+    c = getb(srcbuf, tstart[ti] + 1)
+    if c >= 48
+      if c <= 57
+        nval = c - 48
+        return 1
+      end
+    end
+    return 0
+  end
+  if n != 3
+    return 0
+  end
+  if getb(srcbuf, tstart[ti] + 1) != 49
+    return 0
+  end
+  c = getb(srcbuf, tstart[ti] + 2)
+  if c >= 48
+    if c <= 53
+      nval = c - 38
+      return 1
+    end
+  end
+  return 0
 end

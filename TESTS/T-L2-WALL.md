@@ -470,7 +470,7 @@ jcc; вложенные if/while/if-else — сквозной счётчик k; 
 ## E7.2-2F: фикс дефекта №23 — pp_pcount (ВЫПОЛНЕН, сессия 47)
 
 Дефект и фикс — полностью: KERNEL/L2-WALL/VERIFY.md §4 п. 17, история —
-DOCS/03a-HISTORY.md (E7.2-2F), сессия — LAB/ai/JOURNAL.md 47.
+DOCS/03b-HISTORY-E7.md (E7.2-2F), сессия — LAB/ai/JOURNAL.md 47.
 
 | ID | Проверка | Статус |
 |---|---|---|

@@ -1,15 +1,16 @@
-; uva_self_e.wall — проход 2 ассемблера uva.wall (E7.3-1)
+; uva_self_e.wall — проход 2 ассемблера uva.wall (E7.3-2)
 ; Паспорт: KERNEL/L3-UVA/uva_self_e.wall | слой: L3 (исходник — WALL)
 ; | роль: ветвь E — кодирование инструкций (K3-E001 pass2): повторный
 ; проход по строкам тем же итератором (проход 1 гарантировал структуру:
-; директивы пропускаются, каждая строка-инструкция — halt); операнд —
-; ровно одно число imm32 (иначе ERR=FORMAT AT=<строка> — как _enc_f3
-; оракула: сначала счёт операндов, потом число); код пишется в
-; outbuf+24 (за местом заголовка .UP). K3-E002 enc_halt — кирпич
-; кодировки halt (F3): 12 00 imm32 LE (заполнитель rd = 0, SPEC/12
-; п. 4-5; imm32 — младшие 32 бита числа, как _i32 оракула).
-; Срез 1: только halt; F1 (mov/ALU), F2 (const/память) и цели jmp/jnz
-; (метки) — срезы E7.3-2+.
+; директивы пропускаются); мнемоника ищется в таблице (K3-T006
+; mn_find — индекс i: опкод = i+1): F1 (i 1..10) — K3-E003 enc_f1
+; (mov: 2 операнда, rb = 0; 9 АЛУ: 3 операнда; счёт операндов, потом
+; регистры по порядку — как _enc_f1 оракула), halt (i 17) — K3-E002
+; enc_halt (срез 1: ровно одно число imm32, кодировка 12 00 imm32 LE);
+; const/ldb/stb/ldq/stq (i 0, 11..14) и jmp/jnz (i 15, 16) — срезы
+; E7.3-3/4 (пока ERR=FORMAT AT=<строка>). Код пишется в outbuf+24
+; (за местом заголовка .UP); ошибки операндов — fail_at(lln).
+; Срез E7.3-1: только halt (весь остальной разбор — срез 2).
 
 ; halt imm32 -> outbuf[24+at .. 24+at+6): 12 00 <imm32 LE>
 func enc_halt(at)
@@ -19,13 +20,53 @@ func enc_halt(at)
   return 0
 end
 
-; проход 2: кодирование всех инструкций (срез 1 — halt) в outbuf+24
+; F1: op rd:ra rb -> outbuf[24+at .. 24+at+3); i — индекс мнемоники
+; (опкод = i+1): mov (i == 1: ровно 2 операнда, rb = 0) и 9 АЛУ
+; (i = 2..10: ровно 3 операнда); счёт операндов ПОТОМ регистры по
+; порядку rd, ra, rb (как _enc_f1 оракула: _want, потом _reg);
+; байты: [op] [rd*16+ra] [rb]
+func enc_f1(at, i)
+  var rd
+  var ra
+  if i == 1
+    if tcnt != 3
+      fail_at(lln)
+    end
+  else
+    if tcnt != 4
+      fail_at(lln)
+    end
+  end
+  if parse_reg(1) == 0
+    fail_at(lln)
+  end
+  rd = nval
+  if parse_reg(2) == 0
+    fail_at(lln)
+  end
+  ra = nval
+  setb(outbuf, 24 + at, i + 1)
+  setb(outbuf, 25 + at, rd * 16 + ra)
+  if i == 1
+    setb(outbuf, 26 + at, 0)
+  else
+    if parse_reg(3) == 0
+      fail_at(lln)
+    end
+    setb(outbuf, 26 + at, nval)
+  end
+  return 0
+end
+
+; проход 2: кодирование всех инструкций в outbuf+24 (срез 2: F1 + halt;
+; F2 const/ldb/stb/ldq/stq и jmp/jnz — ERR=FORMAT, срезы 3-4);
 ; (идиома итератора — чтение ВПЕРЁД, как pass1: после исчерпания входа
 ; тело не выполняется, последняя строка не кодируется дважды)
 func pass2
   var go
   var at
   var c
+  var i
   at = 0
   lpos = 0
   lln = 0
@@ -36,14 +77,24 @@ func pass2
       if tcnt != 0
         c = getb(srcbuf, tstart[0])
         if c != 46
-          if tcnt != 2
-            fail_at(lln)
+          i = mn_find(0)
+          if i >= 1 && i <= 10
+            enc_f1(at, i)
+            at = at + 3
+          else
+            if i == 17
+              if tcnt != 2
+                fail_at(lln)
+              end
+              if parse_num(1) == 0
+                fail_at(lln)
+              end
+              enc_halt(at)
+              at = at + 6
+            else
+              fail_at(lln)
+            end
           end
-          if parse_num(1) == 0
-            fail_at(lln)
-          end
-          enc_halt(at)
-          at = at + 6
         end
       end
     end
