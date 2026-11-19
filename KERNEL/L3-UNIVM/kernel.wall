@@ -12,11 +12,16 @@
 ; const/mov/add/sub/and/or/xor/shl/shr/lt/eq, массив regs[16]), ПАМЯТЬ И
 ; УСТРОЙСТВА (опкоды 0C..0F — ldb/stb/ldq/stq с ловушками 3/4; окно
 ; устройств: окно+0 = консоль — байт в stdout через WriteFile байтом,
-; SPEC/12 п. 6) и halt (0x12): порядок проверок SPEC/12 п. 7, код
-; возврата = imm32; переходы 10..11 — заглушка ловушкой 1 ПОСЛЕ
-; проверки длины (укороченная инструкция валидного опкода — ловушка 2,
-; как у оракула; исполнение — срез E7.2-4); для опкодов 00/13+ ловушка
-; 1 — сразу (SPEC/12 п. 7 (2)). Предел шагов 200 млн — срез E7.2-4.
+; SPEC/12 п. 6) и halt (0x12): код возврата = imm32.
+; Срез E7.2-4 (ФИНАЛ этапа 7): ПЕРЕХОДЫ (опкоды 10..11 — ветвь J,
+; kernel_self_j.wall: jmp/jnz, формат F3) И ПРЕДЕЛ ШАГОВ —
+; необязательный второй аргумент CLI (K3-C008 read_lim: десятичные
+; цифры 0..2147483647, умолчание 200000000 — SPEC/12 п. 7; проверка
+; в interp ДО выборки инструкции, trap 6 — диагностика хозяина
+; исполнения, как параметр max_steps оракула run()). Справка дополнена:
+; KERNEL <FILE.UP> [STEPS]. Все 18 опкодов ISA v0 исполняются;
+; порядок проверок — SPEC/12 п. 7; для опкодов 00/13+ ловушка 1 —
+; сразу (п. 7 (2)).
 ; Контракт ядра (строки/коды/диагностика ловушек) — SPEC/13 п. 4,
 ; карточка CARD.md, тесты TESTS/T-L3-UNIVM.md (T-E7-09+).
 ; Сборка (полный круг, инструменты ядра; обёртка — kernel.peg):
@@ -49,11 +54,12 @@ var memsize
 var ram
 var pc
 var steps
+var steplim
 var regs[16]
 var got
 var trapbuf[48]
 
-str s_use = 'U-L3-UNIVM CMDS: KERNEL <FILE.UP>\r\n'
+str s_use = 'U-L3-UNIVM CMDS: KERNEL <FILE.UP> [STEPS]\r\n'
 str s_long = 'U-L3-UNIVM ERR=LONG NAME\r\n'
 str s_oup = 'U-L3-UNIVM ERR=OPEN UP\r\n'
 str s_rup = 'U-L3-UNIVM ERR=READ UP\r\n'
@@ -70,6 +76,7 @@ str s_crlf = '\r\n'
 !include kernel_self_c.wall
 !include kernel_self_up.wall
 !include kernel_self_mem.wall
+!include kernel_self_j.wall
 !include kernel_self_vm.wall
 
 func main
@@ -79,6 +86,7 @@ func main
   cmdline = GetCommandLineA()
   i = skip0()
   i = read_arg(arg1, i)
+  i = read_lim(i)
   check_end(i)
   widen(w1, arg1, wlen)
   fh = CreateFile2(w1, 1 << 31, 0, 3, 0)

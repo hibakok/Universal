@@ -409,6 +409,9 @@
 | K3-C005 | print_error | C | готов | `MAP/M3-UNIVM.md` |
 | K3-C006 | copy_str | C | готов | `MAP/M3-UNIVM.md` |
 | K3-C007 | out_dec | C | готов | `MAP/M3-UNIVM.md` |
+| K3-C008 | read_lim | C | готов | `MAP/M3-UNIVM.md` |
+| K3-J101 | op_jmp | J | готов | `MAP/M3-UNIVM.md` |
+| K3-J102 | op_jnz | J | готов | `MAP/M3-UNIVM.md` |
 | K3-M001 | get_ram | M | готов | `MAP/M3-UNIVM.md` |
 | K3-M101 | op_ldb | M | готов | `MAP/M3-UNIVM.md` |
 | K3-M102 | op_stb | M | готов | `MAP/M3-UNIVM.md` |
@@ -416,18 +419,18 @@
 | K3-M104 | op_stq | M | готов | `MAP/M3-UNIVM.md` |
 | K3-U001 | rd32 | U | готов | `MAP/M3-UNIVM.md` |
 | K3-U002 | read_up | U | готов | `MAP/M3-UNIVM.md` |
-| K3-V001 | interp | V | готов (срез 3) | `MAP/M3-UNIVM.md` |
-| K3-V002 | op_halt | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V003 | fail_trap | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V101 | op_const | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V102 | op_mov | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V103 | op_add | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V104 | op_sub | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V105 | op_and | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V106 | op_or | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V107 | op_xor | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V108 | op_shl | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V109 | op_shr | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V110 | op_lt | V | готов | `MAP/M3-UNIVM.md` |
-| K3-V111 | op_eq | V | готов | `MAP/M3-UNIVM.md` |
+| K3-V001 | interp | V | готов (финал E7.2) | `MAP/M3-UNIVM-V.md` |
+| K3-V002 | op_halt | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V003 | fail_trap | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V101 | op_const | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V102 | op_mov | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V103 | op_add | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V104 | op_sub | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V105 | op_and | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V106 | op_or | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V107 | op_xor | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V108 | op_shl | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V109 | op_shr | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V110 | op_lt | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V111 | op_eq | V | готов | `MAP/M3-UNIVM-V.md` |
 | K3-X001 | main | X | готов | `MAP/M3-UNIVM.md` |

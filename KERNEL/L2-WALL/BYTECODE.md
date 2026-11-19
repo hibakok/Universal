@@ -217,7 +217,7 @@ pegen.exe t_body.bin wall.peg wall.exe  (== артефакту, T-E6-49b;
                                     wall.peg — константа SPEC/11 п.6)
 ```
 
-Батарея: python3 LAB/py/lab_verify.py -> 158/158 (с E7.2-2F — якоря фикса №23 T-E6-61; T-E6-49a — фикс-пункт
+Батарея: python3 LAB/py/lab_verify.py -> 161/161 (с E7.2-2F — якоря фикса №23 T-E6-61; T-E6-49a — фикс-пункт
 + равенство артефакту wall.b2; T-E6-49b — воспроизводимость wall.brick/
 wall.exe; T-E6-30 — SHA/PE/импорты-восьмёрка). Приёмочные: LAB/ai/
 wall_self_canary.py -> 9/9 (6 DEMO-кругов + big_source/big_source2

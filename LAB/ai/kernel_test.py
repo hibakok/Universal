@@ -50,7 +50,7 @@ def kernel_host():
 
 
 def main():
-    print("=== kernel_test: сборка ядра M3-UNIVM (E7.2-3) ===")
+    print("=== kernel_test: сборка ядра M3-UNIVM (E7.2-4) ===")
     ok, a, note = lab_t_kernel.build(kpath, kfile, kernel_host)
     print("[OK] сборка" if ok else "[FAIL] сборка", note)
     if not ok:
