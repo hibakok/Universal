@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 435 строк; функций: 13; ext: 8; str: 13; глобальных var: 14
+; исходник: 757 строк; функций: 24; ext: 8; str: 13; глобальных var: 15
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -1502,6 +1502,1203 @@ H 4C 89 D0 ; return 0
 H 48 89 EC ; выход fail_trap
 H 5D ; выход fail_trap
 H C3 ; выход fail_trap
+:op_const
+H 55 ; кадр op_const
+H 48 89 E5 ; кадр op_const
+H 48 81 EC 80 00 00 00 ; кадр op_const
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 E0 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 E0 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 E0 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 E0 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 F0 ; rd = b1 >> 4
+H 4C 8B 55 F8 ; if (b1 & 15) != 0
+H 4C 89 55 D8 ; if (b1 & 15) != 0
+H 49 C7 C2 0F 00 00 00 ; if (b1 & 15) != 0
+H 4D 89 D3 ; if (b1 & 15) != 0
+H 4C 8B 55 D8 ; if (b1 & 15) != 0
+H 4D 21 DA ; if (b1 & 15) != 0
+H 4C 89 55 E0 ; if (b1 & 15) != 0
+H 49 C7 C2 00 00 00 00 ; if (b1 & 15) != 0
+H 4D 89 D3 ; if (b1 & 15) != 0
+H 4C 8B 55 E0 ; if (b1 & 15) != 0
+H 4D 39 DA ; if (b1 & 15) != 0
+H 0F 84 $_if44e ; if (b1 & 15) != 0
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 D0 ; fail_trap(1)
+H 48 8B 4D D0 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if44e
+H 4C 8B 15 $codebuf ; imm = rd32(codebuf, pc + 2)
+H 4C 89 55 D0 ; imm = rd32(codebuf, pc + 2)
+H 4C 8B 15 $pc ; imm = rd32(codebuf, pc + 2)
+H 4C 89 55 E0 ; imm = rd32(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; imm = rd32(codebuf, pc + 2)
+H 4D 89 D3 ; imm = rd32(codebuf, pc + 2)
+H 4C 8B 55 E0 ; imm = rd32(codebuf, pc + 2)
+H 4D 01 DA ; imm = rd32(codebuf, pc + 2)
+H 4C 89 55 C8 ; imm = rd32(codebuf, pc + 2)
+H 48 8B 4D D0 ; imm = rd32(codebuf, pc + 2)
+H 48 8B 55 C8 ; imm = rd32(codebuf, pc + 2)
+H E8 $rd32 ; imm = rd32(codebuf, pc + 2)
+H 49 89 C2 ; imm = rd32(codebuf, pc + 2)
+H 4C 89 55 E8 ; imm = rd32(codebuf, pc + 2)
+H 4C 8B 55 E8 ; if (imm >> 31) == 1
+H 4C 89 55 D8 ; if (imm >> 31) == 1
+H 49 C7 C2 1F 00 00 00 ; if (imm >> 31) == 1
+H 4D 89 D3 ; if (imm >> 31) == 1
+H 4C 8B 55 D8 ; if (imm >> 31) == 1
+H 4C 89 D9 ; if (imm >> 31) == 1
+H 49 D3 EA ; if (imm >> 31) == 1
+H 4C 89 55 E0 ; if (imm >> 31) == 1
+H 49 C7 C2 01 00 00 00 ; if (imm >> 31) == 1
+H 4D 89 D3 ; if (imm >> 31) == 1
+H 4C 8B 55 E0 ; if (imm >> 31) == 1
+H 4D 39 DA ; if (imm >> 31) == 1
+H 0F 85 $_if45e ; if (imm >> 31) == 1
+H 4C 8B 55 E8 ; imm = imm - (1 << 32)
+H 4C 89 55 E0 ; imm = imm - (1 << 32)
+H 49 C7 C2 01 00 00 00 ; imm = imm - (1 << 32)
+H 4C 89 55 D8 ; imm = imm - (1 << 32)
+H 49 C7 C2 20 00 00 00 ; imm = imm - (1 << 32)
+H 4D 89 D3 ; imm = imm - (1 << 32)
+H 4C 8B 55 D8 ; imm = imm - (1 << 32)
+H 4C 89 D9 ; imm = imm - (1 << 32)
+H 49 D3 E2 ; imm = imm - (1 << 32)
+H 4D 89 D3 ; imm = imm - (1 << 32)
+H 4C 8B 55 E0 ; imm = imm - (1 << 32)
+H 4D 29 DA ; imm = imm - (1 << 32)
+H 4C 89 55 E8 ; imm = imm - (1 << 32)
+:_if45e
+H 4C 8D 15 $regs ; regs[rd] = imm
+H 4C 89 55 C0 ; regs[rd] = imm
+H 4C 8B 55 F0 ; regs[rd] = imm
+H 4C 89 55 B8 ; regs[rd] = imm
+H 4C 8B 55 E8 ; regs[rd] = imm
+H 4C 89 55 B0 ; regs[rd] = imm
+H 4C 8B 55 C0 ; regs[rd] = imm
+H 4C 8B 5D B8 ; regs[rd] = imm
+H 49 C1 E3 03 ; regs[rd] = imm
+H 4D 01 DA ; regs[rd] = imm
+H 4C 8B 5D B0 ; regs[rd] = imm
+H 4D 89 1A ; regs[rd] = imm
+H 4C 8B 15 $pc ; pc = pc + 6
+H 4C 89 55 E0 ; pc = pc + 6
+H 49 C7 C2 06 00 00 00 ; pc = pc + 6
+H 4D 89 D3 ; pc = pc + 6
+H 4C 8B 55 E0 ; pc = pc + 6
+H 4D 01 DA ; pc = pc + 6
+H 4C 89 15 $pc ; pc = pc + 6
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 E0 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 E0 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_const
+H 5D ; выход op_const
+H C3 ; выход op_const
+:op_mov
+H 55 ; кадр op_mov
+H 48 89 E5 ; кадр op_mov
+H 48 81 EC 80 00 00 00 ; кадр op_mov
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 != 0
+H 4C 89 55 D8 ; if b2 != 0
+H 49 C7 C2 00 00 00 00 ; if b2 != 0
+H 4D 89 D3 ; if b2 != 0
+H 4C 8B 55 D8 ; if b2 != 0
+H 4D 39 DA ; if b2 != 0
+H 0F 84 $_if46e ; if b2 != 0
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if46e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra]
+H 4C 89 55 C0 ; regs[rd] = regs[ra]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra]
+H 4C 89 55 B8 ; regs[rd] = regs[ra]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra]
+H 4C 89 55 D8 ; regs[rd] = regs[ra]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra]
+H 49 C1 E2 03 ; regs[rd] = regs[ra]
+H 4D 89 D3 ; regs[rd] = regs[ra]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra]
+H 4D 01 DA ; regs[rd] = regs[ra]
+H 4D 8B 12 ; regs[rd] = regs[ra]
+H 4C 89 55 B0 ; regs[rd] = regs[ra]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra]
+H 49 C1 E3 03 ; regs[rd] = regs[ra]
+H 4D 01 DA ; regs[rd] = regs[ra]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra]
+H 4D 89 1A ; regs[rd] = regs[ra]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_mov
+H 5D ; выход op_mov
+H C3 ; выход op_mov
+:op_add
+H 55 ; кадр op_add
+H 48 89 E5 ; кадр op_add
+H 48 81 EC 80 00 00 00 ; кадр op_add
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if47e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if47e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 C0 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 B8 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] + regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] + regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 D8 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] + regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] + regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] + regs[b2]
+H 4C 89 55 B0 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra] + regs[b2]
+H 49 C1 E3 03 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] + regs[b2]
+H 4D 89 1A ; regs[rd] = regs[ra] + regs[b2]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_add
+H 5D ; выход op_add
+H C3 ; выход op_add
+:op_sub
+H 55 ; кадр op_sub
+H 48 89 E5 ; кадр op_sub
+H 48 81 EC 80 00 00 00 ; кадр op_sub
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if48e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if48e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 C0 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 B8 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] - regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] - regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 D8 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] - regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] - regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 29 DA ; regs[rd] = regs[ra] - regs[b2]
+H 4C 89 55 B0 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra] - regs[b2]
+H 49 C1 E3 03 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] - regs[b2]
+H 4D 89 1A ; regs[rd] = regs[ra] - regs[b2]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_sub
+H 5D ; выход op_sub
+H C3 ; выход op_sub
+:op_and
+H 55 ; кадр op_and
+H 48 89 E5 ; кадр op_and
+H 48 81 EC 80 00 00 00 ; кадр op_and
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if49e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if49e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 C0 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 B8 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] & regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] & regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 D8 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] & regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] & regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 21 DA ; regs[rd] = regs[ra] & regs[b2]
+H 4C 89 55 B0 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra] & regs[b2]
+H 49 C1 E3 03 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] & regs[b2]
+H 4D 89 1A ; regs[rd] = regs[ra] & regs[b2]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_and
+H 5D ; выход op_and
+H C3 ; выход op_and
+:op_or
+H 55 ; кадр op_or
+H 48 89 E5 ; кадр op_or
+H 48 81 EC 80 00 00 00 ; кадр op_or
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if50e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if50e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 C0 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 B8 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] | regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] | regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 D8 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] | regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] | regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 09 DA ; regs[rd] = regs[ra] | regs[b2]
+H 4C 89 55 B0 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra] | regs[b2]
+H 49 C1 E3 03 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] | regs[b2]
+H 4D 89 1A ; regs[rd] = regs[ra] | regs[b2]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_or
+H 5D ; выход op_or
+H C3 ; выход op_or
+:op_xor
+H 55 ; кадр op_xor
+H 48 89 E5 ; кадр op_xor
+H 48 81 EC 80 00 00 00 ; кадр op_xor
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if51e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if51e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 C0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 B8 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 D8 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 D0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 49 C1 E2 03 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 8B 12 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 89 D3 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 31 DA ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 89 55 B0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 55 C0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 5D B8 ; regs[rd] = regs[ra] ^ regs[b2]
+H 49 C1 E3 03 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 01 DA ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] ^ regs[b2]
+H 4D 89 1A ; regs[rd] = regs[ra] ^ regs[b2]
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_xor
+H 5D ; выход op_xor
+H C3 ; выход op_xor
+:op_shl
+H 55 ; кадр op_shl
+H 48 89 E5 ; кадр op_shl
+H 48 81 EC 90 00 00 00 ; кадр op_shl
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if52e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C0 ; fail_trap(1)
+H 48 8B 4D C0 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if52e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 B8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 B0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 D0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 49 C1 E2 03 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 8B 12 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 D8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 C8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 49 C1 E2 03 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 C8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 8B 12 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 D0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 49 C7 C2 3F 00 00 00 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 21 DA ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 D9 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 49 D3 E2 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 89 55 A8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 55 B8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 49 C1 E3 03 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 5D A8 ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4D 89 1A ; regs[rd] = regs[ra] << (regs[b2] & 63)
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_shl
+H 5D ; выход op_shl
+H C3 ; выход op_shl
+:op_shr
+H 55 ; кадр op_shr
+H 48 89 E5 ; кадр op_shr
+H 48 81 EC 90 00 00 00 ; кадр op_shr
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if53e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C0 ; fail_trap(1)
+H 48 8B 4D C0 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if53e
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 B8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 E8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 B0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 D0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 E0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 49 C1 E2 03 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 8B 12 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 D8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8D 15 $regs ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 C8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 F0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 49 C1 E2 03 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 C8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 8B 12 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 D0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 49 C7 C2 3F 00 00 00 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 D0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 21 DA ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 89 D3 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 D8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 D9 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 49 D3 EA ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 89 55 A8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 55 B8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 5D B0 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 49 C1 E3 03 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 01 DA ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 5D A8 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4D 89 1A ; regs[rd] = regs[ra] >> (regs[b2] & 63)
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_shr
+H 5D ; выход op_shr
+H C3 ; выход op_shr
+:op_lt
+H 55 ; кадр op_lt
+H 48 89 E5 ; кадр op_lt
+H 48 81 EC 80 00 00 00 ; кадр op_lt
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if54e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if54e
+H 4C 8D 15 $regs ; if regs[ra] < regs[b2]
+H 4C 89 55 D0 ; if regs[ra] < regs[b2]
+H 4C 8B 55 E0 ; if regs[ra] < regs[b2]
+H 49 C1 E2 03 ; if regs[ra] < regs[b2]
+H 4D 89 D3 ; if regs[ra] < regs[b2]
+H 4C 8B 55 D0 ; if regs[ra] < regs[b2]
+H 4D 01 DA ; if regs[ra] < regs[b2]
+H 4D 8B 12 ; if regs[ra] < regs[b2]
+H 4C 89 55 D8 ; if regs[ra] < regs[b2]
+H 4C 8D 15 $regs ; if regs[ra] < regs[b2]
+H 4C 89 55 D0 ; if regs[ra] < regs[b2]
+H 4C 8B 55 F0 ; if regs[ra] < regs[b2]
+H 49 C1 E2 03 ; if regs[ra] < regs[b2]
+H 4D 89 D3 ; if regs[ra] < regs[b2]
+H 4C 8B 55 D0 ; if regs[ra] < regs[b2]
+H 4D 01 DA ; if regs[ra] < regs[b2]
+H 4D 8B 12 ; if regs[ra] < regs[b2]
+H 4D 89 D3 ; if regs[ra] < regs[b2]
+H 4C 8B 55 D8 ; if regs[ra] < regs[b2]
+H 4D 39 DA ; if regs[ra] < regs[b2]
+H 0F 8D $_if55 ; if regs[ra] < regs[b2]
+H 4C 8D 15 $regs ; regs[rd] = 1
+H 4C 89 55 C0 ; regs[rd] = 1
+H 4C 8B 55 E8 ; regs[rd] = 1
+H 4C 89 55 B8 ; regs[rd] = 1
+H 49 C7 C2 01 00 00 00 ; regs[rd] = 1
+H 4C 89 55 B0 ; regs[rd] = 1
+H 4C 8B 55 C0 ; regs[rd] = 1
+H 4C 8B 5D B8 ; regs[rd] = 1
+H 49 C1 E3 03 ; regs[rd] = 1
+H 4D 01 DA ; regs[rd] = 1
+H 4C 8B 5D B0 ; regs[rd] = 1
+H 4D 89 1A ; regs[rd] = 1
+H E9 $_if55e ; if regs[ra] < regs[b2]
+:_if55
+H 4C 8D 15 $regs ; regs[rd] = 0
+H 4C 89 55 C0 ; regs[rd] = 0
+H 4C 8B 55 E8 ; regs[rd] = 0
+H 4C 89 55 B8 ; regs[rd] = 0
+H 49 C7 C2 00 00 00 00 ; regs[rd] = 0
+H 4C 89 55 B0 ; regs[rd] = 0
+H 4C 8B 55 C0 ; regs[rd] = 0
+H 4C 8B 5D B8 ; regs[rd] = 0
+H 49 C1 E3 03 ; regs[rd] = 0
+H 4D 01 DA ; regs[rd] = 0
+H 4C 8B 5D B0 ; regs[rd] = 0
+H 4D 89 1A ; regs[rd] = 0
+:_if55e
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_lt
+H 5D ; выход op_lt
+H C3 ; выход op_lt
+:op_eq
+H 55 ; кадр op_eq
+H 48 89 E5 ; кадр op_eq
+H 48 81 EC 80 00 00 00 ; кадр op_eq
+H 4C 8B 15 $codebuf ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $pc ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 49 C7 C2 01 00 00 00 ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D0 ; b1 = getb(codebuf, pc + 1)
+H 4D 01 DA ; b1 = getb(codebuf, pc + 1)
+H 4D 89 D3 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 55 D8 ; b1 = getb(codebuf, pc + 1)
+H 47 0F B6 14 1A ; b1 = getb(codebuf, pc + 1)
+H 4C 89 55 F8 ; b1 = getb(codebuf, pc + 1)
+H 4C 8B 15 $codebuf ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 15 $pc ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 49 C7 C2 02 00 00 00 ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D0 ; b2 = getb(codebuf, pc + 2)
+H 4D 01 DA ; b2 = getb(codebuf, pc + 2)
+H 4D 89 D3 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 D8 ; b2 = getb(codebuf, pc + 2)
+H 47 0F B6 14 1A ; b2 = getb(codebuf, pc + 2)
+H 4C 89 55 F0 ; b2 = getb(codebuf, pc + 2)
+H 4C 8B 55 F8 ; ra = b1 & 15
+H 4C 89 55 D8 ; ra = b1 & 15
+H 49 C7 C2 0F 00 00 00 ; ra = b1 & 15
+H 4D 89 D3 ; ra = b1 & 15
+H 4C 8B 55 D8 ; ra = b1 & 15
+H 4D 21 DA ; ra = b1 & 15
+H 4C 89 55 E0 ; ra = b1 & 15
+H 4C 8B 55 F8 ; rd = b1 >> 4
+H 4C 89 55 D8 ; rd = b1 >> 4
+H 49 C7 C2 04 00 00 00 ; rd = b1 >> 4
+H 4D 89 D3 ; rd = b1 >> 4
+H 4C 8B 55 D8 ; rd = b1 >> 4
+H 4C 89 D9 ; rd = b1 >> 4
+H 49 D3 EA ; rd = b1 >> 4
+H 4C 89 55 E8 ; rd = b1 >> 4
+H 4C 8B 55 F0 ; if b2 > 15
+H 4C 89 55 D8 ; if b2 > 15
+H 49 C7 C2 0F 00 00 00 ; if b2 > 15
+H 4D 89 D3 ; if b2 > 15
+H 4C 8B 55 D8 ; if b2 > 15
+H 4D 39 DA ; if b2 > 15
+H 0F 8E $_if56e ; if b2 > 15
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 C8 ; fail_trap(1)
+H 48 8B 4D C8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if56e
+H 4C 8D 15 $regs ; if regs[ra] == (regs[b2])
+H 4C 89 55 D0 ; if regs[ra] == (regs[b2])
+H 4C 8B 55 E0 ; if regs[ra] == (regs[b2])
+H 49 C1 E2 03 ; if regs[ra] == (regs[b2])
+H 4D 89 D3 ; if regs[ra] == (regs[b2])
+H 4C 8B 55 D0 ; if regs[ra] == (regs[b2])
+H 4D 01 DA ; if regs[ra] == (regs[b2])
+H 4D 8B 12 ; if regs[ra] == (regs[b2])
+H 4C 89 55 D8 ; if regs[ra] == (regs[b2])
+H 4C 8D 15 $regs ; if regs[ra] == (regs[b2])
+H 4C 89 55 D0 ; if regs[ra] == (regs[b2])
+H 4C 8B 55 F0 ; if regs[ra] == (regs[b2])
+H 49 C1 E2 03 ; if regs[ra] == (regs[b2])
+H 4D 89 D3 ; if regs[ra] == (regs[b2])
+H 4C 8B 55 D0 ; if regs[ra] == (regs[b2])
+H 4D 01 DA ; if regs[ra] == (regs[b2])
+H 4D 8B 12 ; if regs[ra] == (regs[b2])
+H 4D 89 D3 ; if regs[ra] == (regs[b2])
+H 4C 8B 55 D8 ; if regs[ra] == (regs[b2])
+H 4D 39 DA ; if regs[ra] == (regs[b2])
+H 0F 85 $_if57 ; if regs[ra] == (regs[b2])
+H 4C 8D 15 $regs ; regs[rd] = 1
+H 4C 89 55 C0 ; regs[rd] = 1
+H 4C 8B 55 E8 ; regs[rd] = 1
+H 4C 89 55 B8 ; regs[rd] = 1
+H 49 C7 C2 01 00 00 00 ; regs[rd] = 1
+H 4C 89 55 B0 ; regs[rd] = 1
+H 4C 8B 55 C0 ; regs[rd] = 1
+H 4C 8B 5D B8 ; regs[rd] = 1
+H 49 C1 E3 03 ; regs[rd] = 1
+H 4D 01 DA ; regs[rd] = 1
+H 4C 8B 5D B0 ; regs[rd] = 1
+H 4D 89 1A ; regs[rd] = 1
+H E9 $_if57e ; if regs[ra] == (regs[b2])
+:_if57
+H 4C 8D 15 $regs ; regs[rd] = 0
+H 4C 89 55 C0 ; regs[rd] = 0
+H 4C 8B 55 E8 ; regs[rd] = 0
+H 4C 89 55 B8 ; regs[rd] = 0
+H 49 C7 C2 00 00 00 00 ; regs[rd] = 0
+H 4C 89 55 B0 ; regs[rd] = 0
+H 4C 8B 55 C0 ; regs[rd] = 0
+H 4C 8B 5D B8 ; regs[rd] = 0
+H 49 C1 E3 03 ; regs[rd] = 0
+H 4D 01 DA ; regs[rd] = 0
+H 4C 8B 5D B0 ; regs[rd] = 0
+H 4D 89 1A ; regs[rd] = 0
+:_if57e
+H 4C 8B 15 $pc ; pc = pc + 3
+H 4C 89 55 D8 ; pc = pc + 3
+H 49 C7 C2 03 00 00 00 ; pc = pc + 3
+H 4D 89 D3 ; pc = pc + 3
+H 4C 8B 55 D8 ; pc = pc + 3
+H 4D 01 DA ; pc = pc + 3
+H 4C 89 15 $pc ; pc = pc + 3
+H 4C 8B 15 $steps ; steps = steps + 1
+H 4C 89 55 D8 ; steps = steps + 1
+H 49 C7 C2 01 00 00 00 ; steps = steps + 1
+H 4D 89 D3 ; steps = steps + 1
+H 4C 8B 55 D8 ; steps = steps + 1
+H 4D 01 DA ; steps = steps + 1
+H 4C 89 15 $steps ; steps = steps + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход op_eq
+H 5D ; выход op_eq
+H C3 ; выход op_eq
 :op_halt
 H 55 ; кадр op_halt
 H 48 89 E5 ; кадр op_halt
@@ -1524,12 +2721,12 @@ H 49 C7 C2 00 00 00 00 ; if rd != 0
 H 4D 89 D3 ; if rd != 0
 H 4C 8B 55 E8 ; if rd != 0
 H 4D 39 DA ; if rd != 0
-H 0F 84 $_if44e ; if rd != 0
+H 0F 84 $_if58e ; if rd != 0
 H 49 C7 C2 01 00 00 00 ; fail_trap(1)
 H 4C 89 55 D8 ; fail_trap(1)
 H 48 8B 4D D8 ; fail_trap(1)
 H E8 $fail_trap ; fail_trap(1)
-:_if44e
+:_if58e
 H 4C 8B 15 $codebuf ; imm = rd32(codebuf, pc + 2)
 H 4C 89 55 D8 ; imm = rd32(codebuf, pc + 2)
 H 4C 8B 15 $pc ; imm = rd32(codebuf, pc + 2)
@@ -1566,26 +2763,26 @@ H 48 89 E5 ; кадр interp
 H 48 83 EC 60 ; кадр interp
 H 49 C7 C2 01 00 00 00 ; go = 1
 H 4C 89 55 F0 ; go = 1
-:_w45
+:_w59
 H 4C 8B 55 F0 ; while go == 1
 H 4C 89 55 E8 ; while go == 1
 H 49 C7 C2 01 00 00 00 ; while go == 1
 H 4D 89 D3 ; while go == 1
 H 4C 8B 55 E8 ; while go == 1
 H 4D 39 DA ; while go == 1
-H 0F 85 $_w45e ; while go == 1
+H 0F 85 $_w59e ; while go == 1
 H 4C 8B 15 $pc ; if pc >= codesize
 H 4C 89 55 E8 ; if pc >= codesize
 H 4C 8B 15 $codesize ; if pc >= codesize
 H 4D 89 D3 ; if pc >= codesize
 H 4C 8B 55 E8 ; if pc >= codesize
 H 4D 39 DA ; if pc >= codesize
-H 0F 8C $_if46e ; if pc >= codesize
+H 0F 8C $_if60e ; if pc >= codesize
 H 49 C7 C2 02 00 00 00 ; fail_trap(2)
 H 4C 89 55 D8 ; fail_trap(2)
 H 48 8B 4D D8 ; fail_trap(2)
 H E8 $fail_trap ; fail_trap(2)
-:_if46e
+:_if60e
 H 4C 8B 15 $codebuf ; op = getb(codebuf, pc)
 H 4C 89 55 E8 ; op = getb(codebuf, pc)
 H 4C 8B 15 $pc ; op = getb(codebuf, pc)
@@ -1593,13 +2790,61 @@ H 4D 89 D3 ; op = getb(codebuf, pc)
 H 4C 8B 55 E8 ; op = getb(codebuf, pc)
 H 47 0F B6 14 1A ; op = getb(codebuf, pc)
 H 4C 89 55 F8 ; op = getb(codebuf, pc)
-H 4C 8B 55 F8 ; if op == 18
-H 4C 89 55 E8 ; if op == 18
-H 49 C7 C2 12 00 00 00 ; if op == 18
-H 4D 89 D3 ; if op == 18
-H 4C 8B 55 E8 ; if op == 18
-H 4D 39 DA ; if op == 18
-H 0F 85 $_if47 ; if op == 18
+H 4C 8B 55 F8 ; if op < 1 || op > 18
+H 4C 89 55 E8 ; if op < 1 || op > 18
+H 49 C7 C2 01 00 00 00 ; if op < 1 || op > 18
+H 4D 89 D3 ; if op < 1 || op > 18
+H 4C 8B 55 E8 ; if op < 1 || op > 18
+H 4D 39 DA ; if op < 1 || op > 18
+H 0F 8D $_if61d2 ; if op < 1 || op > 18
+H E9 $_if61t ; if op < 1 || op > 18
+:_if61d2
+H 4C 8B 55 F8 ; if op < 1 || op > 18
+H 4C 89 55 E8 ; if op < 1 || op > 18
+H 49 C7 C2 12 00 00 00 ; if op < 1 || op > 18
+H 4D 89 D3 ; if op < 1 || op > 18
+H 4C 8B 55 E8 ; if op < 1 || op > 18
+H 4D 39 DA ; if op < 1 || op > 18
+H 0F 8E $_if61e ; if op < 1 || op > 18
+:_if61t
+H 49 C7 C2 01 00 00 00 ; fail_trap(1)
+H 4C 89 55 D8 ; fail_trap(1)
+H 48 8B 4D D8 ; fail_trap(1)
+H E8 $fail_trap ; fail_trap(1)
+:_if61e
+H 4C 8B 55 F8 ; if op >= 2 && op <= 11
+H 4C 89 55 E8 ; if op >= 2 && op <= 11
+H 49 C7 C2 02 00 00 00 ; if op >= 2 && op <= 11
+H 4D 89 D3 ; if op >= 2 && op <= 11
+H 4C 8B 55 E8 ; if op >= 2 && op <= 11
+H 4D 39 DA ; if op >= 2 && op <= 11
+H 0F 8C $_if62 ; if op >= 2 && op <= 11
+H 4C 8B 55 F8 ; if op >= 2 && op <= 11
+H 4C 89 55 E8 ; if op >= 2 && op <= 11
+H 49 C7 C2 0B 00 00 00 ; if op >= 2 && op <= 11
+H 4D 89 D3 ; if op >= 2 && op <= 11
+H 4C 8B 55 E8 ; if op >= 2 && op <= 11
+H 4D 39 DA ; if op >= 2 && op <= 11
+H 0F 8F $_if62 ; if op >= 2 && op <= 11
+H 4C 8B 15 $pc ; if pc + 3 > codesize
+H 4C 89 55 E0 ; if pc + 3 > codesize
+H 49 C7 C2 03 00 00 00 ; if pc + 3 > codesize
+H 4D 89 D3 ; if pc + 3 > codesize
+H 4C 8B 55 E0 ; if pc + 3 > codesize
+H 4D 01 DA ; if pc + 3 > codesize
+H 4C 89 55 E8 ; if pc + 3 > codesize
+H 4C 8B 15 $codesize ; if pc + 3 > codesize
+H 4D 89 D3 ; if pc + 3 > codesize
+H 4C 8B 55 E8 ; if pc + 3 > codesize
+H 4D 39 DA ; if pc + 3 > codesize
+H 0F 8E $_if63e ; if pc + 3 > codesize
+H 49 C7 C2 02 00 00 00 ; fail_trap(2)
+H 4C 89 55 D8 ; fail_trap(2)
+H 48 8B 4D D8 ; fail_trap(2)
+H E8 $fail_trap ; fail_trap(2)
+:_if63e
+H E9 $_if62e ; if op >= 2 && op <= 11
+:_if62
 H 4C 8B 15 $pc ; if pc + 6 > codesize
 H 4C 89 55 E0 ; if pc + 6 > codesize
 H 49 C7 C2 06 00 00 00 ; if pc + 6 > codesize
@@ -1611,22 +2856,140 @@ H 4C 8B 15 $codesize ; if pc + 6 > codesize
 H 4D 89 D3 ; if pc + 6 > codesize
 H 4C 8B 55 E8 ; if pc + 6 > codesize
 H 4D 39 DA ; if pc + 6 > codesize
-H 0F 8E $_if48e ; if pc + 6 > codesize
+H 0F 8E $_if64e ; if pc + 6 > codesize
 H 49 C7 C2 02 00 00 00 ; fail_trap(2)
 H 4C 89 55 D8 ; fail_trap(2)
 H 48 8B 4D D8 ; fail_trap(2)
 H E8 $fail_trap ; fail_trap(2)
-:_if48e
+:_if64e
+:_if62e
+H 4C 8B 55 F8 ; if op == 1
+H 4C 89 55 E8 ; if op == 1
+H 49 C7 C2 01 00 00 00 ; if op == 1
+H 4D 89 D3 ; if op == 1
+H 4C 8B 55 E8 ; if op == 1
+H 4D 39 DA ; if op == 1
+H 0F 85 $_if65e ; if op == 1
+H E8 $op_const ; op_const()
+H E9 $_w59 ; continue
+:_if65e
+H 4C 8B 55 F8 ; if op == 2
+H 4C 89 55 E8 ; if op == 2
+H 49 C7 C2 02 00 00 00 ; if op == 2
+H 4D 89 D3 ; if op == 2
+H 4C 8B 55 E8 ; if op == 2
+H 4D 39 DA ; if op == 2
+H 0F 85 $_if66e ; if op == 2
+H E8 $op_mov ; op_mov()
+H E9 $_w59 ; continue
+:_if66e
+H 4C 8B 55 F8 ; if op == 3
+H 4C 89 55 E8 ; if op == 3
+H 49 C7 C2 03 00 00 00 ; if op == 3
+H 4D 89 D3 ; if op == 3
+H 4C 8B 55 E8 ; if op == 3
+H 4D 39 DA ; if op == 3
+H 0F 85 $_if67e ; if op == 3
+H E8 $op_add ; op_add()
+H E9 $_w59 ; continue
+:_if67e
+H 4C 8B 55 F8 ; if op == 4
+H 4C 89 55 E8 ; if op == 4
+H 49 C7 C2 04 00 00 00 ; if op == 4
+H 4D 89 D3 ; if op == 4
+H 4C 8B 55 E8 ; if op == 4
+H 4D 39 DA ; if op == 4
+H 0F 85 $_if68e ; if op == 4
+H E8 $op_sub ; op_sub()
+H E9 $_w59 ; continue
+:_if68e
+H 4C 8B 55 F8 ; if op == 5
+H 4C 89 55 E8 ; if op == 5
+H 49 C7 C2 05 00 00 00 ; if op == 5
+H 4D 89 D3 ; if op == 5
+H 4C 8B 55 E8 ; if op == 5
+H 4D 39 DA ; if op == 5
+H 0F 85 $_if69e ; if op == 5
+H E8 $op_and ; op_and()
+H E9 $_w59 ; continue
+:_if69e
+H 4C 8B 55 F8 ; if op == 6
+H 4C 89 55 E8 ; if op == 6
+H 49 C7 C2 06 00 00 00 ; if op == 6
+H 4D 89 D3 ; if op == 6
+H 4C 8B 55 E8 ; if op == 6
+H 4D 39 DA ; if op == 6
+H 0F 85 $_if70e ; if op == 6
+H E8 $op_or ; op_or()
+H E9 $_w59 ; continue
+:_if70e
+H 4C 8B 55 F8 ; if op == 7
+H 4C 89 55 E8 ; if op == 7
+H 49 C7 C2 07 00 00 00 ; if op == 7
+H 4D 89 D3 ; if op == 7
+H 4C 8B 55 E8 ; if op == 7
+H 4D 39 DA ; if op == 7
+H 0F 85 $_if71e ; if op == 7
+H E8 $op_xor ; op_xor()
+H E9 $_w59 ; continue
+:_if71e
+H 4C 8B 55 F8 ; if op == 8
+H 4C 89 55 E8 ; if op == 8
+H 49 C7 C2 08 00 00 00 ; if op == 8
+H 4D 89 D3 ; if op == 8
+H 4C 8B 55 E8 ; if op == 8
+H 4D 39 DA ; if op == 8
+H 0F 85 $_if72e ; if op == 8
+H E8 $op_shl ; op_shl()
+H E9 $_w59 ; continue
+:_if72e
+H 4C 8B 55 F8 ; if op == 9
+H 4C 89 55 E8 ; if op == 9
+H 49 C7 C2 09 00 00 00 ; if op == 9
+H 4D 89 D3 ; if op == 9
+H 4C 8B 55 E8 ; if op == 9
+H 4D 39 DA ; if op == 9
+H 0F 85 $_if73e ; if op == 9
+H E8 $op_shr ; op_shr()
+H E9 $_w59 ; continue
+:_if73e
+H 4C 8B 55 F8 ; if op == 10
+H 4C 89 55 E8 ; if op == 10
+H 49 C7 C2 0A 00 00 00 ; if op == 10
+H 4D 89 D3 ; if op == 10
+H 4C 8B 55 E8 ; if op == 10
+H 4D 39 DA ; if op == 10
+H 0F 85 $_if74e ; if op == 10
+H E8 $op_lt ; op_lt()
+H E9 $_w59 ; continue
+:_if74e
+H 4C 8B 55 F8 ; if op == 11
+H 4C 89 55 E8 ; if op == 11
+H 49 C7 C2 0B 00 00 00 ; if op == 11
+H 4D 89 D3 ; if op == 11
+H 4C 8B 55 E8 ; if op == 11
+H 4D 39 DA ; if op == 11
+H 0F 85 $_if75e ; if op == 11
+H E8 $op_eq ; op_eq()
+H E9 $_w59 ; continue
+:_if75e
+H 4C 8B 55 F8 ; if op == 18
+H 4C 89 55 E8 ; if op == 18
+H 49 C7 C2 12 00 00 00 ; if op == 18
+H 4D 89 D3 ; if op == 18
+H 4C 8B 55 E8 ; if op == 18
+H 4D 39 DA ; if op == 18
+H 0F 85 $_if76 ; if op == 18
 H E8 $op_halt ; op_halt()
-H E9 $_if47e ; if op == 18
-:_if47
+H E9 $_if76e ; if op == 18
+:_if76
 H 49 C7 C2 01 00 00 00 ; fail_trap(1)
 H 4C 89 55 D8 ; fail_trap(1)
 H 48 8B 4D D8 ; fail_trap(1)
 H E8 $fail_trap ; fail_trap(1)
-:_if47e
-H E9 $_w45 ; while go == 1
-:_w45e
+:_if76e
+H E9 $_w59 ; while go == 1
+:_w59e
 H 49 C7 C2 00 00 00 00 ; return 0
 H 4C 89 D0 ; return 0
 H 48 89 EC ; выход interp
@@ -1704,7 +3067,7 @@ H 49 F7 DA ; if fh == -1
 H 4D 89 D3 ; if fh == -1
 H 4C 8B 55 E8 ; if fh == -1
 H 4D 39 DA ; if fh == -1
-H 0F 85 $_if49e ; if fh == -1
+H 0F 85 $_if77e ; if fh == -1
 H 4C 8D 15 $s_oup ; print_error(s_oup, len(s_oup), 4)
 H 4C 89 55 E0 ; print_error(s_oup, len(s_oup), 4)
 H 49 C7 C2 18 00 00 00 ; print_error(s_oup, len(s_oup), 4)
@@ -1715,7 +3078,7 @@ H 48 8B 4D E0 ; print_error(s_oup, len(s_oup), 4)
 H 48 8B 55 D8 ; print_error(s_oup, len(s_oup), 4)
 H 4C 8B 45 D0 ; print_error(s_oup, len(s_oup), 4)
 H E8 $print_error ; print_error(s_oup, len(s_oup), 4)
-:_if49e
+:_if77e
 H 4C 8B 55 F0 ; read_up(fh)
 H 4C 89 55 E0 ; read_up(fh)
 H 48 8B 4D E0 ; read_up(fh)
@@ -1791,6 +3154,8 @@ DZ 8 ; var memsize
 DZ 8 ; var pc
 :steps
 DZ 8 ; var steps
+:regs
+DZ 80 ; var regs[16]
 :got
 DZ 8 ; var got
 :trapbuf

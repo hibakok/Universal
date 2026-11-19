@@ -1,15 +1,21 @@
-; kernel_self_vm.wall — цикл интерпретатора UNIVM, срез E7.2-1 (E7.2)
+; kernel_self_vm.wall — цикл интерпретатора UNIVM, срез E7.2-2 (E7.2)
 ; Паспорт: KERNEL/L3-UNIVM/kernel_self_vm.wall | слой: L3 (исходник — WALL)
 ; | роль: ветвь V ядра — K3-V001 interp (цикл: порядок проверок
-; SPEC/12 п. 7 — выборка/опкод/длина/поля/исполнение), K3-V002 op_halt
-; (останов: rd-заполнитель + imm32 = код возврата, шаг считается),
-; K3-V003 fail_trap (диагностика «U-L3-UNIVM TRAP=n STEPS=s», код 1)
-; и хелперы K3-C006 copy_str / K3-C007 out_dec (десятичные числа в
-; буфер — diagnose-строки). Срез E7.2-1: опкоды 01..11 не исполнены —
-; ловушка 1 (заглушка среза; const/mov/ALU — срез E7.2-2, память — 3,
-; переходы — 4); для опкодов 00/13+ ловушка 1 — корректна по SPEC/12
-; п. 7 (2). RAM не распределяется: обращений к памяти в срезе нет.
-; Консоль среза 1 пуста по построению (устройства — срез E7.2-3).
+; SPEC/12 п. 7 — выборка/опкод/длина/поля/исполнение), кирпичи опкодов
+; среза 2: K3-V101 op_const .. K3-V111 op_eq (const/mov/add/sub/and/or/
+; xor/shl/shr/lt/eq — регистры UNIVM в глобальном массиве regs[16]),
+; K3-V002 op_halt (останов: rd-заполнитель + imm32 = код возврата, шаг
+; считается), K3-V003 fail_trap (диагностика «U-L3-UNIVM TRAP=n STEPS=s»,
+; код 1) и хелперы K3-C006 copy_str / K3-C007 out_dec (десятичные числа
+; в буфер — diagnose-строки).
+; Срез E7.2-2: опкоды 0C..0F (память) и 10..11 (переходы) не исполнены —
+; заглушка ловушкой 1 ПОСЛЕ проверки длины (опкод валиден: укороченная
+; инструкция обязана дать ловушку 2, как у оракула; исполнение — срезы
+; E7.2-3/4); для опкодов 00/13+ ловушка 1 — сразу (SPEC/12 п. 7 (2)).
+; RAM не распределяется: обращений к памяти в срезе нет. Консоль срезов
+; 1-2 пуста по построению (устройства — срез E7.2-3); результаты ALU
+; ядром напрямую не наблюдаемы до среза 3 — срез 2 диффтестит
+; декодирование, ловушки и счётчики шагов (T-E7-15).
 
 ; копия n байтов с адреса src в dst с позиции k; возврат — новая позиция
 func copy_str(dst, k, src, n)
@@ -64,6 +70,258 @@ func fail_trap(n)
   return 0
 end
 
+; исполнение const (F2, опкод 0x01) по pc: rd := sext(imm32) — imm32
+; знаковое, расширяется до 64 бит (бит 31 задан -> вычесть 2^32; литерали
+; > 2^31-1 в WALL нет — порог вычисляется сдвигом imm >> 31).
+; Проверки (1)-(3) — в interp; здесь (4) ra-заполнитель != 0 ->
+; ловушка 1, затем (5) исполнение; pc += 6, шаг считается
+func op_const
+  var b1
+  var rd
+  var imm
+  b1 = getb(codebuf, pc + 1)
+  rd = b1 >> 4
+  if (b1 & 15) != 0
+    fail_trap(1)
+  end
+  imm = rd32(codebuf, pc + 2)
+  if (imm >> 31) == 1
+    imm = imm - (1 << 32)
+  end
+  regs[rd] = imm
+  pc = pc + 6
+  steps = steps + 1
+  return 0
+end
+
+; исполнение mov (F1, опкод 0x02) по pc: rd := ra (rb — заполнитель).
+; Проверки (1)-(3) — в interp; здесь (4) rb != 0 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_mov
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 != 0
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение add (F1, опкод 0x03) по pc: rd := (ra + rb) mod 2^64
+; (аппаратное сложение WALL даёт тот же битовый образ, беззнаковость
+; не требуется). Проверки (1)-(3) — в interp; здесь (4) rb > 15 ->
+; ловушка 1, затем (5) исполнение; pc += 3, шаг считается
+func op_add
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] + regs[b2]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение sub (F1, опкод 0x04) по pc: rd := (ra - rb) mod 2^64.
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_sub
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] - regs[b2]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение and (F1, опкод 0x05) по pc: rd := ra AND rb (побитово).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_and
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] & regs[b2]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение or (F1, опкод 0x06) по pc: rd := ra OR rb (побитово).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_or
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] | regs[b2]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение xor (F1, опкод 0x07) по pc: rd := ra XOR rb (побитово).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_xor
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] ^ regs[b2]
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение shl (F1, опкод 0x08) по pc: rd := ra << (rb AND 63)
+; (аппаратный shl заворачивается mod 2^64 — битовый образ тот же).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_shl
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] << (regs[b2] & 63)
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение shr (F1, опкод 0x09) по pc: rd := ra >> (rb AND 63) —
+; логический сдвиг (WALL >> компилируется в x86 shr — логический,
+; битовый образ совпадает с беззнаковым UNIVM).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_shr
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  regs[rd] = regs[ra] >> (regs[b2] & 63)
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение lt (F1, опкод 0x0A) по pc: rd := 1, если ra < rb (знаково,
+; дополнение до двух), иначе 0 — сравнение WALL знаковое 64-битное,
+; семантика та же, что у SPEC/12 п. 5 (отдельные трюки не нужны).
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается
+func op_lt
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  if regs[ra] < regs[b2]
+    regs[rd] = 1
+  else
+    regs[rd] = 0
+  end
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
+; исполнение eq (F1, опкод 0x0B) по pc: rd := 1, если ra = rb, иначе 0.
+; Проверки (1)-(3) — в interp; здесь (4) rb > 15 -> ловушка 1,
+; затем (5) исполнение; pc += 3, шаг считается.
+; ОБОЙДЁН ДЕФЕКТ №23 wall.exe (pp_pcount: двухсимвольные операторы не
+; завершают скан пар [..] — «индекс == индекс» ложно ERR=FORMAT):
+; правый операнд в скобках — «(выр)» прозрачен, вывод тот же; фикс
+; инструмента — отдельный срез, после него скобки можно снять
+func op_eq
+  var b1
+  var b2
+  var rd
+  var ra
+  b1 = getb(codebuf, pc + 1)
+  b2 = getb(codebuf, pc + 2)
+  ra = b1 & 15
+  rd = b1 >> 4
+  if b2 > 15
+    fail_trap(1)
+  end
+  if regs[ra] == (regs[b2])
+    regs[rd] = 1
+  else
+    regs[rd] = 0
+  end
+  pc = pc + 3
+  steps = steps + 1
+  return 0
+end
+
 ; исполнение halt (F3, опкод 0x12) по pc: проверка поля rd и останов.
 ; Проверки (3) длина и (1)(2) уже сделаны в interp; здесь (4)(5):
 ; rd-заполнитель -> ловушка 1; imm32 = код возврата; шаг считается
@@ -80,9 +338,14 @@ func op_halt
   return 0
 end
 
-; цикл интерпретатора среза E7.2-1: halt; порядок проверок — SPEC/12
-; п. 7: (1) pc за кодом -> ловушка 2; (2) опкод: 0x12 -> halt-плечо,
-; прочее -> ловушка 1; (3) pc+6 за кодом -> ловушка 2; (4)(5) в op_halt
+; цикл интерпретатора среза E7.2-2: регистры + ALU (01..0B) + halt (12);
+; порядок проверок — SPEC/12 п. 7: (1) pc за кодом -> ловушка 2;
+; (2) опкод вне 01..12 -> ловушка 1; (3) длина: F1 (3 Б) для 02..0B,
+; F2/F3 (6 Б) для остальных — pc+длина за кодом -> ловушка 2 (для
+; заглушек 0C..11 длина проверяется ДО заглушки: опкод валиден);
+; (4)(5) — в кирпичах опкодов. Заглушки срезов 3-4 (память 0C..0F,
+; переходы 10..11) — ловушка 1; без переходов вечный цикл невозможен
+; (предел шагов — срез E7.2-4)
 func interp
   var op
   var go
@@ -92,12 +355,66 @@ func interp
       fail_trap(2)
     end
     op = getb(codebuf, pc)
-    if op == 18
+    if op < 1 || op > 18
+      fail_trap(1)
+    end
+    if op >= 2 && op <= 11
+      if pc + 3 > codesize
+        fail_trap(2)
+      end
+    else
       if pc + 6 > codesize
         fail_trap(2)
       end
+    end
+    if op == 1
+      op_const()
+      continue
+    end
+    if op == 2
+      op_mov()
+      continue
+    end
+    if op == 3
+      op_add()
+      continue
+    end
+    if op == 4
+      op_sub()
+      continue
+    end
+    if op == 5
+      op_and()
+      continue
+    end
+    if op == 6
+      op_or()
+      continue
+    end
+    if op == 7
+      op_xor()
+      continue
+    end
+    if op == 8
+      op_shl()
+      continue
+    end
+    if op == 9
+      op_shr()
+      continue
+    end
+    if op == 10
+      op_lt()
+      continue
+    end
+    if op == 11
+      op_eq()
+      continue
+    end
+    if op == 18
       op_halt()
     else
+      ; память 0C..0F и переходы 10..11 — заглушки срезов E7.2-3/4
       fail_trap(1)
     end
   end

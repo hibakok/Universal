@@ -1,20 +1,26 @@
-"""lab_t_kernel.py — секция 14 батареи: ядро kernel.exe (M3-UNIVM, E7.2-1).
+"""lab_t_kernel.py — секция 14 батареи: ядро kernel.exe (M3-UNIVM, E7.2).
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-09..14 (срез E7.2-1 — каркас ядра на WALL):
+Выход: проверки T-E7-09..15 (срезы E7.2-1..2 ядра на WALL):
        сборка ядра конвейером инструментов под эмуляцией (фикс-пункт
        воспроизводимости артефактов), контракт CLI/контейнера .UP,
-       диффтест ядра с оракулом lab_vm на корпусе среза.
+       диффтест ядра с оракулом lab_vm на корпусе срезов.
 Функция: доказать, что ядро kernel.exe (KERNEL/L3-UNIVM) собирается из
          kernel.wall самими инструментами репозитория (wall/enc/brick/
-         pegen) байт-в-байт и исполняет halt-программы .UP в точном
+         pegen) байт-в-байт и исполняет программы .UP в точном
          соответствии с оракулом UNIVM (консоль/код возврата/ловушки/
          счётчик шагов в диагностике).
-Срез E7.2-1: опкоды 01..11 — заглушка (ловушка 1); корпус — только
-halt-программы и перво-инструкция-ловушка; RAM/консоль-устройство —
-срезы E7.2-3+ (шаги нормального останова ядром не печатаются —
-наблюдаемы через ловушечную диагностику, контракт SPEC/13 п. 4).
+Срез E7.2-1: halt-программы и перво-инструкция-ловушка; срез
+E7.2-2: регистры + ALU (опкоды 01..0B) — декодирование (поля-
+заполнители -> ловушка 1), границы выборки (обрезки -> 2, ВКЛ.
+заглушки 0C..11: длина валидного опкода проверяется до заглушки),
+точные счётчики шагов (программы без halt: pc за кодом ->
+TRAP=2 STEPS=<число команд>) и отсутствие ложных ловушек на
+ALU-программах с halt. Результаты ALU напрямую не наблюдаемы до
+среза E7.2-3 (консоль-устройство) — значения регистров станут видны
+через вывод; шаги нормального останова ядром не печатаются
+(контракт SPEC/13 п. 4).
 """
 import os
 import tempfile
@@ -27,6 +33,104 @@ import lab_vm
 S_USE = b"U-L3-UNIVM CMDS: KERNEL <FILE.UP>\r\n"
 S_LONG = b"U-L3-UNIVM ERR=LONG NAME\r\n"
 S_OUP = b"U-L3-UNIVM ERR=OPEN UP\r\n"
+
+# --- T-E7-15: ALU-программы среза 2 (const/mov/ALU; диффтест) --------
+# Сырые байты — ловушки полей (4) и обрезанные инструкции (3) в порядке
+# SPEC/12 п. 7; обрезки 0C..11 доказывают, что длина валидного опкода
+# проверяется ДО заглушки среза (ловушка 2, не 1).
+ALU_TRAPS = [
+    ("const ra!=0", bytes([0x01, 0x11, 0, 0, 0, 0])),
+    ("mov rb!=0", bytes([0x02, 0x23, 0x05])),
+    ("add rb=16", bytes([0x03, 0x45, 0x10])),
+    ("xor rb=255", bytes([0x07, 0x12, 0xFF])),
+    ("const обрезан", bytes([0x01, 0x10, 0x05])),
+    ("add обрезан", bytes([0x03, 0x45])),
+    ("mov 1 байт", bytes([0x02])),
+    ("ldb обрезан", bytes([0x0C, 0x12, 0x00])),
+    ("jmp обрезан", bytes([0x10, 0x00, 0x05])),
+    ("jnz обрезан", bytes([0x11, 0x03])),
+    ("jmp rd!=0", bytes([0x10, 0x03, 0, 0, 0, 0])),
+    ("jnz rd=16", bytes([0x11, 0x10, 0, 0, 0, 0])),
+]
+
+# ALU-программа полного охвата среза 2 (по образцу OPS_VM T-E7-07,
+# без jmp/памяти — срезы 3-4): ((20-6)|1)^4 = 11; 11<<6 = 704;
+# 704>>3 = 88; eq с эталоном 88 -> 1; lt 6<20 -> 1; 88&1 = 0.
+ALU_VM = """\
+.mem 0
+const r1, 20
+const r2, 6
+mov r3, r1
+sub r3, r3, r2
+const r4, 1
+or r3, r3, r4
+const r4, 4
+xor r3, r3, r4
+shl r3, r3, r2
+const r4, 3
+shr r3, r3, r4
+const r4, 88
+eq r4, r3, r4
+lt r5, r2, r1
+and r6, r3, r4
+halt 7
+"""
+
+# Без halt: pc за кодом -> TRAP=2 STEPS=15 — точный счётчик шагов ALU.
+ALU_RUNOFF = ALU_VM.replace("halt 7\n", "")
+
+# Знаковые пути: sext(imm32) для -1/-5/0xFFFFFFFF; сложение/вычитание
+# с заворотом; знаковые lt/eq на отрицательных регистрах.
+NEG_VM = """\
+.mem 0
+const r1, -1
+const r2, -5
+mov r3, r1
+add r4, r1, r2
+sub r5, r2, r1
+const r6, 0xFFFFFFFF
+eq r7, r6, r1
+lt r8, r1, r2
+"""
+
+# Сдвиги с маской счётчика 63: 1<<(70&63)=64; 1>>63=0; 8<<63;
+# 0xFFFF..FF>>8 (логический, старшие нули).
+SHIFT_VM = """\
+.mem 0
+const r1, 1
+const r2, 70
+shl r3, r1, r2
+const r4, -1
+shr r5, r1, r4
+const r6, 8
+shl r7, r6, r4
+shr r8, r4, r6
+"""
+
+# r0 равноправен (SPEC/12 п. 2: r0 не спец) + арифметика; без halt —
+# счётчик шагов 8 наблюдаем в TRAP=2.
+R0_VM = """\
+.mem 0
+const r0, 5
+mov r1, r0
+eq r2, r1, r0
+const r1, 20
+const r2, 6
+mov r3, r1
+sub r3, r3, r2
+add r4, r3, r3
+"""
+
+ALU_STEPS = [
+    ("шаги: r0 равноправен + арифметика (8)", R0_VM),
+    ("ALU полный без halt (15 шагов)", ALU_RUNOFF),
+    ("знаковые: sext imm32, lt/eq (8)", NEG_VM),
+    ("сдвиги: маска счётчика 63 (8)", SHIFT_VM),
+]
+
+ALU_HALT = [
+    ("ALU полный halt 7", ALU_VM),
+]
 
 
 def _up(mem, code, ver=1, res=0, tail=b"", sig=b"UP01", sig_pad=b""):
@@ -85,8 +189,26 @@ def _trap_line(trap, steps):
     return b"U-L3-UNIVM TRAP=%d STEPS=%d\r\n" % (trap, steps)
 
 
+def _diff(bad, kexe, name, data):
+    """Диффтест ядра с оракулом на одной программе (консоль/код/шаги).
+
+    Ожидание ядра строится из RunResult оракула: нормальный останов —
+    консоль + код возврата; ловушка — консоль + TRAP/STEPS + код 1
+    (контракт SPEC/13 п. 4).
+    """
+    o = lab_vm.run_up(data)
+    if o.trap:
+        want, code = o.console + _trap_line(o.trap, o.steps), 1
+    else:
+        want, code = o.console, o.exit_code
+    r = _krun(kexe, data)
+    if r.stdout != want or r.exit_code != code:
+        bad.append("%s: %r код=%s (trap=%d steps=%d)"
+                   % (name, r.stdout[:30], r.exit_code, o.trap, o.steps))
+
+
 def run(check, kpath, kfile, kernel_host):
-    """Секция 14: T-E7-09..14 (ядро kernel.exe, срез E7.2-1)."""
+    """Секция 14: T-E7-09..15 (ядро kernel.exe, срезы E7.2-1..2)."""
     # T-E7-09: сборка ядра — фикс-пункт: kernel.wall -> (wall/enc/brick/
     # pegen, эмуляция) -> артефакты байт-в-байт; kernel.b2 == оракулу WALL
     ok, a, note = build(kpath, kfile, kernel_host)
@@ -197,5 +319,20 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-14 детерминизм ядра (2 прогона halt 37)",
               r1.stdout == r2.stdout and r1.exit_code == r2.exit_code,
               "%r код=%s" % (r1.stdout[:24], r1.exit_code))
+
+        # T-E7-15: ALU среза 2 — диффтест (поля/обрезки/шаги/halt).
+        # Обрезки 0C..11 — длина валидного опкода до заглушки (ловушка 2);
+        # программы без halt — точные счётчики шагов в TRAP=2 STEPS=n;
+        # ALU с halt — отсутствие ложных ловушек (консоль/код).
+        bad = []
+        for name, code in ALU_TRAPS:
+            _diff(bad, kexe, name, lab_vm.make_up(0, code))
+        for name, src in ALU_STEPS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src in ALU_HALT:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        check("T-E7-15 ALU среза 2: декод/ловушки/шаги == оракулу (%d)"
+              % (len(ALU_TRAPS) + len(ALU_STEPS) + len(ALU_HALT)),
+              not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(kexe)

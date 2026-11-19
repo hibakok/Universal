@@ -6,20 +6,20 @@
 
 | Параметр | Значение |
 |---|---|
-| Файл | KERNEL/L3-UNIVM/kernel.exe, 10240 байт (0x2800) |
-| SHA-256 | 5D8CD3DE26D136F7B8609395B8E771E45A9685E5F508E0742361A36B747F2D52 |
-| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.2-1): сборка из kernel.wall — wall.exe(splice(kernel.wall)) -> kernel.b2 -> enc -> kernel.brick -> brick -> pegen + kernel.peg. Воспроизводимость закреплена в батарее (T-E7-09); kernel.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
-| Исходник | KERNEL/L3-UNIVM/kernel.wall — корень + 3 части kernel_self_*.wall (WALL v2, разрез SPEC/10); склейка 435 строк, 13958 Б (5% предела входа 256 КиБ) |
-| Тело секции | 9549 байт (0x254D), RVA 0x1000, SRD 0x2600 |
-| VirtualSize | 0x254D (одна секция) |
+| Файл | KERNEL/L3-UNIVM/kernel.exe, 16384 байт (0x4000) |
+| SHA-256 | 9B33FDFDBD3C20C00CF4CF2C39950FD1F0DF5485A5F9CDD2525E9179379BDBF7 |
+| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.2-2): сборка из kernel.wall — wall.exe(splice(kernel.wall)) -> kernel.b2 -> enc -> kernel.brick -> brick -> pegen + kernel.peg. Воспроизводимость закреплена в батарее (T-E7-09); kernel.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
+| Исходник | KERNEL/L3-UNIVM/kernel.wall — корень + 3 части kernel_self_*.wall (WALL v2, разрез SPEC/10); склейка 757 строк, 23307 Б (9% предела входа 256 КиБ) |
+| Тело секции | 15384 байт (0x3C18), RVA 0x1000, SRD 0x3E00 |
+| VirtualSize | 0x3C18 (одна секция) |
 | Точка входа | 0x1200 (:_entry — константа SPEC/11 п. 6: после фиксированной области импортов 0x200) |
 | idata / iat / intt | 0x1000 (0x28) / 0x1028 (0x48) / 0x1070 — фиксированная область импортов SPEC/11 п. 6 |
 | Импорты | kernel32.dll, 8 функций: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFile2, ReadFile, CloseHandle, GlobalAlloc |
 | DOS-заглушка | «Universal L0 kernel. No DOS support.» (имя модуля — kernel.peg) |
-| M-строк в исходнике | 1590 (kernel.b2 — 1797 строк; плоский, генерируемый) |
-| Меток в исходнике | 141 из 2048 (лимит brick; карта — LAB/ai/kernel_labelmap.py) |
-| Функций | 13 (карта — §2) + данные (§3) |
-| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB |
+| M-строк в исходнике | 2909 (kernel.b2 — 3163 строк; плоский, генерируемый) |
+| Меток в исходнике | 186 из 2048 (лимит brick; карта — LAB/ai/kernel_labelmap.py) |
+| Функций | 24 (карта — §2) + данные (§3) |
+| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E7-09: 46761507 + 10200280 + 3866085 + 4997 шагов) |
 
 ## 2. Карта функций (RVA — LAB/ai/kernel_labelmap.py по kernel.brick)
 
@@ -42,24 +42,35 @@ MAP/M3-UNIVM.md).
   copy_str ............. 24F4  копия n байтов в буфер (диагностика)
   out_dec .............. 25CB  десятичная запись числа в буфер
   fail_trap ............ 28A8  диагностика ловушки + выход 1
-  op_halt .............. 2A7C  halt: поля + imm32 = код возврата
-  interp ............... 2B71  цикл: порядок проверок SPEC/12 п. 7
+  op_const ............. 2A7C  0x01: rd := sext(imm32) (сдвиг порога)
+  op_mov ............... 2C57  0x02: rd := ra (rb-заполнитель = 0)
+  op_add ............... 2DE2  0x03: rd := (ra + rb) mod 2^64
+  op_sub ............... 2F9B  0x04: rd := (ra - rb) mod 2^64
+  op_and ............... 3154  0x05: rd := ra AND rb
+  op_or ................ 330D  0x06: rd := ra OR rb
+  op_xor ............... 34C6  0x07: rd := ra XOR rb
+  op_shl ............... 367F  0x08: rd := ra << (rb AND 63)
+  op_shr ............... 3850  0x09: rd := ra >> (rb AND 63) — логический
+  op_lt ................ 3A21  0x0A: rd := ra < rb (знаково)
+  op_eq ................ 3C20  0x0B: rd := ra = rb
+  op_halt .............. 3E1F  0x12: поля + imm32 = код возврата
+  interp ............... 3F14  цикл: порядок проверок SPEC/12 п. 7
 
 вход (kernel.wall):
-  main ................. 2C97  CLI -> чтение -> разбор -> исполнение
+  main ................. 42E2  CLI -> чтение -> разбор -> исполнение
 ```
 
 ## 3. Данные образа (RVA)
 
 ```
-строки (13): s_use 2E3D (35Б) s_long 2E60 s_oup 2E7A s_rup 2E92
-  s_sig 2EAA s_ver 2EBE s_mem 2ED2 s_code0 2EE6 s_len 2EFC s_res 2F10
-  s_trap 2F24 s_steps 2F34 (8Б) s_crlf 2F3B (2Б)
-глобали (14): hstdout 2F3D cmdline 2F45 written 2F4D wlen 2F55
-  arg1[64] 2F5D (0x200) w1[64] 315D (0x200) hdrbuf[8] 335D (0x40)
-  codebuf 339D codesize 33A5 memsize 33AD pc 33B5 steps 33BD
-  got 33C5 trapbuf[48] 33CD (0x180)
-конец тела: 354D (vsize 0x254D)
+строки (13): s_use 4488 (35Б) s_long 44AB s_oup 44C5 s_rup 44DD
+  s_sig 44F5 s_ver 4509 s_mem 451D s_code0 4531 s_len 4547 s_res 455B
+  s_trap 456F s_steps 457F (8Б) s_crlf 4586 (2Б)
+глобали (15): hstdout 4588 cmdline 4590 written 4598 wlen 45A0
+  arg1[64] 45A8 (0x200) w1[64] 47A8 (0x200) hdrbuf[8] 49A8 (0x40)
+  codebuf 49E8 codesize 49F0 memsize 49F8 pc 4A00 steps 4A08
+  regs[16] 4A10 (0x80) got 4A90 trapbuf[48] 4A98 (0x180)
+конец тела: 4C18 (vsize 0x3C18)
 ```
 
 ## 4. Контроль воспроизведения
@@ -74,5 +85,5 @@ brick.exe  kernel_s.brick kernel_s.bin
 pegen.exe  kernel_s.bin  kernel.peg kernel.exe   (== артефакт)
 ```
 
-SHA-256 артефактов: kernel.b2 — B8C99245…E3044337, kernel.brick —
-ACE82FE3…1C56940, kernel.exe — 5D8CD3DE…47F2D52 (полные — VERIFY.md).
+SHA-256 артефактов: kernel.b2 — 71A47AE6…638430C43, kernel.brick —
+99319802…C06B7E1DB, kernel.exe — 9B33FDFD…379BDBF7 (полные — VERIFY.md).

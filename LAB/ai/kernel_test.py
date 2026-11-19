@@ -1,4 +1,4 @@
-"""kernel_test.py — построитель и dev-тест ядра kernel.exe (E7.2-1, LAB/ai;
+"""kernel_test.py — построитель и dev-тест ядра kernel.exe (E7.2, LAB/ai;
 НЕ часть системы UNIVERSAL — частный инструмент ИИ, как enc_build.py).
 
 Вход:  KERNEL/L3-UNIVM/kernel.wall (+ части kernel_self_*.wall + kernel.peg).
@@ -6,8 +6,9 @@
           — сборка конвейером РЕАЛЬНЫХ инструментов под эмуляцией
           (wall.exe -> enc.exe -> brick.exe -> pegen.exe; фикс-пункт
           воспроизводимости закреплён в батарее — T-E7-09);
-       2) отчёт [OK]/[FAIL] по корпусу среза 1 (CLI, контейнер .UP,
-          halt-программы, ловушки 1/2 — диффтест с оракулом lab_vm);
+       2) отчёт [OK]/[FAIL] по корпусу срезов 1-2 (CLI, контейнер .UP,
+          halt-программы, ловушки 1/2, ALU среза 2 — диффтест с
+          оракулом lab_vm);
        3) карта меток kernel.brick (для BYTECODE.md — лениво: импорт
           label_map) и SHA-256 артефактов (для VERIFY.md).
 Запуск: python3 LAB/ai/kernel_test.py  (из корня репозитория)
@@ -49,7 +50,7 @@ def kernel_host():
 
 
 def main():
-    print("=== kernel_test: сборка ядра M3-UNIVM (E7.2-1) ===")
+    print("=== kernel_test: сборка ядра M3-UNIVM (E7.2-2) ===")
     ok, a, note = lab_t_kernel.build(kpath, kfile, kernel_host)
     print("[OK] сборка" if ok else "[FAIL] сборка", note)
     if not ok:
