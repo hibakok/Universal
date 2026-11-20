@@ -6,19 +6,19 @@
 
 | Параметр | Значение |
 |---|---|
-| Файл | KERNEL/L3-UVA/uva.exe, 37888 байта (0x9400) |
-| SHA-256 | 2545730938D07371BC9D534DCBA636738CAB7B2065047BFF21E326A2BE5EF31B |
-| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.3-4): сборка из uva.wall — wall.exe(splice(uva.wall)) -> uva.b2 -> enc -> uva.brick -> brick -> pegen + uva.peg. Воспроизводимость закреплена в батарее (T-E7-19); uva.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
-| Исходник | KERNEL/L3-UVA/uva.wall — корень + 6 частей uva_self_*.wall (WALL v2, разрез SPEC/10); склейка 1279 строк, 41386 Б (16% предела входа 256 КиБ) |
-| Тело секции | 36907 байт (0x901B), RVA 0x1000 |
-| VirtualSize | 0x901B (одна секция) |
+| Файл | KERNEL/L3-UVA/uva.exe, 38400 байта (0x9600) |
+| SHA-256 | 6A4EFC9AB85097403886D79FF3657C455AD5D9B348EB17BD16CE86CCF0862CC5 |
+| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E7.4-3a): сборка из uva.wall — wall.exe(splice(uva.wall)) -> uva.b2 -> enc -> uva.brick -> brick -> pegen + uva.peg. Воспроизводимость закреплена в батарее (T-E7-19); uva.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
+| Исходник | KERNEL/L3-UVA/uva.wall — корень + 6 частей uva_self_*.wall (WALL v2, разрез SPEC/10); склейка 1318 строк, 43662 Б (17% предела входа 256 КиБ) |
+| Тело секции | 37420 байт (0x924C), RVA 0x1000 |
+| VirtualSize | 0x924C (одна секция) |
 | Точка входа | 0x1200 (:_entry — константа SPEC/11 п. 6: после фиксированной области импортов 0x200) |
 | idata / iat / intt | 0x1000 (0x28) / 0x1028 (0x48) / 0x1070 — фиксированная область импортов SPEC/11 п. 6 |
 | Импорты | kernel32.dll, 8 функций: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFile2, ReadFile, CloseHandle, GlobalAlloc |
 | DOS-заглушка | «Universal L0 uva. No DOS support.» (имя модуля — uva.peg) |
-| Меток в исходнике | 398 из 2048 (лимит brick; карта — LAB/ai/uva_test.py) |
-| Функций | 28 (карта — §2) + данные (§3) |
-| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E7-19: 77376430 + 16565621 + 8229880 + 5015 шагов) |
+| Меток в исходнике | 410 из 2048 (лимит brick; карта — LAB/ai/uva_test.py) |
+| Функций | 29 (карта — §2) + данные (§3) |
+| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E7-19: 78961480 + 16960465 + 8565575 + 5015 шагов) |
 
 ## 2. Карта функций (RVA — LAB/ai/uva_test.py по uva.brick)
 
@@ -40,7 +40,8 @@ MAP/M3-UVA.md).
   parse_num ............ 2466  токен -> nval (imm32, переполнение в цикле)
   line_trim ............ 2A5F  ';' + края-разделители -> lna/lne
   line_next ............ 2D66  итератор строк по LF (lln, lpos)
-  mn_find .............. 2EA0  токен -> индекс мнемоники 0..17 (-1 = нет)
+  mn_find .............. 2EA0  токен -> индекс мнемоники 0..23 (-1 = нет;
+                               E7.4-3a: 24 имени ISA v0+v1)
   parse_reg ............ 315C  токен -> nval = регистр r0..r15
   parse_memop .......... 3476  токен -> nval = рег, moff = смещ (E7.3-3)
 
@@ -52,31 +53,34 @@ MAP/M3-UVA.md).
 
 проходы (uva_self_l.wall / uva_self_e.wall):
   pass1 ................ 482E  структура: метки/.mem/мнемоники/длины
-  enc_halt ............. 4CF8  12 00 imm32 LE -> outbuf+24+at
-  enc_f1 ............... 4DCC  F1 op rd:ra rb -> outbuf+24+at (mov/АЛУ)
-  enc_f2 ............... 50C9  F2 op rd:ra imm32 (const/память, E7.3-3)
-  enc_f3 ............... 5539  F3 [16/17][00/rd][imm32] — jmp/jnz (E7.3-4)
-  pass2 ................ 5837  кодирование всех 18 форм (чтение ВПЕРЁД)
+  enc_halt ............. 4D82  12 00 imm32 LE -> outbuf+24+at
+  enc_f1 ............... 4E56  F1 op rd:ra rb -> outbuf+24+at (mov/АЛУ
+                               v0 + mul/div/mod/sra v1 — E7.4-3a)
+  enc_f2 ............... 5153  F2 op rd:ra imm32 (const/память, E7.3-3)
+  enc_f3 ............... 55C3  F3 [16/17/23][00/rd][imm32] — jmp/jnz/
+                               call (E7.4-3a: call как jmp, опкод = i+1)
+  enc_f0 ............... 58F7  F0 [24] — ret, 0 операндов (E7.4-3a)
+  pass2 ................ 598A  кодирование всех 24 форм (чтение ВПЕРЁД)
 
 контейнер (uva_self_w.wall):
-  put32 ................ 5BF5  LE u32 по смещению outbuf
-  make_header .......... 5CD1  заголовок .UP v1 (24 Б, SPEC/13 п. 2)
-  write_out ............ 5E3C  CREATE_ALWAYS + WriteFile(24+pc)
+  put32 ................ 5DDD  LE u32 по смещению outbuf
+  make_header .......... 5EB9  заголовок .UP v1 (24 Б, SPEC/13 п. 2)
+  write_out ............ 6024  CREATE_ALWAYS + WriteFile(24+pc)
 
 вход (uva.wall):
-  main ................. 5FE1  CLI -> чтение -> pass1 -> pass2 -> запись
+  main ................. 61C9  CLI -> чтение -> pass1 -> pass2 -> запись
 ```
 
 ## 3. Данные образа (RVA)
 
 Строки (CRLF-литералы диагностики, s_hexd — hex-цифры, s_up01 = 'UP01',
-s_dotmem = '.mem', s_mn — таблица 18 мнемоник ISA v0 через пробел
-в порядке опкодов 01..12):
+s_dotmem = '.mem', s_mn — таблица 24 мнемоник ISA v0+v1 через пробел
+в порядке опкодов 01..18 — E7.4-3a):
 
 ```
-  s_use 6417  s_long 643E  s_osrc 6456  s_rsrc 646D  s_big 6484
-  s_fmt 649A  s_code0 64B1  s_oout 64C5  s_wout 64DC  s_hexd 64F4
-  s_up01 6504  s_dotmem 6508  s_mn 650C
+  s_use 65FF  s_long 6626  s_osrc 663E  s_rsrc 6655  s_big 666C
+  s_fmt 6682  s_code0 6699  s_oout 66AD  s_wout 66C4  s_hexd 66DC
+  s_up01 66EC  s_dotmem 66F0  s_mn 66F4
 ```
 
 Глобальные переменные (DZ 8; массивы — DZ 8n; нулевой старт; moff —
@@ -85,13 +89,13 @@ lcnt/lsta/lend/lval — таблица меток E7.3-4: имена — гра�
 копии не хранятся):
 
 ```
-  hstdout 6553  cmdline 655B  written 6563  wlen 656B
-  arg1[64] 6573  arg2[64] 6773  w1[64] 6973  w2[64] 6B73
-  srcbuf 6D73  srclen 6D7B  outbuf 6D83  memsize 6D8B  pc 6D93
-  lpos 6D9B  lln 6DA3  lna 6DAB  lne 6DB3  tcnt 6DBB
-  tstart[12] 6DC3  tend[12] 6E23  nval 6E83  moff 6E8B
-  nsa 6E93  nsb 6E9B  lcnt 6EA3
-  lsta[512] 6EAB  lend[512] 7EAB  lval[512] 8EAB  fmtbuf[48] 9EAB
+  hstdout 6754  cmdline 675C  written 6764  wlen 676C
+  arg1[64] 6774  arg2[64] 6974  w1[64] 6B74  w2[64] 6D74
+  srcbuf 6F74  srclen 6F7C  outbuf 6F84  memsize 6F8C  pc 6F94
+  lpos 6F9C  lln 6FA4  lna 6FAC  lne 6FB4  tcnt 6FBC
+  tstart[12] 6FC4  tend[12] 7024  nval 7084  moff 708C
+  nsa 7094  nsb 709C  lcnt 70A4
+  lsta[512] 70AC  lend[512] 80AC  lval[512] 90AC  fmtbuf[48] A0AC
 ```
 
 ## 4. Инварианты

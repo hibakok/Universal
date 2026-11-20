@@ -8,6 +8,15 @@
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C / токены T / метки B /
 ; проход 1 L / кодирование E / запись W).
+; Срез E7.4-3a (мнемоники ISA v1): таблица s_mn расширена 18 -> 24 имён
+; (добавлены mul div mod sra call ret — индексы 18..23 => опкоды 13..18,
+; SPEC/12 п. 5); K3-T006 mn_find ищет по всем 24; длины прохода 1:
+; F1 (i 1..10 и 18..21) = 3, F3 (i 15..17, 22) = 6, НОВЫЙ формат
+; F0 (i 23 ret) = 1 байт без операндов; кодировка: mul/div/mod/sra —
+; K3-E003 enc_f1 (те же 3 операнда, что АЛУ v0), call — K3-E005 enc_f3
+; (как jmp: ровно 1 операнд-цель метка|число, байты [23][00][imm32 LE]),
+; ret — НОВЫЙ кирпич K3-E006 enc_f0 (ровно 0 операндов, байт [24]).
+; Директива .data и контейнер .UP v2 — срез E7.4-3b (очередь).
 ; Срез E7.3-4 (F3: jmp/jnz + метки — ФИНАЛ этапа 7.3): потребление
 ; префикса метки (K3-B001 lab_skip — как regex оракула: имя
 ; [a-z_][a-z0-9_]*, ':', затем конец строки или \s, НО НЕ запятая),
@@ -107,7 +116,7 @@ str s_wout = 'U-L3-UVA ERR=WRITE OUT\r\n'
 str s_hexd = '0123456789ABCDEF'
 str s_up01 = 'UP01'
 str s_dotmem = '.mem'
-str s_mn = 'const mov add sub and or xor shl shr lt eq ldb stb ldq stq jmp jnz halt'
+str s_mn = 'const mov add sub and or xor shl shr lt eq ldb stb ldq stq jmp jnz halt mul div mod sra call ret'
 
 !include uva_self_c.wall
 !include uva_self_t.wall
