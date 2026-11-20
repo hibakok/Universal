@@ -1,0 +1,77 @@
+; KERNEL/L4-LIB/lib_n.uva — ветвь N библиотеки L4: числа (SPEC/14 п. 4)
+; Кирпичи: K4-N001 u64_to_dec_rev / K4-N002 print_u64 / K4-N003
+;          print_i64. Карточки — MAP/M4-LIB.md; ABI — SPEC/14 п. 3.
+; Часть (SPEC/14 п. 2): только инструкции, метки и комментарии; .mem/.data
+; принадлежат программе-потребителю; !include — ПОСЛЕ кода программы.
+; ЗАВИСИМОСТЬ ВЕТВИ: N002/N003 вызывают кирпичи ветви C (lib_chr_out,
+; lib_buf_out_rev) — программа обязана включить ОБЕ части: lib_c.uva
+; И lib_n.uva (метки разрешаются в общем плоском тексте; порядок строк
+; !include между собой не важен — после кода программы).
+; ТРЕБОВАНИЕ sp: кирпичи ветви N используют ПРОГРАММНЫЙ СТЕК (конвенция
+; SPEC/12 п. 3.4): сохраняют адрес буфера в слоте [sp-8, sp) и снимают
+; слот перед ret — r13 после вызова равен входному значению (баланс
+; стека проверяет T-E8-15). Программа обязана поставить r13 = корректный
+; адрес RAM до вызова (например, выше своих данных; у ячейки [sp-8, sp)
+; не должно быть ценных данных программы).
+; ABI: r1..r4 — временные (затираются); r5..r12, r14 (devbase), r15 —
+; не трогаем; r13 (sp) — возвращаем неизменным. Печатающим кирпичам
+; нужна программа, установившая r14 = memsize до вызова.
+
+lib_u64_to_dec_rev:               ; K4-N001: r1 = значение, r2 = addr
+    const r3, 8                   ; размер слота стека (8 Б — слово stq)
+    sub r13, r13, r3              ; sp -= 8 (слот для addr)
+    stq r13+0, r2                 ; сохранить addr — r2 затирается ниже
+lib_u64_to_dec_rev_loop:
+    const r3, 10                  ; делитель
+    mod r4, r1, r3                ; r4 = цифра = v mod 10
+    div r1, r1, r3                ; v = v div 10
+    const r3, 48                  ; ASCII '0'
+    add r4, r4, r3                ; r4 = ASCII-код цифры
+    stb r2+0, r4                  ; buf[p] = цифра (реверс: buf[0] = единицы)
+    const r3, 1                   ; шаг
+    add r2, r2, r3                ; p = p + 1
+    jnz r1, lib_u64_to_dec_rev_loop   ; v != 0 — следующая цифра (0 -> одна '0')
+    ldq r4, r13+0                 ; r4 = сохранённый addr
+    sub r1, r2, r4                ; r1 = len = p - addr
+    const r3, 8
+    add r13, r13, r3              ; sp += 8 (снять слот)
+    ret
+
+lib_print_u64:                     ; K4-N002: r1 = значение, r2 = addr
+    const r3, 8
+    sub r13, r13, r3              ; слот для addr (N001 затирает r1..r4)
+    stq r13+0, r2
+    call lib_u64_to_dec_rev        ; r1 = len; RAM[addr..addr+len) = цифры
+    mov r2, r1                    ; r2 = len
+    ldq r1, r13+0                 ; r1 = addr (слот — сразу в аргумент)
+    call lib_buf_out_rev          ; K4-C004: консоль += цифры (старшая слева)
+    const r3, 8
+    add r13, r13, r3              ; sp += 8 (снять слот)
+    ret
+
+lib_print_i64:                     ; K4-N003: r1 = значение, r2 = addr
+    const r3, 8
+    sub r13, r13, r3              ; слот для addr
+    stq r13+0, r2
+    const r3, 0
+    lt r4, r1, r3                 ; r4 = 1 <=> v < 0 знаково (v >= 2^63)
+    jnz r4, lib_print_i64_neg     ; печать со знаком
+    call lib_u64_to_dec_rev        ; r1 = len; цифры v
+    mov r2, r1
+    ldq r1, r13+0
+    call lib_buf_out_rev
+    jmp lib_print_i64_out
+lib_print_i64_neg:
+    const r3, 0
+    sub r4, r3, r1                ; r4 = 0 - v = 2^64 - v (v ещё в r1!)
+    const r1, 45                  ; '-' (ASCII 0x2D)
+    call lib_chr_out              ; K4-C001: консоль += '-' (регистры не трогает)
+    mov r1, r4                    ; r1 = модуль (2^64 - v) из r4
+    call lib_u64_to_dec_rev        ; r1 = len; цифры модуля
+    mov r2, r1
+    ldq r1, r13+0
+    call lib_buf_out_rev
+lib_print_i64_out:
+    const r3, 8
+    add r13, r13, r3              ; sp += 8 (снять слот)
+    ret

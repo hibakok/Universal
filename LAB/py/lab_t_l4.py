@@ -2,13 +2,19 @@
 
 Вход:  колбэк check из lab_verify (kpath/kfile/kernel_host — единая
          сигнатура секций; kfile читает реальные части KERNEL/L4-LIB).
-Выход: проверки T-E8-01..11:
+Выход: проверки T-E8-01..16:
          (E8.1) T-E8-01..07 — оракул против якорей (прецедент E7.1);
          (E8.2a) T-E8-08..11 — диффтест ветви C: реальные байты части
          lib_c.uva компонуются с программой (оракулом splice в 08..10;
          самим splice.exe в 11), прогоняются (lab_vm.run_asm в 08..10;
          цепочкой uva.exe -> kernel.exe под эмуляцией в 11) —
-         консоль/регистры/ловушки обязаны совпасть с оракулом lab_l4.
+         консоль/регистры/ловушки обязаны совпасть с оракулом lab_l4;
+         (E8.2b) T-E8-12..16 — диффтест ветви N (числа): реальные байты
+         lib_n.uva; программа включает ОБЕ части (N002/N003 вызывают
+         кирпичи C — зависимость ветвей); значения шире imm32 грузятся
+         из .data через ldq; r13 = sp ставит программа (кирпичи N
+         сохраняют адрес буфера в слоте [sp-8, sp) — конвенция
+         SPEC/12 п. 3.4; баланс стека проверяет T-E8-15).
 Функция: сверка оракула lab_l4.py с якорями lab_l4_cases.py
          (третий свидетель — ручные литералы):
          (1) T-E8-01 print_u64: 13 значений — края разрядов,
@@ -30,7 +36,19 @@
               консоль композиции == оракулу;
          (11) T-E8-11 сквозной круг ИНСТРУМЕНТАМИ (эмуляция): splice.exe
               склеивает !include -> uva.exe == ассемблеру оракула байтом
-              в байт -> kernel.exe печатает == оракулу lab_l4.
+              в байт -> kernel.exe печатает == оракулу lab_l4;
+         (12) T-E8-12 диффтест u64_to_dec_rev: якоря REV — r1 = len и
+              RAM-цифры после прогона (полный контракт карточки);
+         (13) T-E8-13 диффтест print_u64: все якоря DEC + CRLF — консоль
+              == оракулу И якорным литералам (CMP ⊂ DEC+CRLF);
+         (14) T-E8-14 диффтест print_i64: все якоря I64 + CRLF — край
+              -2^63, -1, -10 == оракулу и литералам;
+         (15) T-E8-15 диффтест ABI ветви N: сентинелы r5..r12/r15 целы,
+              r14 = memsize, sp = r13 СБАЛАНСИРОВАН (слоты сняты),
+              RAM-след внутреннего N001 кирпича print_i64;
+         (16) T-E8-16 сквозной круг ИНСТРУМЕНТАМИ ветви N: ДВЕ части
+              (lib_c + lib_n) — splice.exe -> uva.exe -> kernel.exe,
+              консоль == оракулу (0; -1; край -2^63).
 """
 import lab_l4 as L
 import lab_run
@@ -41,15 +59,57 @@ from lab_l4_cases import (DEC, I64, REV, STR, BUF, CPY, FILL,
 
 _ROOT = "projects/demo/demo.uva"       # программа-потребитель (виртуальный путь)
 _LIB_C = "projects/demo/../../KERNEL/L4-LIB/lib_c.uva"   # !include SPEC/14 п. 2
+_LIB_N = "projects/demo/../../KERNEL/L4-LIB/lib_n.uva"   # ветвь N (E8.2b)
 _MEM = 4096                            # memsize программ диффтеста
+_SP = 4000                             # r13 = sp: слот стека N — RAM[3992..4000)
+_BUF = 200                             # буфер цифр: RAM[200..220) (>= 20 Б)
+
+
+def _data64(v):
+    """u64 -> 8 байтов LE строкой .data (значения шире imm32 грузятся
+    ldq — const умеет только знаковый imm32, SPEC/12 п. 5)."""
+    return " ".join("%02X" % b for b in (v & 0xFFFFFFFFFFFFFFFF)
+                    .to_bytes(8, "little"))
 
 
 def _flat(kfile, prog):
-    """Композиция SPEC/14 п. 2: программа + !include lib_c.uva (оракул
-    splice, SPEC/10 — та же семантика, что у splice.exe) -> плоский текст.
+    """Композиция SPEC/14 п. 2: программа + !include частей L4 (оракул
+    splice, SPEC/10 — та же семантика, что у splice.exe) -> плоский
+    текст. Хост содержит обе части (C и N): программа включает нужные
+    ей; ветвь N зависит от C (print_* вызывают lib_chr_out/
+    lib_buf_out_rev), поэтому N-программы включают ОБЕ строки !include.
     Оракул не нормализует ../ лексически — ключ host = полный путь."""
-    host = {_ROOT: prog.encode("utf-8"), _LIB_C: kfile("L4-LIB/lib_c.uva")}
+    host = {_ROOT: prog.encode("utf-8"),
+            _LIB_C: kfile("L4-LIB/lib_c.uva"),
+            _LIB_N: kfile("L4-LIB/lib_n.uva")}
     return lab_splice.splice(_ROOT, host).decode("utf-8")
+
+
+def _print_prog(vals, brick):
+    """Программа печати всех значений .data + CRLF: значения грузятся
+    ldq; курсор/шаг/конец — в СОХРАНЯЕМЫХ r5/r6/r7 (кирпичи обязаны
+    вернуть их — само ABI проверяется выполнением цикла)."""
+    lines = [".mem %d" % _MEM]
+    lines += [".data " + _data64(v) for v in vals]
+    lines += [
+        "const r13, %d" % _SP,
+        "const r14, %d" % _MEM,
+        "const r5, 8",
+        "const r6, 0",
+        "const r7, %d" % (8 * len(vals)),
+        "n_loop:",
+        "ldq r1, r6+0",
+        "const r2, %d" % _BUF,
+        "call lib_%s" % brick,
+        "call lib_crlf_out",
+        "add r6, r6, r5",
+        "lt r8, r6, r7",
+        "jnz r8, n_loop",
+        "halt 0",
+        "!include ../../KERNEL/L4-LIB/lib_c.uva",
+        "!include ../../KERNEL/L4-LIB/lib_n.uva",
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def _run_c(kfile, prog):
@@ -58,7 +118,7 @@ def _run_c(kfile, prog):
 
 
 def run(check, kpath, kfile, kernel_host):
-    """Секция 16: T-E8-01..10 (оракул L4 + диффтест ветви C, SPEC/14)."""
+    """Секция 16: T-E8-01..16 (оракул L4 + диффтесты ветвей C/N, SPEC/14)."""
 
     # T-E8-01: print_u64 == якорям DEC (десятичная запись u64)
     bad = []
@@ -270,4 +330,151 @@ def run(check, kpath, kfile, kernel_host):
     except Exception as e:                     # noqa: BLE001 — любая = провал
         ok, detail = False, "EXC:" + repr(e)
     check("T-E8-11 круг инструментами: splice->uva->kernel == оракулу",
+          ok, detail)
+
+    # T-E8-12: диффтест N: u64_to_dec_rev — якоря REV (r1 = len + RAM)
+    bad = []
+    for v, rev, ln in REV:
+        prog = (
+            ".mem %d\n"
+            ".data %s\n"                # значение u64 -> RAM[0..8) (LE)
+            "const r13, %d\n"           # sp — ветвь N использует стек
+            "const r2, 0\n"
+            "ldq r1, r2+0\n"            # r1 = значение (шире imm32)
+            "const r2, %d\n"            # буфер цифр
+            "call lib_u64_to_dec_rev\n"
+            "halt 0\n"
+            "!include ../../KERNEL/L4-LIB/lib_c.uva\n"
+            "!include ../../KERNEL/L4-LIB/lib_n.uva\n"
+        ) % (_MEM, _data64(v), _SP, _BUF)
+        r = _run_c(kfile, prog)
+        digits = r.mem[_BUF:_BUF + ln]
+        if r.trap != 0 or r.exit_code != 0 or r.regs[1] != ln \
+                or digits != rev.encode("ascii"):
+            bad.append("%d: trap=%d len=%d mem=%r != %r/%d"
+                       % (v, r.trap, r.regs[1], digits.decode("latin1"),
+                          rev, ln))
+    check("T-E8-12 диффтест N: u64_to_dec_rev == якорям REV (%d; RAM+r1)"
+          % len(REV), not bad, "; ".join(bad[:2]))
+
+    # T-E8-13: диффтест N: print_u64 — все якоря DEC + CRLF (CMP ⊂ DEC)
+    vals = [v for v, _w in DEC]
+    r = _run_c(kfile, _print_prog(vals, "print_u64"))
+    want = b"".join(L.print_u64(v) + L.crlf_out() for v in vals)
+    anchor = b"".join((s + "\r\n").encode("ascii") for _v, s in DEC)
+    check("T-E8-13 диффтест N: print_u64 == оракулу и якорям DEC (%d)"
+          % len(vals),
+          r.trap == 0 and r.exit_code == 0 and r.console == want
+          and r.console == anchor,
+          "trap=%d code=%d console=%r" % (r.trap, r.exit_code,
+                                           r.console[:40]))
+
+    # T-E8-14: диффтест N: print_i64 — все якоря I64 + CRLF (край -2^63)
+    vals = [v for v, _w in I64]
+    r = _run_c(kfile, _print_prog(vals, "print_i64"))
+    want = b"".join(L.print_i64(v) + L.crlf_out() for v in vals)
+    anchor = b"".join((s + "\r\n").encode("ascii") for _v, s in I64)
+    check("T-E8-14 диффтест N: print_i64 == оракулу и якорям I64 (%d)"
+          % len(vals),
+          r.trap == 0 and r.exit_code == 0 and r.console == want
+          and r.console == anchor,
+          "trap=%d code=%d console=%r" % (r.trap, r.exit_code,
+                                           r.console[:40]))
+
+    # T-E8-15: диффтест N: ABI — сентинелы r5..r12/r15, sp = r13 баланс
+    prog = (
+        ".mem %d\n"
+        ".data %s\n"                # 12345
+        ".data %s\n"                # 2^64-10 (знаковое -10)
+        "const r13, %d\n"
+        "const r14, %d\n"
+        "const r5, 5005\n"
+        "const r6, 5006\n"
+        "const r7, 5007\n"
+        "const r8, 5008\n"
+        "const r9, 5009\n"
+        "const r10, 5010\n"
+        "const r11, 5011\n"
+        "const r12, 5012\n"
+        "const r15, 5015\n"
+        "const r2, 0\n"
+        "ldq r1, r2+0\n"
+        "const r2, %d\n"
+        "call lib_print_u64\n"     # 12345
+        "const r2, 8\n"
+        "ldq r1, r2+0\n"
+        "const r2, %d\n"
+        "call lib_print_i64\n"     # -10
+        "call lib_crlf_out\n"
+        "halt 0\n"
+        "!include ../../KERNEL/L4-LIB/lib_c.uva\n"
+        "!include ../../KERNEL/L4-LIB/lib_n.uva\n"
+    ) % (_MEM, _data64(12345), _data64(18446744073709551606), _SP, _MEM,
+         _BUF, _BUF)
+    r = _run_c(kfile, prog)
+    want = (L.print_u64(12345) + L.print_i64(18446744073709551606)
+            + L.crlf_out())
+    saved = [r.regs[i] for i in range(5, 13)]
+    ok = (r.trap == 0 and r.exit_code == 0 and r.console == want
+          and saved == list(range(5005, 5013)) and r.regs[13] == _SP
+          and r.regs[14] == _MEM and r.regs[15] == 5015
+          and r.mem[_BUF:_BUF + 2] == b"01")   # цифры 10 — внутренний N001 print_i64
+    check("T-E8-15 диффтест N: ABI — r5..r12/r15 сохранены, sp сбалансирован",
+          ok, "trap=%d code=%d console=%r saved=%r r13=%d r14=%d"
+          % (r.trap, r.exit_code, r.console, saved, r.regs[13],
+             r.regs[14]))
+
+    # T-E8-16: сквозной круг инструментами ветви N — ДВЕ части (C+N):
+    # splice.exe склеивает обе !include -> uva.exe (байты .UP ==
+    # ассемблеру оракула) -> kernel.exe (stdout == оракулу lab_l4).
+    # Ядро не пересобирается — библиотека внешние исходники (R7).
+    prog = (
+        ".mem %d\n"
+        ".data %s\n"                # 0
+        ".data %s\n"                # 2^64-1
+        ".data %s\n"                # 2^63 — край i64
+        "const r13, %d\n"
+        "const r14, %d\n"
+        "const r2, 0\n"
+        "ldq r1, r2+0\n"
+        "const r2, %d\n"
+        "call lib_print_u64\n"      # "0"
+        "const r2, 8\n"
+        "ldq r1, r2+0\n"
+        "const r2, %d\n"
+        "call lib_print_i64\n"     # "-1"
+        "const r2, 16\n"
+        "ldq r1, r2+0\n"
+        "const r2, %d\n"
+        "call lib_print_i64\n"     # "-9223372036854775808" (край)
+        "call lib_crlf_out\n"
+        "halt 0\n"
+        "!include ../../KERNEL/L4-LIB/lib_c.uva\n"
+        "!include ../../KERNEL/L4-LIB/lib_n.uva\n"
+    ) % (_MEM, _data64(0), _data64(18446744073709551615),
+          _data64(9223372036854775808), _SP, _MEM, _BUF, _BUF, _BUF)
+    want = (L.print_u64(0) + L.print_i64(18446744073709551615)
+            + L.print_i64(9223372036854775808) + L.crlf_out())
+    try:
+        rs = lab_run.run_kv(kpath("L1-SPLICE/splice.exe"),
+                            ["projects/demo/demo.uva", "demo.flat.uva"],
+                            {_ROOT: prog.encode("utf-8"),
+                             _LIB_C: kfile("L4-LIB/lib_c.uva"),
+                             _LIB_N: kfile("L4-LIB/lib_n.uva")})
+        flat = rs.files.get("demo.flat.uva", b"")
+        ru = lab_run.run_kv(kpath("L3-UVA/uva.exe"),
+                            ["demo.flat.uva", "demo.up"],
+                            {"demo.flat.uva": flat})
+        up = ru.files.get("demo.up", b"")
+        rk = lab_run.run_kv(kpath("L3-UNIVM/kernel.exe"), ["demo.up"],
+                            {"demo.up": up})
+        ok = (rs.exit_code == 0 and ru.exit_code == 0
+              and rk.exit_code == 0 and rk.stdout == want
+              and up == lab_vm.assemble(flat.decode("utf-8")))
+        detail = ("splice=%d uva=%d kernel=%d up=%dБ console=%r"
+                  % (rs.exit_code, ru.exit_code, rk.exit_code,
+                     len(up), rk.stdout))
+    except Exception as e:                     # noqa: BLE001 — любая = провал
+        ok, detail = False, "EXC:" + repr(e)
+    check("T-E8-16 круг инструментами N (2 части): splice->uva->kernel",
           ok, detail)

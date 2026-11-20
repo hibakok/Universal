@@ -488,9 +488,9 @@ K2 — 120, K3 — 70; +11 K4 — слой L4, план E8.1 (карточки �
 | K4-C002 | crlf_out | C | готов | `MAP/M4-LIB.md` |
 | K4-C003 | buf_out | C | готов | `MAP/M4-LIB.md` |
 | K4-C004 | buf_out_rev | C | готов | `MAP/M4-LIB.md` |
-| K4-N001 | u64_to_dec_rev | N | план | `MAP/M4-LIB.md` |
-| K4-N002 | print_u64 | N | план | `MAP/M4-LIB.md` |
-| K4-N003 | print_i64 | N | план | `MAP/M4-LIB.md` |
+| K4-N001 | u64_to_dec_rev | N | готов | `MAP/M4-LIB.md` |
+| K4-N002 | print_u64 | N | готов | `MAP/M4-LIB.md` |
+| K4-N003 | print_i64 | N | готов | `MAP/M4-LIB.md` |
 | K4-S001 | str_len | S | план | `MAP/M4-LIB.md` |
 | K4-S002 | str_out | S | план | `MAP/M4-LIB.md` |
 | K4-M001 | mem_copy | M | план | `MAP/M4-LIB.md` |
