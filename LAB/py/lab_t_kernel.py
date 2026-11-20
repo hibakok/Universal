@@ -2,11 +2,11 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-09..18 + T-E7-32 + T-E7-33 (срезы E7.2-1..4 ядра
-       на WALL + E7.4-2a контейнер v2 + E7.4-2b ALU v1): сборка ядра
-       конвейером инструментов под эмуляцией (фикс-пункт
-       воспроизводимости артефактов), контракт CLI/контейнера .UP,
-       диффтест ядра с оракулом lab_vm на корпусе срезов.
+Выход: проверки T-E7-09..18 + T-E7-32/33/34 (срезы E7.2-1..4 ядра
+       на WALL + E7.4-2a контейнер v2 + E7.4-2b ALU v1 + E7.4-2c
+       call/ret): сборка ядра конвейером инструментов под эмуляцией
+       (фикс-пункт воспроизводимости артефактов), контракт CLI/контейнера
+       .UP, диффтест ядра с оракулом lab_vm на корпусе срезов.
 Функция: доказать, что ядро kernel.exe (KERNEL/L3-UNIVM) собирается из
          kernel.wall самими инструментами репозитория (wall/enc/brick/
          pegen) байт-в-байт и исполняет программы .UP в точном
@@ -32,8 +32,13 @@ CLI (0..2147483647, умолчание 200 млн), проверка ДО выб
 ловушка 7 (div/mod при rb = 0, после проверки полей); беззнаковое
 div/mod и арифметический sra собираются в ядре из простых операций
 WALL (K3-V112 udivmod — фундамент; границы путей b = 2^63 / b > 2^63).
+Срез E7.4-2c: call/ret — опкоды 17..18 (F3/F0) + аппаратный стек
+вызовов глубины 1024 (K3-V117/K3-V118, глобали cstack[1024]/csp;
+ловушка 5: call при полном / ret при пустом); порядок проверок
+SPEC/12 п. 7 (поля — ловушка 1 — ПЕРЕД стеком — ловушка 5).
 Корпуса программ — lab_t_kernel_corpus.py (данные; лимит 500 строк)
-и lab_t_kernel_corpus_v1.py (ALU v1; выделен по тому же лимиту).
+и lab_t_kernel_corpus_v1.py (ISA v1: ALU + call/ret; выделен по
+тому же лимиту; FACT_VM — переиспользование корпуса оракула).
 """
 import os
 import tempfile
@@ -145,8 +150,25 @@ def _diff(bad, kexe, name, data, lim=None):
                    % (name, r.stdout[:30], r.exit_code, o.trap, o.steps))
 
 
+def _ovf_field():
+    """Программа порядка проверок call: полный стек И мусорное поле.
+
+    Сборка: lab_vm.assemble собирает рекурсию до глубины 1024
+    (единственный jnz r2, 0 — с нулевой целью), затем цель jnz
+    патчится на длину собранного кода и добавляется хвост — call
+    с rd=1 (сырые байты, мнемоникой не выражается). Ожидание —
+    ловушка 1 (поля ПЕРЕД исполнением, SPEC/12 п. 7), НЕ 5.
+    """
+    code = lab_vm.assemble(corpus_v1.CALL_OVF_FIELD)
+    pat = bytes([0x11, 0x02, 0, 0, 0, 0])      # jnz r2, 0
+    assert code.count(pat) == 1                 # единственный jnz
+    at = code.find(pat)
+    return (code[:at + 2] + len(code).to_bytes(4, "little")
+            + code[at + 6:] + bytes([0x17, 0x01, 6, 0, 0, 0]))
+
+
 def run(check, kpath, kfile, kernel_host):
-    """Секция 14: T-E7-09..18 + T-E7-32/33 (ядро kernel.exe)."""
+    """Секция 14: T-E7-09..18 + T-E7-32/33/34 (ядро kernel.exe)."""
     # T-E7-09: сборка ядра — фикс-пункт: kernel.wall -> (wall/enc/brick/
     # pegen, эмуляция) -> артефакты байт-в-байт; kernel.b2 == оракулу WALL
     ok, a, note = build(kpath, kfile, kernel_host)
@@ -383,6 +405,38 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-33 ALU v1: mul/div/mod/sra + ловушка 7 == оракулу (%d)"
               % (len(corpus_v1.TRAPS) + len(corpus_v1.DIV0)
                  + len(corpus_v1.RUNS) + len(corpus_v1.STEPS)),
+              not bad, "; ".join(bad[:2]))
+
+        # T-E7-34: стек вызовов среза E7.4-2c — опкоды 17..18 (call — F3,
+        # ret — новый формат F0, 1 байт) + аппаратный стек вызовов
+        # глубины 1024 (ловушка 5: call при полном / ret при пустом;
+        # команда с ловушкой в счётчик шагов не входит). Диффтест с
+        # оракулом: декодирование (поля call -> 1, обрезки -> 2, ret
+        # на пустом стеке -> 5), переполнение 1025-м call (STEPS = 1024),
+        # ret-в-себя, нормальные программы (порядок вывода ACB — переход
+        # и возврат; вложенность 3 уровней + LIFO раскрутки; глубина
+        # РОВНО 1024 — верхняя граница без ловушки; рекурсия 5!
+        # с программным стеком sp = r13 — FACT_VM корпуса оракула),
+        # точные счётчики шагов (без halt), предел шагов в бесконечной
+        # рекурсии (trap 6) и ПОРЯДОК ПРОВЕРОК: полный стек + call с
+        # мусорным полем rd=1 -> ловушка 1, НЕ 5 (SPEC/12 п. 7 (4)->(5)).
+        bad = []
+        for name, code in corpus_v1.CALL_TRAPS:
+            _diff(bad, kexe, name, lab_vm.make_up(0, code))
+        for name, src in corpus_v1.CALL_T5:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src in corpus_v1.CALL_RUNS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src in corpus_v1.CALL_STEPS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src, lim in corpus_v1.CALL_LIM:
+            _diff(bad, kexe, name, lab_vm.assemble(src), lim)
+        _diff(bad, kexe, "стек полон + call rd=1: ловушка 1 (не 5)",
+              lab_vm.make_up(0, _ovf_field()))
+        check("T-E7-34 стек вызовов: call/ret + ловушка 5 == оракулу (%d)"
+              % (len(corpus_v1.CALL_TRAPS) + len(corpus_v1.CALL_T5)
+                 + len(corpus_v1.CALL_RUNS) + len(corpus_v1.CALL_STEPS)
+                 + len(corpus_v1.CALL_LIM) + 1),
               not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(kexe)
