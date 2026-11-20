@@ -1,9 +1,10 @@
-"""lab_t_uva.py — секция 15 батареи: ассемблер uva.exe (M3-UVA, E7.3..E7.4-3b).
+"""lab_t_uva.py — секция 15 батареи: ассемблер uva.exe (M3-UVA, E7.3..E7.4-4).
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
 Выход: проверки T-E7-19..25, T-E7-35 (срезы E7.3-1..4 + E7.4-3a +
-       E7.4-3b — каркас ассемблера .uva -> .UP на WALL + таблица
+       E7.4-3b + ПРИЁМКА DoD ЭТАПА 7.4 — E7.4-4 — каркас ассемблера
+       .uva -> .UP на WALL + таблица
        мнемоник/регистры/кодировка F1 + F2 const/память + F3 jmp/jnz
        с метками + МНЕМОНИКИ ISA v1: mul/div/mod/sra — F1 по 3
        операнда, call — F3 с целью метка|число, ret — F0, 1 байт без
@@ -18,22 +19,26 @@
        оракулу, отвержение — строки == AsmError.line), отвержение
        с номерами строк (== AsmError.line оракула), контракт CODE0
        (пустая программа, в тч. только метки, .mem+.data без кода)
-       и НОВЫЙ контракт DATA (данные длиннее RAM — как make_up
-       оракула, ПОСЛЕ ошибок операндов: ERR=DATA код 6, T-E7-35)
-       и сквозной круг uva -> kernel.exe (вкл. jnz-цикл, jmp-переход,
-       mul в консоль окном устройств, call/ret-подпрограмму и демо
-       DATA_VM «U-DATA-OK 61» — секция данных -> RAM при загрузке);
-       T-E7-25 — приёмка DoD этапа 7.3 + расширение E7.4-3a: якорные
-       кодировки всех 24 опкодов (T-E7-01/26, ручные свидетели) и
-       все программы секции 13 (DEMO_VM/OPS_VM/DEV_VM + OPS2_VM/
-       FACT_VM — T-E7-04..08/27/28) собираются uva == оракулу
-       байт-в-байт.
+       и контракт DATA (данные длиннее RAM — как make_up оракула,
+       ПОСЛЕ ошибок операндов: ERR=DATA код 6, T-E7-35) и сквозной
+       круг uva -> kernel.exe (вкл. jnz-цикл, jmp-переход,
+       mul в консоль окном устройств, call/ret-подпрограмму, демо
+       DATA_VM «U-DATA-OK 61» — секция данных -> RAM при загрузке —
+       И ЛОВУШЕЧНЫЕ круги TRAP_VMS: ловушки 5/7 с точными шагами
+       — двойной свидетель T-E7-29/34, путь ЦЕЛИКОМ uva -> ядро);
+       T-E7-25 — ПРИЁМКА DoD ЭТАПА 7.4: якорные кодировки всех 24
+       опкодов (T-E7-01/26, ручные свидетели) и ВСЕ программы
+       секции 13 (DEMO_VM/OPS_VM/DEV_VM + OPS2_VM/FACT_VM + DATA_VM
+       — T-E7-04..08/27/28/30 + ловушечные TRAP_VMS — T-E7-29)
+       собираются uva == оракулу байт-в-байт.
 Функция: доказать, что ассемблер uva.exe (KERNEL/L3-UVA) собирается из
          uva.wall самими инструментами репозитория байт-в-байт и
          повторяет ассемблер оракула на полном классе этапа 7.3
-         (.mem + все 18 мнемоник ISA v0 + метки), среза E7.4-3a
-         (мнемоники v1 — все 24 инструкции ISA v0+v1) и среза
-         E7.4-3b (директива .data + контейнер .UP v2).
+         (.mem + все 18 мнемоник ISA v0 + метки), срезов E7.4-3a
+         (мнемоники v1 — все 24 инструкции ISA v0+v1) и E7.4-3b
+         (директива .data + контейнер .UP v2) — и на ПОЛНОМ корпусе
+         v0+v1 (E7.4-4: DATA_VM + ловушечные программы — приёмка
+         DoD этапа 7.4).
 """
 import os
 import tempfile
@@ -226,7 +231,10 @@ def run(check, kpath, kfile, kernel_host):
         # устройств; F3 — срез 4: jnz-цикл и jmp-переход; v1 — срез
         # E7.4-3a: mul в консоль и call/ret-подпрограмма; v2 — срез
         # E7.4-3b: демо DATA_VM — секция данных .data -> RAM при
-        # загрузке, печать «U-DATA-OK 61» — как T-E7-30 секции 13)
+        # загрузке, печать «U-DATA-OK 61» — как T-E7-30 секции 13;
+        # E7.4-4 — ЛОВУШЕЧНЫЕ круги TRAP_VMS: ловушки 5/7 с точными
+        # шагами и код 1 — двойной свидетель T-E7-29/34, путь ЦЕЛИКОМ
+        # uva -> kernel.exe)
         # + детерминизм
         bad = []
         for name, src, want_code, want_out in [
@@ -265,18 +273,36 @@ def run(check, kpath, kfile, kernel_host):
                 bad.append("%s: ядро код=%s %r" % (name,
                                                    k.exit_code,
                                                    k.stdout[:20]))
+        # ловушечные круги (E7.4-4): программы TRAP_VMS — путь ЦЕЛИКОМ
+        # uva -> kernel.exe; ядро печатает TRAP=код STEPS=шаги и
+        # возвращает 1 (двойной свидетель T-E7-29/34 — те же программы,
+        # те же шаги; исходники БЕЗ кириллицы — latin1 == utf-8)
+        for name, src, trap, steps in lab_t_vm.TRAP_VMS:
+            want_out = b"U-L3-UNIVM TRAP=%d STEPS=%d\r\n" % (trap,
+                                                                 steps)
+            out, code, got = _uva(uexe, src.encode("latin1"))
+            if code != 0 or got is None:
+                bad.append("%s: сборка код=%s" % (name, code))
+                continue
+            k = lab_run.run_kv(kpath("L3-UNIVM/kernel.exe"),
+                               ["t.up"], {"t.up": got})
+            if k.exit_code != 1 or k.stdout != want_out:
+                bad.append("%s: ядро код=%s %r" % (name, k.exit_code,
+                                                   k.stdout[:24]))
         o1, c1, g1 = _uva(uexe, OK_CASES[0][1])
         o2, c2, g2 = _uva(uexe, OK_CASES[0][1])
         if not (c1 == c2 == 0 and g1 == g2 and g1 is not None):
             bad.append("детерминизм: код %s/%s" % (c1, c2))
-        check("T-E7-24 круг uva -> kernel.exe (11) + детерминизм",
+        check("T-E7-24 круг uva -> kernel.exe (15) + детерминизм",
               not bad, "; ".join(bad[:2]))
 
-        # T-E7-25: DoD этапа 7.3 + расширение E7.4-3a — полный корпус:
-        # якорные кодировки всех 24 опкодов (T-E7-01 — v0 + T-E7-26 — v1,
-        # ручные свидетели, сверяются с байтами ВЫХОДА uva напрямую)
-        # и все программы секции 13 (DEMO_VM/OPS_VM/DEV_VM — T-E7-04..08 +
-        # OPS2_VM/FACT_VM — T-E7-27/28, v1-мнемоники) собираются
+        # T-E7-25: ПРИЁМКА DoD ЭТАПА 7.4 (расширение приёмки 7.3 —
+        # полный корпус v0+v1): якорные кодировки всех 24 опкодов
+        # (T-E7-01 — v0 + T-E7-26 — v1, ручные свидетели, сверяются
+        # с байтами ВЫХОДА uva напрямую), ВСЕ демо-программы секции
+        # 13 (DEMO_VM/OPS_VM/DEV_VM — T-E7-04..08; OPS2_VM/FACT_VM —
+        # T-E7-27/28, v1; DATA_VM — T-E7-30, v2 .data) и ЛОВУШЕЧНЫЕ
+        # программы TRAP_VMS (T-E7-29 — ловушки 5/7) собираются
         # uva == оракулу байт-в-байт
         bad = []
         for line, want_hex in lab_t_vm.ANCHORS + lab_t_vm.V1_ANCHORS:
@@ -289,15 +315,23 @@ def run(check, kpath, kfile, kernel_host):
                            ("OPS_VM", lab_t_vm.OPS_VM),
                            ("DEV_VM", lab_t_vm.DEV_VM),
                            ("OPS2_VM", lab_t_vm.OPS2_VM),
-                           ("FACT_VM", lab_t_vm.FACT_VM)):
+                           ("FACT_VM", lab_t_vm.FACT_VM),
+                           ("DATA_VM", lab_t_vm.DATA_VM)):
             # UTF-8: кириллица в комментариях программ секции 13 — байты
             # комментариев обрезаются до разбора (комментарий ';')
             want = lab_vm.assemble(prog)
             out, code, got = _uva(uexe, prog.encode("utf-8"))
             if code != 0 or got != want:
                 bad.append("%s: код=%s" % (name, code))
-        check("T-E7-25 DoD 7.3+E7.4-3a: якоря T-E7-01/26 (24) + программы "
-              "T-E7-04..08/27/28 (5) — uva == оракулу", not bad,
-              "; ".join(bad[:2]))
+        # ловушечные программы (T-E7-29): оракул собирает, uva —
+        # байт-в-байт то же (исходники без кириллицы)
+        for name, src, _trap, _steps in lab_t_vm.TRAP_VMS:
+            want = lab_vm.assemble(src)
+            out, code, got = _uva(uexe, src.encode("latin1"))
+            if code != 0 or got != want:
+                bad.append("%s: код=%s" % (name, code))
+        check("T-E7-25 DoD 7.4: якоря T-E7-01/26 (24) + программы "
+              "T-E7-04..08/27/28/30 + TRAP (10) — uva == оракулу",
+              not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(uexe)

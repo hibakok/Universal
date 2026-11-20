@@ -68,8 +68,8 @@
             детерминизм; срезы E7.4-2a/2b/2c — контейнер v2 (T-E7-32),
             ALU v1/ловушка 7 (T-E7-33), call/ret/стек вызовов (T-E7-34);
             корпуса — lab_t_kernel_corpus.py + _v1.py;
-         15) ассемблер uva.exe (lab_t_uva, E7.3 — срезы 1-4, этап
-            закрыт, M3-UVA на WALL): фикс-пункт артефактов из uva.wall
+         15) ассемблер uva.exe (lab_t_uva, E7.3..E7.4 — этапы
+            закрыты, M3-UVA на WALL): фикс-пункт артефактов из uva.wall
             (wall/enc/brick/pegen; uva.b2 == оракулу WALL), контракт
             CLI, диффтест с ассемблером оракула lab_vm.assemble
             байт-в-байт на ПОЛНОМ классе этапа (.mem + halt-числа;
@@ -78,8 +78,8 @@
             E7.4-3b — .data: контейнер .UP v2 + отказ DATA),
             отвержение == AsmError.line, CODE0 (вкл. только метки) и
             DATA (T-E7-35), круги uva -> kernel.exe (вкл. mul,
-            call/ret и DATA_VM «U-DATA-OK 61»); ПРИЁМКА DoD —
-            T-E7-25: якоря T-E7-01/26 + программы T-E7-04..08/27/28.
+            call/ret, DATA_VM и ловушечные 5/7 — E7.4-4); ПРИЁМКА
+            DoD ЭТАПА 7.4 — T-E7-25: якоря 24 + программы 10.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib

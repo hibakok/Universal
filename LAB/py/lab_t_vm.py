@@ -23,7 +23,9 @@
          mul/div/mod/sra с заворотом и знаковым sra (T-E7-27),
          демо-факториал 5 рекурсией через стек вызовов + программный
          стек r13 (T-E7-28, «U-VM1-OK 78»), ловушки 5/7 с точными
-         шагами и порядком проверок (T-E7-29), контейнер v2:
+         шагами и порядком проверок (T-E7-29 — источники ловушечных
+         программ в TRAP_VMS корпуса, единый свидетель с секцией 15 —
+         E7.4-4), контейнер v2:
          секция данных .data -> RAM[0:datalen] + отказы VER/RES/LEN/
          DATA (T-E7-30, «U-DATA-OK 61»), детерминизм v1/v2 (T-E7-31).
 """
@@ -31,7 +33,8 @@ import lab_vm
 import lab_up
 from lab_t_vm_corpus import (ANCHORS, V1_ANCHORS, DEMO_VM, OPS_VM,
                               DEV_VM, OPS2_VM, FACT_VM, DATA_VM,
-                              ASM_ERRORS, UP_ERRORS, V2_ERRORS, _up_err)
+                              TRAP_VMS, ASM_ERRORS, UP_ERRORS,
+                              V2_ERRORS, _up_err)
 
 def run(check, kpath, kfile, kernel_host):
     """Секция 13: T-E7-01..08 + T-E7-26..31 (оракул UNIVM, SPEC/12-13)."""
@@ -193,17 +196,10 @@ def run(check, kpath, kfile, kernel_host):
           % (r.console, r.regs[4], r.regs[13], r.steps))
 
     # T-E7-29: ловушки 5/7 с точными шагами и порядком проверок
-    v1_traps = [
-        ("call: самовызов -> переполнение",
-         lab_vm.assemble(".mem 4096\nf: call f\n"), 5, 1024),
-        ("ret при пустом стеке",
-         lab_vm.assemble(".mem 4096\nret\n"), 5, 0),
-        ("div на ноль",
-         lab_vm.assemble(".mem 4096\nconst r1, 5\nconst r2, 0\n"
-                         "div r3, r1, r2\nhalt 0\n"), 7, 2),
-        ("mod на ноль",
-         lab_vm.assemble(".mem 4096\nconst r1, 5\nconst r2, 0\n"
-                         "mod r3, r1, r2\nhalt 0\n"), 7, 2),
+    # (источники ловушечных программ — TRAP_VMS корпуса: единый
+    # свидетель с секцией 15, приёмка DoD 7.4 — E7.4-4)
+    v1_traps = [(n, lab_vm.assemble(s), t, st)
+                for n, s, t, st in TRAP_VMS] + [
         ("call rd!=0 (поле, не стек)",
          lab_vm.make_up(4096, bytes([0x17, 0x03, 0, 0, 0, 0])), 1, 0),
         ("call обрезан (ловушка 2 до исполнения)",
