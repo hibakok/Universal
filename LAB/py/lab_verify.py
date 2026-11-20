@@ -42,44 +42,25 @@
             программ компилируются КАРКАСОМ до эмуляции (T-E6-59;
             шаг 2 — big-исходники каркасом — приёмочная проверка
             LAB/ai/wall_self_canary.py);
-         13) оракул UNIVM (lab_t_vm, E7.1 v0; E7.4-1 — ISA v1 + .UP v2,
-            данные корпусов — lab_t_vm_corpus.py): якорные кодировки
-            18 опкодов v0 (T-E7-01) и 6 опкодов v1 (T-E7-26 — ручные),
-            отвержение ассемблера/контейнеров v1/v2 (SPEC/13 п. 4, вкл.
-            DATA), демо «U-VM-OK 37» (142 шага), ловушки 1-4,
-            детерминизм, ops, устройства, границы; семантика v1:
-            mul/div/mod/sra (T-E7-27, 24 шага), демо-факториал 5
-            рекурсией — стек вызовов + программный стек r13 (T-E7-28,
-            «U-VM1-OK 78», 188 шагов), ловушки 5/7 (T-E7-29), секция
-            данных .data -> RAM[0:datalen] + отказы (T-E7-30,
-            «U-DATA-OK 61», 89 шагов), детерминизм v1/v2 (T-E7-31);
-         14) ядро kernel.exe (lab_t_kernel, E7.2 — срезы 1-4, M3-UNIVM
-            на WALL): фикс-пункт воспроизводимости артефактов из
-            kernel.wall (wall/enc/brick/pegen — эмуляция), контракт
-            CLI/контейнера .UP (срез 4: необязательный предел шагов —
-            2-й аргумент CLI), диффтест с оракулом UNIVM на корпусе
-            срезов (halt-программы, ловушки 1/2 — консоль/код/шаги;
-            срез 2: ALU — поля/обрезки/точные счётчики шагов/отсутствие
-            ложных ловушек, T-E7-15; срез 3: память и устройства —
-            RAM/окно/консоль/ловушки 3-4, T-E7-16; срез 4 — ФИНАЛ:
-            переходы jmp/jnz + полный корпус программ T-E7-04..08
-            (demo/ops/dev), T-E7-17; предел шагов trap 6 — лимит
-            параметром CLI, порядок проверок до выборки, T-E7-18),
-            детерминизм; срезы E7.4-2a/2b/2c — контейнер v2 (T-E7-32),
-            ALU v1/ловушка 7 (T-E7-33), call/ret/стек вызовов (T-E7-34);
-            корпуса — lab_t_kernel_corpus.py + _v1.py;
-         15) ассемблер uva.exe (lab_t_uva, E7.3..E7.4 — этапы
-            закрыты, M3-UVA на WALL): фикс-пункт артефактов из uva.wall
-            (wall/enc/brick/pegen; uva.b2 == оракулу WALL), контракт
-            CLI, диффтест с ассемблером оракула lab_vm.assemble
-            байт-в-байт на ПОЛНОМ классе этапа (.mem + halt-числа;
-            F1 mov/АЛУ + регистры; F2 const/память rA[+смещ] без
-            диапазона; F3 jmp/jnz + МЕТКИ; E7.4-3a — мнемоники ISA v1;
-            E7.4-3b — .data: контейнер .UP v2 + отказ DATA),
-            отвержение == AsmError.line, CODE0 (вкл. только метки) и
-            DATA (T-E7-35), круги uva -> kernel.exe (вкл. mul,
-            call/ret, DATA_VM и ловушечные 5/7 — E7.4-4); ПРИЁМКА
-            DoD ЭТАПА 7.4 — T-E7-25: якоря 24 + программы 10.
+         13) оракул UNIVM (lab_t_vm, E7.1; ISA v1 + .UP v2 — E7.4-1;
+            данные — lab_t_vm_corpus.py): якоря 24 опкодов (T-E7-01/26),
+            отвержение ассемблера/контейнеров, демо/ops/устройства/
+            границы, семантика v1 + ловушки 5/7 (T-E7-27..29),
+            секция данных v2 (T-E7-30), детерминизм (T-E7-31);
+         14) ядро kernel.exe (lab_t_kernel, E7.2 — закрыт; корпуса —
+            lab_t_kernel_corpus.py + _v1.py): фикс-пункт артефактов,
+            контракт CLI/контейнера/предела шагов, диффтест с оракулом
+            по срезам (T-E7-09..18; v1: контейнер v2 — T-E7-32, ALU v1
+            + ловушка 7 — T-E7-33, call/ret + стек вызовов — T-E7-34);
+         15) ассемблер uva.exe (lab_t_uva, E7.3/E7.4 — ЗАКРЫТЫ; corpora —
+            lab_t_uva_corpus.py): фикс-пункт артефактов, контракт CLI,
+            диффтест с lab_vm.assemble на полном классе (24 мнемоники +
+            метки + .mem/.data), отвержение/CODE0/DATA (T-E7-19..23, 35),
+            круги uva -> kernel (T-E7-24), приёмка DoD 7.4 — T-E7-25;
+         16) оракул библиотеки L4 (lab_t_l4, E8.1, SPEC/14 LIB-1;
+            якоря — lab_l4_cases.py): print_u64/i64, реверс-цифры
+            u64_to_dec_rev, строки до NUL, mem_copy/mem_fill (вкл.
+            перекрытия), консоль-кирпичи и композиция (T-E8-01..07);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -105,6 +86,7 @@ import lab_t_wallself
 import lab_t_kernel
 import lab_t_uva
 import lab_t_vm
+import lab_t_l4
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -487,6 +469,7 @@ def main():
     lab_t_vm.run(check, kpath, kfile, kernel_host)
     lab_t_kernel.run(check, kpath, kfile, kernel_host)
     lab_t_uva.run(check, kpath, kfile, kernel_host)
+    lab_t_l4.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
