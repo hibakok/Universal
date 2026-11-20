@@ -57,10 +57,13 @@
             диффтест с lab_vm.assemble на полном классе (24 мнемоники +
             метки + .mem/.data), отвержение/CODE0/DATA (T-E7-19..23, 35),
             круги uva -> kernel (T-E7-24), приёмка DoD 7.4 — T-E7-25;
-         16) оракул библиотеки L4 (lab_t_l4, E8.1, SPEC/14 LIB-1;
-            якоря — lab_l4_cases.py): print_u64/i64, реверс-цифры
-            u64_to_dec_rev, строки до NUL, mem_copy/mem_fill (вкл.
-            перекрытия), консоль-кирпичи и композиция (T-E8-01..07);
+         16) оракул библиотеки L4 + диффтест ветви C (lab_t_l4, E8.1 +
+            E8.2a, SPEC/14 LIB-1; якоря — lab_l4_cases.py): print_u64/i64,
+            реверс-цифры u64_to_dec_rev, строки до NUL, mem_copy/mem_fill
+            (вкл. перекрытия), консоль-кирпичи и композиция (T-E8-01..07);
+            реализация lib_c.uva: композиция splice → run_asm == оракулу,
+            якоря BUF, ABI-сохраняемость r5..r15, сквозной круг
+            splice.exe → uva.exe → kernel.exe (T-E8-08..11);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib

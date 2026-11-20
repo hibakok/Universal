@@ -480,14 +480,14 @@ K2 — 120, K3 — 70; +11 K4 — слой L4, план E8.1 (карточки �
 | K3-W003 | write_out | W | готов | `MAP/M3-UVA.md` |
 | K3-X011 | main | X | готов | `MAP/M3-UVA.md` |
 
-## Слой L4 — библиотека (E8.1: карточки-план, SPEC/14 LIB-1)
+## Слой L4 — библиотека (SPEC/14 LIB-1; ветвь C готова — E8.2a)
 
 | ID | Имя | Ветвь | Статус | Карточка |
 |---|---|---|---|---|
-| K4-C001 | chr_out | C | план | `MAP/M4-LIB.md` |
-| K4-C002 | crlf_out | C | план | `MAP/M4-LIB.md` |
-| K4-C003 | buf_out | C | план | `MAP/M4-LIB.md` |
-| K4-C004 | buf_out_rev | C | план | `MAP/M4-LIB.md` |
+| K4-C001 | chr_out | C | готов | `MAP/M4-LIB.md` |
+| K4-C002 | crlf_out | C | готов | `MAP/M4-LIB.md` |
+| K4-C003 | buf_out | C | готов | `MAP/M4-LIB.md` |
+| K4-C004 | buf_out_rev | C | готов | `MAP/M4-LIB.md` |
 | K4-N001 | u64_to_dec_rev | N | план | `MAP/M4-LIB.md` |
 | K4-N002 | print_u64 | N | план | `MAP/M4-LIB.md` |
 | K4-N003 | print_i64 | N | план | `MAP/M4-LIB.md` |

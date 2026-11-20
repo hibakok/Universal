@@ -1,0 +1,46 @@
+; KERNEL/L4-LIB/lib_c.uva — ветвь C библиотеки L4: консоль (SPEC/14 п. 4)
+; Кирпичи: K4-C001 chr_out / K4-C002 crlf_out / K4-C003 buf_out /
+;          K4-C004 buf_out_rev. Карточки — MAP/M4-LIB.md; ABI — SPEC/14 п. 3.
+; Часть (SPEC/14 п. 2): только инструкции, метки и комментарии; .mem/.data
+; принадлежат программе-потребителю; !include — ПОСЛЕ кода программы
+; (вход программы — смещение 0, кирпичи вызываются по меткам lib_*).
+; ABI: r1..r4 — временные (кирпич вправе затереть); r5..r12, r13 (sp),
+; r14 (devbase), r15 — сохраняемые (не трогаем). Печатающим кирпичам
+; нужна программа, установившая r14 = memsize до вызова.
+
+lib_chr_out:                      ; K4-C001: консоль += r1 AND 255
+    stb r14+0, r1
+    ret
+
+lib_crlf_out:                     ; K4-C002: консоль += 0D 0A
+    const r1, 13                  ; CR — временная r1 (ABI)
+    stb r14+0, r1
+    const r1, 10                  ; LF
+    stb r14+0, r1
+    ret
+
+lib_buf_out:                      ; K4-C003: консоль += RAM[r1..r1+r2)
+    const r3, 1                   ; шаг — временная r3 (ABI)
+lib_buf_out_loop:
+    lt r4, r2, r3                 ; осталось < 1 ? — конец (r2 = 0 корректно)
+    jnz r4, lib_buf_out_done
+    ldb r4, r1                    ; r4 = RAM[p] (stb возьмёт AND 255)
+    stb r14+0, r4                 ; консоль += байт
+    add r1, r1, r3                ; p = p + 1
+    sub r2, r2, r3                ; осталось = осталось - 1
+    jmp lib_buf_out_loop
+lib_buf_out_done:
+    ret
+
+lib_buf_out_rev:                  ; K4-C004: консоль += буфер в обратном порядке
+    const r3, 1                   ; шаг — временная r3 (ABI)
+lib_buf_out_rev_loop:
+    lt r4, r2, r3                 ; осталось < 1 ? — конец (r2 = 0 корректно)
+    jnz r4, lib_buf_out_rev_done
+    sub r2, r2, r3                ; индекс = осталось - 1
+    add r4, r1, r2                ; r4 = addr + индекс
+    ldb r4, r4                    ; r4 = RAM[индекс]
+    stb r14+0, r4                 ; консоль += байт
+    jmp lib_buf_out_rev_loop
+lib_buf_out_rev_done:
+    ret
