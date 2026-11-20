@@ -1,0 +1,43 @@
+; PROJECTS/fib/fib.uva — проект FIB: числа Фибоначчи
+; Второй проект-потребитель библиотеки L4 (этап E8.3, DoD этапа 8):
+; итеративно вычисляет и печатает первые 13 членов ряда Фибоначчи.
+; Ветви: C+N (зависимость N -> C, SPEC/14: print_* зовут кирпичи C —
+; программа обязана включить ОБЕ части). Собственная логика — цикл на
+; регистрах: r5 = i, r7 = a = fib(i), r8 = b = fib(i+1) — состояние
+; живёт в СОХРАНЯЕМЫХ регистрах r5..r12 и обязано переживать вызовы
+; кирпичей (ABI SPEC/14 п. 3 проверяется самим фактом работы цикла).
+; Паспорт — PROJECTS/fib/CARD.md; тест — T-P-02 (TESTS/T-PROJECTS.md,
+; секция 17 батареи LAB/py/lab_t_prj.py). Композиция — SPEC/14 п. 2.
+; Раскладка RAM: 200..220 — буфер цифр (N-ветвь, >= 20 Б);
+; 3992..4000 — слот стека ветви N; .data нет — контейнер .UP v1.
+
+.mem 4096
+    const r13, 4000                      ; sp — ветвь N использует стек
+    const r14, 4096                      ; devbase = memsize (ABI п. 3)
+    const r5, 1                          ; i = 1 — счётчик (сохраняемый)
+    const r7, 1                          ; a = fib(1)
+    const r8, 1                          ; b = fib(2)
+fib_loop:
+    mov r1, r5                           ; r1 = i
+    const r2, 200                        ; буфер цифр
+    call lib_print_u64                   ; N: номер члена
+    const r1, 58                         ; ':'
+    call lib_chr_out                     ; C
+    const r1, 32                         ; ' '
+    call lib_chr_out                     ; C
+    mov r1, r7                           ; r1 = a
+    const r2, 200
+    call lib_print_u64                   ; N: значение fib(i)
+    call lib_crlf_out                    ; C: перевод строки
+    mov r9, r8                           ; r9 = b (шаг ряда)
+    add r8, r7, r8                       ; b = a + b
+    mov r7, r9                           ; a = старое b
+    const r6, 1
+    add r5, r5, r6                       ; i = i + 1
+    const r6, 14                         ; конец (эксклюзивно): i == 14
+    lt r10, r5, r6                       ; i < 14 ?
+    jnz r10, fib_loop
+    halt 0
+
+!include ../../KERNEL/L4-LIB/lib_c.uva
+!include ../../KERNEL/L4-LIB/lib_n.uva

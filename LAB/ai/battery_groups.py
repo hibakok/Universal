@@ -1,11 +1,11 @@
 """battery_groups.py — прогон батареи группами секций (LAB/ai; песочница
-ограничивает вызов 10 минутами — как сессии 48/49: 1-11 / 12 / 13-16).
+ограничивает вызов 10 минутами — как сессии 48/49: 1-11 / 12 / 13-17).
 
 Запуск: python3 LAB/ai/battery_groups.py <1|2|3>
   1 — секции 1-11 (целостность/PE/сценарии/оракулы/круги/enc/wall)
   2 — секция 12 (каркас wall.wall: ФИКСПУНКТ ~0.55 млрд шагов)
-  3 — секции 13-16 (оракул UNIVM / ядро kernel.exe / ассемблер
-      uva.exe / оракул библиотеки L4)
+  3 — секции 13-17 (оракул UNIVM / ядро kernel.exe / ассемблер
+      uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3)
 """
 import sys
 
@@ -36,6 +36,7 @@ def main():
         V.lab_t_kernel.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_uva.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_l4.run(V.check, V.kpath, V.kfile, V.kernel_host)
+        V.lab_t_prj.run(V.check, V.kpath, V.kfile, V.kernel_host)
     else:
         print("группа?") 
         return 2

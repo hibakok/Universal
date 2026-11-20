@@ -73,6 +73,10 @@
             композиция ЧЕТЫРЁХ ветвей C+N+S+M с ПОЛНОЙ RAM-моделью,
             ABI, круг с ОДНОЙ частью — печать эффектов НАПРЯМУЮ
             stb r14+0 (T-E8-22..26);
+         17) проекты PROJECTS/ (lab_t_prj, E8.3 — DoD этапа 8): круг
+            инструментами splice -> uva -> kernel реальных исходников:
+            T-P-01 banner (C+N+S+M, .UP v2), T-P-02 fib (C+N, ряд,
+            .UP v1) — вывод == оракулу и якорям TESTS/T-PROJECTS.md;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -99,6 +103,7 @@ import lab_t_kernel
 import lab_t_uva
 import lab_t_vm
 import lab_t_l4
+import lab_t_prj
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -482,6 +487,7 @@ def main():
     lab_t_kernel.run(check, kpath, kfile, kernel_host)
     lab_t_uva.run(check, kpath, kfile, kernel_host)
     lab_t_l4.run(check, kpath, kfile, kernel_host)
+    lab_t_prj.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

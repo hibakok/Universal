@@ -1,0 +1,73 @@
+; PROJECTS/banner/banner.uva — проект BANNER: баннер системы UNIVERSAL
+; Первый проект-потребитель библиотеки L4 (этап E8.3, DoD этапа 8):
+; печатает визитную карточку системы, используя ВСЕ ЧЕТЫРЕ ветви
+; библиотеки — C (консоль), N (числа), S (строки), M (память).
+; Паспорт проекта — PROJECTS/banner/CARD.md; тест — T-P-01
+; (TESTS/T-PROJECTS.md, секция 17 батареи LAB/py/lab_t_prj.py).
+; Композиция — SPEC/14 п. 2 (порядок ОБЯЗАТЕЛЕН): .mem/.data -> код
+; программы (вход — смещение 0) -> halt -> !include ПОСЛЕ кода.
+; ABI (SPEC/14 п. 3): r13 = 4000 — sp, стек ветви N (слот [sp-8,sp));
+; r14 = 4096 = memsize — devbase для консольных кирпичей; программа
+; держит свои данные в RAM (не в сохраняемых регистрах — все r5..r12
+; свободны для роста). Раскладка RAM: 0..39 — строки .data;
+; 100..124 — буфер разделителя (M-ветвь); 200..220 — буфер цифр
+; (N-ветвь, >= 20 Б); 3992..4000 — слот стека ветви N.
+
+.mem 4096
+.data 55 4E 49 56 45 52 53 41 4C 00     ; RAM[0..10)  "UNIVERSAL"
+.data 4F 50 53 20 00                     ; RAM[10..15) "OPS "
+.data 20 52 41 4D 20 00                  ; RAM[15..21) " RAM "
+.data 49 36 34 20 00                     ; RAM[21..26) "I64 "
+.data 4C 45 4E 20 00                     ; RAM[26..31) "LEN "
+.data 00 00 00 00 00 00 00 80            ; RAM[31..39) 2^63 (LE) — край i64
+
+    const r13, 4000                      ; sp — ветвь N использует стек
+    const r14, 4096                      ; devbase = memsize (ABI п. 3)
+
+    const r1, 0                          ; строка 1: заголовок
+    call lib_str_out                     ; S: "UNIVERSAL"
+    call lib_crlf_out                    ; C: перевод строки
+
+    const r1, 100                        ; строка 2: разделитель силами M
+    const r2, 61                         ; '='
+    const r3, 24                         ; ширина баннера
+    call lib_mem_fill                    ; M: RAM[100..124) = "=" x 24
+    const r1, 100
+    const r2, 24
+    call lib_buf_out                     ; C: печать буфера-разделителя
+    call lib_crlf_out
+
+    const r1, 10                         ; строка 3: параметры системы
+    call lib_str_out                     ; S: "OPS "
+    const r1, 24                         ; ISA v0+v1: 24 инструкции
+    const r2, 200
+    call lib_print_u64                   ; N: "24"
+    const r1, 15
+    call lib_str_out                     ; S: " RAM "
+    const r1, 4096                       ; memsize этой программы
+    const r2, 200
+    call lib_print_u64                   ; N: "4096"
+    call lib_crlf_out
+
+    const r1, 21                         ; строка 4: знаковые числа
+    call lib_str_out                     ; S: "I64 "
+    const r2, 31
+    ldq r1, r2+0                         ; r1 = 2^63 (шире imm32 — из .data)
+    const r2, 200
+    call lib_print_i64                   ; N: "-9223372036854775808"
+    call lib_crlf_out
+
+    const r1, 26                         ; строка 5: длина заголовка
+    call lib_str_out                     ; S: "LEN "
+    const r1, 0
+    call lib_str_len                     ; S: r1 = 9 ("UNIVERSAL")
+    const r2, 200
+    call lib_print_u64                   ; N: "9"
+    call lib_crlf_out
+
+    halt 0
+
+!include ../../KERNEL/L4-LIB/lib_c.uva
+!include ../../KERNEL/L4-LIB/lib_n.uva
+!include ../../KERNEL/L4-LIB/lib_s.uva
+!include ../../KERNEL/L4-LIB/lib_m.uva
