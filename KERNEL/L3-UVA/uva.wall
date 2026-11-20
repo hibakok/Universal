@@ -8,6 +8,20 @@
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C / токены T / метки B /
 ; проход 1 L / кодирование E / запись W).
+; Срез E7.4-3b (.data + контейнер .UP v2): директива .data <байты>
+; (SPEC/13 п. 2.1: токены по 2 hex-цифры, байты копятся по порядку
+; появления — после .mem, в любом месте, вкл. между инструкциями;
+; несколько .data допустимы; без .data выход остаётся v1 байт-в-байт).
+; НОВЫЙ кирпич K3-T009 data_next — потоковый итератор байтов hex2
+; (положение НЕ через tstart/tend: предел 12 токенов не ограничивает
+; строку данных; проверка «ровно 2 hex-цифры + разделитель/конец»);
+; глобали dpos (позиция итератора) и dcnt (счёт байтов данных).
+; Проход 1 валидирует и копит dcnt (пустая строка данных и плохие байты
+; — ERR=FORMAT AT=<строка>, как AsmError оракула; .data до .mem —
+; AT=0001); проход 2 пишет байты в outbuf+24+pc+dcnt (данные заведомо
+; за кодом); K3-W001 make_header — версия 2 и dataoff = 24+pc при
+; dcnt > 0, отказ DATA (dcnt > memsize — как make_up оракула, ПОСЛЕ
+; ошибок операндов: ERR=DATA код 6); K3-W003 write_out — 24+pc+dcnt.
 ; Срез E7.4-3a (мнемоники ISA v1): таблица s_mn расширена 18 -> 24 имён
 ; (добавлены mul div mod sra call ret — индексы 18..23 => опкоды 13..18,
 ; SPEC/12 п. 5); K3-T006 mn_find ищет по всем 24; длины прохода 1:
@@ -87,6 +101,8 @@ var srclen
 var outbuf
 var memsize
 var pc
+var dcnt
+var dpos
 var lpos
 var lln
 var lna
@@ -111,11 +127,13 @@ str s_rsrc = 'U-L3-UVA ERR=READ SRC\r\n'
 str s_big = 'U-L3-UVA ERR=BIG SRC\r\n'
 str s_fmt = 'U-L3-UVA ERR=FORMAT AT='
 str s_code0 = 'U-L3-UVA ERR=CODE0\r\n'
+str s_data = 'U-L3-UVA ERR=DATA\r\n'
 str s_oout = 'U-L3-UVA ERR=OPEN OUT\r\n'
 str s_wout = 'U-L3-UVA ERR=WRITE OUT\r\n'
 str s_hexd = '0123456789ABCDEF'
 str s_up01 = 'UP01'
 str s_dotmem = '.mem'
+str s_dotdata = '.data'
 str s_mn = 'const mov add sub and or xor shl shr lt eq ldb stb ldq stq jmp jnz halt mul div mod sra call ret'
 
 !include uva_self_c.wall

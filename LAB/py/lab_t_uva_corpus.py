@@ -1,10 +1,12 @@
-"""lab_t_uva_corpus.py — корпуса диффтеста ассемблера uva.exe (E7.3+E7.4-3a).
+"""lab_t_uva_corpus.py — корпуса диффтеста ассемблера uva.exe (E7.3..E7.4-3b).
 
 Вход:  — (константы-корпуса; конструируются при импорте).
 Выход: OK_CASES — успех: out.up == lab_vm.assemble(текст) байт-в-байт
-       (104: срезы 1-4 + v1-корпус E7.4-3a); ERR_CASES — отвержение:
-       uva ERR=FORMAT AT=XXXX == строка AsmError оракула (113);
-       CODE0_CASES — .mem без инструкций (4).
+       (124: срезы 1-4 + v1-корпус E7.4-3a + .data-корпус E7.4-3b);
+       ERR_CASES — отвержение: uva ERR=FORMAT AT=XXXX == строка
+       AsmError оракула (127); DATA_CASES — данные длиннее RAM:
+       UpError("DATA") оракула == ERR=DATA код 6 у uva (3 — E7.4-3b);
+       CODE0_CASES — .mem без инструкций (5).
 Функция: данные секции 15 батареи (LAB/py/lab_t_uva.py); выделены из
          него по лимиту 500 строк (E7.4-3a; прецедент
          lab_t_vm_corpus.py / lab_t_kernel_corpus.py). Состав корпусов
@@ -137,6 +139,31 @@ OK_CASES = [
     (b"call r5 declared", b".mem 8\nr5:\ncall r5\nhalt 0\n"),
     (b"ret last no lf", b".mem 8\nhalt 0\nret"),
     (b"v1 no spaces", b".mem 8\nmul r1,r2,r3\ncall 5\nret\nhalt 0\n"),
+    # .data (срез E7.4-3b): секция данных .UP v2 — байты hex2; контейнер
+    # v2 (версия 2 + dataoff = 24+codesize) == оракулу байт-в-байт
+    (b"data basic", b".mem 8\n.data 41\nhalt 0\n"),
+    (b"data two bytes", b".mem 8\n.data 41 42\nhalt 0\n"),
+    (b"data comma", b".mem 8\n.data 41,42\nhalt 0\n"),
+    (b"data comma+space", b".mem 8\n.data 41 , 42\nhalt 0\n"),
+    (b"data lowercase", b".mem 8\n.data ab\nhalt 0\n"),
+    (b"data mixed case", b".mem 8\n.data Ab aB 0f FF\nhalt 0\n"),
+    (b"data 00 FF", b".mem 8\n.data 00 FF\nhalt 0\n"),
+    (b"data multiple", b".mem 8\n.data 41\nhalt 0\n.data 42\nhalt 1\n"),
+    (b"data between instr", b".mem 8\nhalt 0\n.data 41\nhalt 1\n.data 42\nhalt 2\n"),
+    (b"data before code", b".mem 8\n.data 41 42 43\nhalt 0\n"),
+    (b"data label line", b".mem 8\nx: .data 41\nhalt 0\n"),
+    (b"data comment", b".mem 8\n.data 41 42 ; c\nhalt 0\n"),
+    (b"data trailing comma", b".mem 8\n.data 41,\nhalt 0\n"),
+    (b"data no final lf", b".mem 8\nhalt 0\n.data 41"),
+    (b"data CR sep", b".mem 8\n.data 41\r42\nhalt 0\n"),
+    (b"data tab sep", b".mem 8\n.data\t41\t42\nhalt 0\n"),
+    (b"data == memsize", b".mem 3\n.data 41 42 43\nhalt 0\n"),
+    (b"data 40 one line", b".mem 64\n.data "
+                     + b" ".join([b"41"] * 40) + b"\nhalt 0\n"),
+    (b"data 00..3f", b".mem 4096\n.data "
+                     + b" ".join(b"%02X" % i for i in range(64))
+                     + b"\nhalt 0\n"),
+    (b"data crlf lines", b".mem 8\r\n.data 41\r\nhalt 0\r\n"),
 ]
 
 # отвержение: uva AT=XXXX == строка AsmError оракула (первая ошибка)
@@ -258,15 +285,40 @@ ERR_CASES = [
     ("ret 2 операнда", b".mem 8\nhalt 0\nret 1 2\n"),
     ("заглавный MUL", b".mem 8\nMUL r1, r2, r3\nhalt 0\n"),
     ("callx префикс", b".mem 8\ncallx 5\nhalt 0\n"),
+    # .data (срез E7.4-3b): синтаксис байтов и директивы
+    ("пустая .data", b".mem 8\n.data\nhalt 0\n"),
+    ("пустая .data в конце", b".mem 8\nhalt 0\n.data\n"),
+    (".data один символ", b".mem 8\n.data 4\nhalt 0\n"),
+    (".data три цифры", b".mem 8\n.data 414\nhalt 0\n"),
+    (".data 0x41", b".mem 8\n.data 0x41\nhalt 0\n"),
+    (".data ZZ", b".mem 8\n.data ZZ\nhalt 0\n"),
+    (".data 41 ZZ", b".mem 8\n.data 41 ZZ\nhalt 0\n"),
+    (".data 41g", b".mem 8\n.data 41g\nhalt 0\n"),
+    (".data до .mem", b".data 41\n.mem 8\nhalt 0\n"),
+    (".DATA заглавная", b".mem 8\n.DATA 41\nhalt 0\n"),
+    (".dataX директива", b".mem 8\n.dataX 41\nhalt 0\n"),
+    (".data ошибка в 4-й строке", b".mem 8\n.data 41\nhalt 0\n.data 4\n"),
+    (".data ошибка раньше операндной", b".mem 8\nhalt 1 2\n.data ZZ\n"),
+    (".data только разделители", b".mem 8\n.data , ,\nhalt 0\n"),
 ]
 
 # CODE0: .mem есть, инструкций нет (как make_up оракула; только метки —
-# тоже CODE0: pc == 0)
+# тоже CODE0: pc == 0; .data без инструкций — тоже: CODE0 раньше DATA)
 CODE0_CASES = [
     ("только .mem", b".mem 8\n"),
     (".mem + комментарий", b".mem 8\n; comment\n\n"),
     (".mem + разделители", b".mem 8\n,,,\n"),
     ("только метка", b".mem 8\nonly:\n"),
+    (".mem + .data без кода", b".mem 8\n.data 41\n"),
+]
+
+# DATA (E7.4-3b): длина данных > memsize — как make_up оракула
+# (UpError("DATA"), ПОСЛЕ ошибок операндов и CODE0); uva.exe обязан
+# печатать ERR=DATA (код 6) и не создавать файл
+DATA_CASES = [
+    ("данные > memsize", b".mem 1\n.data 41 42\nhalt 0\n"),
+    ("memsize 0 с данными", b".mem 0\n.data 41\nhalt 0\n"),
+    ("много .data переполняют", b".mem 2\n.data 41 42\nhalt 0\n.data 43\n"),
 ]
 
 

@@ -1,14 +1,20 @@
-; uva_self_w.wall — сборка контейнера .UP ассемблера uva.wall (E7.3-1)
+; uva_self_w.wall — сборка контейнера .UP ассемблера uva.wall (E7.4-3b)
 ; Паспорт: KERNEL/L3-UVA/uva_self_w.wall | слой: L3 (исходник — WALL)
 ; | роль: ветвь W — материализация результата: K3-W002 put32 (LE u32
 ; по смещению буфера outbuf — пишет ровно младшие 4 байта значения,
-; как to_bytes(4, 'little')), K3-W001 make_header (заголовок .UP v1
-; — 24 байта по SPEC/13 п. 2: сигнатура UP01, версия 1, memsize u64,
-; codesize u32, резерв 0) и K3-W003 write_out (открытие выхода
-; CreateFile2 GENERIC_WRITE/CREATE_ALWAYS, запись 24+pc байтов,
+; как to_bytes(4, 'little')), K3-W001 make_header (заголовок .UP —
+; 24 байта по SPEC/13 п. 2: сигнатура UP01, версия 1 БЕЗ данных /
+; 2 С данными, memsize u64, codesize u32, dataoff u32; E7.4-3b:
+; dcnt > 0 — версия 2 и dataoff = 24+pc (данные сразу за кодом,
+; п. 2.1), отказ DATA — dcnt > memsize (как make_up оракула:
+; ПОСЛЕ ошибок операндов — make_header вызван после прохода 2;
+; вывод ERR=DATA, код 6)) и K3-W003 write_out (открытие выхода
+; CreateFile2 GENERIC_WRITE/CREATE_ALWAYS, запись 24+pc+dcnt байтов,
 ; закрытие; отказы — ERR=OPEN OUT код 8 / ERR=WRITE OUT код 9).
-; Код лежит в outbuf+24 (написан проходом 2) — заголовок и код
-; выходят одним WriteFile, файл = 24 + codesize байт (SPEC/13 п. 3).
+; Код лежит в outbuf+24 (написан проходом 2), данные — в outbuf+24+pc
+; (эмиссия .data прохода 2) — заголовок, код и данные выходят одним
+; WriteFile, файл = 24 + codesize + datalen (SPEC/13 п. 3; без .data
+; datalen = 0 — файл v1 тем же путём байт-в-байт).
 
 ; значение v (LE u32, младшие 4 байта) по смещению off буфера outbuf
 func put32(off, v)
@@ -22,8 +28,11 @@ func put32(off, v)
   return 0
 end
 
-; заголовок .UP v1 (24 байта) в outbuf[0..24): UP01 + версия 1 +
-; memsize (u64 LE) + codesize (pc) + резерв 0 — SPEC/13 п. 2
+; заголовок .UP (24 байта) в outbuf[0..24): UP01 + версия (1 без
+; данных / 2 с данными) + memsize (u64 LE) + codesize (pc) + dataoff
+; (0 без данных / 24+pc с данными — SPEC/13 п. 2/2.1); отказ DATA —
+; dcnt > memsize (как make_up оракула; memsize проверен проходом 1,
+; код — CODE0 в проходе 1, порядок make_up соблюдён)
 func make_header
   var k
   k = 0
@@ -31,16 +40,24 @@ func make_header
     setb(outbuf, k, getb(s_up01, k))
     k = k + 1
   end
-  put32(4, 1)
+  if dcnt > 0
+    if dcnt > memsize
+      print_error(s_data, len(s_data), 6)
+    end
+    put32(4, 2)
+    put32(20, 24 + pc)
+  else
+    put32(4, 1)
+    put32(20, 0)
+  end
   put32(8, memsize)
   put32(12, memsize >> 32)
   put32(16, pc)
-  put32(20, 0)
   return 0
 end
 
-; запись выхода: out.up = заголовок + код (24 + pc байтов, один вызов
-; WriteFile); отказы открытия/записи — коды 8/9
+; запись выхода: out.up = заголовок + код + данные (24 + pc + dcnt
+; байтов, один вызов WriteFile); отказы открытия/записи — коды 8/9
 func write_out
   var fh
   var rc
@@ -49,7 +66,7 @@ func write_out
   if fh == -1
     print_error(s_oout, len(s_oout), 8)
   end
-  n = 24 + pc
+  n = 24 + pc + dcnt
   rc = WriteFile(fh, outbuf, n, &written, 0)
   if rc == 0
     print_error(s_wout, len(s_wout), 9)

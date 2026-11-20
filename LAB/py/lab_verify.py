@@ -74,13 +74,12 @@
             CLI, диффтест с ассемблером оракула lab_vm.assemble
             байт-в-байт на ПОЛНОМ классе этапа (.mem + halt-числа;
             F1 mov/АЛУ + регистры; F2 const/память rA[+смещ] без
-            диапазона; F3 jmp/jnz + МЕТКИ: синтаксис, дубликаты,
-            неизвестные — 'jmp r5' без объявления = ошибка метки),
-            отвержение == AsmError.line, CODE0 (вкл. только метки),
-            круги uva -> kernel.exe (консоль окном устройств,
-            jnz-цикл/jmp-переход); ПРИЁМКА DoD — T-E7-25: якоря
-            T-E7-01 == байты выхода uva + программы T-E7-04..08 ==
-            оракулу (T-E7-19..25).
+            диапазона; F3 jmp/jnz + МЕТКИ; E7.4-3a — мнемоники ISA v1;
+            E7.4-3b — .data: контейнер .UP v2 + отказ DATA),
+            отвержение == AsmError.line, CODE0 (вкл. только метки) и
+            DATA (T-E7-35), круги uva -> kernel.exe (вкл. mul,
+            call/ret и DATA_VM «U-DATA-OK 61»); ПРИЁМКА DoD —
+            T-E7-25: якоря T-E7-01/26 + программы T-E7-04..08/27/28.
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -132,7 +131,7 @@ SHA = {
     "L2-WALL/wall": "B2AC45F43CCC6FD66489A0F4327850105CC9B6BDE42FE98495DAFA"
                     "0A46EE1CF7",
     "L3-UNIVM/kernel": "9F5696178E26452D66B3F0FCC3BFDE0704D926AA12B61C9A0B351EFF51BE4799",
-    "L3-UVA/uva": "6A4EFC9AB85097403886D79FF3657C455AD5D9B348EB17BD16CE86CCF0862CC5",
+    "L3-UVA/uva": "32ABF177E0C01AA019E05244A0E12FEB18E13CE0A28DBFA4F59C3805802145EE",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)

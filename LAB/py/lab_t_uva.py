@@ -1,31 +1,39 @@
-"""lab_t_uva.py — секция 15 батареи: ассемблер uva.exe (M3-UVA, E7.3+E7.4-3a).
+"""lab_t_uva.py — секция 15 батареи: ассемблер uva.exe (M3-UVA, E7.3..E7.4-3b).
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-19..25 (срезы E7.3-1..4 + E7.4-3a — каркас
-       ассемблера .uva -> .UP на WALL + таблица мнемоник/регистры/
-       кодировка F1 + F2 const/память + F3 jmp/jnz с метками + МНЕМОНИКИ
-       ISA v1: mul/div/mod/sra — F1 по 3 операнда, call — F3 с целью
-       метка|число, ret — F0, 1 байт без операндов; .data/.UP v2 — срез
-       E7.4-3b): сборка конвейером инструментов под эмуляцией
-       (фикс-пункт воспроизводимости артефактов), контракт CLI, диффтест
-       с ассемблером оракула lab_vm.assemble байт-в-байт (halt-корпус
-       среза 1 + F1-корпус среза 2 + F2-корпус среза 3 + F3-корпус
-       среза 4 + v1-корпус E7.4-3a: якорные кодировки 6 опкодов,
-       метки-цели call вперёд/назад, ret без хвостового LF), отвержение
+Выход: проверки T-E7-19..25, T-E7-35 (срезы E7.3-1..4 + E7.4-3a +
+       E7.4-3b — каркас ассемблера .uva -> .UP на WALL + таблица
+       мнемоник/регистры/кодировка F1 + F2 const/память + F3 jmp/jnz
+       с метками + МНЕМОНИКИ ISA v1: mul/div/mod/sra — F1 по 3
+       операнда, call — F3 с целью метка|число, ret — F0, 1 байт без
+       операндов + ДИРЕКТИВА .data и контейнер .UP v2: байты hex2
+       копятся по порядку появления, выход — версия 2 с dataoff =
+       24+codesize, без .data — v1 байт-в-байт): сборка конвейером
+       инструментов под эмуляцией (фикс-пункт воспроизводимости
+       артефактов), контракт CLI, диффтест с ассемблером оракула
+       lab_vm.assemble байт-в-байт (halt-корпус среза 1 + F1-корпус
+       среза 2 + F2-корпус среза 3 + F3-корпус среза 4 + v1-корпус
+       E7.4-3a + .data-корпус E7.4-3b: успехи — контейнер v2 ==
+       оракулу, отвержение — строки == AsmError.line), отвержение
        с номерами строк (== AsmError.line оракула), контракт CODE0
-       (пустая программа, в т.ч. только метки) и сквозной круг uva ->
-       kernel.exe (вкл. jnz-цикл, jmp-переход, mul в консоль окном
-       устройств и call/ret-подпрограмму); T-E7-25 — приёмка DoD этапа
-       7.3 + расширение E7.4-3a: якорные кодировки всех 24 опкодов
-       (T-E7-01/26, ручные свидетели) и все программы секции 13
-       (DEMO_VM/OPS_VM/DEV_VM + OPS2_VM/FACT_VM — T-E7-04..08/27/28)
-       собираются uva == оракулу байт-в-байт.
+       (пустая программа, в тч. только метки, .mem+.data без кода)
+       и НОВЫЙ контракт DATA (данные длиннее RAM — как make_up
+       оракула, ПОСЛЕ ошибок операндов: ERR=DATA код 6, T-E7-35)
+       и сквозной круг uva -> kernel.exe (вкл. jnz-цикл, jmp-переход,
+       mul в консоль окном устройств, call/ret-подпрограмму и демо
+       DATA_VM «U-DATA-OK 61» — секция данных -> RAM при загрузке);
+       T-E7-25 — приёмка DoD этапа 7.3 + расширение E7.4-3a: якорные
+       кодировки всех 24 опкодов (T-E7-01/26, ручные свидетели) и
+       все программы секции 13 (DEMO_VM/OPS_VM/DEV_VM + OPS2_VM/
+       FACT_VM — T-E7-04..08/27/28) собираются uva == оракулу
+       байт-в-байт.
 Функция: доказать, что ассемблер uva.exe (KERNEL/L3-UVA) собирается из
          uva.wall самими инструментами репозитория байт-в-байт и
          повторяет ассемблер оракула на полном классе этапа 7.3
-         (.mem + все 18 мнемоник ISA v0 + метки) и среза E7.4-3a
-         (мнемоники v1 — все 24 инструкции ISA v0+v1).
+         (.mem + все 18 мнемоник ISA v0 + метки), среза E7.4-3a
+         (мнемоники v1 — все 24 инструкции ISA v0+v1) и среза
+         E7.4-3b (директива .data + контейнер .UP v2).
 """
 import os
 import tempfile
@@ -35,13 +43,14 @@ import lab_splice
 import lab_run
 import lab_t_vm
 import lab_vm
-from lab_t_uva_corpus import CODE0_CASES, ERR_CASES, OK_CASES
+from lab_t_uva_corpus import CODE0_CASES, DATA_CASES, ERR_CASES, OK_CASES
 
 S_USE = b"U-L3-UVA CMDS: UVA <SRC.UVA> <OUT.UP>\r\n"
 S_LONG = b"U-L3-UVA ERR=LONG NAME\r\n"
 S_OSRC = b"U-L3-UVA ERR=OPEN SRC\r\n"
 S_BIG = b"U-L3-UVA ERR=BIG SRC\r\n"
 S_CODE0 = b"U-L3-UVA ERR=CODE0\r\n"
+S_DATA = b"U-L3-UVA ERR=DATA\r\n"
 
 
 def build(kpath, kfile, kernel_host):
@@ -167,7 +176,7 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-22 отвержение: строки == оракулу AsmError (%d)"
               % len(ERR_CASES), not bad, "; ".join(bad[:2]))
 
-        # T-E7-23: CODE0 — .mem без инструкций (как make_up оракула);
+        # T-E7-23: CODE0 — .mem без инструкций (как make_up оракула;
         # пустой вход — не CODE0, а FORMAT AT=0001 (нет .mem — строка 1)
         bad = []
         for name, src in CODE0_CASES:
@@ -191,11 +200,33 @@ def run(check, kpath, kfile, kernel_host):
         check("T-E7-23 CODE0: .mem без инструкций (%d) + пустой вход"
               % len(CODE0_CASES), not bad, "; ".join(bad[:2]))
 
+        # T-E7-35 (E7.4-3b): DATA — данные длиннее RAM (datalen >
+        # memsize — как make_up оракула; ПОСЛЕ ошибок операндов —
+        # make_header после прохода 2; ПОСЛЕ CODE0 — проход 1):
+        # uva обязан печатать ERR=DATA (код 6) и не создавать файл
+        bad = []
+        for name, src in DATA_CASES:
+            try:
+                lab_vm.assemble(src.decode("latin1"))
+                bad.append("%s: оракул принял" % name)
+                continue
+            except lab_vm.UpError as e:
+                if e.reason != "DATA":
+                    bad.append("%s: причина %s" % (name, e.reason))
+                    continue
+            out, code, got = _uva(uexe, src)
+            if out != S_DATA or code != 6 or got is not None:
+                bad.append("%s: %r код=%s" % (name, out[:26], code))
+        check("T-E7-35 DATA: данные > memsize (%d)" % len(DATA_CASES),
+              not bad, "; ".join(bad[:2]))
+
         # T-E7-24: сквозной круг uva -> kernel.exe (внешняя программа
         # собирается ассемблером и исполняется ядром; F1 — срез 2,
         # F2 — срез 3: const/stb/stq/ldq + вывод в консоль окном
         # устройств; F3 — срез 4: jnz-цикл и jmp-переход; v1 — срез
-        # E7.4-3a: mul в консоль и call/ret-подпрограмма)
+        # E7.4-3a: mul в консоль и call/ret-подпрограмма; v2 — срез
+        # E7.4-3b: демо DATA_VM — секция данных .data -> RAM при
+        # загрузке, печать «U-DATA-OK 61» — как T-E7-30 секции 13)
         # + детерминизм
         bad = []
         for name, src, want_code, want_out in [
@@ -221,7 +252,9 @@ def run(check, kpath, kfile, kernel_host):
                                      b"stb r4+0, r1\nhalt 0\n", 0, b"*"),
                 (b"v1 call/ret", b".mem 8\ncall sub\nhalt 5\nsub:\n"
                                    b"const r1, 65\nconst r2, 8\nstb r2+0, r1\n"
-                                   b"ret\n", 5, b"A")]:
+                                   b"ret\n", 5, b"A"),
+                (b"v2 data demo", lab_t_vm.DATA_VM.encode("utf-8"),
+                 0, b"U-DATA-OK 61\r\n")]:
             out, code, got = _uva(uexe, src)
             if code != 0 or got is None:
                 bad.append("%s: сборка код=%s" % (name, code))
@@ -236,7 +269,7 @@ def run(check, kpath, kfile, kernel_host):
         o2, c2, g2 = _uva(uexe, OK_CASES[0][1])
         if not (c1 == c2 == 0 and g1 == g2 and g1 is not None):
             bad.append("детерминизм: код %s/%s" % (c1, c2))
-        check("T-E7-24 круг uva -> kernel.exe (10) + детерминизм",
+        check("T-E7-24 круг uva -> kernel.exe (11) + детерминизм",
               not bad, "; ".join(bad[:2]))
 
         # T-E7-25: DoD этапа 7.3 + расширение E7.4-3a — полный корпус:
