@@ -493,5 +493,5 @@ K2 — 120, K3 — 70; +11 K4 — слой L4 (карточки до кода �
 | K4-N003 | print_i64 | N | готов | `MAP/M4-LIB.md` |
 | K4-S001 | str_len | S | готов | `MAP/M4-LIB.md` |
 | K4-S002 | str_out | S | готов | `MAP/M4-LIB.md` |
-| K4-M001 | mem_copy | M | план | `MAP/M4-LIB.md` |
-| K4-M002 | mem_fill | M | план | `MAP/M4-LIB.md` |
+| K4-M001 | mem_copy | M | готов | `MAP/M4-LIB.md` |
+| K4-M002 | mem_fill | M | готов | `MAP/M4-LIB.md` |
