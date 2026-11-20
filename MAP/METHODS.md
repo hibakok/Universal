@@ -435,6 +435,11 @@
 | K3-V109 | op_shr | V | готов | `MAP/M3-UNIVM-V.md` |
 | K3-V110 | op_lt | V | готов | `MAP/M3-UNIVM-V.md` |
 | K3-V111 | op_eq | V | готов | `MAP/M3-UNIVM-V.md` |
+| K3-V112 | udivmod | V | готов (E7.4-2b) | `MAP/M3-UNIVM-V.md` |
+| K3-V113 | op_mul | V | готов (E7.4-2b) | `MAP/M3-UNIVM-V.md` |
+| K3-V114 | op_div | V | готов (E7.4-2b) | `MAP/M3-UNIVM-V.md` |
+| K3-V115 | op_mod | V | готов (E7.4-2b) | `MAP/M3-UNIVM-V.md` |
+| K3-V116 | op_sra | V | готов (E7.4-2b) | `MAP/M3-UNIVM-V.md` |
 | K3-X001 | main | X | готов | `MAP/M3-UNIVM.md` |
 | K3-C011 | skip0 | C | готов | `MAP/M3-UVA.md` |
 | K3-C012 | read_arg | C | готов | `MAP/M3-UVA.md` |

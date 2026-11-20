@@ -2,11 +2,11 @@
 
 Вход:  функции kpath/kfile/kernel_host от lab_verify (путь/чтение файлов
        KERNEL/), счётчик check.
-Выход: проверки T-E7-09..18 + T-E7-32 (срезы E7.2-1..4 ядра на WALL
-       + E7.4-2a контейнер v2): сборка ядра конвейером инструментов
-       под эмуляцией (фикс-пункт воспроизводимости артефактов), контракт
-       CLI/контейнера .UP, диффтест ядра с оракулом lab_vm на корпусе
-       срезов.
+Выход: проверки T-E7-09..18 + T-E7-32 + T-E7-33 (срезы E7.2-1..4 ядра
+       на WALL + E7.4-2a контейнер v2 + E7.4-2b ALU v1): сборка ядра
+       конвейером инструментов под эмуляцией (фикс-пункт
+       воспроизводимости артефактов), контракт CLI/контейнера .UP,
+       диффтест ядра с оракулом lab_vm на корпусе срезов.
 Функция: доказать, что ядро kernel.exe (KERNEL/L3-UNIVM) собирается из
          kernel.wall самими инструментами репозитория (wall/enc/brick/
          pegen) байт-в-байт и исполняет программы .UP в точном
@@ -28,7 +28,12 @@ CLI (0..2147483647, умолчание 200 млн), проверка ДО выб
 секцию данных (dataoff = 24+codesize): данные -> RAM[0:datalen]
 при загрузке; отказы LEN/RES/DATA — в порядке оракула parse_up;
 диффтест v0-программ с .data (данные наблюдаемы ldb + консоль).
-Корпуса программ — lab_t_kernel_corpus.py (данные; лимит 500 строк).
+Срез E7.4-2b: ALU v1 — опкоды 13..16 (mul/div/mod/sra, F1) +
+ловушка 7 (div/mod при rb = 0, после проверки полей); беззнаковое
+div/mod и арифметический sra собираются в ядре из простых операций
+WALL (K3-V112 udivmod — фундамент; границы путей b = 2^63 / b > 2^63).
+Корпуса программ — lab_t_kernel_corpus.py (данные; лимит 500 строк)
+и lab_t_kernel_corpus_v1.py (ALU v1; выделен по тому же лимиту).
 """
 import os
 import tempfile
@@ -38,6 +43,7 @@ import lab_splice
 import lab_run
 import lab_vm
 import lab_t_kernel_corpus as corpus
+import lab_t_kernel_corpus_v1 as corpus_v1
 
 S_USE = b"U-L3-UNIVM CMDS: KERNEL <FILE.UP> [STEPS]\r\n"
 S_LONG = b"U-L3-UNIVM ERR=LONG NAME\r\n"
@@ -140,7 +146,7 @@ def _diff(bad, kexe, name, data, lim=None):
 
 
 def run(check, kpath, kfile, kernel_host):
-    """Секция 14: T-E7-09..18 (ядро kernel.exe, срезы E7.2-1..4)."""
+    """Секция 14: T-E7-09..18 + T-E7-32/33 (ядро kernel.exe)."""
     # T-E7-09: сборка ядра — фикс-пункт: kernel.wall -> (wall/enc/brick/
     # pegen, эмуляция) -> артефакты байт-в-байт; kernel.b2 == оракулу WALL
     ok, a, note = build(kpath, kfile, kernel_host)
@@ -353,5 +359,30 @@ def run(check, kpath, kfile, kernel_host):
         _diff(bad, kexe, "v2 dataoff=0 (v1-эквивалент)", _v2n(_mem, _code))
         check("T-E7-32 контейнер v2: данные -> RAM == оракулу (%d)"
               % (len(corpus.DATA_RUNS) + 3), not bad, "; ".join(bad[:2]))
+
+        # T-E7-33: ALU v1 среза E7.4-2b — опкоды 13..16 (mul/div/mod/sra,
+        # формат F1) + ловушка 7 (div/mod при rb = 0 — ПОСЛЕ проверки
+        # полей, порядок SPEC/12 п. 7; команда с ловушкой в счётчик шагов
+        # не входит). Диффтест с оракулом: декодирование (поля -> 1,
+        # обрезки -> 2), точные счётчики шагов (без halt), результаты
+        # наблюдаемы консолью (eq-проверки полных 64-битных значений
+        # печатают '1'/'0'); беззнаковая семантика div/mod (2^63 div 2 =
+        # 2^62), границы путей udivmod (b = 2^63 — цикл; b > 2^63 —
+        # частное 0/1), инвариант (a div b)*b + a mod b == a; sra —
+        # размножение знака, n = 0/63/70 (маска 63). Корпуса —
+        # lab_t_kernel_corpus_v1.py (выделен по лимиту 500 строк).
+        bad = []
+        for name, code in corpus_v1.TRAPS:
+            _diff(bad, kexe, name, lab_vm.make_up(0, code))
+        for name, src in corpus_v1.DIV0:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src in corpus_v1.RUNS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        for name, src in corpus_v1.STEPS:
+            _diff(bad, kexe, name, lab_vm.assemble(src))
+        check("T-E7-33 ALU v1: mul/div/mod/sra + ловушка 7 == оракулу (%d)"
+              % (len(corpus_v1.TRAPS) + len(corpus_v1.DIV0)
+                 + len(corpus_v1.RUNS) + len(corpus_v1.STEPS)),
+              not bad, "; ".join(bad[:2]))
     finally:
         os.unlink(kexe)

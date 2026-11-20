@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 1235 строк; функций: 33; ext: 8; str: 14; глобальных var: 17
+; исходник: 1454 строк; функций: 38; ext: 8; str: 14; глобальных var: 19
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -3066,6 +3066,672 @@ M mov rax, r10 ; return 0
 M mov rsp, rbp ; выход op_jnz
 M pop rbp ; выход op_jnz
 M ret ; выход op_jnz
+:udivmod
+M push rbp ; кадр udivmod
+M mov rbp, rsp ; кадр udivmod
+M sub rsp, 70 ; кадр udivmod
+M mov [rbp-8], rcx ; кадр udivmod
+M mov [rbp-10], rdx ; кадр udivmod
+M mov r10, 1 ; s = 1 << 63
+M mov [rbp-30], r10 ; s = 1 << 63
+M mov r10, 3F ; s = 1 << 63
+M mov r11, r10 ; s = 1 << 63
+M mov r10, [rbp-30] ; s = 1 << 63
+M mov rcx, r11 ; s = 1 << 63
+M shl r10, cl ; s = 1 << 63
+M mov [rbp-28], r10 ; s = 1 << 63
+M mov r10, [rbp-10] ; if (b ^ s) > 0
+M mov [rbp-38], r10 ; if (b ^ s) > 0
+M mov r10, [rbp-28] ; if (b ^ s) > 0
+M mov r11, r10 ; if (b ^ s) > 0
+M mov r10, [rbp-38] ; if (b ^ s) > 0
+M xor r10, r11 ; if (b ^ s) > 0
+M mov [rbp-30], r10 ; if (b ^ s) > 0
+M mov r10, 0 ; if (b ^ s) > 0
+M mov r11, r10 ; if (b ^ s) > 0
+M mov r10, [rbp-30] ; if (b ^ s) > 0
+M cmp r10, r11 ; if (b ^ s) > 0
+M jle $_if85e ; if (b ^ s) > 0
+M mov r10, 0 ; uq = 0
+M mov [rip+$uq], r10 ; uq = 0
+M mov r10, [rbp-8] ; ur = a
+M mov [rip+$ur], r10 ; ur = a
+M mov r10, [rbp-8] ; if (a ^ s) >= (b ^ s)
+M mov [rbp-38], r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-28] ; if (a ^ s) >= (b ^ s)
+M mov r11, r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-38] ; if (a ^ s) >= (b ^ s)
+M xor r10, r11 ; if (a ^ s) >= (b ^ s)
+M mov [rbp-30], r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-10] ; if (a ^ s) >= (b ^ s)
+M mov [rbp-38], r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-28] ; if (a ^ s) >= (b ^ s)
+M mov r11, r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-38] ; if (a ^ s) >= (b ^ s)
+M xor r10, r11 ; if (a ^ s) >= (b ^ s)
+M mov r11, r10 ; if (a ^ s) >= (b ^ s)
+M mov r10, [rbp-30] ; if (a ^ s) >= (b ^ s)
+M cmp r10, r11 ; if (a ^ s) >= (b ^ s)
+M jl $_if86e ; if (a ^ s) >= (b ^ s)
+M mov r10, 1 ; uq = 1
+M mov [rip+$uq], r10 ; uq = 1
+M mov r10, [rbp-8] ; ur = a - b
+M mov [rbp-30], r10 ; ur = a - b
+M mov r10, [rbp-10] ; ur = a - b
+M mov r11, r10 ; ur = a - b
+M mov r10, [rbp-30] ; ur = a - b
+M sub r10, r11 ; ur = a - b
+M mov [rip+$ur], r10 ; ur = a - b
+:_if86e
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход udivmod
+M pop rbp ; выход udivmod
+M ret ; выход udivmod
+:_if85e
+M mov r10, 0 ; uq = 0
+M mov [rip+$uq], r10 ; uq = 0
+M mov r10, 0 ; r = 0
+M mov [rbp-20], r10 ; r = 0
+M mov r10, 3F ; i = 63
+M mov [rbp-18], r10 ; i = 63
+:_w87
+M mov r10, [rbp-18] ; while i >= 0
+M mov [rbp-30], r10 ; while i >= 0
+M mov r10, 0 ; while i >= 0
+M mov r11, r10 ; while i >= 0
+M mov r10, [rbp-30] ; while i >= 0
+M cmp r10, r11 ; while i >= 0
+M jl $_w87e ; while i >= 0
+M mov r10, [rbp-20] ; r = (r << 1) | ((a >> i) & 1)
+M mov [rbp-38], r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, 1 ; r = (r << 1) | ((a >> i) & 1)
+M mov r11, r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-38] ; r = (r << 1) | ((a >> i) & 1)
+M mov rcx, r11 ; r = (r << 1) | ((a >> i) & 1)
+M shl r10, cl ; r = (r << 1) | ((a >> i) & 1)
+M mov [rbp-30], r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-8] ; r = (r << 1) | ((a >> i) & 1)
+M mov [rbp-40], r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-18] ; r = (r << 1) | ((a >> i) & 1)
+M mov r11, r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-40] ; r = (r << 1) | ((a >> i) & 1)
+M mov rcx, r11 ; r = (r << 1) | ((a >> i) & 1)
+M shr r10, cl ; r = (r << 1) | ((a >> i) & 1)
+M mov [rbp-38], r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, 1 ; r = (r << 1) | ((a >> i) & 1)
+M mov r11, r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-38] ; r = (r << 1) | ((a >> i) & 1)
+M and r10, r11 ; r = (r << 1) | ((a >> i) & 1)
+M mov r11, r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-30] ; r = (r << 1) | ((a >> i) & 1)
+M or r10, r11 ; r = (r << 1) | ((a >> i) & 1)
+M mov [rbp-20], r10 ; r = (r << 1) | ((a >> i) & 1)
+M mov r10, [rbp-20] ; if (r ^ s) >= (b ^ s)
+M mov [rbp-38], r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-28] ; if (r ^ s) >= (b ^ s)
+M mov r11, r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-38] ; if (r ^ s) >= (b ^ s)
+M xor r10, r11 ; if (r ^ s) >= (b ^ s)
+M mov [rbp-30], r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-10] ; if (r ^ s) >= (b ^ s)
+M mov [rbp-38], r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-28] ; if (r ^ s) >= (b ^ s)
+M mov r11, r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-38] ; if (r ^ s) >= (b ^ s)
+M xor r10, r11 ; if (r ^ s) >= (b ^ s)
+M mov r11, r10 ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-30] ; if (r ^ s) >= (b ^ s)
+M cmp r10, r11 ; if (r ^ s) >= (b ^ s)
+M jl $_if88e ; if (r ^ s) >= (b ^ s)
+M mov r10, [rbp-20] ; r = r - b
+M mov [rbp-30], r10 ; r = r - b
+M mov r10, [rbp-10] ; r = r - b
+M mov r11, r10 ; r = r - b
+M mov r10, [rbp-30] ; r = r - b
+M sub r10, r11 ; r = r - b
+M mov [rbp-20], r10 ; r = r - b
+M mov r10, [rip+$uq] ; uq = uq | (1 << i)
+M mov [rbp-30], r10 ; uq = uq | (1 << i)
+M mov r10, 1 ; uq = uq | (1 << i)
+M mov [rbp-38], r10 ; uq = uq | (1 << i)
+M mov r10, [rbp-18] ; uq = uq | (1 << i)
+M mov r11, r10 ; uq = uq | (1 << i)
+M mov r10, [rbp-38] ; uq = uq | (1 << i)
+M mov rcx, r11 ; uq = uq | (1 << i)
+M shl r10, cl ; uq = uq | (1 << i)
+M mov r11, r10 ; uq = uq | (1 << i)
+M mov r10, [rbp-30] ; uq = uq | (1 << i)
+M or r10, r11 ; uq = uq | (1 << i)
+M mov [rip+$uq], r10 ; uq = uq | (1 << i)
+:_if88e
+M mov r10, [rbp-18] ; i = i - 1
+M mov [rbp-30], r10 ; i = i - 1
+M mov r10, 1 ; i = i - 1
+M mov r11, r10 ; i = i - 1
+M mov r10, [rbp-30] ; i = i - 1
+M sub r10, r11 ; i = i - 1
+M mov [rbp-18], r10 ; i = i - 1
+M jmp $_w87 ; while i >= 0
+:_w87e
+M mov r10, [rbp-20] ; ur = r
+M mov [rip+$ur], r10 ; ur = r
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход udivmod
+M pop rbp ; выход udivmod
+M ret ; выход udivmod
+:op_mul
+M push rbp ; кадр op_mul
+M mov rbp, rsp ; кадр op_mul
+M sub rsp, 80 ; кадр op_mul
+M mov r10, [rip+$codebuf] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-28], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$pc] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-30], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, 1 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-30] ; b1 = getb(codebuf, pc + 1)
+M add r10, r11 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-28] ; b1 = getb(codebuf, pc + 1)
+M movzx r10d, byte [r10+r11] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-8], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$codebuf] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-28], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rip+$pc] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-30], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, 2 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-30] ; b2 = getb(codebuf, pc + 2)
+M add r10, r11 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-28] ; b2 = getb(codebuf, pc + 2)
+M movzx r10d, byte [r10+r11] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-10], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-8] ; ra = b1 & 15
+M mov [rbp-28], r10 ; ra = b1 & 15
+M mov r10, F ; ra = b1 & 15
+M mov r11, r10 ; ra = b1 & 15
+M mov r10, [rbp-28] ; ra = b1 & 15
+M and r10, r11 ; ra = b1 & 15
+M mov [rbp-20], r10 ; ra = b1 & 15
+M mov r10, [rbp-8] ; rd = b1 >> 4
+M mov [rbp-28], r10 ; rd = b1 >> 4
+M mov r10, 4 ; rd = b1 >> 4
+M mov r11, r10 ; rd = b1 >> 4
+M mov r10, [rbp-28] ; rd = b1 >> 4
+M mov rcx, r11 ; rd = b1 >> 4
+M shr r10, cl ; rd = b1 >> 4
+M mov [rbp-18], r10 ; rd = b1 >> 4
+M mov r10, [rbp-10] ; if b2 > 15
+M mov [rbp-28], r10 ; if b2 > 15
+M mov r10, F ; if b2 > 15
+M mov r11, r10 ; if b2 > 15
+M mov r10, [rbp-28] ; if b2 > 15
+M cmp r10, r11 ; if b2 > 15
+M jle $_if89e ; if b2 > 15
+M mov r10, 1 ; fail_trap(1)
+M mov [rbp-38], r10 ; fail_trap(1)
+M mov rcx, [rbp-38] ; fail_trap(1)
+M call $fail_trap ; fail_trap(1)
+:_if89e
+M lea r10, [rip+$regs] ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-40], r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-18] ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-48], r10 ; regs[rd] = regs[ra] * regs[b2]
+M lea r10, [rip+$regs] ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-30], r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-20] ; regs[rd] = regs[ra] * regs[b2]
+M shl r10, 3 ; regs[rd] = regs[ra] * regs[b2]
+M mov r11, r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-30] ; regs[rd] = regs[ra] * regs[b2]
+M add r10, r11 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [r10] ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-28], r10 ; regs[rd] = regs[ra] * regs[b2]
+M lea r10, [rip+$regs] ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-30], r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-10] ; regs[rd] = regs[ra] * regs[b2]
+M shl r10, 3 ; regs[rd] = regs[ra] * regs[b2]
+M mov r11, r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-30] ; regs[rd] = regs[ra] * regs[b2]
+M add r10, r11 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [r10] ; regs[rd] = regs[ra] * regs[b2]
+M mov r11, r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-28] ; regs[rd] = regs[ra] * regs[b2]
+M imul r10, r11 ; regs[rd] = regs[ra] * regs[b2]
+M mov [rbp-50], r10 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rbp-40] ; regs[rd] = regs[ra] * regs[b2]
+M mov r11, [rbp-48] ; regs[rd] = regs[ra] * regs[b2]
+M shl r11, 3 ; regs[rd] = regs[ra] * regs[b2]
+M add r10, r11 ; regs[rd] = regs[ra] * regs[b2]
+M mov r11, [rbp-50] ; regs[rd] = regs[ra] * regs[b2]
+M mov [r10], r11 ; regs[rd] = regs[ra] * regs[b2]
+M mov r10, [rip+$pc] ; pc = pc + 3
+M mov [rbp-28], r10 ; pc = pc + 3
+M mov r10, 3 ; pc = pc + 3
+M mov r11, r10 ; pc = pc + 3
+M mov r10, [rbp-28] ; pc = pc + 3
+M add r10, r11 ; pc = pc + 3
+M mov [rip+$pc], r10 ; pc = pc + 3
+M mov r10, [rip+$steps] ; steps = steps + 1
+M mov [rbp-28], r10 ; steps = steps + 1
+M mov r10, 1 ; steps = steps + 1
+M mov r11, r10 ; steps = steps + 1
+M mov r10, [rbp-28] ; steps = steps + 1
+M add r10, r11 ; steps = steps + 1
+M mov [rip+$steps], r10 ; steps = steps + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход op_mul
+M pop rbp ; выход op_mul
+M ret ; выход op_mul
+:op_div
+M push rbp ; кадр op_div
+M mov rbp, rsp ; кадр op_div
+M sub rsp, A0 ; кадр op_div
+M mov r10, [rip+$codebuf] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-38], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$pc] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-40], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, 1 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-40] ; b1 = getb(codebuf, pc + 1)
+M add r10, r11 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-38] ; b1 = getb(codebuf, pc + 1)
+M movzx r10d, byte [r10+r11] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-8], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$codebuf] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-38], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rip+$pc] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-40], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, 2 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-40] ; b2 = getb(codebuf, pc + 2)
+M add r10, r11 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-38] ; b2 = getb(codebuf, pc + 2)
+M movzx r10d, byte [r10+r11] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-10], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-8] ; ra = b1 & 15
+M mov [rbp-38], r10 ; ra = b1 & 15
+M mov r10, F ; ra = b1 & 15
+M mov r11, r10 ; ra = b1 & 15
+M mov r10, [rbp-38] ; ra = b1 & 15
+M and r10, r11 ; ra = b1 & 15
+M mov [rbp-20], r10 ; ra = b1 & 15
+M mov r10, [rbp-8] ; rd = b1 >> 4
+M mov [rbp-38], r10 ; rd = b1 >> 4
+M mov r10, 4 ; rd = b1 >> 4
+M mov r11, r10 ; rd = b1 >> 4
+M mov r10, [rbp-38] ; rd = b1 >> 4
+M mov rcx, r11 ; rd = b1 >> 4
+M shr r10, cl ; rd = b1 >> 4
+M mov [rbp-18], r10 ; rd = b1 >> 4
+M mov r10, [rbp-10] ; if b2 > 15
+M mov [rbp-38], r10 ; if b2 > 15
+M mov r10, F ; if b2 > 15
+M mov r11, r10 ; if b2 > 15
+M mov r10, [rbp-38] ; if b2 > 15
+M cmp r10, r11 ; if b2 > 15
+M jle $_if90e ; if b2 > 15
+M mov r10, 1 ; fail_trap(1)
+M mov [rbp-48], r10 ; fail_trap(1)
+M mov rcx, [rbp-48] ; fail_trap(1)
+M call $fail_trap ; fail_trap(1)
+:_if90e
+M lea r10, [rip+$regs] ; y = regs[b2]
+M mov [rbp-38], r10 ; y = regs[b2]
+M mov r10, [rbp-10] ; y = regs[b2]
+M shl r10, 3 ; y = regs[b2]
+M mov r11, r10 ; y = regs[b2]
+M mov r10, [rbp-38] ; y = regs[b2]
+M add r10, r11 ; y = regs[b2]
+M mov r10, [r10] ; y = regs[b2]
+M mov [rbp-30], r10 ; y = regs[b2]
+M mov r10, [rbp-30] ; if y == 0
+M mov [rbp-38], r10 ; if y == 0
+M mov r10, 0 ; if y == 0
+M mov r11, r10 ; if y == 0
+M mov r10, [rbp-38] ; if y == 0
+M cmp r10, r11 ; if y == 0
+M jne $_if91e ; if y == 0
+M mov r10, 7 ; fail_trap(7)
+M mov [rbp-48], r10 ; fail_trap(7)
+M mov rcx, [rbp-48] ; fail_trap(7)
+M call $fail_trap ; fail_trap(7)
+:_if91e
+M lea r10, [rip+$regs] ; x = regs[ra]
+M mov [rbp-38], r10 ; x = regs[ra]
+M mov r10, [rbp-20] ; x = regs[ra]
+M shl r10, 3 ; x = regs[ra]
+M mov r11, r10 ; x = regs[ra]
+M mov r10, [rbp-38] ; x = regs[ra]
+M add r10, r11 ; x = regs[ra]
+M mov r10, [r10] ; x = regs[ra]
+M mov [rbp-28], r10 ; x = regs[ra]
+M mov r10, [rbp-28] ; udivmod(x, y)
+M mov [rbp-48], r10 ; udivmod(x, y)
+M mov r10, [rbp-30] ; udivmod(x, y)
+M mov [rbp-50], r10 ; udivmod(x, y)
+M mov rcx, [rbp-48] ; udivmod(x, y)
+M mov rdx, [rbp-50] ; udivmod(x, y)
+M call $udivmod ; udivmod(x, y)
+M lea r10, [rip+$regs] ; regs[rd] = uq
+M mov [rbp-58], r10 ; regs[rd] = uq
+M mov r10, [rbp-18] ; regs[rd] = uq
+M mov [rbp-60], r10 ; regs[rd] = uq
+M mov r10, [rip+$uq] ; regs[rd] = uq
+M mov [rbp-68], r10 ; regs[rd] = uq
+M mov r10, [rbp-58] ; regs[rd] = uq
+M mov r11, [rbp-60] ; regs[rd] = uq
+M shl r11, 3 ; regs[rd] = uq
+M add r10, r11 ; regs[rd] = uq
+M mov r11, [rbp-68] ; regs[rd] = uq
+M mov [r10], r11 ; regs[rd] = uq
+M mov r10, [rip+$pc] ; pc = pc + 3
+M mov [rbp-38], r10 ; pc = pc + 3
+M mov r10, 3 ; pc = pc + 3
+M mov r11, r10 ; pc = pc + 3
+M mov r10, [rbp-38] ; pc = pc + 3
+M add r10, r11 ; pc = pc + 3
+M mov [rip+$pc], r10 ; pc = pc + 3
+M mov r10, [rip+$steps] ; steps = steps + 1
+M mov [rbp-38], r10 ; steps = steps + 1
+M mov r10, 1 ; steps = steps + 1
+M mov r11, r10 ; steps = steps + 1
+M mov r10, [rbp-38] ; steps = steps + 1
+M add r10, r11 ; steps = steps + 1
+M mov [rip+$steps], r10 ; steps = steps + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход op_div
+M pop rbp ; выход op_div
+M ret ; выход op_div
+:op_mod
+M push rbp ; кадр op_mod
+M mov rbp, rsp ; кадр op_mod
+M sub rsp, A0 ; кадр op_mod
+M mov r10, [rip+$codebuf] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-38], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$pc] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-40], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, 1 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-40] ; b1 = getb(codebuf, pc + 1)
+M add r10, r11 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-38] ; b1 = getb(codebuf, pc + 1)
+M movzx r10d, byte [r10+r11] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-8], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$codebuf] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-38], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rip+$pc] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-40], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, 2 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-40] ; b2 = getb(codebuf, pc + 2)
+M add r10, r11 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-38] ; b2 = getb(codebuf, pc + 2)
+M movzx r10d, byte [r10+r11] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-10], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-8] ; ra = b1 & 15
+M mov [rbp-38], r10 ; ra = b1 & 15
+M mov r10, F ; ra = b1 & 15
+M mov r11, r10 ; ra = b1 & 15
+M mov r10, [rbp-38] ; ra = b1 & 15
+M and r10, r11 ; ra = b1 & 15
+M mov [rbp-20], r10 ; ra = b1 & 15
+M mov r10, [rbp-8] ; rd = b1 >> 4
+M mov [rbp-38], r10 ; rd = b1 >> 4
+M mov r10, 4 ; rd = b1 >> 4
+M mov r11, r10 ; rd = b1 >> 4
+M mov r10, [rbp-38] ; rd = b1 >> 4
+M mov rcx, r11 ; rd = b1 >> 4
+M shr r10, cl ; rd = b1 >> 4
+M mov [rbp-18], r10 ; rd = b1 >> 4
+M mov r10, [rbp-10] ; if b2 > 15
+M mov [rbp-38], r10 ; if b2 > 15
+M mov r10, F ; if b2 > 15
+M mov r11, r10 ; if b2 > 15
+M mov r10, [rbp-38] ; if b2 > 15
+M cmp r10, r11 ; if b2 > 15
+M jle $_if92e ; if b2 > 15
+M mov r10, 1 ; fail_trap(1)
+M mov [rbp-48], r10 ; fail_trap(1)
+M mov rcx, [rbp-48] ; fail_trap(1)
+M call $fail_trap ; fail_trap(1)
+:_if92e
+M lea r10, [rip+$regs] ; y = regs[b2]
+M mov [rbp-38], r10 ; y = regs[b2]
+M mov r10, [rbp-10] ; y = regs[b2]
+M shl r10, 3 ; y = regs[b2]
+M mov r11, r10 ; y = regs[b2]
+M mov r10, [rbp-38] ; y = regs[b2]
+M add r10, r11 ; y = regs[b2]
+M mov r10, [r10] ; y = regs[b2]
+M mov [rbp-30], r10 ; y = regs[b2]
+M mov r10, [rbp-30] ; if y == 0
+M mov [rbp-38], r10 ; if y == 0
+M mov r10, 0 ; if y == 0
+M mov r11, r10 ; if y == 0
+M mov r10, [rbp-38] ; if y == 0
+M cmp r10, r11 ; if y == 0
+M jne $_if93e ; if y == 0
+M mov r10, 7 ; fail_trap(7)
+M mov [rbp-48], r10 ; fail_trap(7)
+M mov rcx, [rbp-48] ; fail_trap(7)
+M call $fail_trap ; fail_trap(7)
+:_if93e
+M lea r10, [rip+$regs] ; x = regs[ra]
+M mov [rbp-38], r10 ; x = regs[ra]
+M mov r10, [rbp-20] ; x = regs[ra]
+M shl r10, 3 ; x = regs[ra]
+M mov r11, r10 ; x = regs[ra]
+M mov r10, [rbp-38] ; x = regs[ra]
+M add r10, r11 ; x = regs[ra]
+M mov r10, [r10] ; x = regs[ra]
+M mov [rbp-28], r10 ; x = regs[ra]
+M mov r10, [rbp-28] ; udivmod(x, y)
+M mov [rbp-48], r10 ; udivmod(x, y)
+M mov r10, [rbp-30] ; udivmod(x, y)
+M mov [rbp-50], r10 ; udivmod(x, y)
+M mov rcx, [rbp-48] ; udivmod(x, y)
+M mov rdx, [rbp-50] ; udivmod(x, y)
+M call $udivmod ; udivmod(x, y)
+M lea r10, [rip+$regs] ; regs[rd] = ur
+M mov [rbp-58], r10 ; regs[rd] = ur
+M mov r10, [rbp-18] ; regs[rd] = ur
+M mov [rbp-60], r10 ; regs[rd] = ur
+M mov r10, [rip+$ur] ; regs[rd] = ur
+M mov [rbp-68], r10 ; regs[rd] = ur
+M mov r10, [rbp-58] ; regs[rd] = ur
+M mov r11, [rbp-60] ; regs[rd] = ur
+M shl r11, 3 ; regs[rd] = ur
+M add r10, r11 ; regs[rd] = ur
+M mov r11, [rbp-68] ; regs[rd] = ur
+M mov [r10], r11 ; regs[rd] = ur
+M mov r10, [rip+$pc] ; pc = pc + 3
+M mov [rbp-38], r10 ; pc = pc + 3
+M mov r10, 3 ; pc = pc + 3
+M mov r11, r10 ; pc = pc + 3
+M mov r10, [rbp-38] ; pc = pc + 3
+M add r10, r11 ; pc = pc + 3
+M mov [rip+$pc], r10 ; pc = pc + 3
+M mov r10, [rip+$steps] ; steps = steps + 1
+M mov [rbp-38], r10 ; steps = steps + 1
+M mov r10, 1 ; steps = steps + 1
+M mov r11, r10 ; steps = steps + 1
+M mov r10, [rbp-38] ; steps = steps + 1
+M add r10, r11 ; steps = steps + 1
+M mov [rip+$steps], r10 ; steps = steps + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход op_mod
+M pop rbp ; выход op_mod
+M ret ; выход op_mod
+:op_sra
+M push rbp ; кадр op_sra
+M mov rbp, rsp ; кадр op_sra
+M sub rsp, A0 ; кадр op_sra
+M mov r10, [rip+$codebuf] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-38], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$pc] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-40], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, 1 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-40] ; b1 = getb(codebuf, pc + 1)
+M add r10, r11 ; b1 = getb(codebuf, pc + 1)
+M mov r11, r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rbp-38] ; b1 = getb(codebuf, pc + 1)
+M movzx r10d, byte [r10+r11] ; b1 = getb(codebuf, pc + 1)
+M mov [rbp-8], r10 ; b1 = getb(codebuf, pc + 1)
+M mov r10, [rip+$codebuf] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-38], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rip+$pc] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-40], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, 2 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-40] ; b2 = getb(codebuf, pc + 2)
+M add r10, r11 ; b2 = getb(codebuf, pc + 2)
+M mov r11, r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-38] ; b2 = getb(codebuf, pc + 2)
+M movzx r10d, byte [r10+r11] ; b2 = getb(codebuf, pc + 2)
+M mov [rbp-10], r10 ; b2 = getb(codebuf, pc + 2)
+M mov r10, [rbp-8] ; ra = b1 & 15
+M mov [rbp-38], r10 ; ra = b1 & 15
+M mov r10, F ; ra = b1 & 15
+M mov r11, r10 ; ra = b1 & 15
+M mov r10, [rbp-38] ; ra = b1 & 15
+M and r10, r11 ; ra = b1 & 15
+M mov [rbp-20], r10 ; ra = b1 & 15
+M mov r10, [rbp-8] ; rd = b1 >> 4
+M mov [rbp-38], r10 ; rd = b1 >> 4
+M mov r10, 4 ; rd = b1 >> 4
+M mov r11, r10 ; rd = b1 >> 4
+M mov r10, [rbp-38] ; rd = b1 >> 4
+M mov rcx, r11 ; rd = b1 >> 4
+M shr r10, cl ; rd = b1 >> 4
+M mov [rbp-18], r10 ; rd = b1 >> 4
+M mov r10, [rbp-10] ; if b2 > 15
+M mov [rbp-38], r10 ; if b2 > 15
+M mov r10, F ; if b2 > 15
+M mov r11, r10 ; if b2 > 15
+M mov r10, [rbp-38] ; if b2 > 15
+M cmp r10, r11 ; if b2 > 15
+M jle $_if94e ; if b2 > 15
+M mov r10, 1 ; fail_trap(1)
+M mov [rbp-50], r10 ; fail_trap(1)
+M mov rcx, [rbp-50] ; fail_trap(1)
+M call $fail_trap ; fail_trap(1)
+:_if94e
+M lea r10, [rip+$regs] ; v = regs[ra]
+M mov [rbp-38], r10 ; v = regs[ra]
+M mov r10, [rbp-20] ; v = regs[ra]
+M shl r10, 3 ; v = regs[ra]
+M mov r11, r10 ; v = regs[ra]
+M mov r10, [rbp-38] ; v = regs[ra]
+M add r10, r11 ; v = regs[ra]
+M mov r10, [r10] ; v = regs[ra]
+M mov [rbp-28], r10 ; v = regs[ra]
+M lea r10, [rip+$regs] ; n = regs[b2] & 63
+M mov [rbp-40], r10 ; n = regs[b2] & 63
+M mov r10, [rbp-10] ; n = regs[b2] & 63
+M shl r10, 3 ; n = regs[b2] & 63
+M mov r11, r10 ; n = regs[b2] & 63
+M mov r10, [rbp-40] ; n = regs[b2] & 63
+M add r10, r11 ; n = regs[b2] & 63
+M mov r10, [r10] ; n = regs[b2] & 63
+M mov [rbp-38], r10 ; n = regs[b2] & 63
+M mov r10, 3F ; n = regs[b2] & 63
+M mov r11, r10 ; n = regs[b2] & 63
+M mov r10, [rbp-38] ; n = regs[b2] & 63
+M and r10, r11 ; n = regs[b2] & 63
+M mov [rbp-30], r10 ; n = regs[b2] & 63
+M mov r10, [rbp-28] ; if v < 0
+M mov [rbp-38], r10 ; if v < 0
+M mov r10, 0 ; if v < 0
+M mov r11, r10 ; if v < 0
+M mov r10, [rbp-38] ; if v < 0
+M cmp r10, r11 ; if v < 0
+M jge $_if95 ; if v < 0
+M mov r10, [rbp-30] ; if n > 0
+M mov [rbp-38], r10 ; if n > 0
+M mov r10, 0 ; if n > 0
+M mov r11, r10 ; if n > 0
+M mov r10, [rbp-38] ; if n > 0
+M cmp r10, r11 ; if n > 0
+M jle $_if96e ; if n > 0
+M mov r10, [rbp-28] ; v = (v >> n) | (-(1 << (64 - n)))
+M mov [rbp-40], r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-30] ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r11, r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-40] ; v = (v >> n) | (-(1 << (64 - n)))
+M mov rcx, r11 ; v = (v >> n) | (-(1 << (64 - n)))
+M shr r10, cl ; v = (v >> n) | (-(1 << (64 - n)))
+M mov [rbp-38], r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, 1 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov [rbp-40], r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, 40 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov [rbp-48], r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-30] ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r11, r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-48] ; v = (v >> n) | (-(1 << (64 - n)))
+M sub r10, r11 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r11, r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-40] ; v = (v >> n) | (-(1 << (64 - n)))
+M mov rcx, r11 ; v = (v >> n) | (-(1 << (64 - n)))
+M shl r10, cl ; v = (v >> n) | (-(1 << (64 - n)))
+M neg r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r11, r10 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov r10, [rbp-38] ; v = (v >> n) | (-(1 << (64 - n)))
+M or r10, r11 ; v = (v >> n) | (-(1 << (64 - n)))
+M mov [rbp-28], r10 ; v = (v >> n) | (-(1 << (64 - n)))
+:_if96e
+M jmp $_if95e ; if v < 0
+:_if95
+M mov r10, [rbp-28] ; v = v >> n
+M mov [rbp-38], r10 ; v = v >> n
+M mov r10, [rbp-30] ; v = v >> n
+M mov r11, r10 ; v = v >> n
+M mov r10, [rbp-38] ; v = v >> n
+M mov rcx, r11 ; v = v >> n
+M shr r10, cl ; v = v >> n
+M mov [rbp-28], r10 ; v = v >> n
+:_if95e
+M lea r10, [rip+$regs] ; regs[rd] = v
+M mov [rbp-58], r10 ; regs[rd] = v
+M mov r10, [rbp-18] ; regs[rd] = v
+M mov [rbp-60], r10 ; regs[rd] = v
+M mov r10, [rbp-28] ; regs[rd] = v
+M mov [rbp-68], r10 ; regs[rd] = v
+M mov r10, [rbp-58] ; regs[rd] = v
+M mov r11, [rbp-60] ; regs[rd] = v
+M shl r11, 3 ; regs[rd] = v
+M add r10, r11 ; regs[rd] = v
+M mov r11, [rbp-68] ; regs[rd] = v
+M mov [r10], r11 ; regs[rd] = v
+M mov r10, [rip+$pc] ; pc = pc + 3
+M mov [rbp-38], r10 ; pc = pc + 3
+M mov r10, 3 ; pc = pc + 3
+M mov r11, r10 ; pc = pc + 3
+M mov r10, [rbp-38] ; pc = pc + 3
+M add r10, r11 ; pc = pc + 3
+M mov [rip+$pc], r10 ; pc = pc + 3
+M mov r10, [rip+$steps] ; steps = steps + 1
+M mov [rbp-38], r10 ; steps = steps + 1
+M mov r10, 1 ; steps = steps + 1
+M mov r11, r10 ; steps = steps + 1
+M mov r10, [rbp-38] ; steps = steps + 1
+M add r10, r11 ; steps = steps + 1
+M mov [rip+$steps], r10 ; steps = steps + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход op_sra
+M pop rbp ; выход op_sra
+M ret ; выход op_sra
 :copy_str
 M push rbp ; кадр copy_str
 M mov rbp, rsp ; кадр copy_str
@@ -3076,14 +3742,14 @@ M mov [rbp-18], r8 ; кадр copy_str
 M mov [rbp-20], r9 ; кадр copy_str
 M mov r10, 0 ; j = 0
 M mov [rbp-28], r10 ; j = 0
-:_w85
+:_w97
 M mov r10, [rbp-28] ; while j < n
 M mov [rbp-38], r10 ; while j < n
 M mov r10, [rbp-20] ; while j < n
 M mov r11, r10 ; while j < n
 M mov r10, [rbp-38] ; while j < n
 M cmp r10, r11 ; while j < n
-M jge $_w85e ; while j < n
+M jge $_w97e ; while j < n
 M mov r10, [rbp-18] ; c = getb(src, j)
 M mov [rbp-38], r10 ; c = getb(src, j)
 M mov r10, [rbp-28] ; c = getb(src, j)
@@ -3113,8 +3779,8 @@ M mov r11, r10 ; j = j + 1
 M mov r10, [rbp-38] ; j = j + 1
 M add r10, r11 ; j = j + 1
 M mov [rbp-28], r10 ; j = j + 1
-M jmp $_w85 ; while j < n
-:_w85e
+M jmp $_w97 ; while j < n
+:_w97e
 M mov r10, [rbp-10] ; return k + n
 M mov [rbp-38], r10 ; return k + n
 M mov r10, [rbp-20] ; return k + n
@@ -3140,7 +3806,7 @@ M mov r10, 0 ; if v == 0
 M mov r11, r10 ; if v == 0
 M mov r10, [rbp-D0] ; if v == 0
 M cmp r10, r11 ; if v == 0
-M jne $_if86e ; if v == 0
+M jne $_if98e ; if v == 0
 M mov r10, [rbp-8] ; setb(dst, k, 48)
 M mov [rbp-E8], r10 ; setb(dst, k, 48)
 M mov r10, [rbp-10] ; setb(dst, k, 48)
@@ -3161,15 +3827,15 @@ M mov rax, r10 ; return k + 1
 M mov rsp, rbp ; выход out_dec
 M pop rbp ; выход out_dec
 M ret ; выход out_dec
-:_if86e
-:_w87
+:_if98e
+:_w99
 M mov r10, [rbp-18] ; while v > 0
 M mov [rbp-D0], r10 ; while v > 0
 M mov r10, 0 ; while v > 0
 M mov r11, r10 ; while v > 0
 M mov r10, [rbp-D0] ; while v > 0
 M cmp r10, r11 ; while v > 0
-M jle $_w87e ; while v > 0
+M jle $_w99e ; while v > 0
 M lea r10, [rbp-B8] ; setb(t, n, 48 + v % 10)
 M mov [rbp-E8], r10 ; setb(t, n, 48 + v % 10)
 M mov r10, [rbp-C8] ; setb(t, n, 48 + v % 10)
@@ -3210,18 +3876,18 @@ M mov r11, r10 ; n = n + 1
 M mov r10, [rbp-D0] ; n = n + 1
 M add r10, r11 ; n = n + 1
 M mov [rbp-C8], r10 ; n = n + 1
-M jmp $_w87 ; while v > 0
-:_w87e
+M jmp $_w99 ; while v > 0
+:_w99e
 M mov r10, 0 ; j = 0
 M mov [rbp-C0], r10 ; j = 0
-:_w88
+:_w100
 M mov r10, [rbp-C0] ; while j < n
 M mov [rbp-D0], r10 ; while j < n
 M mov r10, [rbp-C8] ; while j < n
 M mov r11, r10 ; while j < n
 M mov r10, [rbp-D0] ; while j < n
 M cmp r10, r11 ; while j < n
-M jge $_w88e ; while j < n
+M jge $_w100e ; while j < n
 M mov r10, [rbp-8] ; setb(dst, k + j, getb(t, n - 1 - j))
 M mov [rbp-E8], r10 ; setb(dst, k + j, getb(t, n - 1 - j))
 M mov r10, [rbp-10] ; setb(dst, k + j, getb(t, n - 1 - j))
@@ -3259,8 +3925,8 @@ M mov r11, r10 ; j = j + 1
 M mov r10, [rbp-D0] ; j = j + 1
 M add r10, r11 ; j = j + 1
 M mov [rbp-C0], r10 ; j = j + 1
-M jmp $_w88 ; while j < n
-:_w88e
+M jmp $_w100 ; while j < n
+:_w100e
 M mov r10, [rbp-10] ; return k + n
 M mov [rbp-D0], r10 ; return k + n
 M mov r10, [rbp-C8] ; return k + n
@@ -3410,12 +4076,12 @@ M mov r10, 0 ; if (b1 & 15) != 0
 M mov r11, r10 ; if (b1 & 15) != 0
 M mov r10, [rbp-20] ; if (b1 & 15) != 0
 M cmp r10, r11 ; if (b1 & 15) != 0
-M je $_if89e ; if (b1 & 15) != 0
+M je $_if101e ; if (b1 & 15) != 0
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-30], r10 ; fail_trap(1)
 M mov rcx, [rbp-30] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if89e
+:_if101e
 M mov r10, [rip+$codebuf] ; imm = rd32(codebuf, pc + 2)
 M mov [rbp-30], r10 ; imm = rd32(codebuf, pc + 2)
 M mov r10, [rip+$pc] ; imm = rd32(codebuf, pc + 2)
@@ -3442,7 +4108,7 @@ M mov r10, 1 ; if (imm >> 31) == 1
 M mov r11, r10 ; if (imm >> 31) == 1
 M mov r10, [rbp-20] ; if (imm >> 31) == 1
 M cmp r10, r11 ; if (imm >> 31) == 1
-M jne $_if90e ; if (imm >> 31) == 1
+M jne $_if102e ; if (imm >> 31) == 1
 M mov r10, [rbp-18] ; imm = imm - (1 << 32)
 M mov [rbp-20], r10 ; imm = imm - (1 << 32)
 M mov r10, 1 ; imm = imm - (1 << 32)
@@ -3456,7 +4122,7 @@ M mov r11, r10 ; imm = imm - (1 << 32)
 M mov r10, [rbp-20] ; imm = imm - (1 << 32)
 M sub r10, r11 ; imm = imm - (1 << 32)
 M mov [rbp-18], r10 ; imm = imm - (1 << 32)
-:_if90e
+:_if102e
 M lea r10, [rip+$regs] ; regs[rd] = imm
 M mov [rbp-40], r10 ; regs[rd] = imm
 M mov r10, [rbp-10] ; regs[rd] = imm
@@ -3537,12 +4203,12 @@ M mov r10, 0 ; if b2 != 0
 M mov r11, r10 ; if b2 != 0
 M mov r10, [rbp-28] ; if b2 != 0
 M cmp r10, r11 ; if b2 != 0
-M je $_if91e ; if b2 != 0
+M je $_if103e ; if b2 != 0
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if91e
+:_if103e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra]
@@ -3630,12 +4296,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if92e ; if b2 > 15
+M jle $_if104e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if92e
+:_if104e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] + regs[b2]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra] + regs[b2]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] + regs[b2]
@@ -3735,12 +4401,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if93e ; if b2 > 15
+M jle $_if105e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if93e
+:_if105e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] - regs[b2]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra] - regs[b2]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] - regs[b2]
@@ -3840,12 +4506,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if94e ; if b2 > 15
+M jle $_if106e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if94e
+:_if106e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] & regs[b2]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra] & regs[b2]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] & regs[b2]
@@ -3945,12 +4611,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if95e ; if b2 > 15
+M jle $_if107e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if95e
+:_if107e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] | regs[b2]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra] | regs[b2]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] | regs[b2]
@@ -4050,12 +4716,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if96e ; if b2 > 15
+M jle $_if108e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if96e
+:_if108e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] ^ regs[b2]
 M mov [rbp-40], r10 ; regs[rd] = regs[ra] ^ regs[b2]
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] ^ regs[b2]
@@ -4155,12 +4821,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if97e ; if b2 > 15
+M jle $_if109e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-40], r10 ; fail_trap(1)
 M mov rcx, [rbp-40] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if97e
+:_if109e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] << (regs[b2] & 63)
 M mov [rbp-48], r10 ; regs[rd] = regs[ra] << (regs[b2] & 63)
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] << (regs[b2] & 63)
@@ -4266,12 +4932,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if98e ; if b2 > 15
+M jle $_if110e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-40], r10 ; fail_trap(1)
 M mov rcx, [rbp-40] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if98e
+:_if110e
 M lea r10, [rip+$regs] ; regs[rd] = regs[ra] >> (regs[b2] & 63)
 M mov [rbp-48], r10 ; regs[rd] = regs[ra] >> (regs[b2] & 63)
 M mov r10, [rbp-18] ; regs[rd] = regs[ra] >> (regs[b2] & 63)
@@ -4377,12 +5043,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if99e ; if b2 > 15
+M jle $_if111e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if99e
+:_if111e
 M lea r10, [rip+$regs] ; if regs[ra] < regs[b2]
 M mov [rbp-30], r10 ; if regs[ra] < regs[b2]
 M mov r10, [rbp-20] ; if regs[ra] < regs[b2]
@@ -4403,7 +5069,7 @@ M mov r10, [r10] ; if regs[ra] < regs[b2]
 M mov r11, r10 ; if regs[ra] < regs[b2]
 M mov r10, [rbp-28] ; if regs[ra] < regs[b2]
 M cmp r10, r11 ; if regs[ra] < regs[b2]
-M jge $_if100 ; if regs[ra] < regs[b2]
+M jge $_if112 ; if regs[ra] < regs[b2]
 M lea r10, [rip+$regs] ; regs[rd] = 1
 M mov [rbp-40], r10 ; regs[rd] = 1
 M mov r10, [rbp-18] ; regs[rd] = 1
@@ -4416,8 +5082,8 @@ M shl r11, 3 ; regs[rd] = 1
 M add r10, r11 ; regs[rd] = 1
 M mov r11, [rbp-50] ; regs[rd] = 1
 M mov [r10], r11 ; regs[rd] = 1
-M jmp $_if100e ; if regs[ra] < regs[b2]
-:_if100
+M jmp $_if112e ; if regs[ra] < regs[b2]
+:_if112
 M lea r10, [rip+$regs] ; regs[rd] = 0
 M mov [rbp-40], r10 ; regs[rd] = 0
 M mov r10, [rbp-18] ; regs[rd] = 0
@@ -4430,7 +5096,7 @@ M shl r11, 3 ; regs[rd] = 0
 M add r10, r11 ; regs[rd] = 0
 M mov r11, [rbp-50] ; regs[rd] = 0
 M mov [r10], r11 ; regs[rd] = 0
-:_if100e
+:_if112e
 M mov r10, [rip+$pc] ; pc = pc + 3
 M mov [rbp-28], r10 ; pc = pc + 3
 M mov r10, 3 ; pc = pc + 3
@@ -4499,12 +5165,12 @@ M mov r10, F ; if b2 > 15
 M mov r11, r10 ; if b2 > 15
 M mov r10, [rbp-28] ; if b2 > 15
 M cmp r10, r11 ; if b2 > 15
-M jle $_if101e ; if b2 > 15
+M jle $_if113e ; if b2 > 15
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-38], r10 ; fail_trap(1)
 M mov rcx, [rbp-38] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if101e
+:_if113e
 M lea r10, [rip+$regs] ; if regs[ra] == regs[b2]
 M mov [rbp-30], r10 ; if regs[ra] == regs[b2]
 M mov r10, [rbp-20] ; if regs[ra] == regs[b2]
@@ -4525,7 +5191,7 @@ M mov r10, [r10] ; if regs[ra] == regs[b2]
 M mov r11, r10 ; if regs[ra] == regs[b2]
 M mov r10, [rbp-28] ; if regs[ra] == regs[b2]
 M cmp r10, r11 ; if regs[ra] == regs[b2]
-M jne $_if102 ; if regs[ra] == regs[b2]
+M jne $_if114 ; if regs[ra] == regs[b2]
 M lea r10, [rip+$regs] ; regs[rd] = 1
 M mov [rbp-40], r10 ; regs[rd] = 1
 M mov r10, [rbp-18] ; regs[rd] = 1
@@ -4538,8 +5204,8 @@ M shl r11, 3 ; regs[rd] = 1
 M add r10, r11 ; regs[rd] = 1
 M mov r11, [rbp-50] ; regs[rd] = 1
 M mov [r10], r11 ; regs[rd] = 1
-M jmp $_if102e ; if regs[ra] == regs[b2]
-:_if102
+M jmp $_if114e ; if regs[ra] == regs[b2]
+:_if114
 M lea r10, [rip+$regs] ; regs[rd] = 0
 M mov [rbp-40], r10 ; regs[rd] = 0
 M mov r10, [rbp-18] ; regs[rd] = 0
@@ -4552,7 +5218,7 @@ M shl r11, 3 ; regs[rd] = 0
 M add r10, r11 ; regs[rd] = 0
 M mov r11, [rbp-50] ; regs[rd] = 0
 M mov [r10], r11 ; regs[rd] = 0
-:_if102e
+:_if114e
 M mov r10, [rip+$pc] ; pc = pc + 3
 M mov [rbp-28], r10 ; pc = pc + 3
 M mov r10, 3 ; pc = pc + 3
@@ -4594,12 +5260,12 @@ M mov r10, 0 ; if rd != 0
 M mov r11, r10 ; if rd != 0
 M mov r10, [rbp-18] ; if rd != 0
 M cmp r10, r11 ; if rd != 0
-M je $_if103e ; if rd != 0
+M je $_if115e ; if rd != 0
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-28], r10 ; fail_trap(1)
 M mov rcx, [rbp-28] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if103e
+:_if115e
 M mov r10, [rip+$codebuf] ; imm = rd32(codebuf, pc + 2)
 M mov [rbp-28], r10 ; imm = rd32(codebuf, pc + 2)
 M mov r10, [rip+$pc] ; imm = rd32(codebuf, pc + 2)
@@ -4636,38 +5302,38 @@ M mov rbp, rsp ; кадр interp
 M sub rsp, 60 ; кадр interp
 M mov r10, 1 ; go = 1
 M mov [rbp-10], r10 ; go = 1
-:_w104
+:_w116
 M mov r10, [rbp-10] ; while go == 1
 M mov [rbp-18], r10 ; while go == 1
 M mov r10, 1 ; while go == 1
 M mov r11, r10 ; while go == 1
 M mov r10, [rbp-18] ; while go == 1
 M cmp r10, r11 ; while go == 1
-M jne $_w104e ; while go == 1
+M jne $_w116e ; while go == 1
 M mov r10, [rip+$steps] ; if steps >= steplim
 M mov [rbp-18], r10 ; if steps >= steplim
 M mov r10, [rip+$steplim] ; if steps >= steplim
 M mov r11, r10 ; if steps >= steplim
 M mov r10, [rbp-18] ; if steps >= steplim
 M cmp r10, r11 ; if steps >= steplim
-M jl $_if105e ; if steps >= steplim
+M jl $_if117e ; if steps >= steplim
 M mov r10, 6 ; fail_trap(6)
 M mov [rbp-28], r10 ; fail_trap(6)
 M mov rcx, [rbp-28] ; fail_trap(6)
 M call $fail_trap ; fail_trap(6)
-:_if105e
+:_if117e
 M mov r10, [rip+$pc] ; if pc >= codesize
 M mov [rbp-18], r10 ; if pc >= codesize
 M mov r10, [rip+$codesize] ; if pc >= codesize
 M mov r11, r10 ; if pc >= codesize
 M mov r10, [rbp-18] ; if pc >= codesize
 M cmp r10, r11 ; if pc >= codesize
-M jl $_if106e ; if pc >= codesize
+M jl $_if118e ; if pc >= codesize
 M mov r10, 2 ; fail_trap(2)
 M mov [rbp-28], r10 ; fail_trap(2)
 M mov rcx, [rbp-28] ; fail_trap(2)
 M call $fail_trap ; fail_trap(2)
-:_if106e
+:_if118e
 M mov r10, [rip+$codebuf] ; op = getb(codebuf, pc)
 M mov [rbp-18], r10 ; op = getb(codebuf, pc)
 M mov r10, [rip+$pc] ; op = getb(codebuf, pc)
@@ -4675,42 +5341,59 @@ M mov r11, r10 ; op = getb(codebuf, pc)
 M mov r10, [rbp-18] ; op = getb(codebuf, pc)
 M movzx r10d, byte [r10+r11] ; op = getb(codebuf, pc)
 M mov [rbp-8], r10 ; op = getb(codebuf, pc)
-M mov r10, [rbp-8] ; if op < 1 || op > 18
-M mov [rbp-18], r10 ; if op < 1 || op > 18
-M mov r10, 1 ; if op < 1 || op > 18
-M mov r11, r10 ; if op < 1 || op > 18
-M mov r10, [rbp-18] ; if op < 1 || op > 18
-M cmp r10, r11 ; if op < 1 || op > 18
-M jge $_if107d2 ; if op < 1 || op > 18
-M jmp $_if107t ; if op < 1 || op > 18
-:_if107d2
-M mov r10, [rbp-8] ; if op < 1 || op > 18
-M mov [rbp-18], r10 ; if op < 1 || op > 18
-M mov r10, 12 ; if op < 1 || op > 18
-M mov r11, r10 ; if op < 1 || op > 18
-M mov r10, [rbp-18] ; if op < 1 || op > 18
-M cmp r10, r11 ; if op < 1 || op > 18
-M jle $_if107e ; if op < 1 || op > 18
-:_if107t
+M mov r10, [rbp-8] ; if op < 1 || op > 22
+M mov [rbp-18], r10 ; if op < 1 || op > 22
+M mov r10, 1 ; if op < 1 || op > 22
+M mov r11, r10 ; if op < 1 || op > 22
+M mov r10, [rbp-18] ; if op < 1 || op > 22
+M cmp r10, r11 ; if op < 1 || op > 22
+M jge $_if119d2 ; if op < 1 || op > 22
+M jmp $_if119t ; if op < 1 || op > 22
+:_if119d2
+M mov r10, [rbp-8] ; if op < 1 || op > 22
+M mov [rbp-18], r10 ; if op < 1 || op > 22
+M mov r10, 16 ; if op < 1 || op > 22
+M mov r11, r10 ; if op < 1 || op > 22
+M mov r10, [rbp-18] ; if op < 1 || op > 22
+M cmp r10, r11 ; if op < 1 || op > 22
+M jle $_if119e ; if op < 1 || op > 22
+:_if119t
 M mov r10, 1 ; fail_trap(1)
 M mov [rbp-28], r10 ; fail_trap(1)
 M mov rcx, [rbp-28] ; fail_trap(1)
 M call $fail_trap ; fail_trap(1)
-:_if107e
-M mov r10, [rbp-8] ; if op >= 2 && op <= 11
-M mov [rbp-18], r10 ; if op >= 2 && op <= 11
-M mov r10, 2 ; if op >= 2 && op <= 11
-M mov r11, r10 ; if op >= 2 && op <= 11
-M mov r10, [rbp-18] ; if op >= 2 && op <= 11
-M cmp r10, r11 ; if op >= 2 && op <= 11
-M jl $_if108 ; if op >= 2 && op <= 11
-M mov r10, [rbp-8] ; if op >= 2 && op <= 11
-M mov [rbp-18], r10 ; if op >= 2 && op <= 11
-M mov r10, B ; if op >= 2 && op <= 11
-M mov r11, r10 ; if op >= 2 && op <= 11
-M mov r10, [rbp-18] ; if op >= 2 && op <= 11
-M cmp r10, r11 ; if op >= 2 && op <= 11
-M jg $_if108 ; if op >= 2 && op <= 11
+:_if119e
+M mov r10, [rbp-8] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov [rbp-18], r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, 2 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r11, r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-18] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M cmp r10, r11 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M jl $_if120d2 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-8] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov [rbp-18], r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, B ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r11, r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-18] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M cmp r10, r11 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M jg $_if120d2 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M jmp $_if120t ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+:_if120d2
+M mov r10, [rbp-8] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov [rbp-18], r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, 13 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r11, r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-18] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M cmp r10, r11 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M jl $_if120 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-8] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov [rbp-18], r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, 16 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r11, r10 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M mov r10, [rbp-18] ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M cmp r10, r11 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+M jg $_if120 ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+:_if120t
 M mov r10, [rip+$pc] ; if pc + 3 > codesize
 M mov [rbp-20], r10 ; if pc + 3 > codesize
 M mov r10, 3 ; if pc + 3 > codesize
@@ -4722,14 +5405,14 @@ M mov r10, [rip+$codesize] ; if pc + 3 > codesize
 M mov r11, r10 ; if pc + 3 > codesize
 M mov r10, [rbp-18] ; if pc + 3 > codesize
 M cmp r10, r11 ; if pc + 3 > codesize
-M jle $_if109e ; if pc + 3 > codesize
+M jle $_if121e ; if pc + 3 > codesize
 M mov r10, 2 ; fail_trap(2)
 M mov [rbp-28], r10 ; fail_trap(2)
 M mov rcx, [rbp-28] ; fail_trap(2)
 M call $fail_trap ; fail_trap(2)
-:_if109e
-M jmp $_if108e ; if op >= 2 && op <= 11
-:_if108
+:_if121e
+M jmp $_if120e ; if op >= 2 && op <= 11 || op >= 19 && op <= 22
+:_if120
 M mov r10, [rip+$pc] ; if pc + 6 > codesize
 M mov [rbp-20], r10 ; if pc + 6 > codesize
 M mov r10, 6 ; if pc + 6 > codesize
@@ -4741,194 +5424,233 @@ M mov r10, [rip+$codesize] ; if pc + 6 > codesize
 M mov r11, r10 ; if pc + 6 > codesize
 M mov r10, [rbp-18] ; if pc + 6 > codesize
 M cmp r10, r11 ; if pc + 6 > codesize
-M jle $_if110e ; if pc + 6 > codesize
+M jle $_if122e ; if pc + 6 > codesize
 M mov r10, 2 ; fail_trap(2)
 M mov [rbp-28], r10 ; fail_trap(2)
 M mov rcx, [rbp-28] ; fail_trap(2)
 M call $fail_trap ; fail_trap(2)
-:_if110e
-:_if108e
+:_if122e
+:_if120e
 M mov r10, [rbp-8] ; if op == 1
 M mov [rbp-18], r10 ; if op == 1
 M mov r10, 1 ; if op == 1
 M mov r11, r10 ; if op == 1
 M mov r10, [rbp-18] ; if op == 1
 M cmp r10, r11 ; if op == 1
-M jne $_if111e ; if op == 1
+M jne $_if123e ; if op == 1
 M call $op_const ; op_const()
-M jmp $_w104 ; continue
-:_if111e
+M jmp $_w116 ; continue
+:_if123e
 M mov r10, [rbp-8] ; if op == 2
 M mov [rbp-18], r10 ; if op == 2
 M mov r10, 2 ; if op == 2
 M mov r11, r10 ; if op == 2
 M mov r10, [rbp-18] ; if op == 2
 M cmp r10, r11 ; if op == 2
-M jne $_if112e ; if op == 2
+M jne $_if124e ; if op == 2
 M call $op_mov ; op_mov()
-M jmp $_w104 ; continue
-:_if112e
+M jmp $_w116 ; continue
+:_if124e
 M mov r10, [rbp-8] ; if op == 3
 M mov [rbp-18], r10 ; if op == 3
 M mov r10, 3 ; if op == 3
 M mov r11, r10 ; if op == 3
 M mov r10, [rbp-18] ; if op == 3
 M cmp r10, r11 ; if op == 3
-M jne $_if113e ; if op == 3
+M jne $_if125e ; if op == 3
 M call $op_add ; op_add()
-M jmp $_w104 ; continue
-:_if113e
+M jmp $_w116 ; continue
+:_if125e
 M mov r10, [rbp-8] ; if op == 4
 M mov [rbp-18], r10 ; if op == 4
 M mov r10, 4 ; if op == 4
 M mov r11, r10 ; if op == 4
 M mov r10, [rbp-18] ; if op == 4
 M cmp r10, r11 ; if op == 4
-M jne $_if114e ; if op == 4
+M jne $_if126e ; if op == 4
 M call $op_sub ; op_sub()
-M jmp $_w104 ; continue
-:_if114e
+M jmp $_w116 ; continue
+:_if126e
 M mov r10, [rbp-8] ; if op == 5
 M mov [rbp-18], r10 ; if op == 5
 M mov r10, 5 ; if op == 5
 M mov r11, r10 ; if op == 5
 M mov r10, [rbp-18] ; if op == 5
 M cmp r10, r11 ; if op == 5
-M jne $_if115e ; if op == 5
+M jne $_if127e ; if op == 5
 M call $op_and ; op_and()
-M jmp $_w104 ; continue
-:_if115e
+M jmp $_w116 ; continue
+:_if127e
 M mov r10, [rbp-8] ; if op == 6
 M mov [rbp-18], r10 ; if op == 6
 M mov r10, 6 ; if op == 6
 M mov r11, r10 ; if op == 6
 M mov r10, [rbp-18] ; if op == 6
 M cmp r10, r11 ; if op == 6
-M jne $_if116e ; if op == 6
+M jne $_if128e ; if op == 6
 M call $op_or ; op_or()
-M jmp $_w104 ; continue
-:_if116e
+M jmp $_w116 ; continue
+:_if128e
 M mov r10, [rbp-8] ; if op == 7
 M mov [rbp-18], r10 ; if op == 7
 M mov r10, 7 ; if op == 7
 M mov r11, r10 ; if op == 7
 M mov r10, [rbp-18] ; if op == 7
 M cmp r10, r11 ; if op == 7
-M jne $_if117e ; if op == 7
+M jne $_if129e ; if op == 7
 M call $op_xor ; op_xor()
-M jmp $_w104 ; continue
-:_if117e
+M jmp $_w116 ; continue
+:_if129e
 M mov r10, [rbp-8] ; if op == 8
 M mov [rbp-18], r10 ; if op == 8
 M mov r10, 8 ; if op == 8
 M mov r11, r10 ; if op == 8
 M mov r10, [rbp-18] ; if op == 8
 M cmp r10, r11 ; if op == 8
-M jne $_if118e ; if op == 8
+M jne $_if130e ; if op == 8
 M call $op_shl ; op_shl()
-M jmp $_w104 ; continue
-:_if118e
+M jmp $_w116 ; continue
+:_if130e
 M mov r10, [rbp-8] ; if op == 9
 M mov [rbp-18], r10 ; if op == 9
 M mov r10, 9 ; if op == 9
 M mov r11, r10 ; if op == 9
 M mov r10, [rbp-18] ; if op == 9
 M cmp r10, r11 ; if op == 9
-M jne $_if119e ; if op == 9
+M jne $_if131e ; if op == 9
 M call $op_shr ; op_shr()
-M jmp $_w104 ; continue
-:_if119e
+M jmp $_w116 ; continue
+:_if131e
 M mov r10, [rbp-8] ; if op == 10
 M mov [rbp-18], r10 ; if op == 10
 M mov r10, A ; if op == 10
 M mov r11, r10 ; if op == 10
 M mov r10, [rbp-18] ; if op == 10
 M cmp r10, r11 ; if op == 10
-M jne $_if120e ; if op == 10
+M jne $_if132e ; if op == 10
 M call $op_lt ; op_lt()
-M jmp $_w104 ; continue
-:_if120e
+M jmp $_w116 ; continue
+:_if132e
 M mov r10, [rbp-8] ; if op == 11
 M mov [rbp-18], r10 ; if op == 11
 M mov r10, B ; if op == 11
 M mov r11, r10 ; if op == 11
 M mov r10, [rbp-18] ; if op == 11
 M cmp r10, r11 ; if op == 11
-M jne $_if121e ; if op == 11
+M jne $_if133e ; if op == 11
 M call $op_eq ; op_eq()
-M jmp $_w104 ; continue
-:_if121e
+M jmp $_w116 ; continue
+:_if133e
 M mov r10, [rbp-8] ; if op == 12
 M mov [rbp-18], r10 ; if op == 12
 M mov r10, C ; if op == 12
 M mov r11, r10 ; if op == 12
 M mov r10, [rbp-18] ; if op == 12
 M cmp r10, r11 ; if op == 12
-M jne $_if122e ; if op == 12
+M jne $_if134e ; if op == 12
 M call $op_ldb ; op_ldb()
-M jmp $_w104 ; continue
-:_if122e
+M jmp $_w116 ; continue
+:_if134e
 M mov r10, [rbp-8] ; if op == 13
 M mov [rbp-18], r10 ; if op == 13
 M mov r10, D ; if op == 13
 M mov r11, r10 ; if op == 13
 M mov r10, [rbp-18] ; if op == 13
 M cmp r10, r11 ; if op == 13
-M jne $_if123e ; if op == 13
+M jne $_if135e ; if op == 13
 M call $op_stb ; op_stb()
-M jmp $_w104 ; continue
-:_if123e
+M jmp $_w116 ; continue
+:_if135e
 M mov r10, [rbp-8] ; if op == 14
 M mov [rbp-18], r10 ; if op == 14
 M mov r10, E ; if op == 14
 M mov r11, r10 ; if op == 14
 M mov r10, [rbp-18] ; if op == 14
 M cmp r10, r11 ; if op == 14
-M jne $_if124e ; if op == 14
+M jne $_if136e ; if op == 14
 M call $op_ldq ; op_ldq()
-M jmp $_w104 ; continue
-:_if124e
+M jmp $_w116 ; continue
+:_if136e
 M mov r10, [rbp-8] ; if op == 15
 M mov [rbp-18], r10 ; if op == 15
 M mov r10, F ; if op == 15
 M mov r11, r10 ; if op == 15
 M mov r10, [rbp-18] ; if op == 15
 M cmp r10, r11 ; if op == 15
-M jne $_if125e ; if op == 15
+M jne $_if137e ; if op == 15
 M call $op_stq ; op_stq()
-M jmp $_w104 ; continue
-:_if125e
+M jmp $_w116 ; continue
+:_if137e
 M mov r10, [rbp-8] ; if op == 16
 M mov [rbp-18], r10 ; if op == 16
 M mov r10, 10 ; if op == 16
 M mov r11, r10 ; if op == 16
 M mov r10, [rbp-18] ; if op == 16
 M cmp r10, r11 ; if op == 16
-M jne $_if126e ; if op == 16
+M jne $_if138e ; if op == 16
 M call $op_jmp ; op_jmp()
-M jmp $_w104 ; continue
-:_if126e
+M jmp $_w116 ; continue
+:_if138e
 M mov r10, [rbp-8] ; if op == 17
 M mov [rbp-18], r10 ; if op == 17
 M mov r10, 11 ; if op == 17
 M mov r11, r10 ; if op == 17
 M mov r10, [rbp-18] ; if op == 17
 M cmp r10, r11 ; if op == 17
-M jne $_if127e ; if op == 17
+M jne $_if139e ; if op == 17
 M call $op_jnz ; op_jnz()
-M jmp $_w104 ; continue
-:_if127e
+M jmp $_w116 ; continue
+:_if139e
 M mov r10, [rbp-8] ; if op == 18
 M mov [rbp-18], r10 ; if op == 18
 M mov r10, 12 ; if op == 18
 M mov r11, r10 ; if op == 18
 M mov r10, [rbp-18] ; if op == 18
 M cmp r10, r11 ; if op == 18
-M jne $_if128e ; if op == 18
+M jne $_if140e ; if op == 18
 M call $op_halt ; op_halt()
-:_if128e
-M jmp $_w104 ; while go == 1
-:_w104e
+:_if140e
+M mov r10, [rbp-8] ; if op == 19
+M mov [rbp-18], r10 ; if op == 19
+M mov r10, 13 ; if op == 19
+M mov r11, r10 ; if op == 19
+M mov r10, [rbp-18] ; if op == 19
+M cmp r10, r11 ; if op == 19
+M jne $_if141e ; if op == 19
+M call $op_mul ; op_mul()
+M jmp $_w116 ; continue
+:_if141e
+M mov r10, [rbp-8] ; if op == 20
+M mov [rbp-18], r10 ; if op == 20
+M mov r10, 14 ; if op == 20
+M mov r11, r10 ; if op == 20
+M mov r10, [rbp-18] ; if op == 20
+M cmp r10, r11 ; if op == 20
+M jne $_if142e ; if op == 20
+M call $op_div ; op_div()
+M jmp $_w116 ; continue
+:_if142e
+M mov r10, [rbp-8] ; if op == 21
+M mov [rbp-18], r10 ; if op == 21
+M mov r10, 15 ; if op == 21
+M mov r11, r10 ; if op == 21
+M mov r10, [rbp-18] ; if op == 21
+M cmp r10, r11 ; if op == 21
+M jne $_if143e ; if op == 21
+M call $op_mod ; op_mod()
+M jmp $_w116 ; continue
+:_if143e
+M mov r10, [rbp-8] ; if op == 22
+M mov [rbp-18], r10 ; if op == 22
+M mov r10, 16 ; if op == 22
+M mov r11, r10 ; if op == 22
+M mov r10, [rbp-18] ; if op == 22
+M cmp r10, r11 ; if op == 22
+M jne $_if144e ; if op == 22
+M call $op_sra ; op_sra()
+:_if144e
+M jmp $_w116 ; while go == 1
+:_w116e
 M mov r10, 0 ; return 0
 M mov rax, r10 ; return 0
 M mov rsp, rbp ; выход interp
@@ -5012,7 +5734,7 @@ M neg r10 ; if fh == -1
 M mov r11, r10 ; if fh == -1
 M mov r10, [rbp-18] ; if fh == -1
 M cmp r10, r11 ; if fh == -1
-M jne $_if129e ; if fh == -1
+M jne $_if145e ; if fh == -1
 M lea r10, [rip+$s_oup] ; print_error(s_oup, len(s_oup), 4)
 M mov [rbp-20], r10 ; print_error(s_oup, len(s_oup), 4)
 M mov r10, 18 ; print_error(s_oup, len(s_oup), 4)
@@ -5023,7 +5745,7 @@ M mov rcx, [rbp-20] ; print_error(s_oup, len(s_oup), 4)
 M mov rdx, [rbp-28] ; print_error(s_oup, len(s_oup), 4)
 M mov r8, [rbp-30] ; print_error(s_oup, len(s_oup), 4)
 M call $print_error ; print_error(s_oup, len(s_oup), 4)
-:_if129e
+:_if145e
 M mov r10, [rbp-10] ; read_up(fh)
 M mov [rbp-20], r10 ; read_up(fh)
 M mov rcx, [rbp-20] ; read_up(fh)
@@ -5106,6 +5828,10 @@ DZ 8 ; var pc
 DZ 8 ; var steps
 :steplim
 DZ 8 ; var steplim
+:uq
+DZ 8 ; var uq
+:ur
+DZ 8 ; var ur
 :regs
 DZ 80 ; var regs[16]
 :got

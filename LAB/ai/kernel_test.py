@@ -6,9 +6,10 @@
           — сборка конвейером РЕАЛЬНЫХ инструментов под эмуляцией
           (wall.exe -> enc.exe -> brick.exe -> pegen.exe; фикс-пункт
           воспроизводимости закреплён в батарее — T-E7-09);
-       2) отчёт [OK]/[FAIL] по корпусу срезов 1-2 (CLI, контейнер .UP,
-          halt-программы, ловушки 1/2, ALU среза 2 — диффтест с
-          оракулом lab_vm);
+       2) отчёт [OK]/[FAIL] по корпусу секции 14 (CLI, контейнер .UP
+          v1/v2, halt/ловушки, ALU v0/v1 (E7.4-2b: mul/div/mod/sra +
+          ловушка 7), память, переходы, предел шагов, секция данных —
+          диффтест с оракулом lab_vm);
        3) карта меток kernel.brick (для BYTECODE.md — лениво: импорт
           label_map) и SHA-256 артефактов (для VERIFY.md).
 Запуск: python3 LAB/ai/kernel_test.py  (из корня репозитория)
@@ -50,7 +51,7 @@ def kernel_host():
 
 
 def main():
-    print("=== kernel_test: сборка ядра M3-UNIVM (E7.2-4) ===")
+    print("=== kernel_test: сборка ядра M3-UNIVM (E7.4-2b) ===")
     ok, a, note = lab_t_kernel.build(kpath, kfile, kernel_host)
     print("[OK] сборка" if ok else "[FAIL] сборка", note)
     if not ok:
