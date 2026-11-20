@@ -4,8 +4,9 @@
 Запуск: python3 LAB/ai/battery_groups.py <1|2|3>
   1 — секции 1-11 (целостность/PE/сценарии/оракулы/круги/enc/wall)
   2 — секция 12 (каркас wall.wall: ФИКСПУНКТ ~0.55 млрд шагов)
-  3 — секции 13-17 (оракул UNIVM / ядро kernel.exe / ассемблер
-      uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3)
+  3 — секции 13-18 (оракул UNIVM / ядро kernel.exe / ассемблер
+      uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3 /
+      мост BRIDGE v1 — E9.1)
 """
 import sys
 
@@ -37,6 +38,7 @@ def main():
         V.lab_t_uva.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_l4.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_prj.run(V.check, V.kpath, V.kfile, V.kernel_host)
+        V.lab_t_bridge.run(V.check, V.kpath, V.kfile, V.kernel_host)
     else:
         print("группа?") 
         return 2

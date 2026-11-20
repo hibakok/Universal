@@ -1,0 +1,103 @@
+"""lab_bridge_cases.py — якоря моста BRIDGE v1 (SPEC/15, E9.1).
+
+Вход:  нет (литералы). Выход: SEED_FACTS / SEED_B2 / SEED_PEG.
+Функция: ручные якоря (свидетель №3) для секции 18 батареи:
+         факты разбора и ПОЛНЫЕ тексты моста для seed.exe. Каждая
+         M-строка сверена с документированным разбором
+         KERNEL/L0-SEED/BYTECODE.md (28 инструкций, все совпадают);
+         метки/структуры импорта — с раскладкой RVA модуля.
+"""
+
+# Факты разбора seed.exe (T-E9-01): тело 0x1C0 (vsize), raw 0x200,
+# вход RVA 0x1000, 3 импорта; хвост 7 нулей уходит в !bss (SPEC/15 п. 7).
+SEED_FACTS = {
+    "module": "seed",
+    "entry_off": 0,
+    "vsize": 0x1C0,
+    "raw": 0x200,
+    "target": 0x1B9,
+    "bss": 7,
+    "imports": ["GetStdHandle", "WriteFile", "ExitProcess"],
+}
+
+# Полный текст BRICK v2 моста для seed.exe (T-E9-02). Круг
+# enc -> brick -> pegen(+SEED_PEG) воспроизводит seed.exe байт-в-байт.
+SEED_B2 = """\
+; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)
+; Исходник: seed.exe (тело секции RVA 1000, 1B9 Б; !bss 7)
+; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE
+M sub rsp, 28 ; @0000
+M lea rbx, [rip+$base] ; @0004
+M mov eax, [rbx+3C] ; @000B
+M mov eax, [rbx+rax+50] ; @000E
+M cdqe ; @0012
+M lea rsi, [rip+$d1080] ; @0014
+M add rsi, 15 ; @001B
+M lea r8, [rip+$d109f] ; @001F
+M mov ecx, 8 ; @0026
+:l102b ; @002B
+M rol eax, 4 ; @002B
+M mov rdx, rax ; @002E
+M and edx, F ; @0031
+M movzx edx, byte [r8+rdx] ; @0034
+M mov [rsi], dl ; @0039
+M inc rsi ; @003B
+M dec ecx ; @003E
+M jnz $l102b:1 ; @0040
+M mov rcx, -B ; @0042
+M call [rip+$iat_getstdhandle] ; @0049
+M mov rcx, rax ; @004F
+M lea rdx, [rip+$d1080] ; @0052
+M mov r8d, 1F ; @0059
+M lea r9, [rip+$d10af] ; @005F
+M mov qword [rsp+20], 0 ; @0066
+M call [rip+$iat_writefile] ; @006F
+M xor rcx, rcx ; @0075
+M call [rip+$iat_exitprocess] ; @0078
+M int3 ; @007E
+DB 00 ; @007F
+:d1080 ; @0080
+DB 55 2D 4C 30 2D 53 45 45 44 20 4F 4B 20 49 4D 41 ; @0080
+DB 47 45 3D 30 78 ; @0090
+DZ 8 ; @0095
+DB 0D 0A ; @009D
+:d109f ; @009F
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 ; @009F
+:d10af ; @00AF
+DZ 51 ; @00AF
+DD $d1160 0 0 $d1180 $iat_getstdhandle ; @0100
+DZ 1C ; @0114
+:iat_getstdhandle ; @0130
+DQ $d1190 ; @0130
+:iat_writefile ; @0138
+DQ $d11a0 ; @0138
+:iat_exitprocess ; @0140
+DQ $d11ac ; @0140
+DQ 0 ; @0148
+DZ 10 ; @0150
+:d1160 ; @0160
+DQ $d1190 ; @0160
+DQ $d11a0 ; @0168
+DQ $d11ac ; @0170
+DQ 0 ; @0178
+:d1180 ; @0180
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C ; @0180
+DZ 4 ; @018C
+:d1190 ; @0190
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 00 ; @0190
+:d11a0 ; @01A0
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; @01A0
+:d11ac ; @01AC
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 ; @01AC
+"""
+
+# Полный текст PEG v1 моста для seed.exe (T-E9-03): хвостовые нули
+# тела (7 Б) перенесены в !bss — EXE собирается тем же байт-в-байт.
+SEED_PEG = """\
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: seed.exe
+!module seed
+!entry 1000
+!idata 1100 28
+!iat 1130 20
+!bss 7
+"""

@@ -77,6 +77,10 @@
             инструментами splice -> uva -> kernel реальных исходников:
             T-P-01 banner (C+N+S+M, .UP v2), T-P-02 fib (C+N, ряд,
             .UP v1) — вывод == оракулу и якорям TESTS/T-PROJECTS.md;
+         18) мост BRIDGE v1 (lab_t_bridge, E9.1 — оракул lab_bridge +
+            якоря lab_bridge_cases, SPEC/15): EXE -> BRICK v2 + PEG —
+            тексты seed == якорям, круг всех 11 артефактов == EXE
+            байт-в-байт, сквозной круг инструментами (seed, hxdump);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -104,6 +108,7 @@ import lab_t_uva
 import lab_t_vm
 import lab_t_l4
 import lab_t_prj
+import lab_t_bridge
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -162,11 +167,6 @@ def kernel_host():
             rel = os.path.relpath(p, KERNEL).replace(os.sep, "/").lower()
             files[rel] = open(p, "rb").read()
     return files
-
-
-def emu(exe, args, host):
-    return lab_run.run_kv(kpath("L0-HEXGEN/hexgen.exe"), [], {}) if exe \
-        is None else lab_run.run_kv(kpath(exe), args, host)
 
 
 # ------------------------------------------------------------------ 1
@@ -464,10 +464,9 @@ def _enc_rejects(m):
         return True
 
 
-# ------------------------------------------------------------------ 7+8
-# Секции 7 (enc.exe), 8 (splice.exe) и 8b (brick.exe) — в
-# LAB/py/lab_t_exe.py (лимит 500)
-# Секция 9 (оракул WALL v1, E6.4a) — в LAB/py/lab_t_wall.py (лимит 500)
+# ------------------------------------------------------------ 7..9
+# Секции 7/8/8b (enc/splice/brick) — lab_t_exe.py; 9 (оракул WALL) —
+# lab_t_wall.py (лимит 500)
 
 
 def main():
@@ -488,6 +487,7 @@ def main():
     lab_t_uva.run(check, kpath, kfile, kernel_host)
     lab_t_l4.run(check, kpath, kfile, kernel_host)
     lab_t_prj.run(check, kpath, kfile, kernel_host)
+    lab_t_bridge.run(check, kpath, kfile, kernel_host)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

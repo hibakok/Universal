@@ -46,7 +46,7 @@ def _reg(op):
     if size == 16:
         return R16[idx]
     if size == 32:
-        return R64[idx].replace("r", "e", 1) if idx >= 8 else \
+        return "r%dd" % idx if idx >= 8 else \
             ["eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"][idx]
     return R64[idx]
 
