@@ -4,6 +4,7 @@
 *.brick text eol=lf
 *.b2 text eol=lf
 *.wall text eol=lf
+*.uva text eol=lf
 # Исполняемые образы — бинарные
 *.exe binary
 # Текстовая документация — как есть (LF в репозитории)
