@@ -5,30 +5,33 @@
 ; (SPEC/09), обёртка -> PEG v1 (SPEC/07); семантика — оракул
 ; LAB/py/lab_bridge.py (правило R8, SPEC/15).
 ; Срез E9.2-1 (КАРКАС): CLI — ровно три аргумента (вход .exe, выход .b2,
-; выход .peg; выходные файлы не пишутся до срезов эмиссии), чтение файла
-; EXE в кучу одним ReadFile (GlobalAlloc 262145; предел 256 КиБ),
-; разбор PE-заголовков по ФИКСИРОВАННЫМ смещениям SPEC/04 и СЕМЕЙНАЯ
-; ПРОВЕРКА (ветвь P: инварианты SPEC/04 минус два легальных отклонения
-; семейства — вход 0x1200 и RawSize > VirtualSize, SPEC/15 п. 2; имя
-; модуля из DOS-заглушки; структуры импорта; любое нарушение —
-; ERR=FAMILY, код 6).
+; выход .peg), чтение файла EXE в кучу одним ReadFile (GlobalAlloc
+; 262145; предел 256 КиБ), разбор PE-заголовков по ФИКСИРОВАННЫМ
+; смещениям SPEC/04 и СЕМЕЙНАЯ ПРОВЕРКА (ветвь P: инварианты SPEC/04
+; минус два легальных отклонения семейства — вход 0x1200 и RawSize >
+; VirtualSize, SPEC/15 п. 2; имя модуля из DOS-заглушки; структуры
+; импорта; любое нарушение — ERR=FAMILY, код 6).
 ; Срез E9.2-2 (СПУСК): декодер x86-подмножества SPEC/05 (ветвь D —
-; bridge_self_d.wall + bridge_self_d2.wall: длины/классы/прямые цели
-; == lab_x86.decode оракула) и спуск от входа (ветвь W —
-; bridge_self_w.wall: стек целей, тени — младший адрес побеждает,
-; ВСЕ-НУЛЕВЫЕ байты — данные, target/bss по SPEC/15 п. 3/7; новые
-; отказы — инструкция за VirtualSize, длина тела больше VirtualSize).
-; Успех — факт-строка расширяется: MODULE/ENTRY/VSIZE/RAW/IMP +
-; INS/TARGET/BSS — факты == оракулу parse_family на всех 12
-; артефактах семейства + синтетика теней (T-E9-18/T-E9-21).
-; Эмиссия b2/peg и запись выходов — срезы E9.2-3+.
+; bridge_self_d.wall + bridge_self_d2.wall == lab_x86.decode оракула)
+; и спуск от входа (ветвь W — bridge_self_w.wall: стек целей, тени —
+; младший адрес побеждает, ВСЕ-НУЛЕВЫЕ байты — данные, target/bss по
+; SPEC/15 п. 3/7); факт-строка MODULE/ENTRY/VSIZE/RAW/IMP +
+; INS/TARGET/BSS == оракулу (T-E9-18/T-E9-21).
+; Срез E9.2-3a (RAW-ЭМИССИЯ): декодер расширен ПОЛНЫМИ операндами
+; (мнемоника/регистры/imm/память/цели — сырьё примечаний H-строк),
+; ветвь E (bridge_self_e.wall) — шапка SPEC/15 + H-строки выживших
+; инструкций + данные DZ/DB между ними (режим RAW оракула
+; _emit_lines) + ЗАПИСЬ <выход>.b2 (коды 8/9 — OPEN/WRITE OUT);
+; M-строки/метки/семантика — срезы E9.2-3b/c, PEG — E9.2-4.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
-; bridge_self_d2.wall; спуск W — bridge_self_w.wall).
+; bridge_self_d2.wall; спуск W — bridge_self_w.wall; эмиссия E —
+; bridge_self_e.wall).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
-; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7) — карточка CARD.md.
+; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8),
+; ERR=WRITE OUT (9) — карточка CARD.md.
 ; Сборка (полный круг, инструменты ядра; обёртка — bridge.peg):
 ;   splice.exe bridge.wall bridge_s.flat
 ;   wall.exe   bridge_s.flat bridge_s.b2
@@ -90,10 +93,43 @@ var dtgt
 var dpos
 var mpos
 var mreg
+var dname
+var dcc
+var dargc
+var da1k
+var da2k
+var da1r
+var da2r
+var da1s
+var da2s
+var da1v
+var da2v
+var damem
+var ombase
+var omidx
+var omscale
+var omdisp
+var omsize
+var omrip
+var mkind
+var mrreg
+var mrdip
+var mripon
+var sdump
+var outmem
+var outbuf
+var outcur
 var arg1[16]
 var arg2[16]
 var arg3[16]
 var factbuf[24]
+var o_mn[29]
+var o_cc[17]
+var o_r64[17]
+var o_r8[17]
+var o_r16[17]
+var o_r32[17]
+var tplb[25]
 var w1[32]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
@@ -102,6 +138,8 @@ str s_oexe = 'U-L5-BRIDGE ERR=OPEN EXE\r\n'
 str s_rexe = 'U-L5-BRIDGE ERR=READ EXE\r\n'
 str s_family = 'U-L5-BRIDGE ERR=FAMILY\r\n'
 str s_big = 'U-L5-BRIDGE ERR=BIG EXE\r\n'
+str s_oout = 'U-L5-BRIDGE ERR=OPEN OUT\r\n'
+str s_wout = 'U-L5-BRIDGE ERR=WRITE OUT\r\n'
 str s_f1 = 'U-L5-BRIDGE MODULE='
 str s_f2 = ' ENTRY='
 str s_f3 = ' VSIZE='
@@ -114,24 +152,43 @@ str s_crlf = '\r\n'
 str s_pref = 'Universal L0 '
 str s_needle = '. No DOS support.'
 str s_dll = 'kernel32.dll'
+str s_h = 'H '
+str s_at = ' ; @'
+str s_dz = 'DZ '
+str s_db = 'DB '
+str s_mem = '[mem]'
+str s_rip = '[rip'
+str s_cl = 'cl'
+str s_j = 'j'
+str s_comma = ', '
+str s_mn = '\0add\0or\0and\0sub\0xor\0cmp\0test\0mov\0lea\0push\0pop\0cdqe\0cqo\0cdq\0ret\0int3\0jmp\0call\0movzx\0imul\0rol\0shl\0shr\0sar\0neg\0idiv\0inc\0dec\0'
+str s_cc = 'o\0no\0b\0ae\0z\0nz\0be\0a\0s\0ns\0p\0np\0l\0ge\0le\0g\0'
+str s_r64 = 'rax\0rcx\0rdx\0rbx\0rsp\0rbp\0rsi\0rdi\0r8\0r9\0r10\0r11\0r12\0r13\0r14\0r15\0'
+str s_r8 = 'al\0cl\0dl\0bl\0spl\0bpl\0sil\0dil\0r8b\0r9b\0r10b\0r11b\0r12b\0r13b\0r14b\0r15b\0'
+str s_r16 = 'ax\0cx\0dx\0bx\0sp\0bp\0si\0di\0r8w\0r9w\0r10w\0r11w\0r12w\0r13w\0r14w\0r15w\0'
+str s_r32 = 'eax\0ecx\0edx\0ebx\0esp\0ebp\0esi\0edi\0r8d\0r9d\0r10d\0r11d\0r12d\0r13d\0r14d\0r15d\0'
+str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D182204252494447452076312028535045432F3135290A3B20D098D181D185D0BED0B4D0BDD0B8D0BA3A202E6578652028D182D0B5D0BBD0BE20D181D0B5D0BAD186D0B8D0B82052564120313030302C2020D0913B202162737320290A3B20D09AD180D183D0B33A20656E63202D3E20627269636B202D3E20706567656E282B70656720D0BCD0BED181D182D0B029203D3D20D0B8D181D185D0BED0B4D0BDD18BD0B9204558450A'
 
 !include bridge_self_c.wall
 !include bridge_self_pe.wall
 !include bridge_self_d.wall
 !include bridge_self_d2.wall
 !include bridge_self_w.wall
+!include bridge_self_e.wall
 
 func main
   var i
   var fh
   var rc
   var nlen1
+  var nlen2
   hstdout = GetStdHandle(-11)
   cmdline = GetCommandLineA()
   i = skip0()
   i = read_arg(arg1, i)
   nlen1 = wlen
   i = read_arg(arg2, i)
+  nlen2 = wlen
   i = read_arg(arg3, i)
   check_end(i)
   widen(w1, arg1, nlen1)
@@ -165,6 +222,8 @@ func main
   walk_code()
   sweep_ins()
   calc_target()
+  init_tables()
+  emit_raw(nlen2)
   print_facts()
   ExitProcess(0)
 end

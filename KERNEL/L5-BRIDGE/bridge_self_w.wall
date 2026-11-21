@@ -1,4 +1,4 @@
-; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2)
+; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_w.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь W моста — СЛОВАРЬ спуска оракула _walk/_sweep/
 ; parse_family (SPEC/15 п. 3, п. 7): K5-W001 walk_code — стек целей
@@ -10,12 +10,16 @@
 ; min(vsize, rawsize) — эквивалент предела vsize оракула при чтениях,
 ; ограниченных телом); K5-W002 sweep_ins — пересечения: младший адрес
 ; побеждает (курсор концов; выжившая инструкция, конец за vsize —
-; ERR=FAMILY; счёт inscount и maxend); K5-W003 calc_target — длина
-; тела: max(последний ненулевой байт + 1, концы выживших, 1);
-; выравнивающая вилка: align_up(target) != rawsize -> target =
-; rawsize - 511 (минимальная длина той же вилки); target > vsize —
-; ERR=FAMILY; bss = vsize - target. Факты INS/TARGET/BSS — факты
-; оракула parse_family (диффтест T-E9-18/21); эмиссия b2/peg — E9.2-3+.
+; ERR=FAMILY; счёт inscount и maxend) + СДАМП ВЫЖИВШИХ sdump (E9.2-3a:
+; куча rawlim*8+8 — по qword на старт, эмиссия ветви E идёт по нему
+; в порядке возрастания — без повторных сканов insmap; доказуемый
+; предел: выживших <= rawlim — каждая занимает >= 1 байт); K5-W003
+; calc_target — длина тела: max(последний ненулевой байт + 1, концы
+; выживших, 1); выравнивающая вилка: align_up(target) != rawsize ->
+; target = rawsize - 511 (минимальная длина той же вилки); target >
+; vsize — ERR=FAMILY; bss = vsize - target. Факты INS/TARGET/BSS —
+; факты оракула parse_family (диффтест T-E9-18/21); raw-эмиссия по
+; sdump — T-E9-22/23 (ветвь E).
 
 ; спуск от точки входа: карты стартов/длин + стек целей (кучи);
 ; проход каждой цели вперёд: уже разобрана / сбой декодера / нули —
@@ -81,11 +85,17 @@ end
 ; тени: пересечения путей — младший адрес побеждает; выжившие: конец
 ; (локаль iend — имя «end» занято терминатором блока WALL) за
 ; VirtualSize — ERR=FAMILY (как BridgeError оракула; проверяются
-; ТОЛЬКО выжившие); inscount и maxend (концы выживших) -> глобали
+; ТОЛЬКО выжившие); inscount и maxend (концы выживших) -> глобали;
+; СДАМП: старты выживших по возрастанию -> куча sdump (E9.2-3a —
+; курс эмиссии ветви E; размер rawlim*8+8 — по qword на выжившего)
 func sweep_ins
   var a
   var ln
   var iend
+  sdump = GlobalAlloc(0, rawlim * 8 + 8)
+  if sdump == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
   inscount = 0
   maxend = 0
   swcur = 0
@@ -100,6 +110,7 @@ func sweep_ins
       if iend > maxend
         maxend = iend
       end
+      sdump[inscount] = a
       inscount = inscount + 1
       swcur = iend
     end

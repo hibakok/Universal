@@ -1,4 +1,4 @@
-"""bridge_test.py — построитель и dev-тест моста bridge.exe (E9.2-1/2,
+"""bridge_test.py — построитель и dev-тест моста bridge.exe (E9.2-1/2/3a,
 LAB/ai; НЕ часть системы UNIVERSAL — частный инструмент ИИ, как
 kernel_test.py).
 
@@ -9,11 +9,13 @@ kernel_test.py).
           эмуляцией (wall.exe -> enc.exe -> brick.exe -> pegen.exe;
           фикс-пункт воспроизводимости закреплён в батарее — T-E9-17);
        2) отчёт [OK]/[FAIL] секции 18 батареи целиком (LAB/py/
-          lab_t_bridge.py: T-E9-01..21 — оракул E9.1 + КАРКАС E9.2-1
-          + СПУСК E9.2-2: фикс-пункт сборки, факт-строки (с
+          lab_t_bridge.py: T-E9-01..23 — оракул E9.1 + КАРКАС E9.2-1
+          + СПУСК E9.2-2 + RAW-ЭМИССИЯ E9.2-3a: фикс-пункт сборки
+          (шаг wall > 200 млн — lab_win 2 млрд), факт-строки (с
           INS/TARGET/BSS) == оракулу на 12 артефактах, CLI-контракт +
-          мутант-отказы (вкл. отказы спуска) + легальные отклонения,
-          синтетика теней T-E9-21, круг оракула над bridge.exe);
+          мутант-отказы + легальные отклонения, синтетика теней
+          T-E9-21, raw-эмиссия t.b2 == оракулу (T-E9-22) + круг raw
+          инструментами (T-E9-23), круг оракула над bridge.exe);
        3) карта меток bridge.brick (для BYTECODE.md — лениво: импорт
           label_map) и SHA-256 артефактов (для VERIFY.md).
 Запуск: python3 LAB/ai/bridge_test.py  (из корня репозитория)
@@ -54,7 +56,7 @@ def kernel_host():
 
 
 def main():
-    print("=== bridge_test: сборка моста M5-BRIDGE (E9.2-1) ===")
+    print("=== bridge_test: сборка моста M5-BRIDGE (E9.2-3a) ===")
     ok, a, note = lab_t_bridge.build(kpath, kfile, kernel_host)
     print("[OK] сборка" if ok else "[FAIL] сборка", note)
     if not ok:

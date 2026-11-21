@@ -1,19 +1,23 @@
-; bridge_self_d.wall — декодер x86-подмножества SPEC/05, часть 1 (E9.2-2)
+; bridge_self_d.wall — декодер x86-подмножества SPEC/05, часть 1 (E9.2-3a)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_d.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь D моста (декодер) — байтовая сторона: чтение байтов с
 ; границей (K5-D001 fb), знаковое расширение rel8/rel32 (K5-D002/K5-D003),
-; разбор modrm+SIB+disp по длине (K5-D004 modrm_skip — НОМЕРА reg/rm
-; важны для групп: mreg c учётом REX.R), 0F-путь (K5-D005 dec0f: jcc
-; rel32/movzx/imul), ALU-семейства 00..3D (K5-D006 decalu: r/m-формы +
-; AL,imm8 + eAX,imm32 — точные множества байтов как lab_x86) и
-; modrm-без-imm (K5-D007 decmod: test/mov/lea). Диспетчер и остальные
-; группы — bridge_self_d2.wall (K5-D008..D013); спуск — bridge_self_w.wall
-; (ветвь W). Эквивалентность оракулу LAB/py/lab_x86.decode: длины, класс
-; (ret/int3-терминал, jmp, jcc, call rel32), прямые цели — только они
-; нужны спуску (SPEC/15 п. 3); операнды/имена регистров — срез E9.2-3.
-; Чтение за границей файла = отказ декодирования (как IndexError
-; оракула; fb -> -1). Границы: exelen — конец файла == конец тела
-; (семейный инвариант размеров SPEC/04).
+; БЕЗзнаковые чтения u32/u64 (K5-D014/K5-D015 — imm32/imm64 семейств),
+; ПОЛНЫЙ разбор modrm+SIB+disp (K5-D004 modrm_read — вместо modrm_skip
+; E9.2-2: регистр mod=3 или память base/index/scale/disp/rip-rel; поля
+; reg — с REX.R), setters операндов (K5-D016 set_reg/set_rm/set_imm/
+; set_tgt/set_cl/set_cnt — слоты 1/2 глобалей da1*/da2*), 0F-путь
+; (K5-D005 dec0f: jcc rel32/movzx/imul — С операндами), ALU-семейства
+; 00..3D (K5-D006 decalu: r/m-формы + AL,imm8 + eAX,imm32 — аргументы
+; как у lab_x86.decode: (rm, reg) / (reg, rm) по биту d) и modrm-без-imm
+; (K5-D007 decmod: test/mov/lea). Часть 2 — bridge_self_d2.wall (K5-D008
+; ..D013); эмиссия — bridge_self_e.wall (ветвь E). Эквивалентность
+; оракулу LAB/py/lab_x86.decode: длины/классы/цели (E9.2-2, T-E9-18/21)
+; + ПОЛНЫЕ ОПЕРАНДЫ (E9.2-3a: имена регистров по таблицам s_r64/s_r8/
+; s_r16/s_r32, значения imm, память с полями, цели) — сырьё примечаний
+; H-строк (T-E9-22). Чтение за границей файла = отказ декодирования
+; (как IndexError оракула; fb -> -1). Границы: exelen — конец файла ==
+; конец тела (семейный инвариант размеров SPEC/04).
 
 ; чтение байта файла по смещению off с границей: -1 = вне файла
 func fb(off)
@@ -47,19 +51,41 @@ func rel32(pos)
   return v
 end
 
-; пропуск modrm (+SIB, +disp) с файлового смещения pos: длина — как
-; _modrm оракула (SIB всегда 1 байт; rm=100 -> SIB; mod=00&база=5 ->
-; disp32 без базы; rip-rel mod=00&rm=101 -> disp32; mod=1 -> disp8;
-; mod=2 -> disp32); граница — каждый хвост проверяется до продвижения;
-; результат: глобали mpos (смещение после modrm-хвоста) и mreg (поле reg
-; с REX.R — 0..15, нужно группам 80/81/83/C0/C1/D3/F6/F7/FF); 0 = ок,
-; 1 = за границей файла
-func modrm_skip(pos, rbit)
+; БЕЗзнаковый dword @ pos (imm32 без W; disp32 SIB mod=00 база=5)
+func u32(pos)
+  return getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+end
+
+; БЕЗзнаковый qword @ pos (imm64 формы B8..BF с REX.W); старшая половина
+; множителем 2^32 = 16777216*256 (литерали WALL <= 2147483647)
+func u64(pos)
+  return u32(pos) + 16777216 * 256 * u32(pos + 4)
+end
+
+; ПОЛНЫЙ разбор modrm (+SIB, +disp) с файлового смещения pos (E9.2-3a;
+; замена modrm_skip: длины те же + операнд). rex — байт REX (0, если нет);
+; opsize — размер операнда rm (8/16/32/64). Результат — глобали:
+; mpos (смещение после modrm-хвоста), mreg (поле reg 0..15 с REX.R),
+; mkind (0 = операнд-регистр mod=3 -> mrreg; 1 = память -> mbase/midx/
+; mscale/mdisp + mripon/mrdip), ombase/omidx (-1 = нет), omscale (1/2/4/8),
+; omdisp (знаковое), mripon (1 = rip-относительно, mrdip = знаковый
+; disp32; цель = конец инструкции + mrdip — считает decode_ins).
+; quirks оракула lab_x86._modrm: SIB индекс 4 без REX.X = нет индекса
+; (с REX.X = r12!); SIB база 5 при mod=00 — БЕЗзнаковый disp32 без базы;
+; rm=5 при mod=00 — rip-относительно. 0 = ок, 1 = за границей файла
+func modrm_read(pos, rex, opsize)
   var m
   var mod
   var rm
   var s
   var bas
+  var idx
+  var rbit
+  var xbit
+  var bbit
+  rbit = (rex & 4) * 2
+  xbit = (rex & 2) * 4
+  bbit = (rex & 1) * 8
   m = fb(pos)
   if m < 0
     return 1
@@ -68,13 +94,28 @@ func modrm_skip(pos, rbit)
   mpos = pos + 1
   mod = m >> 6
   rm = m & 7
+  omsize = opsize
   if mod == 3
+    mkind = 0
+    mrreg = rm + bbit
     return 0
   end
+  mkind = 1
+  ombase = -1
+  omidx = -1
+  omscale = 1
+  omdisp = 0
+  mripon = 0
+  mrdip = 0
   if rm == 4
     s = fb(mpos)
     if s < 0
       return 1
+    end
+    omscale = 1 << (s >> 6)
+    idx = (s >> 3) & 7
+    if idx != 4 || xbit != 0
+      omidx = idx + xbit
     end
     bas = s & 7
     mpos = mpos + 1
@@ -82,19 +123,23 @@ func modrm_skip(pos, rbit)
       if mpos + 4 > exelen
         return 1
       end
+      omdisp = u32(mpos)
       mpos = mpos + 4
       return 0
     end
+    ombase = bas + bbit
     if mod == 1
       if mpos + 1 > exelen
         return 1
       end
+      omdisp = rel8(mpos)
       mpos = mpos + 1
     end
     if mod == 2
       if mpos + 4 > exelen
         return 1
       end
+      omdisp = rel32(mpos)
       mpos = mpos + 4
     end
     return 0
@@ -103,35 +148,160 @@ func modrm_skip(pos, rbit)
     if mpos + 4 > exelen
       return 1
     end
+    mripon = 1
+    mrdip = rel32(mpos)
     mpos = mpos + 4
     return 0
   end
+  ombase = rm + bbit
   if mod == 1
     if mpos + 1 > exelen
       return 1
     end
+    omdisp = rel8(mpos)
     mpos = mpos + 1
   end
   if mod == 2
     if mpos + 4 > exelen
       return 1
     end
+    omdisp = rel32(mpos)
     mpos = mpos + 4
   end
   return 0
 end
 
-; 0F-опкоды (после REX): 80..8F — jcc rel32 (цель -> dtgt, класс 3);
-; B6/B7 — movzx (modrm-хвост); AF — imul (modrm-хвост); прочее — отказ.
-; Результат: dpos (конец инструкции, файловое), 0 = ок
-func dec0f(pos, rbit)
+; операнд-регистр в слот slot (1/2): индекс idx 0..15, размер size
+func set_reg(slot, idx, size)
+  if slot == 1
+    da1k = 1
+    da1r = idx
+    da1s = size
+    return 0
+  end
+  da2k = 1
+  da2r = idx
+  da2s = size
+  return 0
+end
+
+; операнд из modrm (результат modrm_read) в слот slot: регистр mod=3
+; (mrreg) или память (damem = slot; поля om* уже заполнены modrm_read;
+; daXs = opsize — размер операнда)
+func set_rm(slot, opsize)
+  if slot == 1
+    if mkind == 0
+      da1k = 1
+      da1r = mrreg
+    else
+      da1k = 2
+      damem = 1
+    end
+    da1s = opsize
+    return 0
+  end
+  if mkind == 0
+    da2k = 1
+    da2r = mrreg
+  else
+    da2k = 2
+    damem = 2
+  end
+  da2s = opsize
+  return 0
+end
+
+; непосредственный операнд в слот slot (значение v, размер size);
+; вид 7 (u64-без знака) задаёт вызывающий: set_immu — печать как
+; неотрицательного 64-битного (imm64)
+func set_imm(slot, v, size)
+  if slot == 1
+    da1k = 3
+    da1v = v
+    da1s = size
+    return 0
+  end
+  da2k = 3
+  da2v = v
+  da2s = size
+  return 0
+end
+
+; imm64 (беззнаковая печать) в слот slot
+func set_immu(slot, v, size)
+  if slot == 1
+    da1k = 7
+    da1v = v
+    da1s = size
+    return 0
+  end
+  da2k = 7
+  da2v = v
+  da2s = size
+  return 0
+end
+
+; операнд-цель перехода/вызова (смещение от начала тела) в слот 1
+func set_tgt(v)
+  da1k = 4
+  da1v = v
+  dargc = 1
+  return 0
+end
+
+; операнд «cl» (сдвиг по CL) в слот 2
+func set_cl
+  da2k = 5
+  dargc = 2
+  return 0
+end
+
+; счётчик сдвига (целое, не imm-кортеж оракула) в слот 2
+func set_cnt(v)
+  da2k = 6
+  da2v = v
+  dargc = 2
+  return 0
+end
+
+; id мнемоники ALU-семейства по base = b & 248 (0x00 add, 0x08 or,
+; 0x20 and, 0x28 sub, 0x30 xor, 0x38 cmp)
+func alu_id(base)
+  if base == 0
+    return 1
+  end
+  if base == 8
+    return 2
+  end
+  if base == 32
+    return 3
+  end
+  if base == 40
+    return 4
+  end
+  if base == 48
+    return 5
+  end
+  return 6
+end
+
+; 0F-опкоды (после REX): 80..8F — jcc rel32 (цель -> dtgt, класс 3,
+; dcc = условие; операнд-цель); B6/B7 — movzx (reg, mem(src 8/16));
+; AF — imul (reg, mem); прочее — отказ. Результат: dpos (конец
+; инструкции, файловое), 0 = ок
+func dec0f(pos, rex, w)
   var b
   var rel
+  var size
   b = fb(pos)
   if b < 0
     return 1
   end
   pos = pos + 1
+  size = 32
+  if w != 0
+    size = 64
+  end
   if b >= 128 && b <= 143
     if pos + 4 > exelen
       return 1
@@ -140,35 +310,69 @@ func dec0f(pos, rbit)
     dpos = pos + 4
     dtgt = dpos - rawptr + rel
     dcls = 3
+    dcc = b & 15
+    dname = 0
+    set_tgt(dtgt)
     return 0
   end
   if b == 182 || b == 183
-    if modrm_skip(pos, rbit) != 0
+    if modrm_read(pos, rex, 8 + (b & 1) * 8) != 0
       return 1
     end
     dpos = mpos
+    dname = 19
+    dargc = 2
+    set_reg(1, mreg, size)
+    set_rm(2, 8 + (b & 1) * 8)
     return 0
   end
   if b == 175
-    if modrm_skip(pos, rbit) != 0
+    if modrm_read(pos, rex, size) != 0
       return 1
     end
     dpos = mpos
+    dname = 20
+    dargc = 2
+    set_reg(1, mreg, size)
+    set_rm(2, size)
     return 0
   end
   return 1
 end
 
-; ALU-семейства 00..3D: r/m-формы (base 00/08/20/28/30/38 и (b&7)<4 —
-; modrm-хвост), короткие AL,imm8 (04/0C/24/2C/3C) и eAX,imm32
-; (05/0D/25/2D/35/3D) — множества ТОЧНО как decode оракула (34-е
-; хвосты и пр. — вне подмножества). Класс 0 (без ветвлений)
-func decalu(pos, rbit, b)
+; ALU-семейства 00..3D: r/m-формы (base в {0,8,32,40,48,56} и (b&7)<4 —
+; операнды (rm, reg), при бите d (b&2) — (reg, rm); размер 8 при (b&1)==0,
+; иначе 32/64 по W), короткие AL,imm8 (04/0C/24/2C/3C: (al, imm8)) и
+; eAX,imm32 (05/0D/25/2D/35/3D: (eAX, imm32; при W — знакорасширение
+; s32)) — множества ТОЧНО как decode оракула. Класс 0 (без ветвлений)
+func decalu(pos, rex, w, b)
+  var opsize
+  var size
+  var v
+  var base
+  base = b & 248
+  size = 32
+  if w != 0
+    size = 64
+  end
   if (b & 7) < 4
-    if modrm_skip(pos, rbit) != 0
+    opsize = size
+    if (b & 1) == 0
+      opsize = 8
+    end
+    if modrm_read(pos, rex, opsize) != 0
       return 1
     end
     dpos = mpos
+    dname = alu_id(base)
+    dargc = 2
+    if (b & 2) == 0
+      set_rm(1, opsize)
+      set_reg(2, mreg, opsize)
+    else
+      set_reg(1, mreg, opsize)
+      set_rm(2, opsize)
+    end
     return 0
   end
   if (b & 7) == 4
@@ -176,21 +380,70 @@ func decalu(pos, rbit, b)
       return 1
     end
     dpos = pos + 1
+    dname = alu_id(base)
+    dargc = 2
+    set_reg(1, 0, 8)
+    set_imm(2, getb(exebuf, pos), 8)
     return 0
   end
   if pos + 4 > exelen
     return 1
   end
+  v = u32(pos)
+  if w != 0 && v > 2147483647
+    v = v - 16777216 * 256
+  end
   dpos = pos + 4
+  dname = alu_id(base)
+  dargc = 2
+  set_reg(1, 0, size)
+  set_imm(2, v, size)
   return 0
 end
 
-; modrm-без-imm: test (84/85), mov (88/89/8A/8B), lea (8D) — поля reg
-; оракулом не проверяются, любая длина одна и та же; класс 0
-func decmod(pos, rbit)
-  if modrm_skip(pos, rbit) != 0
+; modrm-без-imm: test (84/85: (rm, reg)), mov (88/89: (rm, reg);
+; 8A/8B: (reg, rm)) и lea (8D: (reg, mem) — reg-размер по W, память
+; с «адресным» размером 64); размер 8 у 84/88/8A, иначе 32/64 по W
+func decmod(pos, rex, w, b)
+  var opsize
+  var size
+  size = 32
+  if w != 0
+    size = 64
+  end
+  if b == 141
+    if modrm_read(pos, rex, 64) != 0
+      return 1
+    end
+    dpos = mpos
+    dname = 9
+    dargc = 2
+    set_reg(1, mreg, size)
+    set_rm(2, 64)
+    return 0
+  end
+  opsize = size
+  if b == 132 || b == 136 || b == 138
+    opsize = 8
+  end
+  if modrm_read(pos, rex, opsize) != 0
     return 1
   end
   dpos = mpos
+  dargc = 2
+  if b == 132 || b == 133
+    dname = 7
+    set_rm(1, opsize)
+    set_reg(2, mreg, opsize)
+  else
+    dname = 8
+    if b == 136 || b == 137
+      set_rm(1, opsize)
+      set_reg(2, mreg, opsize)
+    else
+      set_reg(1, mreg, opsize)
+      set_rm(2, opsize)
+    end
+  end
   return 0
 end

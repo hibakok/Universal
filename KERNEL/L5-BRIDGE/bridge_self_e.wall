@@ -1,0 +1,444 @@
+; bridge_self_e.wall — эмиссия тела b2, raw-режим H-строк (E9.2-3a)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_e.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь E моста — ВЫВОД .b2 (SPEC/15 п. 5/6/7, режим RAW
+; оракула _emit_lines(mode="RAW")): шапка (3 строки SPEC/15 — кириллица
+; UTF-8 хранится HEX-текстом в литерале s_tpl корня (литералы WALL
+; только ASCII 0x20..0x7E; идиома wall_self_blob — K2-E000 blob_dec)
+; и декодируется в массив tplb при старте), инструкции — H-строки
+; «H <байты> ; @<смещ4> <примечание>» (примечание == _note оракула:
+; имена регистров по таблицам s_r64/s_r8/s_r16/s_r32 — смещения имён
+; считаются при старте fill_offs, jcc — «j<cc> <цель>», знаковый hex
+; imm/целей, [rip±d] знаковый dec, [mem], cl, счётчики), данные — DZ
+; (пробег >= 3 нулей) и DB (<= 16 байт; нулевой пробег короче 3 входит
+; в DB) — сегменты между стартам выживших инструкций (сдамп sdump
+; заполняет sweep_ins, ветвь W) от 0 до target; запись файла
+; <выход>.b2 (CreateFile2 GENERIC_WRITE/CREATE_ALWAYS — как wall.exe/
+; uva.exe; новые коды 8 ERR=OPEN OUT / 9 ERR=WRITE OUT). M-строки/метки
+; l/d/iat_/семантика DD/DQ импортов — срезы E9.2-3b/c (режимы "H"/
+; канон оракула); PEG-выход — E9.2-4. Предел вывода: outmem 8388608 Б
+; кучи — с запасом над худшим случаем raw-текста (1-байтовые
+; инструкции ~22 Б/байт тела: 262144 * 22 = 5.8 МиБ). Диффтест:
+; T-E9-22 (12 артефактов + синтетика == оракулу RAW), T-E9-23
+; (сквозной круг raw инструментами enc/brick/pegen).
+
+; смещения NUL-разделённых имён (n имён) в блобе base -> массив offs
+; (offs[i] — старт имени i; offs[n] — конец блоба)
+func fill_offs(base, offs, n)
+  var p
+  var i
+  p = 0
+  i = 0
+  while i < n
+    offs[i] = p
+    while getb(base, p) != 0
+      p = p + 1
+    end
+    p = p + 1
+    i = i + 1
+  end
+  offs[n] = p
+  return 0
+end
+
+; стартовые таблицы: мнемоники (28), условия jcc (16), регистры
+; 64/8/16/32 бит (16 имен каждый) — блобы s_* корня bridge.wall;
+; шапка — HEX-литерал s_tpl (199 байт UTF-8) -> массив tplb
+func init_tables
+  fill_offs(s_mn, o_mn, 28)
+  fill_offs(s_cc, o_cc, 16)
+  fill_offs(s_r64, o_r64, 16)
+  fill_offs(s_r8, o_r8, 16)
+  fill_offs(s_r16, o_r16, 16)
+  fill_offs(s_r32, o_r32, 16)
+  tpl_dec()
+  return 0
+end
+
+; декод шаблона шапки: HEX-текст s_tpl (2 символа на байт) -> tplb
+; (199 байт; идиома blob_dec wall.exe — K2-E000); hex-цифра: >57 —
+; буква A..F (-55), иначе цифра (-48)
+func tpl_dec
+  var i
+  var c
+  var v
+  i = 0
+  while i < 199
+    c = getb(s_tpl, 2 * i)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = c * 16
+    c = getb(s_tpl, 2 * i + 1)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    setb(tplb, i, v + c)
+    i = i + 1
+  end
+  return 0
+end
+
+; байт c в буфер вывода (outbuf/outcur — глобали)
+func app_ch(c)
+  setb(outbuf, outcur, c)
+  outcur = outcur + 1
+  return 0
+end
+
+; имя из блоба base (таблица смещений offs, индекс idx) в вывод —
+; до NUL
+func app_name(base, offs, idx)
+  var p
+  p = offs[idx]
+  while getb(base, p) != 0
+    app_ch(getb(base, p))
+    p = p + 1
+  end
+  return 0
+end
+
+; имя регистра idx (0..15) размера size (8/16/32/64) — выбор блоба
+func app_reg(idx, size)
+  if size == 8
+    app_name(s_r8, o_r8, idx)
+    return 0
+  end
+  if size == 16
+    app_name(s_r16, o_r16, idx)
+    return 0
+  end
+  if size == 64
+    app_name(s_r64, o_r64, idx)
+    return 0
+  end
+  app_name(s_r32, o_r32, idx)
+  return 0
+end
+
+; ЗАГЛАВНЫЙ hex без ведущих нулей, v >= 0 (DZ-счёт, target/bss шапки)
+func out_hexv(v)
+  var t[20]
+  var n
+  var j
+  var c
+  if v == 0
+    app_ch(48)
+    return 0
+  end
+  n = 0
+  while v > 0
+    c = v & 15
+    if c < 10
+      c = c + 48
+    else
+      c = c + 55
+    end
+    setb(t, n, c)
+    v = v >> 4
+    n = n + 1
+  end
+  j = 0
+  while j < n
+    app_ch(getb(t, n - 1 - j))
+    j = j + 1
+  end
+  return 0
+end
+
+; знаковый hex (imm, цель, счётчик): отрицательное — «-» + модуль
+; (как _hx оракула; цели «%X» отрицательные — тот же вид)
+func out_hxs(v)
+  if v < 0
+    app_ch(45)
+    v = -v
+  end
+  out_hexv(v)
+  return 0
+end
+
+; hex imm64 как БЕЗзнакового 64-битного (вид 7): отрицательное в
+; WALL qword = битовый образ u64 -> +2^64 (2^64 = 16777216*256*2^32)
+func out_hxu64(v)
+  if v < 0
+    v = v + 16777216 * 256 * 16777216 * 256
+  end
+  out_hexv(v)
+  return 0
+end
+
+; ровно 2 ЗАГЛАВНЫЕ hex-цифры байта v (байты H/DB-строк)
+func out_hex2(v)
+  var c
+  c = (v >> 4) & 15
+  if c < 10
+    c = c + 48
+  else
+    c = c + 55
+  end
+  app_ch(c)
+  c = v & 15
+  if c < 10
+    c = c + 48
+  else
+    c = c + 55
+  end
+  app_ch(c)
+  return 0
+end
+
+; минимум 4 ЗАГЛАВНЫЕ hex-цифры (смещения «@%04X»), v >= 0
+func out_hex4m(v)
+  var t[20]
+  var n
+  var j
+  var c
+  n = 0
+  while v > 0
+    c = v & 15
+    if c < 10
+      c = c + 48
+    else
+      c = c + 55
+    end
+    setb(t, n, c)
+    v = v >> 4
+    n = n + 1
+  end
+  if n == 0
+    setb(t, 0, 48)
+    n = 1
+  end
+  while n < 4
+    setb(t, n, 48)
+    n = n + 1
+  end
+  j = 0
+  while j < n
+    app_ch(getb(t, n - 1 - j))
+    j = j + 1
+  end
+  return 0
+end
+
+; знаковый dec СО знаком («+»/«-»; смещения [rip%+d]); v != 0
+func out_sdec(v)
+  if v < 0
+    app_ch(45)
+    v = -v
+  else
+    app_ch(43)
+  end
+  outcur = out_dec(outbuf, outcur, v)
+  return 0
+end
+
+; примечание H-строки одного операнда (слот 1/2) — == _note оракула:
+; рег -> имя; память rip -> «[rip+d]» (0 -> «[rip]»), прочая ->
+; «[mem]»; imm -> знаковый hex; imm-u64 -> беззнаковый; цель ->
+; hex; cl -> «cl»; счётчик -> hex
+func note_op(slot)
+  var k
+  var v
+  var d
+  if slot == 1
+    k = da1k
+    v = da1v
+  else
+    k = da2k
+    v = da2v
+  end
+  if k == 1
+    if slot == 1
+      app_reg(da1r, da1s)
+    else
+      app_reg(da2r, da2s)
+    end
+    return 0
+  end
+  if k == 2
+    if mripon == 1
+      outcur = copy_str(outbuf, outcur, s_rip, len(s_rip))
+      d = omrip + 4096
+      if d != 0
+        out_sdec(d)
+      end
+      app_ch(93)
+    else
+      outcur = copy_str(outbuf, outcur, s_mem, len(s_mem))
+    end
+    return 0
+  end
+  if k == 3 || k == 4 || k == 6
+    out_hxs(v)
+    return 0
+  end
+  if k == 7
+    out_hxu64(v)
+    return 0
+  end
+  if k == 5
+    outcur = copy_str(outbuf, outcur, s_cl, len(s_cl))
+  end
+  return 0
+end
+
+; примечание H-строки — == _note оракула: jcc -> «j<cc> <цель>»;
+; ret/int3/cdqe/cqo/cdq -> только имя; прочее -> имя + операнды через
+; «, » (при 0 операндов — хвостовой пробел, как «%s %s» оракула)
+func emit_note
+  if dname == 0
+    outcur = copy_str(outbuf, outcur, s_j, len(s_j))
+    app_name(s_cc, o_cc, dcc)
+    app_ch(32)
+    out_hxs(da1v)
+    return 0
+  end
+  app_name(s_mn, o_mn, dname)
+  if dname == 15 || dname == 16 || dname == 12 || dname == 13 || dname == 14
+    return 0
+  end
+  app_ch(32)
+  if dargc >= 1
+    note_op(1)
+  end
+  if dargc >= 2
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    note_op(2)
+  end
+  return 0
+end
+
+; H-строка выжившей инструкции @ lo (смещение тела): повторный decode
+; (детерминирован — спуск уже разобрал её), байты тела с rawptr+lo,
+; « ; @<смещ4> » + примечание; сбой повтора = FAMILY (недостижимо)
+func emit_h(lo)
+  var j
+  if decode_ins(lo) != 0
+    fail_family()
+  end
+  outcur = copy_str(outbuf, outcur, s_h, len(s_h))
+  j = 0
+  while j < dlen
+    if j > 0
+      app_ch(32)
+    end
+    out_hex2(getb(exebuf, rawptr + lo + j))
+    j = j + 1
+  end
+  outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+  out_hex4m(lo)
+  app_ch(32)
+  emit_note()
+  app_ch(10)
+  return 0
+end
+
+; данные сегмента [o, hi): DZ-пробег (>= 3 нулей) или DB-строка
+; (<= 16 байт; нулевой пробег короче 3 входит в DB, разрывая строку
+; перед пробегом >= 3) — == оракулу _emit_lines
+func emit_data(o, hi)
+  var z
+  var zz
+  var first
+  while o < hi
+    z = 0
+    while o + z < hi && getb(exebuf, rawptr + o + z) == 0
+      z = z + 1
+    end
+    if z >= 3
+      outcur = copy_str(outbuf, outcur, s_dz, len(s_dz))
+      out_hexv(z)
+      outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+      out_hex4m(o)
+      app_ch(10)
+      o = o + z
+    else
+      first = o
+      outcur = copy_str(outbuf, outcur, s_db, len(s_db))
+      while o < hi && o - first < 16
+        if getb(exebuf, rawptr + o) == 0
+          zz = 0
+          while o + zz < hi && getb(exebuf, rawptr + o + zz) == 0
+            zz = zz + 1
+          end
+          if zz >= 3
+            break
+          end
+        end
+        if o > first
+          app_ch(32)
+        end
+        out_hex2(getb(exebuf, rawptr + o))
+        o = o + 1
+      end
+      outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+      out_hex4m(first)
+      app_ch(10)
+    end
+  end
+  return 0
+end
+
+; кусок шаблона шапки [lo, hi) — байты из массива tplb (декод
+; HEX-литерала s_tpl — tpl_dec; границы кусков: имя модуля [0,74),
+; target [74,112), bss [112,122), хвост [122,199))
+func app_tpl(lo, hi)
+  var j
+  j = lo
+  while j < hi
+    app_ch(getb(tplb, j))
+    j = j + 1
+  end
+  return 0
+end
+
+; РЕЗУЛЬТАТ среза: полная raw-эмиссия тела b2 + запись <выход>.b2.
+; Шапка SPEC/15 (модуль из заглушки, target/bss), затем выжившие
+; инструкции (сдамп sdump — по возрастанию; данные между ними и до
+; target). nlen2 — длина слова-пути выхода (аргумент 2 CLI)
+func emit_raw(nlen2)
+  var k
+  var lo
+  var ln
+  var fh
+  var rc
+  outmem = GlobalAlloc(0, 8388608)
+  if outmem == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  outbuf = outmem
+  outcur = 0
+  app_tpl(0, 74)
+  outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+  app_tpl(74, 112)
+  out_hexv(target)
+  app_tpl(112, 122)
+  out_hexv(bss)
+  app_tpl(122, 199)
+  lo = 0
+  k = 0
+  while k < inscount
+    ln = getb(lenmap, sdump[k])
+    emit_data(lo, sdump[k])
+    emit_h(sdump[k])
+    lo = sdump[k] + ln
+    k = k + 1
+  end
+  emit_data(lo, target)
+  widen(w1, arg2, nlen2)
+  fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+  if fh == -1
+    print_error(s_oout, len(s_oout), 8)
+  end
+  written = 0
+  rc = WriteFile(fh, outbuf, outcur, &written, 0)
+  if rc == 0
+    print_error(s_wout, len(s_wout), 9)
+  end
+  CloseHandle(fh)
+  return 0
+end

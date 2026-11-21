@@ -34,12 +34,21 @@
              T-E9-21 — синтетика спуска: тень (цель jz ВНУТРИ соседней
              инструкции — младший адрес побеждает), нули — данные,
              терминал ret; факты == оракулу (в реальных артефактах
-             теней нет — синтетика закрывает правила SPEC/15 п. 3).
+             теней нет — синтетика закрывает правила SPEC/15 п. 3);
+         (7) E9.2-3a (RAW-ЭМИССИЯ): T-E9-22 — выходной файл t.b2
+             (H-строки + DZ/DB, режим RAW оракула emit_b2) ==
+             оракулу на ВСЕХ 12 артефактах + синтетике спуска
+             (шапка/примечания с именами регистров/данные сегментов
+             — полное операндное расширение декодера); T-E9-23 —
+             сквозной круг raw-текста РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ
+             (enc -> brick -> pegen) на мосте seed и hxdump —
+             EXE == исходному (H-режим байто-точен всегда,
+             SPEC/15 п. 5).
 Функция: DoD E9.1 — «сначала истина семантики» (прецедент E7.1/E8.1):
          семантика моста закреплена оракулом и якорями ДО инструмента
          bridge.exe. E9.2-1 — каркас; E9.2-2 — спуск от входа:
          диффтест фактов == оракулу; эмиссия b2/peg — срезы E9.2-3+.
-         Число проверок: 21.
+         Число проверок: 23.
 """
 import os
 import sys
@@ -56,6 +65,7 @@ import lab_pe                             # noqa: E402 — мутанты DLL/IN
 import lab_pegen                          # noqa: E402
 import lab_run                            # noqa: E402
 import lab_splice                         # noqa: E402 — сборка (E9.2-1)
+import lab_win                            # noqa: E402 — лимит шагов (E9.2-3a)
 
 # все артефакты семейства (KERNEL/*/...exe) — по порядку слоёв
 ARTIFACTS = ["L0-SEED/seed", "L0-SEED2/seed2", "L0-HXDUMP/hxdump",
@@ -122,12 +132,18 @@ def build(kpath, kfile, kernel_host):
     """Сборка моста из bridge.wall конвейером (эмуляция инструментов).
 
     Возврат: (ok, artefacts dict, note) — b2/brick/bin/exe или причина.
+    Шаг wall — с E9.2-3a выше лимита lab_run 200 млн шагов: прямой
+    lab_win с лимитом 2 млрд (как T-E6-49a над wall.wall).
     """
     try:
         src = lab_splice.splice("L5-BRIDGE/bridge.wall", kernel_host())
         h = {"s.wall": src}
-        r1 = lab_run.run_kv(kpath("L2-WALL/wall.exe"),
+        # E9.2-3a: компиляция bridge.wall выше лимита lab_run 200 млн
+        # шагов (операндное расширение: ~247 млн) — прямой lab_win
+        # с лимитом 2 млрд (прецедент — фикс-пункт T-E6-49a)
+        m = lab_win.Machine(kpath("L2-WALL/wall.exe"),
                             ["s.wall", "s.b2"], h)
+        r1 = m.run(max_steps=2_000_000_000)
         if r1.exit_code != 0:
             return False, None, "wall: код %s" % r1.exit_code
         h["s.b2"] = r1.files.get("s.b2", b"")
@@ -374,6 +390,61 @@ def run(check, kpath, kfile, kernel_host):
             "!idata 1000 28\n!iat 1028 48\n")
         _facts(check, bexe, synth, "synthm (тень/нули/ret)",
                tid="T-E9-21")
+
+        # T-E9-22 (E9.2-3a): raw-эмиссия — выходной файл t.b2 ==
+        # оракулу emit_b2(mode="RAW") на ВСЕХ 12 артефактах семейства
+        # + синтетике спуска (шапка SPEC/15, H-строки с примечаниями
+        # _note — имена регистров/imm/[rip±d]/[mem]/cl, данные DZ/DB
+        # сегментов; факт-строка остаётся контрактом успеха)
+        bad = []
+        for m in ARTIFACTS:
+            data = kfile("%s.exe" % m)
+            want, _st = lab_bridge.emit_b2(data, mode="RAW")
+            r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                               {"in.exe": data})
+            if r.exit_code != 0 or \
+                    r.files.get("t.b2") != want.encode("utf-8"):
+                bad.append("%s (код %s, %d Б)"
+                           % (m, r.exit_code,
+                              len(r.files.get("t.b2") or b"")))
+        want, _st = lab_bridge.emit_b2(synth, mode="RAW")
+        r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                           {"in.exe": synth})
+        if r.exit_code != 0 or r.files.get("t.b2") != want.encode("utf-8"):
+            bad.append("synthm (код %s)" % r.exit_code)
+        check("T-E9-22 raw-эмиссия .b2 == оракулу (12 артефактов"
+              " + синтетика)", not bad,
+              "; ".join(bad[:2]) if bad else "H/DZ/DB; шапка; примечания")
+
+        # T-E9-23 (E9.2-3a): сквозной круг raw-текста РЕАЛЬНЫМИ
+        # ИНСТРУМЕНТАМИ (H-режим байто-точен всегда, SPEC/15 п. 5):
+        # bridge.exe -> t.b2 (raw) -> enc -> brick -> pegen(+peg
+        # оракула) == исходный EXE (seed и hxdump)
+        bad = []
+        for m in ("L0-SEED/seed", "L0-HXDUMP/hxdump"):
+            data = kfile("%s.exe" % m)
+            r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                               {"in.exe": data})
+            b2 = r.files.get("t.b2", b"")
+            peg = lab_bridge.emit_peg(data).encode()
+            r1 = lab_run.run_kv(kpath("L1-ENC/enc.exe"),
+                                ["t.b2", "t.brick"], {"t.b2": b2})
+            r2 = lab_run.run_kv(kpath("L1-BRICK/brick.exe"),
+                                ["t.brick", "t.bin"],
+                                {"t.brick": r1.files.get("t.brick", b"")})
+            r3 = lab_run.run_kv(kpath("L0-PEGEN/pegen.exe"),
+                                ["t.bin", "t.peg", "t.exe"],
+                                {"t.bin": r2.files.get("t.bin", b""),
+                                 "t.peg": peg})
+            made = r3.files.get("t.exe", b"")
+            if not (r1.exit_code == 0 and r2.exit_code == 0
+                    and r3.exit_code == 0 and made == data):
+                bad.append("%s (enc=%s brick=%s pegen=%s)"
+                           % (m.split("/")[-1], r1.exit_code,
+                              r2.exit_code, r3.exit_code))
+        check("T-E9-23 круг raw-текста инструментами: seed/hxdump =="
+              " оригиналу", not bad, "; ".join(bad) if bad
+              else "enc -> brick -> pegen")
     finally:
         os.unlink(bexe)
 

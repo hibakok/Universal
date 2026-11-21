@@ -337,11 +337,22 @@ def _note(name, args):
         return name
 
 # ------------------------------------------------------------ эмиссия b2
-def _emit_lines(fam):
-    """Факты моста -> (строки BRICK v2, статистика). Чистый рендер."""
+def _emit_lines(fam, mode=None):
+    """Факты моста -> (строки BRICK v2, статистика). Чистый рендер.
+
+    mode (срезы наращивания E9.2-3, SPEC/15 п. 10): None — канон
+    (M-строки при точном воспроизведении enc + метки + семантика);
+    "H" — только H-строки, метки l/d/iat_ и семантика DD/DQ остаются
+    (подслой для E9.2-3b); "RAW" — H-строки без меток и семантики
+    (E9.2-3a: операнды/примечания/данные; импорты и разрывы меток
+    пока сырыми байтами). Байто-точность круга сохраняется во всех
+    режимах (H-строка — те же байты)."""
     body, ins = fam["body"], fam["ins"]
     limit = fam["target"]
-    labels, semantic, _known = _import_map(fam)
+    if mode == "RAW":
+        labels, semantic = {}, {}
+    else:
+        labels, semantic, _known = _import_map(fam)
     # семантика не должна пересекать инструкции/друг друга
     ins_ranges = [(a, a + ins[a][1]) for a in ins]
     sem = {}
@@ -368,25 +379,26 @@ def _emit_lines(fam):
         return any(s < o < e for s, e in sem_ranges)
 
     # метки l*/d*: цели переходов и rip-ссылок (приоритет iat_ > l > d)
-    for a in starts_sorted:
-        for op in ins[a][2]:
-            if not isinstance(op, tuple):
-                continue
-            if op[0] == "t":
-                offs = [op[1]]
-            elif op[0] == "m" and op[6] is not None:
-                offs = [op[6][1]]
-            else:
-                continue
-            for off in offs:
-                if off == BASE_OFF or off in labels:
+    if mode != "RAW":
+        for a in starts_sorted:
+            for op in ins[a][2]:
+                if not isinstance(op, tuple):
                     continue
-                if off in ins or off in sem:
-                    labels[off] = "l%x" % (off + SECT)
-                elif 0 <= off < limit and not inside_ins(off) \
-                        and not inside_sem(off):
-                    labels[off] = "d%x" % (off + SECT)
-                # иначе метка невозможна — инструкция возьмёт H-форму
+                if op[0] == "t":
+                    offs = [op[1]]
+                elif op[0] == "m" and op[6] is not None:
+                    offs = [op[6][1]]
+                else:
+                    continue
+                for off in offs:
+                    if off == BASE_OFF or off in labels:
+                        continue
+                    if off in ins or off in sem:
+                        labels[off] = "l%x" % (off + SECT)
+                    elif 0 <= off < limit and not inside_ins(off) \
+                            and not inside_sem(off):
+                        labels[off] = "d%x" % (off + SECT)
+                    # иначе метка невозможна — инструкция возьмёт H-форму
     rlabels = {v: k for k, v in labels.items()}
     # линейная эмиссия: разрезы по стартам строк
     out, stats = [], {"m": 0, "h": 0, "dz": 0, "db": 0, "sem": 0,
@@ -398,7 +410,7 @@ def _emit_lines(fam):
         o = lo
         if lo in ins:
             name, ln, args = ins[lo]
-            mt = _mtext(name, args, ln, labels)
+            mt = None if mode else _mtext(name, args, ln, labels)
             if mt and _template(mt[0], mt[1], body, lo, ln, rlabels):
                 txt = mt[0] if not mt[1] else \
                     "%s %s" % (mt[0], ", ".join(mt[1]))
@@ -464,10 +476,10 @@ def _peg_text(fam):
         out.append("!heapcom %X" % fam["heapcom"])
     return "\n".join(out) + "\n"
 
-def emit_b2(data):
-    """EXE -> (текст BRICK v2, статистика)."""
+def emit_b2(data, mode=None):
+    """EXE -> (текст BRICK v2, статистика); mode — срезы E9.2-3."""
     fam = parse_family(data)
-    lines, stats = _emit_lines(fam)
+    lines, stats = _emit_lines(fam, mode)
     return _b2_text(fam, lines), stats
 
 def emit_peg(data):
