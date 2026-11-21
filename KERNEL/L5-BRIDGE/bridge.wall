@@ -40,6 +40,17 @@
 ; lea/imul/сдвиги/neg/idiv/inc/dec/ALU/mov — m2/m3); факт-строка
 ; расширена ВЫХОДОМ моста: M=<число M-строк> H=<число H-строк>
 ; (T-E9-18); PEG — срез E9.2-4.
+; Срез E9.2-4 (PEG-ВЫХОД — приёмка DoD этапа E9.2): ветвь G
+; (bridge_self_g.wall): запись <выход>.peg — регенерация обёртки
+; PEG v1 по SPEC/15 п. 8 (== _peg_text оракула emit_peg): шапка
+; «; UNIVERSAL / PEG v1 / … / исходник: <имя>.exe» (кириллица UTF-8 —
+; HEX-литерал s_ptpl корня -> массив ptplb, идиома s_tpl), !module,
+; !entry, !idata (DD[1] @0x110/@0x114), !iat (DD[12] @0x168/@0x16C),
+; !bss (если != 0), !stackcom (@0xE8)/!heapcom (@0xF8) (если !=
+; 0x1000); буфер вывода outmem переиспользуется после emit_body;
+; диффтест T-E9-24 (12 артефактов + синтетика == оракулу) и сквозной
+; круг T-E9-23 С PEG МОСТА (мост -> enc -> brick -> pegen == вход) —
+; ЭТАП E9.2 ЗАКРЫТ.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
@@ -47,11 +58,12 @@
 ; E — bridge_self_e.wall; метки/семантика/драйвер L —
 ; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500;
 ; примитивы M — bridge_self_m.wall, семейства — m2/m3, драйвер — m4,
-; разрез по лимиту 500).
+; разрез по лимиту 500; PEG-выход G — bridge_self_g.wall, E9.2-4).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
-; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8),
-; ERR=WRITE OUT (9) — карточка CARD.md.
+; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8,
+; создание <выход>.b2 ИЛИ <выход>.peg — E9.2-4), ERR=WRITE OUT (9,
+; запись любого из выходов) — карточка CARD.md.
 ; Сборка (полный круг, инструменты ядра; обёртка — bridge.peg):
 ;   splice.exe bridge.wall bridge_s.flat
 ;   wall.exe   bridge_s.flat bridge_s.b2
@@ -183,6 +195,7 @@ var o_r32[17]
 var o_kw[5]
 var tplb[25]
 var mbuf[24]
+var ptplb[9]
 var w1[64]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
@@ -231,6 +244,15 @@ str s_r8 = 'al\0cl\0dl\0bl\0spl\0bpl\0sil\0dil\0r8b\0r9b\0r10b\0r11b\0r12b\0r13b
 str s_r16 = 'ax\0cx\0dx\0bx\0sp\0bp\0si\0di\0r8w\0r9w\0r10w\0r11w\0r12w\0r13w\0r14w\0r15w\0'
 str s_r32 = 'eax\0ecx\0edx\0ebx\0esp\0ebp\0esi\0edi\0r8d\0r9d\0r10d\0r11d\0r12d\0r13d\0r14d\0r15d\0'
 str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D182204252494447452076312028535045432F3135290A3B20D098D181D185D0BED0B4D0BDD0B8D0BA3A202E6578652028D182D0B5D0BBD0BE20D181D0B5D0BAD186D0B8D0B82052564120313030302C2020D0913B202162737320290A3B20D09AD180D183D0B33A20656E63202D3E20627269636B202D3E20706567656E282B70656720D0BCD0BED181D182D0B029203D3D20D0B8D181D185D0BED0B4D0BDD18BD0B9204558450A'
+str s_ptpl = '3B20554E4956455253414C202F20504547207631202F20D0BCD0BED181D182204252494447452076312028535045432F313529202F20D0B8D181D185D0BED0B4D0BDD0B8D0BA3A20'
+str s_dotexe = '.exe\n'
+str s_pm = '!module '
+str s_pe = '\n!entry '
+str s_pi = '\n!idata '
+str s_pa = '\n!iat '
+str s_pb = '\n!bss '
+str s_ps = '\n!stackcom '
+str s_ph = '\n!heapcom '
 
 !include bridge_self_c.wall
 !include bridge_self_pe.wall
@@ -244,6 +266,7 @@ str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D1822
 !include bridge_self_m2.wall
 !include bridge_self_m3.wall
 !include bridge_self_m4.wall
+!include bridge_self_g.wall
 
 func main
   var i
@@ -251,6 +274,7 @@ func main
   var rc
   var nlen1
   var nlen2
+  var nlen3
   hstdout = GetStdHandle(-11)
   cmdline = GetCommandLineA()
   i = skip0()
@@ -259,6 +283,7 @@ func main
   i = read_arg(arg2, i)
   nlen2 = wlen
   i = read_arg(arg3, i)
+  nlen3 = wlen
   check_end(i)
   widen(w1, arg1, nlen1)
   fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
@@ -294,6 +319,7 @@ func main
   init_tables()
   build_maps()
   emit_body(nlen2)
+  emit_peg(nlen3)
   print_facts()
   ExitProcess(0)
 end

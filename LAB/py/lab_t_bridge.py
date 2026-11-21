@@ -67,13 +67,22 @@
              выходом ROADMAP E9.2-3c: статистика == оракулу); T-E9-23 —
              сквозной круг КАНОННОГО текста (M-строки парсятся enc)
              РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ на мосте seed и hxdump.
+         (10) E9.2-4 (PEG-ВЫХОД — приёмка DoD этапа E9.2): T-E9-24 —
+             выход t.peg == оракулу emit_peg (регенерация обёртки
+             PEG v1, SPEC/15 п. 8: шапка/!module/!entry/!idata/
+             !iat/!bss/!stackcom/!heapcom — опциональные только в
+             хвосте) на ВСЕХ 12 артефактах + синтетике — тем же
+             прогоном инструмента, что и T-E9-22 (оба файла по одному
+             запуску — бюджет группы 4 не меняется); T-E9-23 — круг
+             С PEG МОСТА (мост -> enc -> brick -> pegen == вход).
 Функция: DoD E9.1 — «сначала истина семантики» (прецедент E7.1/E8.1):
          семантика моста закреплена оракулом и якорями ДО инструмента
          bridge.exe. E9.2-1 — каркас; E9.2-2 — спуск от входа:
          диффтест фактов == оракулу; E9.2-3a — raw-эмиссия; E9.2-3b —
          метки l/d/iat_ + семантика DD/DQ + разрезы (режим "H");
-         E9.2-3c — M-строки канона + выход M=/H=; PEG — E9.2-4.
-         Число проверок: 23.
+         E9.2-3c — M-строки канона + выход M=/H=; E9.2-4 — PEG-выход
+         + приёмка DoD — ЭТАП E9.2 ЗАКРЫТ.
+         Число проверок: 24.
 """
 import os
 import sys
@@ -442,17 +451,21 @@ def run(check, kpath, kfile, kernel_host, use_repo=False):
         _facts(check, bexe, synth, "synthm (тень/нули/ret)",
                tid="T-E9-21")
 
-        # T-E9-22 (E9.2-3a/b/c): эмиссия — выходной файл t.b2 ==
-        # оракулу КАНОНА emit_b2 (без mode — E9.2-3c: M-строки при
-        # точном воспроизведении enc, иначе H-фолбэк; метки l/d/iat_ +
-        # семантика DD/DQ + разрезы — E9.2-3b; шапка/H-строки/DZ/DB —
-        # E9.2-3a) на ВСЕХ 12 артефактах семейства + синтетике спуска +
-        # синтетике меток: мутант hint-ins (INT[0] указывает СТРОГО
-        # ВНУТРЬ выжившей инструкции 0x2B+1 — метка d102c не создаётся,
-        # обе таблицы DQ сырыми байтами, b2 ВАЛИДЕН — правило
-        # представимости SPEC/15 п. 6) и мутант imp0 (таблица INT пуста
-        # — impn=0: без отказа, DD + DQ «0»); для мутантов — и круг
-        # оракула (enc -> brick -> pegen == мутанту — валидность текста)
+        # T-E9-22/24 (E9.2-3a/b/c + E9.2-4): эмиссия — выходные файлы
+        # t.b2 и t.peg (ОДИН прогон инструмента на случай — оба файла
+        # сверяются по одному запуску: бюджет группы 4 не меняется):
+        # t.b2 == оракулу КАНОНА emit_b2 (без mode — E9.2-3c: M-строки
+        # при точном воспроизведении enc, иначе H-фолбэк; метки
+        # l/d/iat_ + семантика DD/DQ + разрезы — E9.2-3b; шапка/
+        # H-строки/DZ/DB — E9.2-3a), t.peg == оракулу emit_peg
+        # (E9.2-4 — регенерация обёртки PEG v1, SPEC/15 п. 8) на ВСЕХ
+        # 12 артефактах семейства + синтетике спуска + синтетике меток:
+        # мутант hint-ins (INT[0] указывает СТРОГО ВНУТРЬ выжившей
+        # инструкции 0x2B+1 — метка d102c не создаётся, обе таблицы DQ
+        # сырыми байтами, b2 ВАЛИДЕН — правило представимости
+        # SPEC/15 п. 6) и мутант imp0 (таблица INT пуста — impn=0: без
+        # отказа, DD + DQ «0»); для мутантов — и круг оракула
+        # (enc -> brick -> pegen == мутанту — валидность текста)
         _fam = lab_bridge.parse_family(kfile("L0-SEED/seed.exe"))
         _imp = _fam["pe"]["imports"][0]
         _intf = _imp["oft_rva"] - 0x1000 + _fam["pe"]["sec_raw_ptr"]
@@ -463,25 +476,40 @@ def run(check, kpath, kfile, kernel_host, use_repo=False):
         mut_imp0 = bytearray(_seed)
         mut_imp0[_intf:_intf + 8] = (0).to_bytes(8, "little")
         mut_imp0 = bytes(mut_imp0)
-        bad = []
+        bad_b2 = []
+        bad_peg = []
         for m in ARTIFACTS:
             data = kfile("%s.exe" % m)
             want, _st = lab_bridge.emit_b2(data)
+            wpeg = lab_bridge.emit_peg(data)
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             if r.exit_code != 0 or \
                     r.files.get("t.b2") != want.encode("utf-8"):
-                bad.append("%s (код %s, %d Б)"
-                           % (m, r.exit_code,
-                              len(r.files.get("t.b2") or b"")))
+                bad_b2.append("%s (код %s, %d Б)"
+                              % (m, r.exit_code,
+                                 len(r.files.get("t.b2") or b"")))
+            if r.exit_code != 0 or \
+                    r.files.get("t.peg") != wpeg.encode("utf-8"):
+                bad_peg.append("%s (код %s, %d Б)"
+                               % (m, r.exit_code,
+                                  len(r.files.get("t.peg") or b"")))
         synth_cases = [(synth, "synthm"), (mut_hint, "hint-ins"),
                        (mut_imp0, "imp0")]
         for data, mname in synth_cases:
             want, _st = lab_bridge.emit_b2(data)
+            wpeg = lab_bridge.emit_peg(data)
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             ok = (r.exit_code == 0
-                  and r.files.get("t.b2") == want.encode("utf-8"))
+                  and r.files.get("t.b2") == want.encode("utf-8")
+                  and r.files.get("t.peg") == wpeg.encode("utf-8"))
+            if not ok and (r.exit_code != 0
+                           or r.files.get("t.b2") != want.encode("utf-8")):
+                bad_b2.append("%s (код %s)" % (mname, r.exit_code))
+            if not ok and (r.exit_code != 0
+                           or r.files.get("t.peg") != wpeg.encode("utf-8")):
+                bad_peg.append("%s (код %s)" % (mname, r.exit_code))
             if ok and mname != "synthm":      # круг = валидность b2
                 try:
                     _b = lab_brick.assemble(
@@ -490,26 +518,33 @@ def run(check, kpath, kfile, kernel_host, use_repo=False):
                         == data
                 except Exception as _e:         # noqa: BLE001
                     ok = False
-            if not ok:
-                bad.append("%s (код %s)" % (mname, r.exit_code))
+            if not ok and mname != "synthm":
+                bad_b2.append("%s (круг)" % mname)
         check("T-E9-22 эмиссия .b2 (КАНОН: M-строки при точном"
               " воспроизведении enc + метки + семантика) == оракулу"
-              " (12 артефактов + синтетика)", not bad,
-              "; ".join(bad[:2]) if bad else "шапка; M/H/DZ/DB/DD/DQ;"
+              " (12 артефактов + синтетика)", not bad_b2,
+              "; ".join(bad_b2[:2]) if bad_b2 else "шапка; M/H/DZ/DB/DD/DQ;"
               " метки")
+        check("T-E9-24 эмиссия .peg (регенерация PEG v1, SPEC/15 п. 8)"
+              " == оракулу (12 артефактов + синтетика)", not bad_peg,
+              "; ".join(bad_peg[:2]) if bad_peg else
+              "module/entry/idata/iat/bss/stackcom/heapcom")
 
-        # T-E9-23 (E9.2-3a/b/c): сквозной круг КАНОННОГО текста
-        # РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ (M-строки + метки + семантика +
-        # разрезы байто-точны, SPEC/15 п. 5/6/8): bridge.exe -> t.b2
-        # (канон) -> enc -> brick -> pegen(+peg оракула) == исходный EXE
-        # (seed и hxdump) — интеграция enc: M-строки парсятся кодировщиком
+        # T-E9-23 (E9.2-3a/b/c + E9.2-4 — ПРИЁМКА DoD ЭТАПА E9.2):
+        # сквозной круг КАНОННОГО текста РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ
+        # (M-строки + метки + семантика + разрезы байто-точны,
+        # SPEC/15 п. 5/6/8): bridge.exe -> t.b2 + t.peg (ОБА ВЫХОДА
+        # МОСТА — E9.2-4: peg берётся из выхода инструмента, не из
+        # оракула) -> enc -> brick -> pegen(+peg моста) == исходный
+        # EXE (seed и hxdump) — интеграция enc: M-строки парсятся
+        # кодировщиком; круг Инструментами = DoD этапа E9.2
         bad = []
         for m in ("L0-SEED/seed", "L0-HXDUMP/hxdump"):
             data = kfile("%s.exe" % m)
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             b2 = r.files.get("t.b2", b"")
-            peg = lab_bridge.emit_peg(data).encode()
+            peg = r.files.get("t.peg", b"")
             r1 = lab_run.run_kv(kpath("L1-ENC/enc.exe"),
                                 ["t.b2", "t.brick"], {"t.b2": b2})
             r2 = lab_run.run_kv(kpath("L1-BRICK/brick.exe"),

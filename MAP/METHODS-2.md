@@ -22,7 +22,7 @@
 | K4-M001 | mem_copy | M | готов | `MAP/M4-LIB.md` |
 | K4-M002 | mem_fill | M | готов | `MAP/M4-LIB.md` |
 
-## Слой L5 — мост M5-BRIDGE (E9.2-1/2: каркас + спуск bridge.exe — 42 кирпича)
+## Слой L5 — мост M5-BRIDGE (E9.2-1..4: каркас + спуск + эмиссия + PEG — 117 кирпичей)
 
 | ID | Имя | Ветвь | Статус | Карточка |
 |---|---|---|---|---|
@@ -141,3 +141,5 @@
 | K5-M026 | m_bmov | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M027 | m_body | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M028 | m_line | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
+| K5-G001 | ptpl_dec | G | готов (E9.2-4) | `MAP/M5-BRIDGE-G.md` |
+| K5-G002 | emit_peg | G | готов (E9.2-4) | `MAP/M5-BRIDGE-G.md` |

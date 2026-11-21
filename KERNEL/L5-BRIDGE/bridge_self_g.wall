@@ -1,0 +1,108 @@
+; bridge_self_g.wall — PEG-выход моста (E9.2-4)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_g.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь G моста — ЗАПИСЬ <выход>.peg: регенерация
+; обёртки PEG v1 (SPEC/15 п. 8 == _peg_text оракула emit_peg):
+; строка 1 — шапка «; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) /
+; исходник: <имя>.exe» (кириллица UTF-8 хранится HEX-текстом в
+; литерале s_ptpl корня — литералы WALL только ASCII; идиома s_tpl
+; шапки b2 — K5-G001 ptpl_dec) + !module <имя> + !entry <rva> +
+; !idata <rva> <размер> (каталог импорта DD[1] @0x110/@0x114) +
+; !iat <rva> <размер> (каталог IAT DD[12] @0x168/@0x16C) + !bss <n>
+; (если != 0) + !stackcom <n> (@0xE8) / !heapcom <n> (@0xF8) (если
+; != 0x1000 — значения по умолчанию опускаются, SPEC/07); числа —
+; ЗАГЛАВНЫЙ hex без ведущих нулей (out_hexv — «%X» оракула); имя
+; модуля — байты exebuf[77..77+modlen] (DOS-заглушка, ветвь P).
+; Буфер вывода outmem переиспользуется ПОСЛЕ emit_body (текст b2 уже
+; записан в файл; PEG ~200 Б пишется с начала буфера — KW: outcur = 0).
+; Запись — CreateFile2 WRITE/CREATE_ALWAYS (как emit_body): отказы
+; OPEN OUT (8) / WRITE OUT (9). Диффтесты: T-E9-24 (12 артефактов +
+; синтетика == оракулу emit_peg), круг T-E9-23 С PEG МОСТА —
+; приёмка DoD этапа E9.2 (мост -> enc -> brick -> pegen == вход).
+
+; K5-G001: декод шаблона шапки PEG: HEX-текст s_ptpl (2 символа на
+; байт, 144 символа) -> массив ptplb (72 байта = фикс. префикс первой
+; строки до имени модуля; идиома tpl_dec/tplb шапки b2 — K5-E003);
+; hex-цифра: >57 — буква A..F (-55), иначе цифра (-48)
+func ptpl_dec
+  var i
+  var c
+  var v
+  i = 0
+  while i < 72
+    c = getb(s_ptpl, 2 * i)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = c * 16
+    c = getb(s_ptpl, 2 * i + 1)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    setb(ptplb, i, v + c)
+    i = i + 1
+  end
+  return 0
+end
+
+; K5-G002: ДРАЙВЕР PEG-выхода — текст PEG v1 (SPEC/15 п. 8 ==
+; _peg_text оракула: порядок строк фиксирован, опциональные — только
+; в хвосте) + запись <выход>.peg; nlen3 — длина слова-пути выхода
+; (аргумент 3 CLI); глобали: entryrva/bss (факты ветвей P/W), modlen
+; (имя модуля), outmem/outbuf/outcur (буфер emit_body — пере-
+; используется), w1 (UTF-16LE имя файла); idata/iat/stackcom/heapcom
+; читаются rd32 по фиксированным смещениям SPEC/04 из exebuf
+func emit_peg(nlen3)
+  var fh
+  var rc
+  var j
+  outbuf = outmem
+  outcur = 0
+  j = 0
+  while j < 72
+    app_ch(getb(ptplb, j))
+    j = j + 1
+  end
+  outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+  outcur = copy_str(outbuf, outcur, s_dotexe, len(s_dotexe))
+  outcur = copy_str(outbuf, outcur, s_pm, len(s_pm))
+  outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+  outcur = copy_str(outbuf, outcur, s_pe, len(s_pe))
+  out_hexv(entryrva)
+  outcur = copy_str(outbuf, outcur, s_pi, len(s_pi))
+  out_hexv(rd32(exebuf, 272))
+  app_ch(32)
+  out_hexv(rd32(exebuf, 276))
+  outcur = copy_str(outbuf, outcur, s_pa, len(s_pa))
+  out_hexv(rd32(exebuf, 360))
+  app_ch(32)
+  out_hexv(rd32(exebuf, 364))
+  if bss != 0
+    outcur = copy_str(outbuf, outcur, s_pb, len(s_pb))
+    out_hexv(bss)
+  end
+  if rd32(exebuf, 232) != 4096
+    outcur = copy_str(outbuf, outcur, s_ps, len(s_ps))
+    out_hexv(rd32(exebuf, 232))
+  end
+  if rd32(exebuf, 248) != 4096
+    outcur = copy_str(outbuf, outcur, s_ph, len(s_ph))
+    out_hexv(rd32(exebuf, 248))
+  end
+  app_ch(10)
+  widen(w1, arg3, nlen3)
+  fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+  if fh == -1
+    print_error(s_oout, len(s_oout), 8)
+  end
+  written = 0
+  rc = WriteFile(fh, outbuf, outcur, &written, 0)
+  if rc == 0
+    print_error(s_wout, len(s_wout), 9)
+  end
+  CloseHandle(fh)
+  return 0
+end
