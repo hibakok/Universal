@@ -61,26 +61,20 @@
             + lab_t_l4_s + lab_t_l4_m — делегирование ветвей S и M,
             лимит 500; E8.1 + E8.2a/b/c/d, SPEC/14; якоря —
             lab_l4_cases.py): оракул против якорей (T-E8-01..07);
-            ветвь C lib_c.uva: композиция splice → run_asm, ABI, круг
-            инструментами (T-E8-08..11); ветвь N lib_n.uva (стек-слоты
-            [sp-8,sp), .data+ldq): r1=len+RAM, DEC/I64, ABI+баланс sp,
-            круг с двумя частями C+N (T-E8-12..16); ветвь S lib_s.uva
-            (автономная — без зависимостей и без стека): STR r1=len
-            и консоль, композиция ТРЁХ ветвей C+N+S, ABI с
-            r13-сентинелом, круг с ОДНОЙ частью (T-E8-17..21); ветвь
-            M lib_m.uva (автономная как S — без стека и КОНСОЛИ,
-            эффект в RAM): CPY/FILL по ВСЕЙ RAM против модели оракула,
-            композиция ЧЕТЫРЁХ ветвей C+N+S+M с ПОЛНОЙ RAM-моделью,
-            ABI, круг с ОДНОЙ частью — печать эффектов НАПРЯМУЮ
-            stb r14+0 (T-E8-22..26);
+            ветви C/N/S/M — композиции/ABI/круги инструментами
+            (T-E8-08..26; N — стек-слоты и зависимость N→C; S/M —
+            автономные; M — эффект в RAM против модели оракула);
          17) проекты PROJECTS/ (lab_t_prj, E8.3 — DoD этапа 8): круг
             инструментами splice -> uva -> kernel реальных исходников:
             T-P-01 banner (C+N+S+M, .UP v2), T-P-02 fib (C+N, ряд,
             .UP v1) — вывод == оракулу и якорям TESTS/T-PROJECTS.md;
-         18) мост BRIDGE v1 (lab_t_bridge, E9.1 — оракул lab_bridge +
-            якоря lab_bridge_cases, SPEC/15): EXE -> BRICK v2 + PEG —
-            тексты seed == якорям, круг всех 11 артефактов == EXE
-            байт-в-байт, сквозной круг инструментами (seed, hxdump);
+         18) мост BRIDGE v1 (lab_t_bridge, E9.1): EXE -> BRICK v2 +
+            PEG — тексты seed == якорям, круг всех 11 артефактов ==
+            EXE байт-в-байт, сквозной круг инструментами (seed,
+            hxdump); с E9.2-1 — и КАРКАС bridge.exe (M5-BRIDGE на
+            WALL): фикс-пункт сборки T-E9-17, факты == оракулу на 12
+            артефактах (T-E9-18), CLI/мутанты (T-E9-19), круг над
+            bridge.exe — 12-й артефакт (T-E9-20, M=2893 H=0);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -136,11 +130,13 @@ SHA = {
                     "0A46EE1CF7",
     "L3-UNIVM/kernel": "9F5696178E26452D66B3F0FCC3BFDE0704D926AA12B61C9A0B351EFF51BE4799",
     "L3-UVA/uva": "32ABF177E0C01AA019E05244A0E12FEB18E13CE0A28DBFA4F59C3805802145EE",
+    "L5-BRIDGE/bridge": "CE071BE15F36263467ED173E1FD5C74375474B670BBA31A6411603814A98362F",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
 MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice",
-                        "L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva")]
+                        "L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva",
+                        "L5-BRIDGE/bridge")]
 
 PASS, FAIL = [], []
 
@@ -184,9 +180,11 @@ def t_pe_invariants():
     for m in SHA:                       # включая enc (E6.2)
         pe = lab_pe.load(kpath("%s.exe" % m))
         bad = lab_pe.check_spec04(pe)
-        if m in ("L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva"):
-            # wall.exe, kernel.exe и uva.exe — программы, скомпилированные
-            # WALL (самосборные артефакты из wall.wall/kernel.wall/uva.wall):
+        if m in ("L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva",
+                 "L5-BRIDGE/bridge"):
+            # wall.exe, kernel.exe, uva.exe и bridge.exe — программы,
+            # скомпилированные WALL (самосборные артефакты из
+            # wall.wall/kernel.wall/uva.wall/bridge.wall):
             # вход 0x1200 после фиксированной области импортов 0x200 —
             # документированное отклонение SPEC/11 п.6 (батарея проверяет
             # его явно —

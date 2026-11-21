@@ -1,0 +1,398 @@
+; bridge_self_pe.wall — разбор PE и семейная проверка моста (E9.2-1)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_pe.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь P моста — чтение полей PE32+ по ФИКСИРОВАННЫМ смещениям
+; SPEC/04 (K5-P001 rd16 / K5-P002 rd32 — байты буфера exebuf), СЕМЕЙНАЯ
+; ПРОВЕРКА (K5-P005..P010: инварианты check_spec04 оракула MINUS два
+; легальных отклонения семейства — точка входа 0x1200 (SPEC/11 п. 6) и
+; RawSize > VirtualSize (файл дополнен выравниванием); см. SPEC/15 п. 2;
+; любое нарушение или чтение за границей файла — ERR=FAMILY, код 6),
+; имя модуля из DOS-заглушки (K5-P011 stub_name: префикс «Universal L0 »,
+; игла «. No DOS support.» — первый полный матч в окне [0x40,0x80),
+; длина имени 1..31, без пробельных байтов 09-0D/1C-1F/20/85/A0 — как
+; .isspace() оракула), структуры импорта (K5-P013 walk_descs — ровно один
+; дескриптор IDT + терминатор (нули ИЛИ за файлом), K5-P014 check_dll —
+; kernel32.dll без учёта регистра (| 32), K5-P016 walk_funcs — счёт
+; записей INT/IAT по 8 байт (терминатор: нули или за файлом) + чётность
+; hint-RVA (младший бит)) и факт-строка (K5-P017 print_facts — в factbuf,
+; затем WriteFile в stdout).
+; Эквивалентность оракулу LAB/py/lab_bridge.py (parse_family +
+; lab_pe.check_spec04): чтения за границей файла = отказ (как None
+; оракула lab_pe); K5-P015 cstr_len повторяет quirk оракула — C-строка
+; без NUL обрезается до len-1 (data[off:-1]); имя DLL вне файла — отказ
+; (как «?» оракула). Каркас: спуск от входа/эмиссия не выполняются —
+; срезы E9.2-2+; факты (module/entry/vsize/raw/имп) достаточны для
+; диффтеста каркаса с оракулом (T-E9-18).
+
+; LE u16 по байтовому смещению i буфера base
+func rd16(base, i)
+  return getb(base, i) + 256 * getb(base, i + 1)
+end
+
+; LE u32 по байтовому смещению i буфера base
+func rd32(base, i)
+  return getb(base, i) + 256 * getb(base, i + 1) + 65536 * getb(base, i + 2) + 16777216 * getb(base, i + 3)
+end
+
+; печать ERR=FAMILY и выход 6 — единственный отказ семейства каркаса
+func fail_family
+  print_error(s_family, len(s_family), 6)
+  return 0
+end
+
+; проверка границ чтения [off, off+n) из exebuf; нарушение — отказ
+; семейства (как короткий срез/None у lab_pe.parse оракула)
+func guard(off, n)
+  if off < 0
+    fail_family()
+  end
+  if off + n > exelen
+    fail_family()
+  end
+  return 0
+end
+
+; заголовки: MZ + сигнатура PE\0\0 по e_lfanew + длина файла под все
+; поля SPEC/04 (последнее поле кончается на 0x1B0 = 432)
+func check_head
+  var lfanew
+  if exelen < 432
+    fail_family()
+  end
+  if getb(exebuf, 0) != 77 || getb(exebuf, 1) != 90
+    fail_family()
+  end
+  lfanew = rd32(exebuf, 60)
+  guard(lfanew, 4)
+  if getb(exebuf, lfanew) != 80 || getb(exebuf, lfanew + 1) != 69 || getb(exebuf, lfanew + 2) != 0 || getb(exebuf, lfanew + 3) != 0
+    fail_family()
+  end
+  return 0
+end
+
+; опциональный заголовок и файловый заголовок: Machine/NumberOfSections/
+; SizeOfOptionalHeader/Characteristics/Magic/Subsystem (SPEC/04)
+func check_opt
+  if rd16(exebuf, 132) != 34404
+    fail_family()
+  end
+  if rd16(exebuf, 134) != 1
+    fail_family()
+  end
+  if rd16(exebuf, 148) != 240
+    fail_family()
+  end
+  if rd16(exebuf, 150) != 34
+    fail_family()
+  end
+  if rd16(exebuf, 152) != 523
+    fail_family()
+  end
+  if rd16(exebuf, 220) != 3
+    fail_family()
+  end
+  return 0
+end
+
+; база и выравнивания: ImageBase 0x140000000 (два dword: низ
+; 0x40000000 = 1073741824, верх 1), SectionAlignment 0x1000,
+; FileAlignment 0x200
+func check_base
+  if rd32(exebuf, 176) != 1073741824
+    fail_family()
+  end
+  if rd32(exebuf, 180) != 1
+    fail_family()
+  end
+  if rd32(exebuf, 184) != 4096
+    fail_family()
+  end
+  if rd32(exebuf, 188) != 512
+    fail_family()
+  end
+  return 0
+end
+
+; секция .text: имя 8 байт («.text» + нули), VirtualAddress 0x1000,
+; Characteristics 0xE0000020; vsize/rawsize/rawptr -> глобали
+func check_sect
+  if getb(exebuf, 392) != 46 || getb(exebuf, 393) != 116 || getb(exebuf, 394) != 101 || getb(exebuf, 395) != 120 || getb(exebuf, 396) != 116
+    fail_family()
+  end
+  if getb(exebuf, 397) != 0 || getb(exebuf, 398) != 0 || getb(exebuf, 399) != 0
+    fail_family()
+  end
+  vsize = rd32(exebuf, 400)
+  if rd32(exebuf, 404) != 4096
+    fail_family()
+  end
+  rawsize = rd32(exebuf, 408)
+  rawptr = rd32(exebuf, 412)
+  ; Characteristics 0xE0000020 (литерали > 2^31-1 в WALL нет — сдвигом)
+  if rd32(exebuf, 428) != (14 << 28) + 32
+    fail_family()
+  end
+  return 0
+end
+
+; размерные инварианты: SizeOfImage == align_up(0x1000+vsize),
+; SizeOfHeaders == PointerToRawData (кратно 0x200), SizeOfRawData
+; кратно 0x200, размер файла == headers + raw, точка входа В СЕКЦИИ
+; [0x1000, 0x1000+vsize) — отклонение 0x1200 легально (SPEC/15 п. 2);
+; entryrva -> глобаль
+func check_size
+  var endva
+  var hdrs
+  endva = (4096 + vsize + 4095) / 4096 * 4096
+  if rd32(exebuf, 208) != endva
+    fail_family()
+  end
+  hdrs = rd32(exebuf, 212)
+  if hdrs != rawptr
+    fail_family()
+  end
+  if rawptr % 512 != 0
+    fail_family()
+  end
+  if rawsize % 512 != 0
+    fail_family()
+  end
+  if exelen != rawptr + rawsize
+    fail_family()
+  end
+  entryrva = rd32(exebuf, 168)
+  if entryrva < 4096 || entryrva >= 4096 + vsize
+    fail_family()
+  end
+  return 0
+end
+
+; тело секции не пустое и не состоит из одних нулей (parse_family):
+; первый ненулевой байт в [rawptr, rawptr+rawsize)
+func check_body
+  var k
+  var nz
+  if rawsize == 0
+    fail_family()
+  end
+  nz = 0
+  k = 0
+  while k < rawsize
+    if getb(exebuf, rawptr + k) != 0
+      nz = 1
+      break
+    end
+    k = k + 1
+  end
+  if nz == 0
+    fail_family()
+  end
+  return 0
+end
+
+; DOS-заглушка: префикс «Universal L0 » (13 байт с 0x40), игла
+; «. No DOS support.» (16 байт) — первый полный матч в окне
+; [0x40+13, 0x80-16]; имя = байты [0x40+13, матч): длина 1..31,
+; без пробельных байтов; modlen -> глобаль (имя остаётся в exebuf)
+func stub_name
+  var p
+  var j
+  var m
+  var found
+  p = 0
+  while p < 13
+    if getb(exebuf, 64 + p) != getb(s_pref, p)
+      fail_family()
+    end
+    p = p + 1
+  end
+  found = 0
+  p = 77
+  while p <= 112
+    m = 1
+    j = 0
+    while j < 16
+      if getb(exebuf, p + j) != getb(s_needle, j)
+        m = 0
+        break
+      end
+      j = j + 1
+    end
+    if m == 1
+      found = p
+      break
+    end
+    p = p + 1
+  end
+  if found == 0
+    fail_family()
+  end
+  modlen = found - 77
+  if modlen < 1 || modlen > 31
+    fail_family()
+  end
+  p = 0
+  while p < modlen
+    m = getb(exebuf, 77 + p)
+    if m >= 9 && m <= 13 || m >= 28 && m <= 31 || m == 32 || m == 133 || m == 160
+      fail_family()
+    end
+    p = p + 1
+  end
+  return 0
+end
+
+; RVA тела (0x1000+) -> файловое смещение (тело лежит с rawptr)
+func rva_off(rva)
+  return rva - 4096 + rawptr
+end
+
+; дескрипторы IDT (DD[1] @ 0x110): размер >= 40; дескриптор 1 — в файле
+; и НЕ нулевой (поля: oft @+0, name_rva @+12, ft @+16); дескриптор 2 —
+; терминатор: 20 нулей ИЛИ за файлом (как break по None оракула);
+; хвост: INT (oft) либо IAT (ft) -> глобаль thunk; файловое смещение
+; имени DLL -> глобаль dllfile
+func walk_descs
+  var f
+  var oft
+  var namerva
+  var ft
+  var z
+  var k
+  if rd32(exebuf, 276) < 40
+    fail_family()
+  end
+  f = rva_off(rd32(exebuf, 272))
+  guard(f, 20)
+  z = 0
+  k = 0
+  while k < 20
+    if getb(exebuf, f + k) != 0
+      z = 1
+      break
+    end
+    k = k + 1
+  end
+  if z == 0
+    fail_family()
+  end
+  oft = rd32(exebuf, f)
+  namerva = rd32(exebuf, f + 12)
+  ft = rd32(exebuf, f + 16)
+  f = rva_off(rd32(exebuf, 272) + 20)
+  z = 1
+  if f >= 0 && f + 20 <= exelen
+    k = 0
+    while k < 20
+      if getb(exebuf, f + k) != 0
+        z = 0
+        break
+      end
+      k = k + 1
+    end
+  end
+  if z == 0
+    fail_family()
+  end
+  if oft != 0
+    thunk = oft
+  else
+    thunk = ft
+  end
+  dllfile = rva_off(namerva)
+  return 0
+end
+
+; длина C-строки @ off (до NUL); quirk оракула: строки без NUL
+; обрезаются до len-1 (data[off:-1] у lab_pe._read_cstr_rva)
+func cstr_len(off)
+  var j
+  j = off
+  while j < exelen
+    if getb(exebuf, j) == 0
+      return j - off
+    end
+    j = j + 1
+  end
+  return exelen - 1 - off
+end
+
+; имя DLL == kernel32.dll без учёта регистра: вне файла — отказ
+; (как «?» оракула), длина 12, байты | 32 равны образцу
+func check_dll
+  var nlen
+  var j
+  if dllfile < 0 || dllfile >= exelen
+    fail_family()
+  end
+  nlen = cstr_len(dllfile)
+  if nlen != 12
+    fail_family()
+  end
+  j = 0
+  while j < 12
+    if (getb(exebuf, dllfile + j) | 32) != getb(s_dll, j)
+      fail_family()
+    end
+    j = j + 1
+  end
+  return 0
+end
+
+; счёт функций: записи по 8 байт с файлового смещения rva_off(thunk);
+; терминатор — 8 нулей или за файлом; чётность hint-RVA (младший бит
+; первого байта записи) — нечётное: отказ семейства; impn -> глобаль.
+; Предел k < 32768 покрывает вход 256 КиБ (больше записей не влезает)
+func walk_funcs
+  var f
+  var k
+  var z
+  var j
+  impn = 0
+  k = 0
+  while k < 32768
+    f = thunk + 8 * k - 4096 + rawptr
+    if f < 0 || f + 8 > exelen
+      break
+    end
+    z = 0
+    j = 0
+    while j < 8
+      if getb(exebuf, f + j) != 0
+        z = 1
+        break
+      end
+      j = j + 1
+    end
+    if z == 0
+      break
+    end
+    if (getb(exebuf, f) & 1) != 0
+      fail_family()
+    end
+    impn = impn + 1
+    k = k + 1
+  end
+  return 0
+end
+
+; факт-строка каркаса (срез E9.2-1): MODULE=<имя> ENTRY=<hex8>
+; VSIZE=<hex8> RAW=<hex8> IMP=<dec> + CRLF — в factbuf, одним WriteFile
+; в stdout (имя — байты exebuf[77..77+modlen))
+func print_facts
+  var k
+  k = 0
+  k = copy_str(factbuf, k, s_f1, len(s_f1))
+  k = copy_str(factbuf, k, exebuf + 77, modlen)
+  k = copy_str(factbuf, k, s_f2, len(s_f2))
+  k = out_hex(factbuf, k, entryrva)
+  k = copy_str(factbuf, k, s_f3, len(s_f3))
+  k = out_hex(factbuf, k, vsize)
+  k = copy_str(factbuf, k, s_f4, len(s_f4))
+  k = out_hex(factbuf, k, rawsize)
+  k = copy_str(factbuf, k, s_f5, len(s_f5))
+  k = out_dec(factbuf, k, impn)
+  k = copy_str(factbuf, k, s_crlf, len(s_crlf))
+  written = 0
+  WriteFile(hstdout, factbuf, k, &written, 0)
+  return 0
+end

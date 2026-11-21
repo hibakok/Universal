@@ -1,0 +1,129 @@
+; bridge.wall — мост BRIDGE v1 (M5-BRIDGE, этап E9.2): корень с разрезом
+; Паспорт: KERNEL/L5-BRIDGE/bridge.wall | слой: L5 (исходник — WALL, слой L2)
+; | роль: корень инструмента моста — EXE семейства UNIVERSAL (SPEC/04)
+; превращает обратно в исходник конвейера: тело секции -> BRICK v2
+; (SPEC/09), обёртка -> PEG v1 (SPEC/07); семантика — оракул
+; LAB/py/lab_bridge.py (правило R8, SPEC/15).
+; Срез E9.2-1 (КАРКАС): CLI — ровно три аргумента (вход .exe, выход .b2,
+; выход .peg; выходные файлы не пишутся до срезов эмиссии), чтение файла
+; EXE в кучу одним ReadFile (GlobalAlloc 262145; предел 256 КиБ),
+; разбор PE-заголовков по ФИКСИРОВАННЫМ смещениям SPEC/04 и СЕМЕЙНАЯ
+; ПРОВЕРКА (ветвь P: инварианты SPEC/04 минус два легальных отклонения
+; семейства — вход 0x1200 и RawSize > VirtualSize, SPEC/15 п. 2; имя
+; модуля из DOS-заглушки; структуры импорта; любое нарушение —
+; ERR=FAMILY, код 6). Успех — факт-строка (MODULE/ENTRY/VSIZE/RAW/IMP)
+; в stdout, код 0 — диагностический срез: факты сверяются с оракулом
+; parse_family на всех артефактах семейства (TESTS/T-L5-BRIDGE.md).
+; Спуск от входа, эмиссия b2/peg и запись выходов — срезы E9.2-2+.
+; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
+; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
+; разбор PE — bridge_self_pe.wall).
+; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
+; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
+; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7) — карточка CARD.md.
+; Сборка (полный круг, инструменты ядра; обёртка — bridge.peg):
+;   splice.exe bridge.wall bridge_s.flat
+;   wall.exe   bridge_s.flat bridge_s.b2
+;   enc.exe    bridge_s.b2  bridge_s.brick
+;   brick.exe  bridge_s.brick bridge_s.bin
+;   pegen.exe  bridge_s.bin bridge.peg bridge.exe
+; Запуск: bridge.exe <вход.exe> <выход.b2> <выход.peg>; справка — без
+; аргументов (код 2).
+
+ext GetStdHandle
+ext WriteFile
+ext ExitProcess
+ext GetCommandLineA
+ext CreateFile2
+ext ReadFile
+ext CloseHandle
+ext GlobalAlloc
+
+; Порядок глобалей — канон читаемости моста (0 H-строк в разборе
+; bridge.exe): СКАЛЯРЫ ПЕРВЫМИ, массивы в конце (factbuf — последним:
+; выравнивающий хвост !bss падает внутрь него, а rip-ссылок внутрь нет —
+; как cstack у kernel.exe). Буферы аргументов — ровно контракт read_arg
+; (127 байт + NUL = 128); w1 — 2*127+2 = 256.
+var hstdout
+var cmdline
+var written
+var wlen
+var exebuf
+var exelen
+var entryrva
+var vsize
+var rawsize
+var rawptr
+var modlen
+var thunk
+var dllfile
+var impn
+var arg1[16]
+var arg2[16]
+var arg3[16]
+var w1[32]
+var factbuf[24]
+
+str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
+str s_long = 'U-L5-BRIDGE ERR=LONG NAME\r\n'
+str s_oexe = 'U-L5-BRIDGE ERR=OPEN EXE\r\n'
+str s_rexe = 'U-L5-BRIDGE ERR=READ EXE\r\n'
+str s_family = 'U-L5-BRIDGE ERR=FAMILY\r\n'
+str s_big = 'U-L5-BRIDGE ERR=BIG EXE\r\n'
+str s_f1 = 'U-L5-BRIDGE MODULE='
+str s_f2 = ' ENTRY='
+str s_f3 = ' VSIZE='
+str s_f4 = ' RAW='
+str s_f5 = ' IMP='
+str s_crlf = '\r\n'
+str s_pref = 'Universal L0 '
+str s_needle = '. No DOS support.'
+str s_dll = 'kernel32.dll'
+
+!include bridge_self_c.wall
+!include bridge_self_pe.wall
+
+func main
+  var i
+  var fh
+  var rc
+  var nlen1
+  hstdout = GetStdHandle(-11)
+  cmdline = GetCommandLineA()
+  i = skip0()
+  i = read_arg(arg1, i)
+  nlen1 = wlen
+  i = read_arg(arg2, i)
+  i = read_arg(arg3, i)
+  check_end(i)
+  widen(w1, arg1, nlen1)
+  fh = CreateFile2(w1, 1 << 31, 0, 3, 0)
+  if fh == -1
+    print_error(s_oexe, len(s_oexe), 4)
+  end
+  exebuf = GlobalAlloc(0, 262145)
+  if exebuf == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  exelen = 0
+  rc = ReadFile(fh, exebuf, 262145, &exelen, 0)
+  if rc == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  if exelen >= 262145
+    print_error(s_big, len(s_big), 7)
+  end
+  CloseHandle(fh)
+  check_head()
+  check_opt()
+  check_base()
+  check_sect()
+  check_size()
+  check_body()
+  stub_name()
+  walk_descs()
+  check_dll()
+  walk_funcs()
+  print_facts()
+  ExitProcess(0)
+end

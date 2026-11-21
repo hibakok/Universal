@@ -1,0 +1,130 @@
+# Карточка модуля M5-BRIDGE (мост BRIDGE: EXE -> BRICK v2 + PEG v1)
+
+Паспорт файла: KERNEL/L5-BRIDGE/CARD.md | слой: L5 | роль: карточка модуля.
+
+| Поле | Значение |
+|---|---|
+| ID модуля | M5-BRIDGE |
+| Слой | L5 (МОСТЫ); исходник — WALL v2 (слой L2, SPEC/11) с разрезом по !include (SPEC/10) |
+| Назначение | **Мост BRIDGE v1** (SPEC/15): EXE семейства UNIVERSAL -> исходник конвейера — тело секции станет текстом BRICK v2 (SPEC/09), обёртка — текстом PEG v1 (SPEC/07). Срез E9.2-1 (КАРКАС): CLI (3 аргумента), чтение EXE в кучу одним ReadFile (предел 256 КиБ), разбор PE-заголовков по фиксированным смещениям SPEC/04, СЕМЕЙНАЯ ПРОВЕРКА (инварианты check_spec04 оракула MINUS легальные отклонения: вход 0x1200 — SPEC/11 п. 6, RawSize > VirtualSize — файл дополнен выравниванием), имя модуля из DOS-заглушки, структуры импорта (IDT/INT/имя DLL/чётность hint-RVA). Успех — диагностическая факт-строка `U-L5-BRIDGE MODULE=<имя> ENTRY=<hex8> VSIZE=<hex8> RAW=<hex8> IMP=<dec>` (факты == оракулу parse_family на всех 12 артефактах семейства, T-E9-18); отказ семейства — `ERR=FAMILY`. Спуск от входа (декодер x86), эмиссия b2/peg и запись выходных файлов — срезы E9.2-2+ (SPEC/15 п. 10): выходные аргументы .b2/.peg каркас читает, но не создаёт |
+| Вход | командная строка Windows: `bridge.exe <вход.exe> <выход.b2> <выход.peg>` (ровно 3 аргумента; пути ≤ 127 байт ANSI) |
+| Выход | коды: 0 — успех (факт-строка в stdout); 2 — справка (нет аргументов / четвёртый / пустое слово); 3 — `ERR=LONG NAME`; 4 — `ERR=OPEN EXE`; 5 — `ERR=READ EXE` (вкл. отказ GlobalAlloc); 6 — `ERR=FAMILY` (не семейство: любое нарушение инвариантов SPEC/04, кроме двух легальных отклонений; DOS-заглушка; импорты); 7 — `ERR=BIG EXE` (файл ≥ 256 КиБ). Файлы .b2/.peg не пишутся до срезов эмиссии |
+| Версия | E9.2-1 (сессия 68) — каркас: CLI + чтение + разбор PE + семейная проверка + факт-строка |
+| Размер | 15360 байт (0x3C00); тело 14527 Б (0x38BF); вход 0x1200 (SPEC/11 п. 6) |
+| Платформа | Windows x64, консольная подсистема, PE32+ |
+| Импорты | kernel32.dll (8): GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFile2, ReadFile, CloseHandle, GlobalAlloc |
+| Самохостинг | артефакты `bridge.b2/brick/exe` — ГЕНЕРИРУЕМАЯ сборка из `bridge.wall` конвейером инструментов (wall → enc → brick → pegen + bridge.peg) под эмуляцией LAB; фикс-пункт воспроизводимости — батарея T-E9-17 (каждый пуш); bridge.b2 == оракулу WALL байт-в-байт |
+
+## Формат вызова
+
+```
+bridge.exe <in.exe> <out.b2> <out.peg>
+```
+
+Аргументы: путь входного EXE (≤ 127 байт ANSI), путь выхода BRICK v2 и
+путь выхода PEG v1 (в каркасе читаются и проверяются по счётчику
+аргументов, файлы не создаются — срезы E9.2-2+). Четвёртый аргумент,
+пустое слово или отсутствие слова — справка, код 2.
+
+Семейная проверка каркаса (всё — `ERR=FAMILY`, код 6, детерминированно):
+
+- файл короче 0x1B0 (все поля SPEC/04), нет MZ, нет сигнатуры PE\0\0
+  (по e_lfanew, границы файла);
+- Machine != 0x8664, NumberOfSections != 1, SizeOfOptionalHeader
+  != 0xF0, Characteristics != 0x0022, Magic != 0x020B, Subsystem != 3;
+- ImageBase != 0x140000000 (два dword), SectionAlignment != 0x1000,
+  FileAlignment != 0x200;
+- секция: имя != «.text», VirtualAddress != 0x1000,
+  Characteristics != 0xE0000020;
+- SizeOfImage != align_up(0x1000+vsize), SizeOfHeaders !=
+  PointerToRawData (или не кратно 0x200), SizeOfRawData не кратно 0x200,
+  размер файла != SizeOfHeaders + SizeOfRawData;
+- точка входа вне [0x1000, 0x1000+vsize) — сама 0x1200 ЛЕГАЛЬНА
+  (SPEC/15 п. 2 — отклонение семейства);
+- тело пустое или из одних нулей;
+- DOS-заглушка: нет префикса «Universal L0 », нет иглы
+  «. No DOS support.», имя модуля не 1..31 байт или содержит
+  пробельный байт (09-0D, 1C-1F, 20, 85, A0 — как .isspace оракула);
+- импорты: DD[1] размер < 40; дескриптор IDT вне файла или нулевой;
+  второй дескриптор не терминатор (не 20 нулей и не за файлом);
+  имя DLL != kernel32.dll (без учёта регистра, вне файла — отказ);
+  hint-RVA нечётный; (всё — как check_spec04/parse_family оракула,
+  включая quirk C-строки без NUL — обрезается до len-1).
+
+Диффтест: `LAB/py/lab_t_bridge.py` (секция 18 батареи, T-E9-17..20:
+фикс-пункт сборки, факты == оракулу на 12 артефактах, CLI-контракт +
+27 мутант-отказов + 2 легальных отклонения, круг оракула над bridge.exe).
+
+## Состав (что читать для работы с модулем)
+
+| Файл | Назначение |
+|---|---|
+| `bridge.wall` | корень с разрезом (SPEC/10): 8 ext, 19 var (13 скаляров + arg1/arg2/arg3[16] + w1[32] + factbuf[24] — массивы в конце: выравнивающий хвост !bss падает внутрь factbuf, rip-ссылок туда нет — 0 H-строк в разборе моста, как cstack у kernel.exe), 16 str, main (CLI → чтение → проверки → факт-строка) |
+| `bridge_self_c.wall` | ветвь C — сервис: print_error, skip0, read_arg, check_end (ровно три аргумента), widen (ANSI → UTF-16LE для CreateFile2), copy_str, out_dec, out_hex (8 ЗАГЛАВНЫХ hex-цифр) |
+| `bridge_self_pe.wall` | ветвь P — разбор PE и семейство: rd16/rd32, fail_family, guard, check_head/opt/base/sect/size/body (инварианты SPEC/04), stub_name (имя модуля из заглушки), rva_off, walk_descs (IDT), cstr_len (quirk оракула), check_dll, walk_funcs (счёт функций INT/IAT + чётность hint), print_facts (факт-строка) |
+| `bridge.peg` | обёртка PEG (SPEC/07; SPEC/11 п. 6): !module bridge, вход 0x1200, фиксированная область импортов 0x200 |
+| `bridge.b2` / `bridge.brick` / `bridge.exe` | ГЕНЕРИРУЕМЫЕ артефакты (фикс-пункт T-E9-17) |
+| `BYTECODE.md` | карта образа: функции/данные по RVA |
+| `VERIFY.md` | SHA-256, уровни проверки, журнал срезов |
+
+Кирпичи — `MAP/M5-BRIDGE.md` (ветви C/P, K5-*; указатель —
+MAP/METHODS.md).
+
+## Регистровые соглашения модуля
+
+Канон WALL (SPEC/11 п. 5): rbp-кадры, ARGREG rcx/rdx/r8/r9, рабочие
+r10/r11. Глобальное состояние — глобали образа (BYTECODE.md §3):
+exebuf (указатель буфера файла в куче GlobalAlloc 262145), exelen
+(размер файла), entryrva/vsize/rawsize/rawptr (факты PE), modlen (длина
+имени модуля), thunk (RVA INT/IAT), dllfile (файловое смещение имени
+DLL), impn (число функций), wlen (длина слова CLI), hstdout/cmdline/
+written.
+
+## Данные образа
+
+- строки s_use..s_dll (16 литералов, CRLF у диагностических; s_pref/
+  s_needle/s_dll — образцы семейной проверки);
+- глобальные массивы: arg1[16]/arg2[16]/arg3[16] (CLI, 128 Б — ровно
+  контракт read_arg), w1[32] (UTF-16LE имя входа, 256 Б), factbuf[24]
+  (факт-строка, 192 Б);
+- входной EXE — в куче GlobalAlloc(0, 262145), читается одним
+  ReadFile с лимитом (got == 262145 → BIG EXE; как srcbuf wall.exe).
+
+## Ограничения (снять в следующих срезах)
+
+- Вход ≤ 256 КиБ (ERR=BIG EXE) — покрывает все артефакты семейства
+  (максимум wall.exe — 87040 Б); подъём предела — синхронно с
+  конвейером, по потребности срезов E9.2+.
+- Спуск от входа (декодер SPEC/05, тени, границы инструкций),
+  вычисление target/bss, эмиссия b2/peg и ЗАПИСЬ выходных файлов —
+  срезы E9.2-2+ (факт-строка каркаса будет заменена реальными
+  выходами; тесты T-E9-18/19 эволюционируют вместе со срезами).
+- Разбор PE — только фиксированные смещения шаблона SPEC/04
+  (e_lfanew читается, но поля — по шаблону; как lab_pe оракула).
+  Чужие EXE (PEG v2) — E9.4+.
+
+## Примеры
+
+```
+cmd -> KERNEL\L5-BRIDGE\bridge.exe
+Вывод:   U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>   (54 Б, CRLF)
+Код:     2
+
+bridge.exe KERNEL\L0-SEED\seed.exe t.b2 t.peg
+Вывод:   U-L5-BRIDGE MODULE=seed ENTRY=00001000 VSIZE=000001C0
+         RAW=00000200 IMP=3
+Код:     0
+
+bridge.exe KERNEL\L3-UNIVM\kernel.exe t.b2 t.peg
+Вывод:   U-L5-BRIDGE MODULE=kernel ENTRY=00001200 VSIZE=00008A92
+         RAW=00008C00 IMP=8
+Код:     0
+
+bridge.exe чужой.exe t.b2 t.peg        (не семейство)
+Вывод:   U-L5-BRIDGE ERR=FAMILY
+Код:     6
+
+bridge.exe big.exe t.b2 t.peg          (файл 262145 байт)
+Вывод:   U-L5-BRIDGE ERR=BIG EXE
+Код:     7
+```
