@@ -11,13 +11,21 @@
 ; ПРОВЕРКА (ветвь P: инварианты SPEC/04 минус два легальных отклонения
 ; семейства — вход 0x1200 и RawSize > VirtualSize, SPEC/15 п. 2; имя
 ; модуля из DOS-заглушки; структуры импорта; любое нарушение —
-; ERR=FAMILY, код 6). Успех — факт-строка (MODULE/ENTRY/VSIZE/RAW/IMP)
-; в stdout, код 0 — диагностический срез: факты сверяются с оракулом
-; parse_family на всех артефактах семейства (TESTS/T-L5-BRIDGE.md).
-; Спуск от входа, эмиссия b2/peg и запись выходов — срезы E9.2-2+.
+; ERR=FAMILY, код 6).
+; Срез E9.2-2 (СПУСК): декодер x86-подмножества SPEC/05 (ветвь D —
+; bridge_self_d.wall + bridge_self_d2.wall: длины/классы/прямые цели
+; == lab_x86.decode оракула) и спуск от входа (ветвь W —
+; bridge_self_w.wall: стек целей, тени — младший адрес побеждает,
+; ВСЕ-НУЛЕВЫЕ байты — данные, target/bss по SPEC/15 п. 3/7; новые
+; отказы — инструкция за VirtualSize, длина тела больше VirtualSize).
+; Успех — факт-строка расширяется: MODULE/ENTRY/VSIZE/RAW/IMP +
+; INS/TARGET/BSS — факты == оракулу parse_family на всех 12
+; артефактах семейства + синтетика теней (T-E9-18/T-E9-21).
+; Эмиссия b2/peg и запись выходов — срезы E9.2-3+.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
-; разбор PE — bridge_self_pe.wall).
+; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
+; bridge_self_d2.wall; спуск W — bridge_self_w.wall).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
 ; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7) — карточка CARD.md.
@@ -40,10 +48,18 @@ ext CloseHandle
 ext GlobalAlloc
 
 ; Порядок глобалей — канон читаемости моста (0 H-строк в разборе
-; bridge.exe): СКАЛЯРЫ ПЕРВЫМИ, массивы в конце (factbuf — последним:
-; выравнивающий хвост !bss падает внутрь него, а rip-ссылок внутрь нет —
-; как cstack у kernel.exe). Буферы аргументов — ровно контракт read_arg
-; (127 байт + NUL = 128); w1 — 2*127+2 = 256.
+; bridge.exe): СКАЛЯРЫ ПЕРВЫМИ, массивы в конце; ПОСЛЕДНИМ — w1[32]
+; (урок E9.2-2: при factbuf последним рост тела срезом спуска сдвинул
+; vsize mod 0x200 с 0xBF на 0xE9 > 0xC1 — выравнивающий хвост
+; (raw-0x1FF..vsize) стал начинаться ДО базы factbuf, и 18 lea
+; [rip+$factbuf] расширенной print_facts остались без меток (H=18);
+; при w1 последнем (0x100 Б) хвост падает внутрь w1 и инвариант
+; держится при vsize mod 0x200 <= 0x101 — при росте строк/глобалей
+; пересчитывать). rip-ссылок внутрь хвоста нет (lea — только базы
+; массивов, они ниже target) — как cstack у kernel.exe. Буферы
+; аргументов — ровно контракт read_arg (127 байт + NUL = 128);
+; w1 — 2*127+2 = 256; factbuf — 24 qword (152 Б строки фактов с
+; INS/TARGET/BSS хватает с запасом).
 var hstdout
 var cmdline
 var written
@@ -58,11 +74,27 @@ var modlen
 var thunk
 var dllfile
 var impn
+var insmap
+var lenmap
+var pend
+var rawlim
+var psp
+var inscount
+var maxend
+var swcur
+var target
+var bss
+var dlen
+var dcls
+var dtgt
+var dpos
+var mpos
+var mreg
 var arg1[16]
 var arg2[16]
 var arg3[16]
-var w1[32]
 var factbuf[24]
+var w1[32]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
 str s_long = 'U-L5-BRIDGE ERR=LONG NAME\r\n'
@@ -75,6 +107,9 @@ str s_f2 = ' ENTRY='
 str s_f3 = ' VSIZE='
 str s_f4 = ' RAW='
 str s_f5 = ' IMP='
+str s_f6 = ' INS='
+str s_f7 = ' TARGET='
+str s_f8 = ' BSS='
 str s_crlf = '\r\n'
 str s_pref = 'Universal L0 '
 str s_needle = '. No DOS support.'
@@ -82,6 +117,9 @@ str s_dll = 'kernel32.dll'
 
 !include bridge_self_c.wall
 !include bridge_self_pe.wall
+!include bridge_self_d.wall
+!include bridge_self_d2.wall
+!include bridge_self_w.wall
 
 func main
   var i
@@ -124,6 +162,9 @@ func main
   walk_descs()
   check_dll()
   walk_funcs()
+  walk_code()
+  sweep_ins()
+  calc_target()
   print_facts()
   ExitProcess(0)
 end

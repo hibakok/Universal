@@ -1,15 +1,18 @@
-# M5-BRIDGE — карточки кирпичей моста (26)
+# M5-BRIDGE — карточки кирпичей моста, часть 1 (C/P/X — 26)
 
 Паспорт файла: MAP/M5-BRIDGE.md | слой: L5 | роль: реестр кирпичей M5-BRIDGE.
-Формат карточки — SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS.md.
+Формат карточки — SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 
 > Модуль — мост BRIDGE v1 (KERNEL/L5-BRIDGE): EXE семейства UNIVERSAL ->
 > исходник конвейера (BRICK v2 + PEG v1, SPEC/15); семантика — оракул
 > LAB/py/lab_bridge.py (правило R8). Срез E9.2-1 (КАРКАС): CLI + чтение
-> EXE + разбор PE + семейная проверка + факт-строка (модуль — 26
-> кирпичей: ветвь C — сервис, ветвь P — разбор PE/семейство, ветвь X —
-> вход). Спуск от входа (декодер SPEC/05), эмиссия b2/peg и запись
-> выходов — срезы E9.2-2+ (новые ветви). Карта RVA —
+> EXE + разбор PE + семейная проверка + факт-строка (ветви C/P/X — 26
+> кирпичей). Срез E9.2-2 (СПУСК): декодер x86-подмножества SPEC/05 (ветвь
+> D — 13 кирпичей: длины/классы/прямые цели == lab_x86.decode) и спуск
+> от входа (ветвь W — 3 кирпича: стек целей, тени, target/bss; факт-строка
+> расширена INS/TARGET/BSS). Эмиссия b2/peg и запись выходов — срезы
+> E9.2-3+. Ветви D/W (спуск, 16 кирпичей E9.2-2) — MAP/M5-BRIDGE-D.md
+> (разрез по лимиту 500 строк — прецедент MAP/METHODS-2.md). Карта RVA —
 > KERNEL/L5-BRIDGE/BYTECODE.md §2.
 
 ## Ветвь C — сервис и командная строка
@@ -383,27 +386,11 @@
 | Слой | L5 (исходник — WALL) |
 | Ветвь | P |
 | Файл | bridge_self_pe.wall (RVA 3CEB) |
-| Функция | Собирает факт-строку каркаса «U-L5-BRIDGE MODULE=<имя> ENTRY=<hex8> VSIZE=<hex8> RAW=<hex8> IMP=<dec>\r\n» в factbuf (имя — байты exebuf[77..77+modlen)) и пишет её в stdout одним WriteFile |
-| Вход | глобали exebuf/modlen/entryrva/vsize/rawsize/impn |
-| Выход | ≤ 105 байт в stdout; 0 |
+| Функция | Собирает факт-строку «U-L5-BRIDGE MODULE=<имя> ENTRY=<hex8> VSIZE=<hex8> RAW=<hex8> IMP=<dec> INS=<dec> TARGET=<hex8> BSS=<hex8>\r\n» в factbuf (имя — байты exebuf[77..77+modlen); INS/TARGET/BSS — глобали спуска ветви W) и пишет её в stdout одним WriteFile |
+| Вход | глобали exebuf/modlen/entryrva/vsize/rawsize/impn/inscount/target/bss |
+| Выход | ≤ 152 байт в stdout; 0 |
 | Состоит из | K5-C006, K5-C007, K5-C008 |
 | Используется в | K5-X001 |
-| Тест | T-E9-18 (12 артефактов == оракулу) |
-| Статус | готов |
+| Тест | T-E9-18 (12 артефактов == оракулу), T-E9-21 (синтетика) |
+| Статус | готов (расширина срезом E9.2-2)
 
-## Ветвь X — вход
-
-### K5-X001 — main
-
-| Поле | Значение |
-|---|---|
-| Слой | L5 (исходник — WALL) |
-| Ветвь | X — вход программы |
-| Файл | KERNEL/L5-BRIDGE/bridge.wall (RVA 403E) |
-| Функция | Вход моста: CLI (3 аргумента) → открытие входа (CreateFile2) → GlobalAlloc 262145 + один ReadFile (BIG EXE при 262145) → семейная проверка (check_head/opt/base/sect/size/body, stub_name, walk_descs, check_dll, walk_funcs) → факт-строка → ExitProcess(0) |
-| Вход | командная строка Windows |
-| Выход | факт-строка в stdout, код 0; диагностика — коды 2..7 (CARD.md) |
-| Состоит из | K5-C002..C005, K5-P005..P017 |
-| Используется в | — (вершина) |
-| Тест | T-E9-17..19 |
-| Статус | готов |

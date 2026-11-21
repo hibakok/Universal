@@ -1,0 +1,144 @@
+; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_w.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь W моста — СЛОВАРЬ спуска оракула _walk/_sweep/
+; parse_family (SPEC/15 п. 3, п. 7): K5-W001 walk_code — стек целей
+; (куча GlobalAlloc 1048584 — 131073 qword, доказуемый предел: 1 +
+; число ветвящихся инструкций <= rawlim/2), проход вперёд от каждой
+; цели до обрыва (терминалы ret/int3 и jmp; сбой декодирования и
+; ВСЕ-НУЛЕВЫЕ байты инструкции — данные; карта стартов insmap 262145
+; и карта длин lenmap 262145 — байтовые, кучи GlobalAlloc; rawlim =
+; min(vsize, rawsize) — эквивалент предела vsize оракула при чтениях,
+; ограниченных телом); K5-W002 sweep_ins — пересечения: младший адрес
+; побеждает (курсор концов; выжившая инструкция, конец за vsize —
+; ERR=FAMILY; счёт inscount и maxend); K5-W003 calc_target — длина
+; тела: max(последний ненулевой байт + 1, концы выживших, 1);
+; выравнивающая вилка: align_up(target) != rawsize -> target =
+; rawsize - 511 (минимальная длина той же вилки); target > vsize —
+; ERR=FAMILY; bss = vsize - target. Факты INS/TARGET/BSS — факты
+; оракула parse_family (диффтест T-E9-18/21); эмиссия b2/peg — E9.2-3+.
+
+; спуск от точки входа: карты стартов/длин + стек целей (кучи);
+; проход каждой цели вперёд: уже разобрана / сбой декодера / нули —
+; обрыв пути; ret/int3 и jmp — терминалы; jcc/call rel32 кладут цель
+; в стек (jmp и jcc/call — путь: jmp только цель, jcc/call и дальше)
+func walk_code
+  var a
+  var z
+  var j
+  insmap = GlobalAlloc(0, 262145)
+  lenmap = GlobalAlloc(0, 262145)
+  pend = GlobalAlloc(0, 1048584)
+  if insmap == 0 || lenmap == 0 || pend == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  if vsize < rawsize
+    rawlim = vsize
+  else
+    rawlim = rawsize
+  end
+  pend[0] = entryrva - 4096
+  psp = 1
+  while psp > 0
+    psp = psp - 1
+    a = pend[psp]
+    while a >= 0 && a < rawlim
+      if getb(insmap, a) == 1
+        break
+      end
+      if decode_ins(a) != 0
+        break
+      end
+      z = 0
+      j = 0
+      while j < dlen
+        if getb(exebuf, rawptr + a + j) != 0
+          z = 1
+          break
+        end
+        j = j + 1
+      end
+      if z == 0
+        break
+      end
+      setb(insmap, a, 1)
+      setb(lenmap, a, dlen)
+      if dcls == 1
+        break
+      end
+      if dcls == 2 || dcls == 3 || dcls == 4
+        pend[psp] = dtgt
+        psp = psp + 1
+      end
+      if dcls == 2
+        break
+      end
+      a = a + dlen
+    end
+  end
+  return 0
+end
+
+; тени: пересечения путей — младший адрес побеждает; выжившие: конец
+; (локаль iend — имя «end» занято терминатором блока WALL) за
+; VirtualSize — ERR=FAMILY (как BridgeError оракула; проверяются
+; ТОЛЬКО выжившие); inscount и maxend (концы выживших) -> глобали
+func sweep_ins
+  var a
+  var ln
+  var iend
+  inscount = 0
+  maxend = 0
+  swcur = 0
+  a = 0
+  while a < rawlim
+    if getb(insmap, a) == 1 && a >= swcur
+      ln = getb(lenmap, a)
+      iend = a + ln
+      if iend > vsize
+        fail_family()
+      end
+      if iend > maxend
+        maxend = iend
+      end
+      inscount = inscount + 1
+      swcur = iend
+    end
+    a = a + 1
+  end
+  return 0
+end
+
+; длина тела: target = max(последний ненулевой байт + 1, концы
+; выживших, 1); выравнивающая вилка: align_up(target) != rawsize —
+; target = rawsize - 511 (та же вилка минимальной длины); target >
+; vsize — ERR=FAMILY; bss = vsize - target (SPEC/15 п. 7)
+func calc_target
+  var k
+  var nz
+  var fork
+  nz = 0
+  k = rawsize - 1
+  while k >= 0
+    if getb(exebuf, rawptr + k) != 0
+      nz = k + 1
+      break
+    end
+    k = k - 1
+  end
+  target = nz
+  if target < 1
+    target = 1
+  end
+  if maxend > target
+    target = maxend
+  end
+  fork = (target + 511) / 512 * 512
+  if fork != rawsize
+    target = rawsize - 511
+  end
+  if target > vsize
+    fail_family()
+  end
+  bss = vsize - target
+  return 0
+end

@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 760 строк; функций: 26; ext: 8; str: 15; глобальных var: 19
+; исходник: 1448 строк; функций: 42; ext: 8; str: 18; глобальных var: 35
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -2877,6 +2877,87 @@ H 4C 8B 45 D8 ; k = out_dec(factbuf, k, impn)
 H E8 $out_dec ; k = out_dec(factbuf, k, impn)
 H 49 89 C2 ; k = out_dec(factbuf, k, impn)
 H 4C 89 55 F8 ; k = out_dec(factbuf, k, impn)
+H 4C 8D 15 $factbuf ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 89 55 E8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 8B 55 F8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 89 55 E0 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 8D 15 $s_f6 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 89 55 D8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 49 C7 C2 05 00 00 00 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 89 55 D0 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 48 8B 4D E8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 48 8B 55 E0 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 8B 45 D8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 8B 4D D0 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H E8 $copy_str ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 49 89 C2 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 89 55 F8 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+H 4C 8D 15 $factbuf ; k = out_dec(factbuf, k, inscount)
+H 4C 89 55 E8 ; k = out_dec(factbuf, k, inscount)
+H 4C 8B 55 F8 ; k = out_dec(factbuf, k, inscount)
+H 4C 89 55 E0 ; k = out_dec(factbuf, k, inscount)
+H 4C 8B 15 $inscount ; k = out_dec(factbuf, k, inscount)
+H 4C 89 55 D8 ; k = out_dec(factbuf, k, inscount)
+H 48 8B 4D E8 ; k = out_dec(factbuf, k, inscount)
+H 48 8B 55 E0 ; k = out_dec(factbuf, k, inscount)
+H 4C 8B 45 D8 ; k = out_dec(factbuf, k, inscount)
+H E8 $out_dec ; k = out_dec(factbuf, k, inscount)
+H 49 89 C2 ; k = out_dec(factbuf, k, inscount)
+H 4C 89 55 F8 ; k = out_dec(factbuf, k, inscount)
+H 4C 8D 15 $factbuf ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 89 55 E8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 8B 55 F8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 89 55 E0 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 8D 15 $s_f7 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 89 55 D8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 49 C7 C2 08 00 00 00 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 89 55 D0 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 48 8B 4D E8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 48 8B 55 E0 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 8B 45 D8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 8B 4D D0 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H E8 $copy_str ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 49 89 C2 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 89 55 F8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+H 4C 8D 15 $factbuf ; k = out_hex(factbuf, k, target)
+H 4C 89 55 E8 ; k = out_hex(factbuf, k, target)
+H 4C 8B 55 F8 ; k = out_hex(factbuf, k, target)
+H 4C 89 55 E0 ; k = out_hex(factbuf, k, target)
+H 4C 8B 15 $target ; k = out_hex(factbuf, k, target)
+H 4C 89 55 D8 ; k = out_hex(factbuf, k, target)
+H 48 8B 4D E8 ; k = out_hex(factbuf, k, target)
+H 48 8B 55 E0 ; k = out_hex(factbuf, k, target)
+H 4C 8B 45 D8 ; k = out_hex(factbuf, k, target)
+H E8 $out_hex ; k = out_hex(factbuf, k, target)
+H 49 89 C2 ; k = out_hex(factbuf, k, target)
+H 4C 89 55 F8 ; k = out_hex(factbuf, k, target)
+H 4C 8D 15 $factbuf ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 89 55 E8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 8B 55 F8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 89 55 E0 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 8D 15 $s_f8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 89 55 D8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 49 C7 C2 05 00 00 00 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 89 55 D0 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 48 8B 4D E8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 48 8B 55 E0 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 8B 45 D8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 8B 4D D0 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H E8 $copy_str ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 49 89 C2 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 89 55 F8 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+H 4C 8D 15 $factbuf ; k = out_hex(factbuf, k, bss)
+H 4C 89 55 E8 ; k = out_hex(factbuf, k, bss)
+H 4C 8B 55 F8 ; k = out_hex(factbuf, k, bss)
+H 4C 89 55 E0 ; k = out_hex(factbuf, k, bss)
+H 4C 8B 15 $bss ; k = out_hex(factbuf, k, bss)
+H 4C 89 55 D8 ; k = out_hex(factbuf, k, bss)
+H 48 8B 4D E8 ; k = out_hex(factbuf, k, bss)
+H 48 8B 55 E0 ; k = out_hex(factbuf, k, bss)
+H 4C 8B 45 D8 ; k = out_hex(factbuf, k, bss)
+H E8 $out_hex ; k = out_hex(factbuf, k, bss)
+H 49 89 C2 ; k = out_hex(factbuf, k, bss)
+H 4C 89 55 F8 ; k = out_hex(factbuf, k, bss)
 H 4C 8D 15 $factbuf ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
 H 4C 89 55 E8 ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
 H 4C 8B 55 F8 ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
@@ -2916,6 +2997,3220 @@ H 4C 89 D0 ; return 0
 H 48 89 EC ; выход print_facts
 H 5D ; выход print_facts
 H C3 ; выход print_facts
+:fb
+H 55 ; кадр fb
+H 48 89 E5 ; кадр fb
+H 48 83 EC 40 ; кадр fb
+H 48 89 4D F8 ; кадр fb
+H 4C 8B 55 F8 ; if off < 0
+H 4C 89 55 F0 ; if off < 0
+H 49 C7 C2 00 00 00 00 ; if off < 0
+H 4D 89 D3 ; if off < 0
+H 4C 8B 55 F0 ; if off < 0
+H 4D 39 DA ; if off < 0
+H 0F 8D $_if93e ; if off < 0
+H 49 C7 C2 01 00 00 00 ; return -1
+H 49 F7 DA ; return -1
+H 4C 89 D0 ; return -1
+H 48 89 EC ; выход fb
+H 5D ; выход fb
+H C3 ; выход fb
+:_if93e
+H 4C 8B 55 F8 ; if off >= exelen
+H 4C 89 55 F0 ; if off >= exelen
+H 4C 8B 15 $exelen ; if off >= exelen
+H 4D 89 D3 ; if off >= exelen
+H 4C 8B 55 F0 ; if off >= exelen
+H 4D 39 DA ; if off >= exelen
+H 0F 8C $_if94e ; if off >= exelen
+H 49 C7 C2 01 00 00 00 ; return -1
+H 49 F7 DA ; return -1
+H 4C 89 D0 ; return -1
+H 48 89 EC ; выход fb
+H 5D ; выход fb
+H C3 ; выход fb
+:_if94e
+H 4C 8B 15 $exebuf ; return getb(exebuf, off)
+H 4C 89 55 F0 ; return getb(exebuf, off)
+H 4C 8B 55 F8 ; return getb(exebuf, off)
+H 4D 89 D3 ; return getb(exebuf, off)
+H 4C 8B 55 F0 ; return getb(exebuf, off)
+H 47 0F B6 14 1A ; return getb(exebuf, off)
+H 4C 89 D0 ; return getb(exebuf, off)
+H 48 89 EC ; выход fb
+H 5D ; выход fb
+H C3 ; выход fb
+:rel8
+H 55 ; кадр rel8
+H 48 89 E5 ; кадр rel8
+H 48 83 EC 50 ; кадр rel8
+H 48 89 4D F8 ; кадр rel8
+H 4C 8B 15 $exebuf ; v = getb(exebuf, pos)
+H 4C 89 55 E8 ; v = getb(exebuf, pos)
+H 4C 8B 55 F8 ; v = getb(exebuf, pos)
+H 4D 89 D3 ; v = getb(exebuf, pos)
+H 4C 8B 55 E8 ; v = getb(exebuf, pos)
+H 47 0F B6 14 1A ; v = getb(exebuf, pos)
+H 4C 89 55 F0 ; v = getb(exebuf, pos)
+H 4C 8B 55 F0 ; if v >= 128
+H 4C 89 55 E8 ; if v >= 128
+H 49 C7 C2 80 00 00 00 ; if v >= 128
+H 4D 89 D3 ; if v >= 128
+H 4C 8B 55 E8 ; if v >= 128
+H 4D 39 DA ; if v >= 128
+H 0F 8C $_if95e ; if v >= 128
+H 4C 8B 55 F0 ; return v - 256
+H 4C 89 55 E8 ; return v - 256
+H 49 C7 C2 00 01 00 00 ; return v - 256
+H 4D 89 D3 ; return v - 256
+H 4C 8B 55 E8 ; return v - 256
+H 4D 29 DA ; return v - 256
+H 4C 89 D0 ; return v - 256
+H 48 89 EC ; выход rel8
+H 5D ; выход rel8
+H C3 ; выход rel8
+:_if95e
+H 4C 8B 55 F0 ; return v
+H 4C 89 D0 ; return v
+H 48 89 EC ; выход rel8
+H 5D ; выход rel8
+H C3 ; выход rel8
+:rel32
+H 55 ; кадр rel32
+H 48 89 E5 ; кадр rel32
+H 48 83 EC 70 ; кадр rel32
+H 48 89 4D F8 ; кадр rel32
+H 4C 8B 15 $exebuf ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 F8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 47 0F B6 14 1A ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 00 01 00 00 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 15 $exebuf ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 C8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 F8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 C0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 01 00 00 00 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 C0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 C8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 47 0F B6 14 1A ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 0F AF D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 E0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 00 00 01 00 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 15 $exebuf ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 F8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 C8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 02 00 00 00 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 C8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 47 0F B6 14 1A ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 0F AF D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 E0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 E8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 00 00 00 01 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 E0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 15 $exebuf ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 F8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 49 C7 C2 03 00 00 00 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 D8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 47 0F B6 14 1A ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 E0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 0F AF D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 89 D3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 E8 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4D 01 DA ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 89 55 F0 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+H 4C 8B 55 F0 ; if v > 2147483647
+H 4C 89 55 E8 ; if v > 2147483647
+H 49 C7 C2 FF FF FF 7F ; if v > 2147483647
+H 4D 89 D3 ; if v > 2147483647
+H 4C 8B 55 E8 ; if v > 2147483647
+H 4D 39 DA ; if v > 2147483647
+H 0F 8E $_if96e ; if v > 2147483647
+H 4C 8B 55 F0 ; return v - 16777216 * 256
+H 4C 89 55 E8 ; return v - 16777216 * 256
+H 49 C7 C2 00 00 00 01 ; return v - 16777216 * 256
+H 4C 89 55 E0 ; return v - 16777216 * 256
+H 49 C7 C2 00 01 00 00 ; return v - 16777216 * 256
+H 4D 89 D3 ; return v - 16777216 * 256
+H 4C 8B 55 E0 ; return v - 16777216 * 256
+H 4D 0F AF D3 ; return v - 16777216 * 256
+H 4D 89 D3 ; return v - 16777216 * 256
+H 4C 8B 55 E8 ; return v - 16777216 * 256
+H 4D 29 DA ; return v - 16777216 * 256
+H 4C 89 D0 ; return v - 16777216 * 256
+H 48 89 EC ; выход rel32
+H 5D ; выход rel32
+H C3 ; выход rel32
+:_if96e
+H 4C 8B 55 F0 ; return v
+H 4C 89 D0 ; return v
+H 48 89 EC ; выход rel32
+H 5D ; выход rel32
+H C3 ; выход rel32
+:modrm_skip
+H 55 ; кадр modrm_skip
+H 48 89 E5 ; кадр modrm_skip
+H 48 81 EC 90 00 00 00 ; кадр modrm_skip
+H 48 89 4D F8 ; кадр modrm_skip
+H 48 89 55 F0 ; кадр modrm_skip
+H 4C 8B 55 F8 ; m = fb(pos)
+H 4C 89 55 A8 ; m = fb(pos)
+H 48 8B 4D A8 ; m = fb(pos)
+H E8 $fb ; m = fb(pos)
+H 49 89 C2 ; m = fb(pos)
+H 4C 89 55 E8 ; m = fb(pos)
+H 4C 8B 55 E8 ; if m < 0
+H 4C 89 55 C0 ; if m < 0
+H 49 C7 C2 00 00 00 00 ; if m < 0
+H 4D 89 D3 ; if m < 0
+H 4C 8B 55 C0 ; if m < 0
+H 4D 39 DA ; if m < 0
+H 0F 8D $_if97e ; if m < 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if97e
+H 4C 8B 55 E8 ; mreg = (m >> 3 & 7) + rbit
+H 4C 89 55 B0 ; mreg = (m >> 3 & 7) + rbit
+H 49 C7 C2 03 00 00 00 ; mreg = (m >> 3 & 7) + rbit
+H 4D 89 D3 ; mreg = (m >> 3 & 7) + rbit
+H 4C 8B 55 B0 ; mreg = (m >> 3 & 7) + rbit
+H 4C 89 D9 ; mreg = (m >> 3 & 7) + rbit
+H 49 D3 EA ; mreg = (m >> 3 & 7) + rbit
+H 4C 89 55 B8 ; mreg = (m >> 3 & 7) + rbit
+H 49 C7 C2 07 00 00 00 ; mreg = (m >> 3 & 7) + rbit
+H 4D 89 D3 ; mreg = (m >> 3 & 7) + rbit
+H 4C 8B 55 B8 ; mreg = (m >> 3 & 7) + rbit
+H 4D 21 DA ; mreg = (m >> 3 & 7) + rbit
+H 4C 89 55 C0 ; mreg = (m >> 3 & 7) + rbit
+H 4C 8B 55 F0 ; mreg = (m >> 3 & 7) + rbit
+H 4D 89 D3 ; mreg = (m >> 3 & 7) + rbit
+H 4C 8B 55 C0 ; mreg = (m >> 3 & 7) + rbit
+H 4D 01 DA ; mreg = (m >> 3 & 7) + rbit
+H 4C 89 15 $mreg ; mreg = (m >> 3 & 7) + rbit
+H 4C 8B 55 F8 ; mpos = pos + 1
+H 4C 89 55 C0 ; mpos = pos + 1
+H 49 C7 C2 01 00 00 00 ; mpos = pos + 1
+H 4D 89 D3 ; mpos = pos + 1
+H 4C 8B 55 C0 ; mpos = pos + 1
+H 4D 01 DA ; mpos = pos + 1
+H 4C 89 15 $mpos ; mpos = pos + 1
+H 4C 8B 55 E8 ; mod = m >> 6
+H 4C 89 55 C0 ; mod = m >> 6
+H 49 C7 C2 06 00 00 00 ; mod = m >> 6
+H 4D 89 D3 ; mod = m >> 6
+H 4C 8B 55 C0 ; mod = m >> 6
+H 4C 89 D9 ; mod = m >> 6
+H 49 D3 EA ; mod = m >> 6
+H 4C 89 55 E0 ; mod = m >> 6
+H 4C 8B 55 E8 ; rm = m & 7
+H 4C 89 55 C0 ; rm = m & 7
+H 49 C7 C2 07 00 00 00 ; rm = m & 7
+H 4D 89 D3 ; rm = m & 7
+H 4C 8B 55 C0 ; rm = m & 7
+H 4D 21 DA ; rm = m & 7
+H 4C 89 55 D8 ; rm = m & 7
+H 4C 8B 55 E0 ; if mod == 3
+H 4C 89 55 C0 ; if mod == 3
+H 49 C7 C2 03 00 00 00 ; if mod == 3
+H 4D 89 D3 ; if mod == 3
+H 4C 8B 55 C0 ; if mod == 3
+H 4D 39 DA ; if mod == 3
+H 0F 85 $_if98e ; if mod == 3
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if98e
+H 4C 8B 55 D8 ; if rm == 4
+H 4C 89 55 C0 ; if rm == 4
+H 49 C7 C2 04 00 00 00 ; if rm == 4
+H 4D 89 D3 ; if rm == 4
+H 4C 8B 55 C0 ; if rm == 4
+H 4D 39 DA ; if rm == 4
+H 0F 85 $_if99e ; if rm == 4
+H 4C 8B 15 $mpos ; s = fb(mpos)
+H 4C 89 55 A8 ; s = fb(mpos)
+H 48 8B 4D A8 ; s = fb(mpos)
+H E8 $fb ; s = fb(mpos)
+H 49 89 C2 ; s = fb(mpos)
+H 4C 89 55 D0 ; s = fb(mpos)
+H 4C 8B 55 D0 ; if s < 0
+H 4C 89 55 C0 ; if s < 0
+H 49 C7 C2 00 00 00 00 ; if s < 0
+H 4D 89 D3 ; if s < 0
+H 4C 8B 55 C0 ; if s < 0
+H 4D 39 DA ; if s < 0
+H 0F 8D $_if100e ; if s < 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if100e
+H 4C 8B 55 D0 ; bas = s & 7
+H 4C 89 55 C0 ; bas = s & 7
+H 49 C7 C2 07 00 00 00 ; bas = s & 7
+H 4D 89 D3 ; bas = s & 7
+H 4C 8B 55 C0 ; bas = s & 7
+H 4D 21 DA ; bas = s & 7
+H 4C 89 55 C8 ; bas = s & 7
+H 4C 8B 15 $mpos ; mpos = mpos + 1
+H 4C 89 55 C0 ; mpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; mpos = mpos + 1
+H 4D 89 D3 ; mpos = mpos + 1
+H 4C 8B 55 C0 ; mpos = mpos + 1
+H 4D 01 DA ; mpos = mpos + 1
+H 4C 89 15 $mpos ; mpos = mpos + 1
+H 4C 8B 55 E0 ; if mod == 0 && bas == 5
+H 4C 89 55 C0 ; if mod == 0 && bas == 5
+H 49 C7 C2 00 00 00 00 ; if mod == 0 && bas == 5
+H 4D 89 D3 ; if mod == 0 && bas == 5
+H 4C 8B 55 C0 ; if mod == 0 && bas == 5
+H 4D 39 DA ; if mod == 0 && bas == 5
+H 0F 85 $_if101e ; if mod == 0 && bas == 5
+H 4C 8B 55 C8 ; if mod == 0 && bas == 5
+H 4C 89 55 C0 ; if mod == 0 && bas == 5
+H 49 C7 C2 05 00 00 00 ; if mod == 0 && bas == 5
+H 4D 89 D3 ; if mod == 0 && bas == 5
+H 4C 8B 55 C0 ; if mod == 0 && bas == 5
+H 4D 39 DA ; if mod == 0 && bas == 5
+H 0F 85 $_if101e ; if mod == 0 && bas == 5
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 B8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 B8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 C0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 C0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if102e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if102e
+H 4C 8B 15 $mpos ; mpos = mpos + 4
+H 4C 89 55 C0 ; mpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; mpos = mpos + 4
+H 4D 89 D3 ; mpos = mpos + 4
+H 4C 8B 55 C0 ; mpos = mpos + 4
+H 4D 01 DA ; mpos = mpos + 4
+H 4C 89 15 $mpos ; mpos = mpos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if101e
+H 4C 8B 55 E0 ; if mod == 1
+H 4C 89 55 C0 ; if mod == 1
+H 49 C7 C2 01 00 00 00 ; if mod == 1
+H 4D 89 D3 ; if mod == 1
+H 4C 8B 55 C0 ; if mod == 1
+H 4D 39 DA ; if mod == 1
+H 0F 85 $_if103e ; if mod == 1
+H 4C 8B 15 $mpos ; if mpos + 1 > exelen
+H 4C 89 55 B8 ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 B8 ; if mpos + 1 > exelen
+H 4D 01 DA ; if mpos + 1 > exelen
+H 4C 89 55 C0 ; if mpos + 1 > exelen
+H 4C 8B 15 $exelen ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 C0 ; if mpos + 1 > exelen
+H 4D 39 DA ; if mpos + 1 > exelen
+H 0F 8E $_if104e ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if104e
+H 4C 8B 15 $mpos ; mpos = mpos + 1
+H 4C 89 55 C0 ; mpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; mpos = mpos + 1
+H 4D 89 D3 ; mpos = mpos + 1
+H 4C 8B 55 C0 ; mpos = mpos + 1
+H 4D 01 DA ; mpos = mpos + 1
+H 4C 89 15 $mpos ; mpos = mpos + 1
+:_if103e
+H 4C 8B 55 E0 ; if mod == 2
+H 4C 89 55 C0 ; if mod == 2
+H 49 C7 C2 02 00 00 00 ; if mod == 2
+H 4D 89 D3 ; if mod == 2
+H 4C 8B 55 C0 ; if mod == 2
+H 4D 39 DA ; if mod == 2
+H 0F 85 $_if105e ; if mod == 2
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 B8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 B8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 C0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 C0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if106e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if106e
+H 4C 8B 15 $mpos ; mpos = mpos + 4
+H 4C 89 55 C0 ; mpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; mpos = mpos + 4
+H 4D 89 D3 ; mpos = mpos + 4
+H 4C 8B 55 C0 ; mpos = mpos + 4
+H 4D 01 DA ; mpos = mpos + 4
+H 4C 89 15 $mpos ; mpos = mpos + 4
+:_if105e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if99e
+H 4C 8B 55 D8 ; if rm == 5 && mod == 0
+H 4C 89 55 C0 ; if rm == 5 && mod == 0
+H 49 C7 C2 05 00 00 00 ; if rm == 5 && mod == 0
+H 4D 89 D3 ; if rm == 5 && mod == 0
+H 4C 8B 55 C0 ; if rm == 5 && mod == 0
+H 4D 39 DA ; if rm == 5 && mod == 0
+H 0F 85 $_if107e ; if rm == 5 && mod == 0
+H 4C 8B 55 E0 ; if rm == 5 && mod == 0
+H 4C 89 55 C0 ; if rm == 5 && mod == 0
+H 49 C7 C2 00 00 00 00 ; if rm == 5 && mod == 0
+H 4D 89 D3 ; if rm == 5 && mod == 0
+H 4C 8B 55 C0 ; if rm == 5 && mod == 0
+H 4D 39 DA ; if rm == 5 && mod == 0
+H 0F 85 $_if107e ; if rm == 5 && mod == 0
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 B8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 B8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 C0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 C0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if108e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if108e
+H 4C 8B 15 $mpos ; mpos = mpos + 4
+H 4C 89 55 C0 ; mpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; mpos = mpos + 4
+H 4D 89 D3 ; mpos = mpos + 4
+H 4C 8B 55 C0 ; mpos = mpos + 4
+H 4D 01 DA ; mpos = mpos + 4
+H 4C 89 15 $mpos ; mpos = mpos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if107e
+H 4C 8B 55 E0 ; if mod == 1
+H 4C 89 55 C0 ; if mod == 1
+H 49 C7 C2 01 00 00 00 ; if mod == 1
+H 4D 89 D3 ; if mod == 1
+H 4C 8B 55 C0 ; if mod == 1
+H 4D 39 DA ; if mod == 1
+H 0F 85 $_if109e ; if mod == 1
+H 4C 8B 15 $mpos ; if mpos + 1 > exelen
+H 4C 89 55 B8 ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 B8 ; if mpos + 1 > exelen
+H 4D 01 DA ; if mpos + 1 > exelen
+H 4C 89 55 C0 ; if mpos + 1 > exelen
+H 4C 8B 15 $exelen ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 C0 ; if mpos + 1 > exelen
+H 4D 39 DA ; if mpos + 1 > exelen
+H 0F 8E $_if110e ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if110e
+H 4C 8B 15 $mpos ; mpos = mpos + 1
+H 4C 89 55 C0 ; mpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; mpos = mpos + 1
+H 4D 89 D3 ; mpos = mpos + 1
+H 4C 8B 55 C0 ; mpos = mpos + 1
+H 4D 01 DA ; mpos = mpos + 1
+H 4C 89 15 $mpos ; mpos = mpos + 1
+:_if109e
+H 4C 8B 55 E0 ; if mod == 2
+H 4C 89 55 C0 ; if mod == 2
+H 49 C7 C2 02 00 00 00 ; if mod == 2
+H 4D 89 D3 ; if mod == 2
+H 4C 8B 55 C0 ; if mod == 2
+H 4D 39 DA ; if mod == 2
+H 0F 85 $_if111e ; if mod == 2
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 B8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 B8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 C0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 C0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if112e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:_if112e
+H 4C 8B 15 $mpos ; mpos = mpos + 4
+H 4C 89 55 C0 ; mpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; mpos = mpos + 4
+H 4D 89 D3 ; mpos = mpos + 4
+H 4C 8B 55 C0 ; mpos = mpos + 4
+H 4D 01 DA ; mpos = mpos + 4
+H 4C 89 15 $mpos ; mpos = mpos + 4
+:_if111e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход modrm_skip
+H 5D ; выход modrm_skip
+H C3 ; выход modrm_skip
+:dec0f
+H 55 ; кадр dec0f
+H 48 89 E5 ; кадр dec0f
+H 48 83 EC 70 ; кадр dec0f
+H 48 89 4D F8 ; кадр dec0f
+H 48 89 55 F0 ; кадр dec0f
+H 4C 8B 55 F8 ; b = fb(pos)
+H 4C 89 55 C8 ; b = fb(pos)
+H 48 8B 4D C8 ; b = fb(pos)
+H E8 $fb ; b = fb(pos)
+H 49 89 C2 ; b = fb(pos)
+H 4C 89 55 E8 ; b = fb(pos)
+H 4C 8B 55 E8 ; if b < 0
+H 4C 89 55 D8 ; if b < 0
+H 49 C7 C2 00 00 00 00 ; if b < 0
+H 4D 89 D3 ; if b < 0
+H 4C 8B 55 D8 ; if b < 0
+H 4D 39 DA ; if b < 0
+H 0F 8D $_if113e ; if b < 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if113e
+H 4C 8B 55 F8 ; pos = pos + 1
+H 4C 89 55 D8 ; pos = pos + 1
+H 49 C7 C2 01 00 00 00 ; pos = pos + 1
+H 4D 89 D3 ; pos = pos + 1
+H 4C 8B 55 D8 ; pos = pos + 1
+H 4D 01 DA ; pos = pos + 1
+H 4C 89 55 F8 ; pos = pos + 1
+H 4C 8B 55 E8 ; if b >= 128 && b <= 143
+H 4C 89 55 D8 ; if b >= 128 && b <= 143
+H 49 C7 C2 80 00 00 00 ; if b >= 128 && b <= 143
+H 4D 89 D3 ; if b >= 128 && b <= 143
+H 4C 8B 55 D8 ; if b >= 128 && b <= 143
+H 4D 39 DA ; if b >= 128 && b <= 143
+H 0F 8C $_if114e ; if b >= 128 && b <= 143
+H 4C 8B 55 E8 ; if b >= 128 && b <= 143
+H 4C 89 55 D8 ; if b >= 128 && b <= 143
+H 49 C7 C2 8F 00 00 00 ; if b >= 128 && b <= 143
+H 4D 89 D3 ; if b >= 128 && b <= 143
+H 4C 8B 55 D8 ; if b >= 128 && b <= 143
+H 4D 39 DA ; if b >= 128 && b <= 143
+H 0F 8F $_if114e ; if b >= 128 && b <= 143
+H 4C 8B 55 F8 ; if pos + 4 > exelen
+H 4C 89 55 D0 ; if pos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D0 ; if pos + 4 > exelen
+H 4D 01 DA ; if pos + 4 > exelen
+H 4C 89 55 D8 ; if pos + 4 > exelen
+H 4C 8B 15 $exelen ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D8 ; if pos + 4 > exelen
+H 4D 39 DA ; if pos + 4 > exelen
+H 0F 8E $_if115e ; if pos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if115e
+H 4C 8B 55 F8 ; rel = rel32(pos)
+H 4C 89 55 C8 ; rel = rel32(pos)
+H 48 8B 4D C8 ; rel = rel32(pos)
+H E8 $rel32 ; rel = rel32(pos)
+H 49 89 C2 ; rel = rel32(pos)
+H 4C 89 55 E0 ; rel = rel32(pos)
+H 4C 8B 55 F8 ; dpos = pos + 4
+H 4C 89 55 D8 ; dpos = pos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = pos + 4
+H 4D 89 D3 ; dpos = pos + 4
+H 4C 8B 55 D8 ; dpos = pos + 4
+H 4D 01 DA ; dpos = pos + 4
+H 4C 89 15 $dpos ; dpos = pos + 4
+H 4C 8B 15 $dpos ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D0 ; dtgt = dpos - rawptr + rel
+H 4C 8B 15 $rawptr ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D0 ; dtgt = dpos - rawptr + rel
+H 4D 29 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D8 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E0 ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D8 ; dtgt = dpos - rawptr + rel
+H 4D 01 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 15 $dtgt ; dtgt = dpos - rawptr + rel
+H 49 C7 C2 03 00 00 00 ; dcls = 3
+H 4C 89 15 $dcls ; dcls = 3
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if114e
+H 4C 8B 55 E8 ; if b == 182 || b == 183
+H 4C 89 55 D8 ; if b == 182 || b == 183
+H 49 C7 C2 B6 00 00 00 ; if b == 182 || b == 183
+H 4D 89 D3 ; if b == 182 || b == 183
+H 4C 8B 55 D8 ; if b == 182 || b == 183
+H 4D 39 DA ; if b == 182 || b == 183
+H 0F 85 $_if116d2 ; if b == 182 || b == 183
+H E9 $_if116t ; if b == 182 || b == 183
+:_if116d2
+H 4C 8B 55 E8 ; if b == 182 || b == 183
+H 4C 89 55 D8 ; if b == 182 || b == 183
+H 49 C7 C2 B7 00 00 00 ; if b == 182 || b == 183
+H 4D 89 D3 ; if b == 182 || b == 183
+H 4C 8B 55 D8 ; if b == 182 || b == 183
+H 4D 39 DA ; if b == 182 || b == 183
+H 0F 85 $_if116e ; if b == 182 || b == 183
+:_if116t
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C0 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D8 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 D8 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if117e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if117e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if116e
+H 4C 8B 55 E8 ; if b == 175
+H 4C 89 55 D8 ; if b == 175
+H 49 C7 C2 AF 00 00 00 ; if b == 175
+H 4D 89 D3 ; if b == 175
+H 4C 8B 55 D8 ; if b == 175
+H 4D 39 DA ; if b == 175
+H 0F 85 $_if118e ; if b == 175
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C0 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D8 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 D8 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if119e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if119e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:_if118e
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход dec0f
+H 5D ; выход dec0f
+H C3 ; выход dec0f
+:decalu
+H 55 ; кадр decalu
+H 48 89 E5 ; кадр decalu
+H 48 83 EC 70 ; кадр decalu
+H 48 89 4D F8 ; кадр decalu
+H 48 89 55 F0 ; кадр decalu
+H 4C 89 45 E8 ; кадр decalu
+H 4C 8B 55 E8 ; if (b & 7) < 4
+H 4C 89 55 D8 ; if (b & 7) < 4
+H 49 C7 C2 07 00 00 00 ; if (b & 7) < 4
+H 4D 89 D3 ; if (b & 7) < 4
+H 4C 8B 55 D8 ; if (b & 7) < 4
+H 4D 21 DA ; if (b & 7) < 4
+H 4C 89 55 E0 ; if (b & 7) < 4
+H 49 C7 C2 04 00 00 00 ; if (b & 7) < 4
+H 4D 89 D3 ; if (b & 7) < 4
+H 4C 8B 55 E0 ; if (b & 7) < 4
+H 4D 39 DA ; if (b & 7) < 4
+H 0F 8D $_if120e ; if (b & 7) < 4
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D0 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D D0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C8 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if121e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:_if121e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:_if120e
+H 4C 8B 55 E8 ; if (b & 7) == 4
+H 4C 89 55 D8 ; if (b & 7) == 4
+H 49 C7 C2 07 00 00 00 ; if (b & 7) == 4
+H 4D 89 D3 ; if (b & 7) == 4
+H 4C 8B 55 D8 ; if (b & 7) == 4
+H 4D 21 DA ; if (b & 7) == 4
+H 4C 89 55 E0 ; if (b & 7) == 4
+H 49 C7 C2 04 00 00 00 ; if (b & 7) == 4
+H 4D 89 D3 ; if (b & 7) == 4
+H 4C 8B 55 E0 ; if (b & 7) == 4
+H 4D 39 DA ; if (b & 7) == 4
+H 0F 85 $_if122e ; if (b & 7) == 4
+H 4C 8B 55 F8 ; if pos + 1 > exelen
+H 4C 89 55 D8 ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 D8 ; if pos + 1 > exelen
+H 4D 01 DA ; if pos + 1 > exelen
+H 4C 89 55 E0 ; if pos + 1 > exelen
+H 4C 8B 15 $exelen ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 E0 ; if pos + 1 > exelen
+H 4D 39 DA ; if pos + 1 > exelen
+H 0F 8E $_if123e ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:_if123e
+H 4C 8B 55 F8 ; dpos = pos + 1
+H 4C 89 55 E0 ; dpos = pos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = pos + 1
+H 4D 89 D3 ; dpos = pos + 1
+H 4C 8B 55 E0 ; dpos = pos + 1
+H 4D 01 DA ; dpos = pos + 1
+H 4C 89 15 $dpos ; dpos = pos + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:_if122e
+H 4C 8B 55 F8 ; if pos + 4 > exelen
+H 4C 89 55 D8 ; if pos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D8 ; if pos + 4 > exelen
+H 4D 01 DA ; if pos + 4 > exelen
+H 4C 89 55 E0 ; if pos + 4 > exelen
+H 4C 8B 15 $exelen ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 E0 ; if pos + 4 > exelen
+H 4D 39 DA ; if pos + 4 > exelen
+H 0F 8E $_if124e ; if pos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:_if124e
+H 4C 8B 55 F8 ; dpos = pos + 4
+H 4C 89 55 E0 ; dpos = pos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = pos + 4
+H 4D 89 D3 ; dpos = pos + 4
+H 4C 8B 55 E0 ; dpos = pos + 4
+H 4D 01 DA ; dpos = pos + 4
+H 4C 89 15 $dpos ; dpos = pos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decalu
+H 5D ; выход decalu
+H C3 ; выход decalu
+:decmod
+H 55 ; кадр decmod
+H 48 89 E5 ; кадр decmod
+H 48 83 EC 60 ; кадр decmod
+H 48 89 4D F8 ; кадр decmod
+H 48 89 55 F0 ; кадр decmod
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D E0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 D8 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E8 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 E8 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if125e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decmod
+H 5D ; выход decmod
+H C3 ; выход decmod
+:_if125e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decmod
+H 5D ; выход decmod
+H C3 ; выход decmod
+:decimm
+H 55 ; кадр decimm
+H 48 89 E5 ; кадр decimm
+H 48 83 EC 60 ; кадр decimm
+H 48 89 4D F8 ; кадр decimm
+H 48 89 55 F0 ; кадр decimm
+H 4C 89 45 E8 ; кадр decimm
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95
+H 4C 89 55 E0 ; if b >= 80 && b <= 95
+H 49 C7 C2 50 00 00 00 ; if b >= 80 && b <= 95
+H 4D 89 D3 ; if b >= 80 && b <= 95
+H 4C 8B 55 E0 ; if b >= 80 && b <= 95
+H 4D 39 DA ; if b >= 80 && b <= 95
+H 0F 8C $_if126e ; if b >= 80 && b <= 95
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95
+H 4C 89 55 E0 ; if b >= 80 && b <= 95
+H 49 C7 C2 5F 00 00 00 ; if b >= 80 && b <= 95
+H 4D 89 D3 ; if b >= 80 && b <= 95
+H 4C 8B 55 E0 ; if b >= 80 && b <= 95
+H 4D 39 DA ; if b >= 80 && b <= 95
+H 0F 8F $_if126e ; if b >= 80 && b <= 95
+H 4C 8B 55 F8 ; dpos = pos
+H 4C 89 15 $dpos ; dpos = pos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if126e
+H 4C 8B 55 E8 ; if b == 152 || b == 153
+H 4C 89 55 E0 ; if b == 152 || b == 153
+H 49 C7 C2 98 00 00 00 ; if b == 152 || b == 153
+H 4D 89 D3 ; if b == 152 || b == 153
+H 4C 8B 55 E0 ; if b == 152 || b == 153
+H 4D 39 DA ; if b == 152 || b == 153
+H 0F 85 $_if127d2 ; if b == 152 || b == 153
+H E9 $_if127t ; if b == 152 || b == 153
+:_if127d2
+H 4C 8B 55 E8 ; if b == 152 || b == 153
+H 4C 89 55 E0 ; if b == 152 || b == 153
+H 49 C7 C2 99 00 00 00 ; if b == 152 || b == 153
+H 4D 89 D3 ; if b == 152 || b == 153
+H 4C 8B 55 E0 ; if b == 152 || b == 153
+H 4D 39 DA ; if b == 152 || b == 153
+H 0F 85 $_if127e ; if b == 152 || b == 153
+:_if127t
+H 4C 8B 55 F8 ; dpos = pos
+H 4C 89 15 $dpos ; dpos = pos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if127e
+H 4C 8B 55 E8 ; if b == 195 || b == 204
+H 4C 89 55 E0 ; if b == 195 || b == 204
+H 49 C7 C2 C3 00 00 00 ; if b == 195 || b == 204
+H 4D 89 D3 ; if b == 195 || b == 204
+H 4C 8B 55 E0 ; if b == 195 || b == 204
+H 4D 39 DA ; if b == 195 || b == 204
+H 0F 85 $_if128d2 ; if b == 195 || b == 204
+H E9 $_if128t ; if b == 195 || b == 204
+:_if128d2
+H 4C 8B 55 E8 ; if b == 195 || b == 204
+H 4C 89 55 E0 ; if b == 195 || b == 204
+H 49 C7 C2 CC 00 00 00 ; if b == 195 || b == 204
+H 4D 89 D3 ; if b == 195 || b == 204
+H 4C 8B 55 E0 ; if b == 195 || b == 204
+H 4D 39 DA ; if b == 195 || b == 204
+H 0F 85 $_if128e ; if b == 195 || b == 204
+:_if128t
+H 49 C7 C2 01 00 00 00 ; dcls = 1
+H 4C 89 15 $dcls ; dcls = 1
+H 4C 8B 55 F8 ; dpos = pos
+H 4C 89 15 $dpos ; dpos = pos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if128e
+H 4C 8B 55 E8 ; if b >= 176 && b <= 183
+H 4C 89 55 E0 ; if b >= 176 && b <= 183
+H 49 C7 C2 B0 00 00 00 ; if b >= 176 && b <= 183
+H 4D 89 D3 ; if b >= 176 && b <= 183
+H 4C 8B 55 E0 ; if b >= 176 && b <= 183
+H 4D 39 DA ; if b >= 176 && b <= 183
+H 0F 8C $_if129e ; if b >= 176 && b <= 183
+H 4C 8B 55 E8 ; if b >= 176 && b <= 183
+H 4C 89 55 E0 ; if b >= 176 && b <= 183
+H 49 C7 C2 B7 00 00 00 ; if b >= 176 && b <= 183
+H 4D 89 D3 ; if b >= 176 && b <= 183
+H 4C 8B 55 E0 ; if b >= 176 && b <= 183
+H 4D 39 DA ; if b >= 176 && b <= 183
+H 0F 8F $_if129e ; if b >= 176 && b <= 183
+H 4C 8B 55 F8 ; if pos + 1 > exelen
+H 4C 89 55 D8 ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 D8 ; if pos + 1 > exelen
+H 4D 01 DA ; if pos + 1 > exelen
+H 4C 89 55 E0 ; if pos + 1 > exelen
+H 4C 8B 15 $exelen ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 E0 ; if pos + 1 > exelen
+H 4D 39 DA ; if pos + 1 > exelen
+H 0F 8E $_if130e ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if130e
+H 4C 8B 55 F8 ; dpos = pos + 1
+H 4C 89 55 E0 ; dpos = pos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = pos + 1
+H 4D 89 D3 ; dpos = pos + 1
+H 4C 8B 55 E0 ; dpos = pos + 1
+H 4D 01 DA ; dpos = pos + 1
+H 4C 89 15 $dpos ; dpos = pos + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if129e
+H 4C 8B 55 F0 ; if w != 0
+H 4C 89 55 E0 ; if w != 0
+H 49 C7 C2 00 00 00 00 ; if w != 0
+H 4D 89 D3 ; if w != 0
+H 4C 8B 55 E0 ; if w != 0
+H 4D 39 DA ; if w != 0
+H 0F 84 $_if131e ; if w != 0
+H 4C 8B 55 F8 ; if pos + 8 > exelen
+H 4C 89 55 D8 ; if pos + 8 > exelen
+H 49 C7 C2 08 00 00 00 ; if pos + 8 > exelen
+H 4D 89 D3 ; if pos + 8 > exelen
+H 4C 8B 55 D8 ; if pos + 8 > exelen
+H 4D 01 DA ; if pos + 8 > exelen
+H 4C 89 55 E0 ; if pos + 8 > exelen
+H 4C 8B 15 $exelen ; if pos + 8 > exelen
+H 4D 89 D3 ; if pos + 8 > exelen
+H 4C 8B 55 E0 ; if pos + 8 > exelen
+H 4D 39 DA ; if pos + 8 > exelen
+H 0F 8E $_if132e ; if pos + 8 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if132e
+H 4C 8B 55 F8 ; dpos = pos + 8
+H 4C 89 55 E0 ; dpos = pos + 8
+H 49 C7 C2 08 00 00 00 ; dpos = pos + 8
+H 4D 89 D3 ; dpos = pos + 8
+H 4C 8B 55 E0 ; dpos = pos + 8
+H 4D 01 DA ; dpos = pos + 8
+H 4C 89 15 $dpos ; dpos = pos + 8
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if131e
+H 4C 8B 55 F8 ; if pos + 4 > exelen
+H 4C 89 55 D8 ; if pos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D8 ; if pos + 4 > exelen
+H 4D 01 DA ; if pos + 4 > exelen
+H 4C 89 55 E0 ; if pos + 4 > exelen
+H 4C 8B 15 $exelen ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 E0 ; if pos + 4 > exelen
+H 4D 39 DA ; if pos + 4 > exelen
+H 0F 8E $_if133e ; if pos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:_if133e
+H 4C 8B 55 F8 ; dpos = pos + 4
+H 4C 89 55 E0 ; dpos = pos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = pos + 4
+H 4D 89 D3 ; dpos = pos + 4
+H 4C 8B 55 E0 ; dpos = pos + 4
+H 4D 01 DA ; dpos = pos + 4
+H 4C 89 15 $dpos ; dpos = pos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decimm
+H 5D ; выход decimm
+H C3 ; выход decimm
+:decshift
+H 55 ; кадр decshift
+H 48 89 E5 ; кадр decshift
+H 48 83 EC 70 ; кадр decshift
+H 48 89 4D F8 ; кадр decshift
+H 48 89 55 F0 ; кадр decshift
+H 4C 89 45 E8 ; кадр decshift
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D0 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D D0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C8 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if134e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decshift
+H 5D ; выход decshift
+H C3 ; выход decshift
+:_if134e
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 49 C7 C2 00 00 00 00 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 0F 84 $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 49 C7 C2 04 00 00 00 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 0F 84 $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 49 C7 C2 05 00 00 00 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 0F 84 $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 49 C7 C2 07 00 00 00 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 0F 84 $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decshift
+H 5D ; выход decshift
+H C3 ; выход decshift
+:_if135e
+H 4C 8B 55 E8 ; if b == 192 || b == 193
+H 4C 89 55 E0 ; if b == 192 || b == 193
+H 49 C7 C2 C0 00 00 00 ; if b == 192 || b == 193
+H 4D 89 D3 ; if b == 192 || b == 193
+H 4C 8B 55 E0 ; if b == 192 || b == 193
+H 4D 39 DA ; if b == 192 || b == 193
+H 0F 85 $_if136d2 ; if b == 192 || b == 193
+H E9 $_if136t ; if b == 192 || b == 193
+:_if136d2
+H 4C 8B 55 E8 ; if b == 192 || b == 193
+H 4C 89 55 E0 ; if b == 192 || b == 193
+H 49 C7 C2 C1 00 00 00 ; if b == 192 || b == 193
+H 4D 89 D3 ; if b == 192 || b == 193
+H 4C 8B 55 E0 ; if b == 192 || b == 193
+H 4D 39 DA ; if b == 192 || b == 193
+H 0F 85 $_if136e ; if b == 192 || b == 193
+:_if136t
+H 4C 8B 15 $mpos ; if mpos + 1 > exelen
+H 4C 89 55 D8 ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 D8 ; if mpos + 1 > exelen
+H 4D 01 DA ; if mpos + 1 > exelen
+H 4C 89 55 E0 ; if mpos + 1 > exelen
+H 4C 8B 15 $exelen ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 E0 ; if mpos + 1 > exelen
+H 4D 39 DA ; if mpos + 1 > exelen
+H 0F 8E $_if137e ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decshift
+H 5D ; выход decshift
+H C3 ; выход decshift
+:_if137e
+H 4C 8B 15 $mpos ; dpos = mpos + 1
+H 4C 89 55 E0 ; dpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = mpos + 1
+H 4D 89 D3 ; dpos = mpos + 1
+H 4C 8B 55 E0 ; dpos = mpos + 1
+H 4D 01 DA ; dpos = mpos + 1
+H 4C 89 15 $dpos ; dpos = mpos + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decshift
+H 5D ; выход decshift
+H C3 ; выход decshift
+:_if136e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decshift
+H 5D ; выход decshift
+H C3 ; выход decshift
+:decgrp
+H 55 ; кадр decgrp
+H 48 89 E5 ; кадр decgrp
+H 48 83 EC 70 ; кадр decgrp
+H 48 89 4D F8 ; кадр decgrp
+H 48 89 55 F0 ; кадр decgrp
+H 4C 89 45 E8 ; кадр decgrp
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D0 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D D0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C8 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if138e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:_if138e
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 00 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 01 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 04 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 05 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 06 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 07 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 0F 84 $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:_if139e
+H 4C 8B 55 E8 ; if b == 129
+H 4C 89 55 E0 ; if b == 129
+H 49 C7 C2 81 00 00 00 ; if b == 129
+H 4D 89 D3 ; if b == 129
+H 4C 8B 55 E0 ; if b == 129
+H 4D 39 DA ; if b == 129
+H 0F 85 $_if140e ; if b == 129
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 D8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 D8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 E0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 E0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if141e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:_if141e
+H 4C 8B 15 $mpos ; dpos = mpos + 4
+H 4C 89 55 E0 ; dpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = mpos + 4
+H 4D 89 D3 ; dpos = mpos + 4
+H 4C 8B 55 E0 ; dpos = mpos + 4
+H 4D 01 DA ; dpos = mpos + 4
+H 4C 89 15 $dpos ; dpos = mpos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:_if140e
+H 4C 8B 15 $mpos ; if mpos + 1 > exelen
+H 4C 89 55 D8 ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 D8 ; if mpos + 1 > exelen
+H 4D 01 DA ; if mpos + 1 > exelen
+H 4C 89 55 E0 ; if mpos + 1 > exelen
+H 4C 8B 15 $exelen ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 E0 ; if mpos + 1 > exelen
+H 4D 39 DA ; if mpos + 1 > exelen
+H 0F 8E $_if142e ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:_if142e
+H 4C 8B 15 $mpos ; dpos = mpos + 1
+H 4C 89 55 E0 ; dpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = mpos + 1
+H 4D 89 D3 ; dpos = mpos + 1
+H 4C 8B 55 E0 ; dpos = mpos + 1
+H 4D 01 DA ; dpos = mpos + 1
+H 4C 89 15 $dpos ; dpos = mpos + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp
+H 5D ; выход decgrp
+H C3 ; выход decgrp
+:decgrp2
+H 55 ; кадр decgrp2
+H 48 89 E5 ; кадр decgrp2
+H 48 83 EC 70 ; кадр decgrp2
+H 48 89 4D F8 ; кадр decgrp2
+H 48 89 55 F0 ; кадр decgrp2
+H 4C 89 45 E8 ; кадр decgrp2
+H 4C 8B 55 F8 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 D0 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 F0 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 C8 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 4D D0 ; if modrm_skip(pos, rbit) != 0
+H 48 8B 55 C8 ; if modrm_skip(pos, rbit) != 0
+H E8 $modrm_skip ; if modrm_skip(pos, rbit) != 0
+H 49 89 C2 ; if modrm_skip(pos, rbit) != 0
+H 4C 89 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if modrm_skip(pos, rbit) != 0
+H 4D 89 D3 ; if modrm_skip(pos, rbit) != 0
+H 4C 8B 55 E0 ; if modrm_skip(pos, rbit) != 0
+H 4D 39 DA ; if modrm_skip(pos, rbit) != 0
+H 0F 84 $_if143e ; if modrm_skip(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if143e
+H 4C 8B 55 E8 ; if b == 198
+H 4C 89 55 E0 ; if b == 198
+H 49 C7 C2 C6 00 00 00 ; if b == 198
+H 4D 89 D3 ; if b == 198
+H 4C 8B 55 E0 ; if b == 198
+H 4D 39 DA ; if b == 198
+H 0F 85 $_if144e ; if b == 198
+H 4C 8B 15 $mpos ; if mpos + 1 > exelen
+H 4C 89 55 D8 ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 D8 ; if mpos + 1 > exelen
+H 4D 01 DA ; if mpos + 1 > exelen
+H 4C 89 55 E0 ; if mpos + 1 > exelen
+H 4C 8B 15 $exelen ; if mpos + 1 > exelen
+H 4D 89 D3 ; if mpos + 1 > exelen
+H 4C 8B 55 E0 ; if mpos + 1 > exelen
+H 4D 39 DA ; if mpos + 1 > exelen
+H 0F 8E $_if145e ; if mpos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if145e
+H 4C 8B 15 $mpos ; dpos = mpos + 1
+H 4C 89 55 E0 ; dpos = mpos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = mpos + 1
+H 4D 89 D3 ; dpos = mpos + 1
+H 4C 8B 55 E0 ; dpos = mpos + 1
+H 4D 01 DA ; dpos = mpos + 1
+H 4C 89 15 $dpos ; dpos = mpos + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if144e
+H 4C 8B 55 E8 ; if b == 199
+H 4C 89 55 E0 ; if b == 199
+H 49 C7 C2 C7 00 00 00 ; if b == 199
+H 4D 89 D3 ; if b == 199
+H 4C 8B 55 E0 ; if b == 199
+H 4D 39 DA ; if b == 199
+H 0F 85 $_if146e ; if b == 199
+H 4C 8B 15 $mpos ; if mpos + 4 > exelen
+H 4C 89 55 D8 ; if mpos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 D8 ; if mpos + 4 > exelen
+H 4D 01 DA ; if mpos + 4 > exelen
+H 4C 89 55 E0 ; if mpos + 4 > exelen
+H 4C 8B 15 $exelen ; if mpos + 4 > exelen
+H 4D 89 D3 ; if mpos + 4 > exelen
+H 4C 8B 55 E0 ; if mpos + 4 > exelen
+H 4D 39 DA ; if mpos + 4 > exelen
+H 0F 8E $_if147e ; if mpos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if147e
+H 4C 8B 15 $mpos ; dpos = mpos + 4
+H 4C 89 55 E0 ; dpos = mpos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = mpos + 4
+H 4D 89 D3 ; dpos = mpos + 4
+H 4C 8B 55 E0 ; dpos = mpos + 4
+H 4D 01 DA ; dpos = mpos + 4
+H 4C 89 15 $dpos ; dpos = mpos + 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if146e
+H 4C 8B 55 E8 ; if b == 246
+H 4C 89 55 E0 ; if b == 246
+H 49 C7 C2 F6 00 00 00 ; if b == 246
+H 4D 89 D3 ; if b == 246
+H 4C 8B 55 E0 ; if b == 246
+H 4D 39 DA ; if b == 246
+H 0F 85 $_if148e ; if b == 246
+H 4C 8B 15 $mreg ; if mreg != 3
+H 4C 89 55 E0 ; if mreg != 3
+H 49 C7 C2 03 00 00 00 ; if mreg != 3
+H 4D 89 D3 ; if mreg != 3
+H 4C 8B 55 E0 ; if mreg != 3
+H 4D 39 DA ; if mreg != 3
+H 0F 84 $_if149e ; if mreg != 3
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if149e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if148e
+H 4C 8B 55 E8 ; if b == 247
+H 4C 89 55 E0 ; if b == 247
+H 49 C7 C2 F7 00 00 00 ; if b == 247
+H 4D 89 D3 ; if b == 247
+H 4C 8B 55 E0 ; if b == 247
+H 4D 39 DA ; if b == 247
+H 0F 85 $_if150e ; if b == 247
+H 4C 8B 15 $mreg ; if mreg != 3 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 3 && mreg != 7
+H 49 C7 C2 03 00 00 00 ; if mreg != 3 && mreg != 7
+H 4D 89 D3 ; if mreg != 3 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 3 && mreg != 7
+H 4D 39 DA ; if mreg != 3 && mreg != 7
+H 0F 84 $_if151e ; if mreg != 3 && mreg != 7
+H 4C 8B 15 $mreg ; if mreg != 3 && mreg != 7
+H 4C 89 55 E0 ; if mreg != 3 && mreg != 7
+H 49 C7 C2 07 00 00 00 ; if mreg != 3 && mreg != 7
+H 4D 89 D3 ; if mreg != 3 && mreg != 7
+H 4C 8B 55 E0 ; if mreg != 3 && mreg != 7
+H 4D 39 DA ; if mreg != 3 && mreg != 7
+H 0F 84 $_if151e ; if mreg != 3 && mreg != 7
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if151e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if150e
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 49 C7 C2 00 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 2
+H 0F 84 $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 49 C7 C2 01 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 2
+H 0F 84 $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 8B 15 $mreg ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 89 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 49 C7 C2 02 00 00 00 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 89 D3 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4C 8B 55 E0 ; if mreg != 0 && mreg != 1 && mreg != 2
+H 4D 39 DA ; if mreg != 0 && mreg != 1 && mreg != 2
+H 0F 84 $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:_if152e
+H 4C 8B 15 $mpos ; dpos = mpos
+H 4C 89 15 $dpos ; dpos = mpos
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decgrp2
+H 5D ; выход decgrp2
+H C3 ; выход decgrp2
+:decbr
+H 55 ; кадр decbr
+H 48 89 E5 ; кадр decbr
+H 48 83 EC 60 ; кадр decbr
+H 48 89 4D F8 ; кадр decbr
+H 48 89 55 F0 ; кадр decbr
+H 4C 8B 55 F0 ; if b == 232
+H 4C 89 55 E0 ; if b == 232
+H 49 C7 C2 E8 00 00 00 ; if b == 232
+H 4D 89 D3 ; if b == 232
+H 4C 8B 55 E0 ; if b == 232
+H 4D 39 DA ; if b == 232
+H 0F 85 $_if153e ; if b == 232
+H 4C 8B 55 F8 ; if pos + 4 > exelen
+H 4C 89 55 D8 ; if pos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D8 ; if pos + 4 > exelen
+H 4D 01 DA ; if pos + 4 > exelen
+H 4C 89 55 E0 ; if pos + 4 > exelen
+H 4C 8B 15 $exelen ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 E0 ; if pos + 4 > exelen
+H 4D 39 DA ; if pos + 4 > exelen
+H 0F 8E $_if154e ; if pos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if154e
+H 4C 8B 55 F8 ; rel = rel32(pos)
+H 4C 89 55 D0 ; rel = rel32(pos)
+H 48 8B 4D D0 ; rel = rel32(pos)
+H E8 $rel32 ; rel = rel32(pos)
+H 49 89 C2 ; rel = rel32(pos)
+H 4C 89 55 E8 ; rel = rel32(pos)
+H 4C 8B 55 F8 ; dpos = pos + 4
+H 4C 89 55 E0 ; dpos = pos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = pos + 4
+H 4D 89 D3 ; dpos = pos + 4
+H 4C 8B 55 E0 ; dpos = pos + 4
+H 4D 01 DA ; dpos = pos + 4
+H 4C 89 15 $dpos ; dpos = pos + 4
+H 4C 8B 15 $dpos ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D8 ; dtgt = dpos - rawptr + rel
+H 4C 8B 15 $rawptr ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D8 ; dtgt = dpos - rawptr + rel
+H 4D 29 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 55 E0 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E8 ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E0 ; dtgt = dpos - rawptr + rel
+H 4D 01 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 15 $dtgt ; dtgt = dpos - rawptr + rel
+H 49 C7 C2 04 00 00 00 ; dcls = 4
+H 4C 89 15 $dcls ; dcls = 4
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if153e
+H 4C 8B 55 F0 ; if b == 233
+H 4C 89 55 E0 ; if b == 233
+H 49 C7 C2 E9 00 00 00 ; if b == 233
+H 4D 89 D3 ; if b == 233
+H 4C 8B 55 E0 ; if b == 233
+H 4D 39 DA ; if b == 233
+H 0F 85 $_if155e ; if b == 233
+H 4C 8B 55 F8 ; if pos + 4 > exelen
+H 4C 89 55 D8 ; if pos + 4 > exelen
+H 49 C7 C2 04 00 00 00 ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 D8 ; if pos + 4 > exelen
+H 4D 01 DA ; if pos + 4 > exelen
+H 4C 89 55 E0 ; if pos + 4 > exelen
+H 4C 8B 15 $exelen ; if pos + 4 > exelen
+H 4D 89 D3 ; if pos + 4 > exelen
+H 4C 8B 55 E0 ; if pos + 4 > exelen
+H 4D 39 DA ; if pos + 4 > exelen
+H 0F 8E $_if156e ; if pos + 4 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if156e
+H 4C 8B 55 F8 ; rel = rel32(pos)
+H 4C 89 55 D0 ; rel = rel32(pos)
+H 48 8B 4D D0 ; rel = rel32(pos)
+H E8 $rel32 ; rel = rel32(pos)
+H 49 89 C2 ; rel = rel32(pos)
+H 4C 89 55 E8 ; rel = rel32(pos)
+H 4C 8B 55 F8 ; dpos = pos + 4
+H 4C 89 55 E0 ; dpos = pos + 4
+H 49 C7 C2 04 00 00 00 ; dpos = pos + 4
+H 4D 89 D3 ; dpos = pos + 4
+H 4C 8B 55 E0 ; dpos = pos + 4
+H 4D 01 DA ; dpos = pos + 4
+H 4C 89 15 $dpos ; dpos = pos + 4
+H 4C 8B 15 $dpos ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D8 ; dtgt = dpos - rawptr + rel
+H 4C 8B 15 $rawptr ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D8 ; dtgt = dpos - rawptr + rel
+H 4D 29 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 55 E0 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E8 ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E0 ; dtgt = dpos - rawptr + rel
+H 4D 01 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 15 $dtgt ; dtgt = dpos - rawptr + rel
+H 49 C7 C2 02 00 00 00 ; dcls = 2
+H 4C 89 15 $dcls ; dcls = 2
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if155e
+H 4C 8B 55 F0 ; if b == 235
+H 4C 89 55 E0 ; if b == 235
+H 49 C7 C2 EB 00 00 00 ; if b == 235
+H 4D 89 D3 ; if b == 235
+H 4C 8B 55 E0 ; if b == 235
+H 4D 39 DA ; if b == 235
+H 0F 85 $_if157e ; if b == 235
+H 4C 8B 55 F8 ; if pos + 1 > exelen
+H 4C 89 55 D8 ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 D8 ; if pos + 1 > exelen
+H 4D 01 DA ; if pos + 1 > exelen
+H 4C 89 55 E0 ; if pos + 1 > exelen
+H 4C 8B 15 $exelen ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 E0 ; if pos + 1 > exelen
+H 4D 39 DA ; if pos + 1 > exelen
+H 0F 8E $_if158e ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if158e
+H 4C 8B 55 F8 ; rel = rel8(pos)
+H 4C 89 55 D0 ; rel = rel8(pos)
+H 48 8B 4D D0 ; rel = rel8(pos)
+H E8 $rel8 ; rel = rel8(pos)
+H 49 89 C2 ; rel = rel8(pos)
+H 4C 89 55 E8 ; rel = rel8(pos)
+H 4C 8B 55 F8 ; dpos = pos + 1
+H 4C 89 55 E0 ; dpos = pos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = pos + 1
+H 4D 89 D3 ; dpos = pos + 1
+H 4C 8B 55 E0 ; dpos = pos + 1
+H 4D 01 DA ; dpos = pos + 1
+H 4C 89 15 $dpos ; dpos = pos + 1
+H 4C 8B 15 $dpos ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D8 ; dtgt = dpos - rawptr + rel
+H 4C 8B 15 $rawptr ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D8 ; dtgt = dpos - rawptr + rel
+H 4D 29 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 55 E0 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E8 ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E0 ; dtgt = dpos - rawptr + rel
+H 4D 01 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 15 $dtgt ; dtgt = dpos - rawptr + rel
+H 49 C7 C2 02 00 00 00 ; dcls = 2
+H 4C 89 15 $dcls ; dcls = 2
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if157e
+H 4C 8B 55 F8 ; if pos + 1 > exelen
+H 4C 89 55 D8 ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 D8 ; if pos + 1 > exelen
+H 4D 01 DA ; if pos + 1 > exelen
+H 4C 89 55 E0 ; if pos + 1 > exelen
+H 4C 8B 15 $exelen ; if pos + 1 > exelen
+H 4D 89 D3 ; if pos + 1 > exelen
+H 4C 8B 55 E0 ; if pos + 1 > exelen
+H 4D 39 DA ; if pos + 1 > exelen
+H 0F 8E $_if159e ; if pos + 1 > exelen
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:_if159e
+H 4C 8B 55 F8 ; rel = rel8(pos)
+H 4C 89 55 D0 ; rel = rel8(pos)
+H 48 8B 4D D0 ; rel = rel8(pos)
+H E8 $rel8 ; rel = rel8(pos)
+H 49 89 C2 ; rel = rel8(pos)
+H 4C 89 55 E8 ; rel = rel8(pos)
+H 4C 8B 55 F8 ; dpos = pos + 1
+H 4C 89 55 E0 ; dpos = pos + 1
+H 49 C7 C2 01 00 00 00 ; dpos = pos + 1
+H 4D 89 D3 ; dpos = pos + 1
+H 4C 8B 55 E0 ; dpos = pos + 1
+H 4D 01 DA ; dpos = pos + 1
+H 4C 89 15 $dpos ; dpos = pos + 1
+H 4C 8B 15 $dpos ; dtgt = dpos - rawptr + rel
+H 4C 89 55 D8 ; dtgt = dpos - rawptr + rel
+H 4C 8B 15 $rawptr ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 D8 ; dtgt = dpos - rawptr + rel
+H 4D 29 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 55 E0 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E8 ; dtgt = dpos - rawptr + rel
+H 4D 89 D3 ; dtgt = dpos - rawptr + rel
+H 4C 8B 55 E0 ; dtgt = dpos - rawptr + rel
+H 4D 01 DA ; dtgt = dpos - rawptr + rel
+H 4C 89 15 $dtgt ; dtgt = dpos - rawptr + rel
+H 49 C7 C2 03 00 00 00 ; dcls = 3
+H 4C 89 15 $dcls ; dcls = 3
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decbr
+H 5D ; выход decbr
+H C3 ; выход decbr
+:decode_ins
+H 55 ; кадр decode_ins
+H 48 89 E5 ; кадр decode_ins
+H 48 81 EC B0 00 00 00 ; кадр decode_ins
+H 48 89 4D F8 ; кадр decode_ins
+H 49 C7 C2 00 00 00 00 ; dcls = 0
+H 4C 89 15 $dcls ; dcls = 0
+H 49 C7 C2 00 00 00 00 ; dtgt = 0
+H 4C 89 15 $dtgt ; dtgt = 0
+H 4C 8B 15 $rawptr ; pos = rawptr + a
+H 4C 89 55 A8 ; pos = rawptr + a
+H 4C 8B 55 F8 ; pos = rawptr + a
+H 4D 89 D3 ; pos = rawptr + a
+H 4C 8B 55 A8 ; pos = rawptr + a
+H 4D 01 DA ; pos = rawptr + a
+H 4C 89 55 F0 ; pos = rawptr + a
+H 4C 8B 55 F0 ; b = fb(pos)
+H 4C 89 55 98 ; b = fb(pos)
+H 48 8B 4D 98 ; b = fb(pos)
+H E8 $fb ; b = fb(pos)
+H 49 89 C2 ; b = fb(pos)
+H 4C 89 55 E8 ; b = fb(pos)
+H 4C 8B 55 E8 ; if b < 0
+H 4C 89 55 A8 ; if b < 0
+H 49 C7 C2 00 00 00 00 ; if b < 0
+H 4D 89 D3 ; if b < 0
+H 4C 8B 55 A8 ; if b < 0
+H 4D 39 DA ; if b < 0
+H 0F 8D $_if160e ; if b < 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if160e
+H 4C 8B 55 F0 ; pos = pos + 1
+H 4C 89 55 A8 ; pos = pos + 1
+H 49 C7 C2 01 00 00 00 ; pos = pos + 1
+H 4D 89 D3 ; pos = pos + 1
+H 4C 8B 55 A8 ; pos = pos + 1
+H 4D 01 DA ; pos = pos + 1
+H 4C 89 55 F0 ; pos = pos + 1
+H 49 C7 C2 00 00 00 00 ; rex = 0
+H 4C 89 55 E0 ; rex = 0
+H 4C 8B 55 E8 ; if b >= 64 && b <= 79
+H 4C 89 55 A8 ; if b >= 64 && b <= 79
+H 49 C7 C2 40 00 00 00 ; if b >= 64 && b <= 79
+H 4D 89 D3 ; if b >= 64 && b <= 79
+H 4C 8B 55 A8 ; if b >= 64 && b <= 79
+H 4D 39 DA ; if b >= 64 && b <= 79
+H 0F 8C $_if161e ; if b >= 64 && b <= 79
+H 4C 8B 55 E8 ; if b >= 64 && b <= 79
+H 4C 89 55 A8 ; if b >= 64 && b <= 79
+H 49 C7 C2 4F 00 00 00 ; if b >= 64 && b <= 79
+H 4D 89 D3 ; if b >= 64 && b <= 79
+H 4C 8B 55 A8 ; if b >= 64 && b <= 79
+H 4D 39 DA ; if b >= 64 && b <= 79
+H 0F 8F $_if161e ; if b >= 64 && b <= 79
+H 4C 8B 55 E8 ; rex = b
+H 4C 89 55 E0 ; rex = b
+H 4C 8B 55 F0 ; b = fb(pos)
+H 4C 89 55 98 ; b = fb(pos)
+H 48 8B 4D 98 ; b = fb(pos)
+H E8 $fb ; b = fb(pos)
+H 49 89 C2 ; b = fb(pos)
+H 4C 89 55 E8 ; b = fb(pos)
+H 4C 8B 55 E8 ; if b < 0
+H 4C 89 55 A8 ; if b < 0
+H 49 C7 C2 00 00 00 00 ; if b < 0
+H 4D 89 D3 ; if b < 0
+H 4C 8B 55 A8 ; if b < 0
+H 4D 39 DA ; if b < 0
+H 0F 8D $_if162e ; if b < 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if162e
+H 4C 8B 55 F0 ; pos = pos + 1
+H 4C 89 55 A8 ; pos = pos + 1
+H 49 C7 C2 01 00 00 00 ; pos = pos + 1
+H 4D 89 D3 ; pos = pos + 1
+H 4C 8B 55 A8 ; pos = pos + 1
+H 4D 01 DA ; pos = pos + 1
+H 4C 89 55 F0 ; pos = pos + 1
+:_if161e
+H 4C 8B 55 E0 ; w = rex & 8
+H 4C 89 55 A8 ; w = rex & 8
+H 49 C7 C2 08 00 00 00 ; w = rex & 8
+H 4D 89 D3 ; w = rex & 8
+H 4C 8B 55 A8 ; w = rex & 8
+H 4D 21 DA ; w = rex & 8
+H 4C 89 55 D8 ; w = rex & 8
+H 4C 8B 55 E0 ; rbit = (rex & 4) * 2
+H 4C 89 55 A0 ; rbit = (rex & 4) * 2
+H 49 C7 C2 04 00 00 00 ; rbit = (rex & 4) * 2
+H 4D 89 D3 ; rbit = (rex & 4) * 2
+H 4C 8B 55 A0 ; rbit = (rex & 4) * 2
+H 4D 21 DA ; rbit = (rex & 4) * 2
+H 4C 89 55 A8 ; rbit = (rex & 4) * 2
+H 49 C7 C2 02 00 00 00 ; rbit = (rex & 4) * 2
+H 4D 89 D3 ; rbit = (rex & 4) * 2
+H 4C 8B 55 A8 ; rbit = (rex & 4) * 2
+H 4D 0F AF D3 ; rbit = (rex & 4) * 2
+H 4C 89 55 D0 ; rbit = (rex & 4) * 2
+H 4C 8B 55 E8 ; if b == 15
+H 4C 89 55 A8 ; if b == 15
+H 49 C7 C2 0F 00 00 00 ; if b == 15
+H 4D 89 D3 ; if b == 15
+H 4C 8B 55 A8 ; if b == 15
+H 4D 39 DA ; if b == 15
+H 0F 85 $_if163e ; if b == 15
+H 4C 8B 55 F0 ; if dec0f(pos, rbit) != 0
+H 4C 89 55 98 ; if dec0f(pos, rbit) != 0
+H 4C 8B 55 D0 ; if dec0f(pos, rbit) != 0
+H 4C 89 55 90 ; if dec0f(pos, rbit) != 0
+H 48 8B 4D 98 ; if dec0f(pos, rbit) != 0
+H 48 8B 55 90 ; if dec0f(pos, rbit) != 0
+H E8 $dec0f ; if dec0f(pos, rbit) != 0
+H 49 89 C2 ; if dec0f(pos, rbit) != 0
+H 4C 89 55 A8 ; if dec0f(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if dec0f(pos, rbit) != 0
+H 4D 89 D3 ; if dec0f(pos, rbit) != 0
+H 4C 8B 55 A8 ; if dec0f(pos, rbit) != 0
+H 4D 39 DA ; if dec0f(pos, rbit) != 0
+H 0F 84 $_if164e ; if dec0f(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if164e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if163e
+H 4C 8B 55 E8 ; base = b & 248
+H 4C 89 55 A8 ; base = b & 248
+H 49 C7 C2 F8 00 00 00 ; base = b & 248
+H 4D 89 D3 ; base = b & 248
+H 4C 8B 55 A8 ; base = b & 248
+H 4D 21 DA ; base = b & 248
+H 4C 89 55 C8 ; base = b & 248
+H 49 C7 C2 00 00 00 00 ; alu = 0
+H 4C 89 55 C0 ; alu = 0
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 00 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165d2 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H E9 $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d2
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 08 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165d3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H E9 $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d3
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 20 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165d4 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H E9 $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d4
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 28 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165d5 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H E9 $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d5
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 30 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165d6 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H E9 $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d6
+H 4C 8B 55 C8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 89 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 49 C7 C2 38 00 00 00 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 89 D3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4C 8B 55 A8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 4D 39 DA ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+H 0F 85 $_if165e ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165t
+H 49 C7 C2 01 00 00 00 ; alu = 1
+H 4C 89 55 C0 ; alu = 1
+:_if165e
+H 49 C7 C2 00 00 00 00 ; short1 = 0
+H 4C 89 55 B8 ; short1 = 0
+H 4C 8B 55 E8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 89 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 49 C7 C2 04 00 00 00 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 89 D3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 8B 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 39 DA ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 0F 85 $_if166d2 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H E9 $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d2
+H 4C 8B 55 E8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 89 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 49 C7 C2 0C 00 00 00 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 89 D3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 8B 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 39 DA ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 0F 85 $_if166d3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H E9 $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d3
+H 4C 8B 55 E8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 89 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 49 C7 C2 24 00 00 00 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 89 D3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 8B 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 39 DA ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 0F 85 $_if166d4 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H E9 $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d4
+H 4C 8B 55 E8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 89 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 49 C7 C2 2C 00 00 00 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 89 D3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 8B 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 39 DA ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 0F 85 $_if166d5 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H E9 $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d5
+H 4C 8B 55 E8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 89 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 49 C7 C2 3C 00 00 00 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 89 D3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4C 8B 55 A8 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 4D 39 DA ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+H 0F 85 $_if166e ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166t
+H 49 C7 C2 01 00 00 00 ; short1 = 1
+H 4C 89 55 B8 ; short1 = 1
+:_if166e
+H 49 C7 C2 00 00 00 00 ; short4 = 0
+H 4C 89 55 B0 ; short4 = 0
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 05 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167d2 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H E9 $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d2
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 0D 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167d3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H E9 $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d3
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 25 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167d4 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H E9 $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d4
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 2D 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167d5 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H E9 $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d5
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 35 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167d6 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H E9 $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d6
+H 4C 8B 55 E8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 89 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 49 C7 C2 3D 00 00 00 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 89 D3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4C 8B 55 A8 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 4D 39 DA ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+H 0F 85 $_if167e ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167t
+H 49 C7 C2 01 00 00 00 ; short4 = 1
+H 4C 89 55 B0 ; short4 = 1
+:_if167e
+H 4C 8B 55 E8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 89 55 A0 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 49 C7 C2 07 00 00 00 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 89 D3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 A0 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 21 DA ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 89 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 49 C7 C2 04 00 00 00 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 89 D3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 39 DA ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 0F 8D $_if168d2 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 C0 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 89 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 49 C7 C2 01 00 00 00 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 89 D3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 39 DA ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 0F 85 $_if168d2 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H E9 $_if168t ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168d2
+H 4C 8B 55 B8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 89 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 49 C7 C2 01 00 00 00 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 89 D3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 39 DA ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 0F 85 $_if168d3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H E9 $_if168t ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168d3
+H 4C 8B 55 B0 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 89 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 49 C7 C2 01 00 00 00 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 89 D3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4C 8B 55 A8 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 4D 39 DA ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+H 0F 85 $_if168e ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168t
+H 4C 8B 55 F0 ; if decalu(pos, rbit, b) != 0
+H 4C 89 55 98 ; if decalu(pos, rbit, b) != 0
+H 4C 8B 55 D0 ; if decalu(pos, rbit, b) != 0
+H 4C 89 55 90 ; if decalu(pos, rbit, b) != 0
+H 4C 8B 55 E8 ; if decalu(pos, rbit, b) != 0
+H 4C 89 55 88 ; if decalu(pos, rbit, b) != 0
+H 48 8B 4D 98 ; if decalu(pos, rbit, b) != 0
+H 48 8B 55 90 ; if decalu(pos, rbit, b) != 0
+H 4C 8B 45 88 ; if decalu(pos, rbit, b) != 0
+H E8 $decalu ; if decalu(pos, rbit, b) != 0
+H 49 89 C2 ; if decalu(pos, rbit, b) != 0
+H 4C 89 55 A8 ; if decalu(pos, rbit, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decalu(pos, rbit, b) != 0
+H 4D 89 D3 ; if decalu(pos, rbit, b) != 0
+H 4C 8B 55 A8 ; if decalu(pos, rbit, b) != 0
+H 4D 39 DA ; if decalu(pos, rbit, b) != 0
+H 0F 84 $_if169e ; if decalu(pos, rbit, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if169e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if168e
+H 4C 8B 55 E8 ; if b == 128 || b == 129 || b == 131
+H 4C 89 55 A8 ; if b == 128 || b == 129 || b == 131
+H 49 C7 C2 80 00 00 00 ; if b == 128 || b == 129 || b == 131
+H 4D 89 D3 ; if b == 128 || b == 129 || b == 131
+H 4C 8B 55 A8 ; if b == 128 || b == 129 || b == 131
+H 4D 39 DA ; if b == 128 || b == 129 || b == 131
+H 0F 85 $_if170d2 ; if b == 128 || b == 129 || b == 131
+H E9 $_if170t ; if b == 128 || b == 129 || b == 131
+:_if170d2
+H 4C 8B 55 E8 ; if b == 128 || b == 129 || b == 131
+H 4C 89 55 A8 ; if b == 128 || b == 129 || b == 131
+H 49 C7 C2 81 00 00 00 ; if b == 128 || b == 129 || b == 131
+H 4D 89 D3 ; if b == 128 || b == 129 || b == 131
+H 4C 8B 55 A8 ; if b == 128 || b == 129 || b == 131
+H 4D 39 DA ; if b == 128 || b == 129 || b == 131
+H 0F 85 $_if170d3 ; if b == 128 || b == 129 || b == 131
+H E9 $_if170t ; if b == 128 || b == 129 || b == 131
+:_if170d3
+H 4C 8B 55 E8 ; if b == 128 || b == 129 || b == 131
+H 4C 89 55 A8 ; if b == 128 || b == 129 || b == 131
+H 49 C7 C2 83 00 00 00 ; if b == 128 || b == 129 || b == 131
+H 4D 89 D3 ; if b == 128 || b == 129 || b == 131
+H 4C 8B 55 A8 ; if b == 128 || b == 129 || b == 131
+H 4D 39 DA ; if b == 128 || b == 129 || b == 131
+H 0F 85 $_if170e ; if b == 128 || b == 129 || b == 131
+:_if170t
+H 4C 8B 55 F0 ; if decgrp(pos, rbit, b) != 0
+H 4C 89 55 98 ; if decgrp(pos, rbit, b) != 0
+H 4C 8B 55 D0 ; if decgrp(pos, rbit, b) != 0
+H 4C 89 55 90 ; if decgrp(pos, rbit, b) != 0
+H 4C 8B 55 E8 ; if decgrp(pos, rbit, b) != 0
+H 4C 89 55 88 ; if decgrp(pos, rbit, b) != 0
+H 48 8B 4D 98 ; if decgrp(pos, rbit, b) != 0
+H 48 8B 55 90 ; if decgrp(pos, rbit, b) != 0
+H 4C 8B 45 88 ; if decgrp(pos, rbit, b) != 0
+H E8 $decgrp ; if decgrp(pos, rbit, b) != 0
+H 49 89 C2 ; if decgrp(pos, rbit, b) != 0
+H 4C 89 55 A8 ; if decgrp(pos, rbit, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decgrp(pos, rbit, b) != 0
+H 4D 89 D3 ; if decgrp(pos, rbit, b) != 0
+H 4C 8B 55 A8 ; if decgrp(pos, rbit, b) != 0
+H 4D 39 DA ; if decgrp(pos, rbit, b) != 0
+H 0F 84 $_if171e ; if decgrp(pos, rbit, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if171e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if170e
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 84 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d2 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d2
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 85 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d3
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 88 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d4 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d4
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 89 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d5 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d5
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 8A 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d6 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d6
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 8B 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172d7 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H E9 $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d7
+H 4C 8B 55 E8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 89 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 49 C7 C2 8D 00 00 00 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 89 D3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4C 8B 55 A8 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 4D 39 DA ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+H 0F 85 $_if172e ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172t
+H 4C 8B 55 F0 ; if decmod(pos, rbit) != 0
+H 4C 89 55 98 ; if decmod(pos, rbit) != 0
+H 4C 8B 55 D0 ; if decmod(pos, rbit) != 0
+H 4C 89 55 90 ; if decmod(pos, rbit) != 0
+H 48 8B 4D 98 ; if decmod(pos, rbit) != 0
+H 48 8B 55 90 ; if decmod(pos, rbit) != 0
+H E8 $decmod ; if decmod(pos, rbit) != 0
+H 49 89 C2 ; if decmod(pos, rbit) != 0
+H 4C 89 55 A8 ; if decmod(pos, rbit) != 0
+H 49 C7 C2 00 00 00 00 ; if decmod(pos, rbit) != 0
+H 4D 89 D3 ; if decmod(pos, rbit) != 0
+H 4C 8B 55 A8 ; if decmod(pos, rbit) != 0
+H 4D 39 DA ; if decmod(pos, rbit) != 0
+H 0F 84 $_if173e ; if decmod(pos, rbit) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if173e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if172e
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 50 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 8C $_if174d2 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 5F 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 8F $_if174d2 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H E9 $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d2
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 98 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 85 $_if174d3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H E9 $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d3
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 99 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 85 $_if174d4 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H E9 $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d4
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 C3 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 85 $_if174d5 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H E9 $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d5
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 CC 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 85 $_if174d6 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H E9 $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d6
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 B0 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 8C $_if174e ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 E8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 89 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 49 C7 C2 BF 00 00 00 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 89 D3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4C 8B 55 A8 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 4D 39 DA ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+H 0F 8F $_if174e ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174t
+H 4C 8B 55 F0 ; if decimm(pos, w, b) != 0
+H 4C 89 55 98 ; if decimm(pos, w, b) != 0
+H 4C 8B 55 D8 ; if decimm(pos, w, b) != 0
+H 4C 89 55 90 ; if decimm(pos, w, b) != 0
+H 4C 8B 55 E8 ; if decimm(pos, w, b) != 0
+H 4C 89 55 88 ; if decimm(pos, w, b) != 0
+H 48 8B 4D 98 ; if decimm(pos, w, b) != 0
+H 48 8B 55 90 ; if decimm(pos, w, b) != 0
+H 4C 8B 45 88 ; if decimm(pos, w, b) != 0
+H E8 $decimm ; if decimm(pos, w, b) != 0
+H 49 89 C2 ; if decimm(pos, w, b) != 0
+H 4C 89 55 A8 ; if decimm(pos, w, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decimm(pos, w, b) != 0
+H 4D 89 D3 ; if decimm(pos, w, b) != 0
+H 4C 8B 55 A8 ; if decimm(pos, w, b) != 0
+H 4D 39 DA ; if decimm(pos, w, b) != 0
+H 0F 84 $_if175e ; if decimm(pos, w, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if175e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if174e
+H 4C 8B 55 E8 ; if b == 192 || b == 193 || b == 211
+H 4C 89 55 A8 ; if b == 192 || b == 193 || b == 211
+H 49 C7 C2 C0 00 00 00 ; if b == 192 || b == 193 || b == 211
+H 4D 89 D3 ; if b == 192 || b == 193 || b == 211
+H 4C 8B 55 A8 ; if b == 192 || b == 193 || b == 211
+H 4D 39 DA ; if b == 192 || b == 193 || b == 211
+H 0F 85 $_if176d2 ; if b == 192 || b == 193 || b == 211
+H E9 $_if176t ; if b == 192 || b == 193 || b == 211
+:_if176d2
+H 4C 8B 55 E8 ; if b == 192 || b == 193 || b == 211
+H 4C 89 55 A8 ; if b == 192 || b == 193 || b == 211
+H 49 C7 C2 C1 00 00 00 ; if b == 192 || b == 193 || b == 211
+H 4D 89 D3 ; if b == 192 || b == 193 || b == 211
+H 4C 8B 55 A8 ; if b == 192 || b == 193 || b == 211
+H 4D 39 DA ; if b == 192 || b == 193 || b == 211
+H 0F 85 $_if176d3 ; if b == 192 || b == 193 || b == 211
+H E9 $_if176t ; if b == 192 || b == 193 || b == 211
+:_if176d3
+H 4C 8B 55 E8 ; if b == 192 || b == 193 || b == 211
+H 4C 89 55 A8 ; if b == 192 || b == 193 || b == 211
+H 49 C7 C2 D3 00 00 00 ; if b == 192 || b == 193 || b == 211
+H 4D 89 D3 ; if b == 192 || b == 193 || b == 211
+H 4C 8B 55 A8 ; if b == 192 || b == 193 || b == 211
+H 4D 39 DA ; if b == 192 || b == 193 || b == 211
+H 0F 85 $_if176e ; if b == 192 || b == 193 || b == 211
+:_if176t
+H 4C 8B 55 F0 ; if decshift(pos, rbit, b) != 0
+H 4C 89 55 98 ; if decshift(pos, rbit, b) != 0
+H 4C 8B 55 D0 ; if decshift(pos, rbit, b) != 0
+H 4C 89 55 90 ; if decshift(pos, rbit, b) != 0
+H 4C 8B 55 E8 ; if decshift(pos, rbit, b) != 0
+H 4C 89 55 88 ; if decshift(pos, rbit, b) != 0
+H 48 8B 4D 98 ; if decshift(pos, rbit, b) != 0
+H 48 8B 55 90 ; if decshift(pos, rbit, b) != 0
+H 4C 8B 45 88 ; if decshift(pos, rbit, b) != 0
+H E8 $decshift ; if decshift(pos, rbit, b) != 0
+H 49 89 C2 ; if decshift(pos, rbit, b) != 0
+H 4C 89 55 A8 ; if decshift(pos, rbit, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decshift(pos, rbit, b) != 0
+H 4D 89 D3 ; if decshift(pos, rbit, b) != 0
+H 4C 8B 55 A8 ; if decshift(pos, rbit, b) != 0
+H 4D 39 DA ; if decshift(pos, rbit, b) != 0
+H 0F 84 $_if177e ; if decshift(pos, rbit, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if177e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if176e
+H 4C 8B 55 E8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 89 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 49 C7 C2 C6 00 00 00 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 89 D3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 8B 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 39 DA ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 0F 85 $_if178d2 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H E9 $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d2
+H 4C 8B 55 E8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 89 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 49 C7 C2 C7 00 00 00 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 89 D3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 8B 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 39 DA ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 0F 85 $_if178d3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H E9 $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d3
+H 4C 8B 55 E8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 89 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 49 C7 C2 F6 00 00 00 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 89 D3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 8B 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 39 DA ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 0F 85 $_if178d4 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H E9 $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d4
+H 4C 8B 55 E8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 89 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 49 C7 C2 F7 00 00 00 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 89 D3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 8B 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 39 DA ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 0F 85 $_if178d5 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H E9 $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d5
+H 4C 8B 55 E8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 89 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 49 C7 C2 FF 00 00 00 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 89 D3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4C 8B 55 A8 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 4D 39 DA ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+H 0F 85 $_if178e ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178t
+H 4C 8B 55 F0 ; if decgrp2(pos, rbit, b) != 0
+H 4C 89 55 98 ; if decgrp2(pos, rbit, b) != 0
+H 4C 8B 55 D0 ; if decgrp2(pos, rbit, b) != 0
+H 4C 89 55 90 ; if decgrp2(pos, rbit, b) != 0
+H 4C 8B 55 E8 ; if decgrp2(pos, rbit, b) != 0
+H 4C 89 55 88 ; if decgrp2(pos, rbit, b) != 0
+H 48 8B 4D 98 ; if decgrp2(pos, rbit, b) != 0
+H 48 8B 55 90 ; if decgrp2(pos, rbit, b) != 0
+H 4C 8B 45 88 ; if decgrp2(pos, rbit, b) != 0
+H E8 $decgrp2 ; if decgrp2(pos, rbit, b) != 0
+H 49 89 C2 ; if decgrp2(pos, rbit, b) != 0
+H 4C 89 55 A8 ; if decgrp2(pos, rbit, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decgrp2(pos, rbit, b) != 0
+H 4D 89 D3 ; if decgrp2(pos, rbit, b) != 0
+H 4C 8B 55 A8 ; if decgrp2(pos, rbit, b) != 0
+H 4D 39 DA ; if decgrp2(pos, rbit, b) != 0
+H 0F 84 $_if179e ; if decgrp2(pos, rbit, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if179e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if178e
+H 4C 8B 55 E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 89 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 49 C7 C2 E8 00 00 00 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 89 D3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 39 DA ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 0F 85 $_if180d2 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H E9 $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d2
+H 4C 8B 55 E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 89 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 49 C7 C2 E9 00 00 00 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 89 D3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 39 DA ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 0F 85 $_if180d3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H E9 $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d3
+H 4C 8B 55 E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 89 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 49 C7 C2 EB 00 00 00 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 89 D3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 39 DA ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 0F 85 $_if180d4 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H E9 $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d4
+H 4C 8B 55 E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 89 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 49 C7 C2 70 00 00 00 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 89 D3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 39 DA ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 0F 8C $_if180e ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 89 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 49 C7 C2 7F 00 00 00 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 89 D3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4C 8B 55 A8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 4D 39 DA ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+H 0F 8F $_if180e ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180t
+H 4C 8B 55 F0 ; if decbr(pos, b) != 0
+H 4C 89 55 98 ; if decbr(pos, b) != 0
+H 4C 8B 55 E8 ; if decbr(pos, b) != 0
+H 4C 89 55 90 ; if decbr(pos, b) != 0
+H 48 8B 4D 98 ; if decbr(pos, b) != 0
+H 48 8B 55 90 ; if decbr(pos, b) != 0
+H E8 $decbr ; if decbr(pos, b) != 0
+H 49 89 C2 ; if decbr(pos, b) != 0
+H 4C 89 55 A8 ; if decbr(pos, b) != 0
+H 49 C7 C2 00 00 00 00 ; if decbr(pos, b) != 0
+H 4D 89 D3 ; if decbr(pos, b) != 0
+H 4C 8B 55 A8 ; if decbr(pos, b) != 0
+H 4D 39 DA ; if decbr(pos, b) != 0
+H 0F 84 $_if181e ; if decbr(pos, b) != 0
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if181e
+H 4C 8B 15 $dpos ; dlen = dpos - rawptr - a
+H 4C 89 55 A0 ; dlen = dpos - rawptr - a
+H 4C 8B 15 $rawptr ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A0 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 55 A8 ; dlen = dpos - rawptr - a
+H 4C 8B 55 F8 ; dlen = dpos - rawptr - a
+H 4D 89 D3 ; dlen = dpos - rawptr - a
+H 4C 8B 55 A8 ; dlen = dpos - rawptr - a
+H 4D 29 DA ; dlen = dpos - rawptr - a
+H 4C 89 15 $dlen ; dlen = dpos - rawptr - a
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:_if180e
+H 49 C7 C2 01 00 00 00 ; return 1
+H 4C 89 D0 ; return 1
+H 48 89 EC ; выход decode_ins
+H 5D ; выход decode_ins
+H C3 ; выход decode_ins
+:walk_code
+H 55 ; кадр walk_code
+H 48 89 E5 ; кадр walk_code
+H 48 81 EC A0 00 00 00 ; кадр walk_code
+H 49 C7 C2 00 00 00 00 ; insmap = GlobalAlloc(0, 262145)
+H 4C 89 55 C0 ; insmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 01 00 04 00 ; insmap = GlobalAlloc(0, 262145)
+H 4C 89 55 B8 ; insmap = GlobalAlloc(0, 262145)
+H 48 8B 4D C0 ; insmap = GlobalAlloc(0, 262145)
+H 48 8B 55 B8 ; insmap = GlobalAlloc(0, 262145)
+H FF 15 $_iat_globalalloc ; insmap = GlobalAlloc(0, 262145)
+H 49 89 C2 ; insmap = GlobalAlloc(0, 262145)
+H 4C 89 15 $insmap ; insmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 00 00 00 00 ; lenmap = GlobalAlloc(0, 262145)
+H 4C 89 55 C0 ; lenmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 01 00 04 00 ; lenmap = GlobalAlloc(0, 262145)
+H 4C 89 55 B8 ; lenmap = GlobalAlloc(0, 262145)
+H 48 8B 4D C0 ; lenmap = GlobalAlloc(0, 262145)
+H 48 8B 55 B8 ; lenmap = GlobalAlloc(0, 262145)
+H FF 15 $_iat_globalalloc ; lenmap = GlobalAlloc(0, 262145)
+H 49 89 C2 ; lenmap = GlobalAlloc(0, 262145)
+H 4C 89 15 $lenmap ; lenmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 00 00 00 00 ; pend = GlobalAlloc(0, 1048584)
+H 4C 89 55 C0 ; pend = GlobalAlloc(0, 1048584)
+H 49 C7 C2 08 00 10 00 ; pend = GlobalAlloc(0, 1048584)
+H 4C 89 55 B8 ; pend = GlobalAlloc(0, 1048584)
+H 48 8B 4D C0 ; pend = GlobalAlloc(0, 1048584)
+H 48 8B 55 B8 ; pend = GlobalAlloc(0, 1048584)
+H FF 15 $_iat_globalalloc ; pend = GlobalAlloc(0, 1048584)
+H 49 89 C2 ; pend = GlobalAlloc(0, 1048584)
+H 4C 89 15 $pend ; pend = GlobalAlloc(0, 1048584)
+H 4C 8B 15 $insmap ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 89 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 49 C7 C2 00 00 00 00 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 89 D3 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 8B 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 39 DA ; if insmap == 0 || lenmap == 0 || pend == 0
+H 0F 85 $_if182d2 ; if insmap == 0 || lenmap == 0 || pend == 0
+H E9 $_if182t ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182d2
+H 4C 8B 15 $lenmap ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 89 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 49 C7 C2 00 00 00 00 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 89 D3 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 8B 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 39 DA ; if insmap == 0 || lenmap == 0 || pend == 0
+H 0F 85 $_if182d3 ; if insmap == 0 || lenmap == 0 || pend == 0
+H E9 $_if182t ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182d3
+H 4C 8B 15 $pend ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 89 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 49 C7 C2 00 00 00 00 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 89 D3 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4C 8B 55 E0 ; if insmap == 0 || lenmap == 0 || pend == 0
+H 4D 39 DA ; if insmap == 0 || lenmap == 0 || pend == 0
+H 0F 85 $_if182e ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182t
+H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 C0 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 B8 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 B0 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 4D C0 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 55 B8 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 8B 45 B0 ; print_error(s_rexe, len(s_rexe), 5)
+H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if182e
+H 4C 8B 15 $vsize ; if vsize < rawsize
+H 4C 89 55 E0 ; if vsize < rawsize
+H 4C 8B 15 $rawsize ; if vsize < rawsize
+H 4D 89 D3 ; if vsize < rawsize
+H 4C 8B 55 E0 ; if vsize < rawsize
+H 4D 39 DA ; if vsize < rawsize
+H 0F 8D $_if183 ; if vsize < rawsize
+H 4C 8B 15 $vsize ; rawlim = vsize
+H 4C 89 15 $rawlim ; rawlim = vsize
+H E9 $_if183e ; if vsize < rawsize
+:_if183
+H 4C 8B 15 $rawsize ; rawlim = rawsize
+H 4C 89 15 $rawlim ; rawlim = rawsize
+:_if183e
+H 4C 8B 15 $pend ; pend[0] = entryrva - 4096
+H 4C 89 55 A8 ; pend[0] = entryrva - 4096
+H 49 C7 C2 00 00 00 00 ; pend[0] = entryrva - 4096
+H 4C 89 55 A0 ; pend[0] = entryrva - 4096
+H 4C 8B 15 $entryrva ; pend[0] = entryrva - 4096
+H 4C 89 55 E0 ; pend[0] = entryrva - 4096
+H 49 C7 C2 00 10 00 00 ; pend[0] = entryrva - 4096
+H 4D 89 D3 ; pend[0] = entryrva - 4096
+H 4C 8B 55 E0 ; pend[0] = entryrva - 4096
+H 4D 29 DA ; pend[0] = entryrva - 4096
+H 4C 89 55 98 ; pend[0] = entryrva - 4096
+H 4C 8B 55 A8 ; pend[0] = entryrva - 4096
+H 4C 8B 5D A0 ; pend[0] = entryrva - 4096
+H 49 C1 E3 03 ; pend[0] = entryrva - 4096
+H 4D 01 DA ; pend[0] = entryrva - 4096
+H 4C 8B 5D 98 ; pend[0] = entryrva - 4096
+H 4D 89 1A ; pend[0] = entryrva - 4096
+H 49 C7 C2 01 00 00 00 ; psp = 1
+H 4C 89 15 $psp ; psp = 1
+:_w184
+H 4C 8B 15 $psp ; while psp > 0
+H 4C 89 55 E0 ; while psp > 0
+H 49 C7 C2 00 00 00 00 ; while psp > 0
+H 4D 89 D3 ; while psp > 0
+H 4C 8B 55 E0 ; while psp > 0
+H 4D 39 DA ; while psp > 0
+H 0F 8E $_w184e ; while psp > 0
+H 4C 8B 15 $psp ; psp = psp - 1
+H 4C 89 55 E0 ; psp = psp - 1
+H 49 C7 C2 01 00 00 00 ; psp = psp - 1
+H 4D 89 D3 ; psp = psp - 1
+H 4C 8B 55 E0 ; psp = psp - 1
+H 4D 29 DA ; psp = psp - 1
+H 4C 89 15 $psp ; psp = psp - 1
+H 4C 8B 15 $pend ; a = pend[psp]
+H 4C 89 55 E0 ; a = pend[psp]
+H 4C 8B 15 $psp ; a = pend[psp]
+H 49 C1 E2 03 ; a = pend[psp]
+H 4D 89 D3 ; a = pend[psp]
+H 4C 8B 55 E0 ; a = pend[psp]
+H 4D 01 DA ; a = pend[psp]
+H 4D 8B 12 ; a = pend[psp]
+H 4C 89 55 F8 ; a = pend[psp]
+:_w185
+H 4C 8B 55 F8 ; while a >= 0 && a < rawlim
+H 4C 89 55 E0 ; while a >= 0 && a < rawlim
+H 49 C7 C2 00 00 00 00 ; while a >= 0 && a < rawlim
+H 4D 89 D3 ; while a >= 0 && a < rawlim
+H 4C 8B 55 E0 ; while a >= 0 && a < rawlim
+H 4D 39 DA ; while a >= 0 && a < rawlim
+H 0F 8C $_w185e ; while a >= 0 && a < rawlim
+H 4C 8B 55 F8 ; while a >= 0 && a < rawlim
+H 4C 89 55 E0 ; while a >= 0 && a < rawlim
+H 4C 8B 15 $rawlim ; while a >= 0 && a < rawlim
+H 4D 89 D3 ; while a >= 0 && a < rawlim
+H 4C 8B 55 E0 ; while a >= 0 && a < rawlim
+H 4D 39 DA ; while a >= 0 && a < rawlim
+H 0F 8D $_w185e ; while a >= 0 && a < rawlim
+H 4C 8B 15 $insmap ; if getb(insmap, a) == 1
+H 4C 89 55 D8 ; if getb(insmap, a) == 1
+H 4C 8B 55 F8 ; if getb(insmap, a) == 1
+H 4D 89 D3 ; if getb(insmap, a) == 1
+H 4C 8B 55 D8 ; if getb(insmap, a) == 1
+H 47 0F B6 14 1A ; if getb(insmap, a) == 1
+H 4C 89 55 E0 ; if getb(insmap, a) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(insmap, a) == 1
+H 4D 89 D3 ; if getb(insmap, a) == 1
+H 4C 8B 55 E0 ; if getb(insmap, a) == 1
+H 4D 39 DA ; if getb(insmap, a) == 1
+H 0F 85 $_if186e ; if getb(insmap, a) == 1
+H E9 $_w185e ; break
+:_if186e
+H 4C 8B 55 F8 ; if decode_ins(a) != 0
+H 4C 89 55 C0 ; if decode_ins(a) != 0
+H 48 8B 4D C0 ; if decode_ins(a) != 0
+H E8 $decode_ins ; if decode_ins(a) != 0
+H 49 89 C2 ; if decode_ins(a) != 0
+H 4C 89 55 E0 ; if decode_ins(a) != 0
+H 49 C7 C2 00 00 00 00 ; if decode_ins(a) != 0
+H 4D 89 D3 ; if decode_ins(a) != 0
+H 4C 8B 55 E0 ; if decode_ins(a) != 0
+H 4D 39 DA ; if decode_ins(a) != 0
+H 0F 84 $_if187e ; if decode_ins(a) != 0
+H E9 $_w185e ; break
+:_if187e
+H 49 C7 C2 00 00 00 00 ; z = 0
+H 4C 89 55 F0 ; z = 0
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 55 E8 ; j = 0
+:_w188
+H 4C 8B 55 E8 ; while j < dlen
+H 4C 89 55 E0 ; while j < dlen
+H 4C 8B 15 $dlen ; while j < dlen
+H 4D 89 D3 ; while j < dlen
+H 4C 8B 55 E0 ; while j < dlen
+H 4D 39 DA ; while j < dlen
+H 0F 8D $_w188e ; while j < dlen
+H 4C 8B 15 $exebuf ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 89 55 D8 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 15 $rawptr ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 89 55 C8 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 F8 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 C8 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 01 DA ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 89 55 D0 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 E8 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 D0 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 01 DA ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 D8 ; if getb(exebuf, rawptr + a + j) != 0
+H 47 0F B6 14 1A ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 89 55 E0 ; if getb(exebuf, rawptr + a + j) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + a + j) != 0
+H 4C 8B 55 E0 ; if getb(exebuf, rawptr + a + j) != 0
+H 4D 39 DA ; if getb(exebuf, rawptr + a + j) != 0
+H 0F 84 $_if189e ; if getb(exebuf, rawptr + a + j) != 0
+H 49 C7 C2 01 00 00 00 ; z = 1
+H 4C 89 55 F0 ; z = 1
+H E9 $_w188e ; break
+:_if189e
+H 4C 8B 55 E8 ; j = j + 1
+H 4C 89 55 E0 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 E0 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 E8 ; j = j + 1
+H E9 $_w188 ; while j < dlen
+:_w188e
+H 4C 8B 55 F0 ; if z == 0
+H 4C 89 55 E0 ; if z == 0
+H 49 C7 C2 00 00 00 00 ; if z == 0
+H 4D 89 D3 ; if z == 0
+H 4C 8B 55 E0 ; if z == 0
+H 4D 39 DA ; if z == 0
+H 0F 85 $_if190e ; if z == 0
+H E9 $_w185e ; break
+:_if190e
+H 4C 8B 15 $insmap ; setb(insmap, a, 1)
+H 4C 89 55 A8 ; setb(insmap, a, 1)
+H 4C 8B 55 F8 ; setb(insmap, a, 1)
+H 4C 89 55 A0 ; setb(insmap, a, 1)
+H 49 C7 C2 01 00 00 00 ; setb(insmap, a, 1)
+H 4C 89 55 98 ; setb(insmap, a, 1)
+H 4C 8B 55 A8 ; setb(insmap, a, 1)
+H 4C 8B 5D A0 ; setb(insmap, a, 1)
+H 8A 45 98 ; setb(insmap, a, 1)
+H 43 88 04 1A ; setb(insmap, a, 1)
+H 4C 8B 15 $lenmap ; setb(lenmap, a, dlen)
+H 4C 89 55 A8 ; setb(lenmap, a, dlen)
+H 4C 8B 55 F8 ; setb(lenmap, a, dlen)
+H 4C 89 55 A0 ; setb(lenmap, a, dlen)
+H 4C 8B 15 $dlen ; setb(lenmap, a, dlen)
+H 4C 89 55 98 ; setb(lenmap, a, dlen)
+H 4C 8B 55 A8 ; setb(lenmap, a, dlen)
+H 4C 8B 5D A0 ; setb(lenmap, a, dlen)
+H 8A 45 98 ; setb(lenmap, a, dlen)
+H 43 88 04 1A ; setb(lenmap, a, dlen)
+H 4C 8B 15 $dcls ; if dcls == 1
+H 4C 89 55 E0 ; if dcls == 1
+H 49 C7 C2 01 00 00 00 ; if dcls == 1
+H 4D 89 D3 ; if dcls == 1
+H 4C 8B 55 E0 ; if dcls == 1
+H 4D 39 DA ; if dcls == 1
+H 0F 85 $_if191e ; if dcls == 1
+H E9 $_w185e ; break
+:_if191e
+H 4C 8B 15 $dcls ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 89 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 49 C7 C2 02 00 00 00 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 89 D3 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 8B 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 39 DA ; if dcls == 2 || dcls == 3 || dcls == 4
+H 0F 85 $_if192d2 ; if dcls == 2 || dcls == 3 || dcls == 4
+H E9 $_if192t ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192d2
+H 4C 8B 15 $dcls ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 89 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 49 C7 C2 03 00 00 00 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 89 D3 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 8B 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 39 DA ; if dcls == 2 || dcls == 3 || dcls == 4
+H 0F 85 $_if192d3 ; if dcls == 2 || dcls == 3 || dcls == 4
+H E9 $_if192t ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192d3
+H 4C 8B 15 $dcls ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 89 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 49 C7 C2 04 00 00 00 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 89 D3 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4C 8B 55 E0 ; if dcls == 2 || dcls == 3 || dcls == 4
+H 4D 39 DA ; if dcls == 2 || dcls == 3 || dcls == 4
+H 0F 85 $_if192e ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192t
+H 4C 8B 15 $pend ; pend[psp] = dtgt
+H 4C 89 55 A8 ; pend[psp] = dtgt
+H 4C 8B 15 $psp ; pend[psp] = dtgt
+H 4C 89 55 A0 ; pend[psp] = dtgt
+H 4C 8B 15 $dtgt ; pend[psp] = dtgt
+H 4C 89 55 98 ; pend[psp] = dtgt
+H 4C 8B 55 A8 ; pend[psp] = dtgt
+H 4C 8B 5D A0 ; pend[psp] = dtgt
+H 49 C1 E3 03 ; pend[psp] = dtgt
+H 4D 01 DA ; pend[psp] = dtgt
+H 4C 8B 5D 98 ; pend[psp] = dtgt
+H 4D 89 1A ; pend[psp] = dtgt
+H 4C 8B 15 $psp ; psp = psp + 1
+H 4C 89 55 E0 ; psp = psp + 1
+H 49 C7 C2 01 00 00 00 ; psp = psp + 1
+H 4D 89 D3 ; psp = psp + 1
+H 4C 8B 55 E0 ; psp = psp + 1
+H 4D 01 DA ; psp = psp + 1
+H 4C 89 15 $psp ; psp = psp + 1
+:_if192e
+H 4C 8B 15 $dcls ; if dcls == 2
+H 4C 89 55 E0 ; if dcls == 2
+H 49 C7 C2 02 00 00 00 ; if dcls == 2
+H 4D 89 D3 ; if dcls == 2
+H 4C 8B 55 E0 ; if dcls == 2
+H 4D 39 DA ; if dcls == 2
+H 0F 85 $_if193e ; if dcls == 2
+H E9 $_w185e ; break
+:_if193e
+H 4C 8B 55 F8 ; a = a + dlen
+H 4C 89 55 E0 ; a = a + dlen
+H 4C 8B 15 $dlen ; a = a + dlen
+H 4D 89 D3 ; a = a + dlen
+H 4C 8B 55 E0 ; a = a + dlen
+H 4D 01 DA ; a = a + dlen
+H 4C 89 55 F8 ; a = a + dlen
+H E9 $_w185 ; while a >= 0 && a < rawlim
+:_w185e
+H E9 $_w184 ; while psp > 0
+:_w184e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход walk_code
+H 5D ; выход walk_code
+H C3 ; выход walk_code
+:sweep_ins
+H 55 ; кадр sweep_ins
+H 48 89 E5 ; кадр sweep_ins
+H 48 83 EC 60 ; кадр sweep_ins
+H 49 C7 C2 00 00 00 00 ; inscount = 0
+H 4C 89 15 $inscount ; inscount = 0
+H 49 C7 C2 00 00 00 00 ; maxend = 0
+H 4C 89 15 $maxend ; maxend = 0
+H 49 C7 C2 00 00 00 00 ; swcur = 0
+H 4C 89 15 $swcur ; swcur = 0
+H 49 C7 C2 00 00 00 00 ; a = 0
+H 4C 89 55 F8 ; a = 0
+:_w194
+H 4C 8B 55 F8 ; while a < rawlim
+H 4C 89 55 E0 ; while a < rawlim
+H 4C 8B 15 $rawlim ; while a < rawlim
+H 4D 89 D3 ; while a < rawlim
+H 4C 8B 55 E0 ; while a < rawlim
+H 4D 39 DA ; while a < rawlim
+H 0F 8D $_w194e ; while a < rawlim
+H 4C 8B 15 $insmap ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 89 55 D8 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 55 F8 ; if getb(insmap, a) == 1 && a >= swcur
+H 4D 89 D3 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 55 D8 ; if getb(insmap, a) == 1 && a >= swcur
+H 47 0F B6 14 1A ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 89 55 E0 ; if getb(insmap, a) == 1 && a >= swcur
+H 49 C7 C2 01 00 00 00 ; if getb(insmap, a) == 1 && a >= swcur
+H 4D 89 D3 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 55 E0 ; if getb(insmap, a) == 1 && a >= swcur
+H 4D 39 DA ; if getb(insmap, a) == 1 && a >= swcur
+H 0F 85 $_if195e ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 55 F8 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 89 55 E0 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 15 $swcur ; if getb(insmap, a) == 1 && a >= swcur
+H 4D 89 D3 ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 55 E0 ; if getb(insmap, a) == 1 && a >= swcur
+H 4D 39 DA ; if getb(insmap, a) == 1 && a >= swcur
+H 0F 8C $_if195e ; if getb(insmap, a) == 1 && a >= swcur
+H 4C 8B 15 $lenmap ; ln = getb(lenmap, a)
+H 4C 89 55 E0 ; ln = getb(lenmap, a)
+H 4C 8B 55 F8 ; ln = getb(lenmap, a)
+H 4D 89 D3 ; ln = getb(lenmap, a)
+H 4C 8B 55 E0 ; ln = getb(lenmap, a)
+H 47 0F B6 14 1A ; ln = getb(lenmap, a)
+H 4C 89 55 F0 ; ln = getb(lenmap, a)
+H 4C 8B 55 F8 ; iend = a + ln
+H 4C 89 55 E0 ; iend = a + ln
+H 4C 8B 55 F0 ; iend = a + ln
+H 4D 89 D3 ; iend = a + ln
+H 4C 8B 55 E0 ; iend = a + ln
+H 4D 01 DA ; iend = a + ln
+H 4C 89 55 E8 ; iend = a + ln
+H 4C 8B 55 E8 ; if iend > vsize
+H 4C 89 55 E0 ; if iend > vsize
+H 4C 8B 15 $vsize ; if iend > vsize
+H 4D 89 D3 ; if iend > vsize
+H 4C 8B 55 E0 ; if iend > vsize
+H 4D 39 DA ; if iend > vsize
+H 0F 8E $_if196e ; if iend > vsize
+H E8 $fail_family ; fail_family()
+:_if196e
+H 4C 8B 55 E8 ; if iend > maxend
+H 4C 89 55 E0 ; if iend > maxend
+H 4C 8B 15 $maxend ; if iend > maxend
+H 4D 89 D3 ; if iend > maxend
+H 4C 8B 55 E0 ; if iend > maxend
+H 4D 39 DA ; if iend > maxend
+H 0F 8E $_if197e ; if iend > maxend
+H 4C 8B 55 E8 ; maxend = iend
+H 4C 89 15 $maxend ; maxend = iend
+:_if197e
+H 4C 8B 15 $inscount ; inscount = inscount + 1
+H 4C 89 55 E0 ; inscount = inscount + 1
+H 49 C7 C2 01 00 00 00 ; inscount = inscount + 1
+H 4D 89 D3 ; inscount = inscount + 1
+H 4C 8B 55 E0 ; inscount = inscount + 1
+H 4D 01 DA ; inscount = inscount + 1
+H 4C 89 15 $inscount ; inscount = inscount + 1
+H 4C 8B 55 E8 ; swcur = iend
+H 4C 89 15 $swcur ; swcur = iend
+:_if195e
+H 4C 8B 55 F8 ; a = a + 1
+H 4C 89 55 E0 ; a = a + 1
+H 49 C7 C2 01 00 00 00 ; a = a + 1
+H 4D 89 D3 ; a = a + 1
+H 4C 8B 55 E0 ; a = a + 1
+H 4D 01 DA ; a = a + 1
+H 4C 89 55 F8 ; a = a + 1
+H E9 $_w194 ; while a < rawlim
+:_w194e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход sweep_ins
+H 5D ; выход sweep_ins
+H C3 ; выход sweep_ins
+:calc_target
+H 55 ; кадр calc_target
+H 48 89 E5 ; кадр calc_target
+H 48 83 EC 60 ; кадр calc_target
+H 49 C7 C2 00 00 00 00 ; nz = 0
+H 4C 89 55 F0 ; nz = 0
+H 4C 8B 15 $rawsize ; k = rawsize - 1
+H 4C 89 55 E0 ; k = rawsize - 1
+H 49 C7 C2 01 00 00 00 ; k = rawsize - 1
+H 4D 89 D3 ; k = rawsize - 1
+H 4C 8B 55 E0 ; k = rawsize - 1
+H 4D 29 DA ; k = rawsize - 1
+H 4C 89 55 F8 ; k = rawsize - 1
+:_w198
+H 4C 8B 55 F8 ; while k >= 0
+H 4C 89 55 E0 ; while k >= 0
+H 49 C7 C2 00 00 00 00 ; while k >= 0
+H 4D 89 D3 ; while k >= 0
+H 4C 8B 55 E0 ; while k >= 0
+H 4D 39 DA ; while k >= 0
+H 0F 8C $_w198e ; while k >= 0
+H 4C 8B 15 $exebuf ; if getb(exebuf, rawptr + k) != 0
+H 4C 89 55 D8 ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 15 $rawptr ; if getb(exebuf, rawptr + k) != 0
+H 4C 89 55 D0 ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 55 F8 ; if getb(exebuf, rawptr + k) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 55 D0 ; if getb(exebuf, rawptr + k) != 0
+H 4D 01 DA ; if getb(exebuf, rawptr + k) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 55 D8 ; if getb(exebuf, rawptr + k) != 0
+H 47 0F B6 14 1A ; if getb(exebuf, rawptr + k) != 0
+H 4C 89 55 E0 ; if getb(exebuf, rawptr + k) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(exebuf, rawptr + k) != 0
+H 4D 89 D3 ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 55 E0 ; if getb(exebuf, rawptr + k) != 0
+H 4D 39 DA ; if getb(exebuf, rawptr + k) != 0
+H 0F 84 $_if199e ; if getb(exebuf, rawptr + k) != 0
+H 4C 8B 55 F8 ; nz = k + 1
+H 4C 89 55 E0 ; nz = k + 1
+H 49 C7 C2 01 00 00 00 ; nz = k + 1
+H 4D 89 D3 ; nz = k + 1
+H 4C 8B 55 E0 ; nz = k + 1
+H 4D 01 DA ; nz = k + 1
+H 4C 89 55 F0 ; nz = k + 1
+H E9 $_w198e ; break
+:_if199e
+H 4C 8B 55 F8 ; k = k - 1
+H 4C 89 55 E0 ; k = k - 1
+H 49 C7 C2 01 00 00 00 ; k = k - 1
+H 4D 89 D3 ; k = k - 1
+H 4C 8B 55 E0 ; k = k - 1
+H 4D 29 DA ; k = k - 1
+H 4C 89 55 F8 ; k = k - 1
+H E9 $_w198 ; while k >= 0
+:_w198e
+H 4C 8B 55 F0 ; target = nz
+H 4C 89 15 $target ; target = nz
+H 4C 8B 15 $target ; if target < 1
+H 4C 89 55 E0 ; if target < 1
+H 49 C7 C2 01 00 00 00 ; if target < 1
+H 4D 89 D3 ; if target < 1
+H 4C 8B 55 E0 ; if target < 1
+H 4D 39 DA ; if target < 1
+H 0F 8D $_if200e ; if target < 1
+H 49 C7 C2 01 00 00 00 ; target = 1
+H 4C 89 15 $target ; target = 1
+:_if200e
+H 4C 8B 15 $maxend ; if maxend > target
+H 4C 89 55 E0 ; if maxend > target
+H 4C 8B 15 $target ; if maxend > target
+H 4D 89 D3 ; if maxend > target
+H 4C 8B 55 E0 ; if maxend > target
+H 4D 39 DA ; if maxend > target
+H 0F 8E $_if201e ; if maxend > target
+H 4C 8B 15 $maxend ; target = maxend
+H 4C 89 15 $target ; target = maxend
+:_if201e
+H 4C 8B 15 $target ; fork = (target + 511) / 512 * 512
+H 4C 89 55 D0 ; fork = (target + 511) / 512 * 512
+H 49 C7 C2 FF 01 00 00 ; fork = (target + 511) / 512 * 512
+H 4D 89 D3 ; fork = (target + 511) / 512 * 512
+H 4C 8B 55 D0 ; fork = (target + 511) / 512 * 512
+H 4D 01 DA ; fork = (target + 511) / 512 * 512
+H 4C 89 55 D8 ; fork = (target + 511) / 512 * 512
+H 49 C7 C2 00 02 00 00 ; fork = (target + 511) / 512 * 512
+H 4D 89 D3 ; fork = (target + 511) / 512 * 512
+H 4C 8B 55 D8 ; fork = (target + 511) / 512 * 512
+H 4C 89 D0 ; fork = (target + 511) / 512 * 512
+H 48 99 ; fork = (target + 511) / 512 * 512
+H 49 F7 FB ; fork = (target + 511) / 512 * 512
+H 49 89 C2 ; fork = (target + 511) / 512 * 512
+H 4C 89 55 E0 ; fork = (target + 511) / 512 * 512
+H 49 C7 C2 00 02 00 00 ; fork = (target + 511) / 512 * 512
+H 4D 89 D3 ; fork = (target + 511) / 512 * 512
+H 4C 8B 55 E0 ; fork = (target + 511) / 512 * 512
+H 4D 0F AF D3 ; fork = (target + 511) / 512 * 512
+H 4C 89 55 E8 ; fork = (target + 511) / 512 * 512
+H 4C 8B 55 E8 ; if fork != rawsize
+H 4C 89 55 E0 ; if fork != rawsize
+H 4C 8B 15 $rawsize ; if fork != rawsize
+H 4D 89 D3 ; if fork != rawsize
+H 4C 8B 55 E0 ; if fork != rawsize
+H 4D 39 DA ; if fork != rawsize
+H 0F 84 $_if202e ; if fork != rawsize
+H 4C 8B 15 $rawsize ; target = rawsize - 511
+H 4C 89 55 E0 ; target = rawsize - 511
+H 49 C7 C2 FF 01 00 00 ; target = rawsize - 511
+H 4D 89 D3 ; target = rawsize - 511
+H 4C 8B 55 E0 ; target = rawsize - 511
+H 4D 29 DA ; target = rawsize - 511
+H 4C 89 15 $target ; target = rawsize - 511
+:_if202e
+H 4C 8B 15 $target ; if target > vsize
+H 4C 89 55 E0 ; if target > vsize
+H 4C 8B 15 $vsize ; if target > vsize
+H 4D 89 D3 ; if target > vsize
+H 4C 8B 55 E0 ; if target > vsize
+H 4D 39 DA ; if target > vsize
+H 0F 8E $_if203e ; if target > vsize
+H E8 $fail_family ; fail_family()
+:_if203e
+H 4C 8B 15 $vsize ; bss = vsize - target
+H 4C 89 55 E0 ; bss = vsize - target
+H 4C 8B 15 $target ; bss = vsize - target
+H 4D 89 D3 ; bss = vsize - target
+H 4C 8B 55 E0 ; bss = vsize - target
+H 4D 29 DA ; bss = vsize - target
+H 4C 89 15 $bss ; bss = vsize - target
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход calc_target
+H 5D ; выход calc_target
+H C3 ; выход calc_target
 :main
 H 55 ; кадр main
 H 48 89 E5 ; кадр main
@@ -3008,7 +6303,7 @@ H 49 F7 DA ; if fh == -1
 H 4D 89 D3 ; if fh == -1
 H 4C 8B 55 D8 ; if fh == -1
 H 4D 39 DA ; if fh == -1
-H 0F 85 $_if93e ; if fh == -1
+H 0F 85 $_if204e ; if fh == -1
 H 4C 8D 15 $s_oexe ; print_error(s_oexe, len(s_oexe), 4)
 H 4C 89 55 D0 ; print_error(s_oexe, len(s_oexe), 4)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_oexe, len(s_oexe), 4)
@@ -3019,7 +6314,7 @@ H 48 8B 4D D0 ; print_error(s_oexe, len(s_oexe), 4)
 H 48 8B 55 C8 ; print_error(s_oexe, len(s_oexe), 4)
 H 4C 8B 45 C0 ; print_error(s_oexe, len(s_oexe), 4)
 H E8 $print_error ; print_error(s_oexe, len(s_oexe), 4)
-:_if93e
+:_if204e
 H 49 C7 C2 00 00 00 00 ; exebuf = GlobalAlloc(0, 262145)
 H 4C 89 55 D0 ; exebuf = GlobalAlloc(0, 262145)
 H 49 C7 C2 01 00 04 00 ; exebuf = GlobalAlloc(0, 262145)
@@ -3035,7 +6330,7 @@ H 49 C7 C2 00 00 00 00 ; if exebuf == 0
 H 4D 89 D3 ; if exebuf == 0
 H 4C 8B 55 D8 ; if exebuf == 0
 H 4D 39 DA ; if exebuf == 0
-H 0F 85 $_if94e ; if exebuf == 0
+H 0F 85 $_if205e ; if exebuf == 0
 H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 89 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
@@ -3046,7 +6341,7 @@ H 48 8B 4D D0 ; print_error(s_rexe, len(s_rexe), 5)
 H 48 8B 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 8B 45 C0 ; print_error(s_rexe, len(s_rexe), 5)
 H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if94e
+:_if205e
 H 49 C7 C2 00 00 00 00 ; exelen = 0
 H 4C 89 15 $exelen ; exelen = 0
 H 4C 8B 55 F0 ; rc = ReadFile(fh, exebuf, 262145, &exelen, 0)
@@ -3074,7 +6369,7 @@ H 49 C7 C2 00 00 00 00 ; if rc == 0
 H 4D 89 D3 ; if rc == 0
 H 4C 8B 55 D8 ; if rc == 0
 H 4D 39 DA ; if rc == 0
-H 0F 85 $_if95e ; if rc == 0
+H 0F 85 $_if206e ; if rc == 0
 H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 89 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
@@ -3085,14 +6380,14 @@ H 48 8B 4D D0 ; print_error(s_rexe, len(s_rexe), 5)
 H 48 8B 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 8B 45 C0 ; print_error(s_rexe, len(s_rexe), 5)
 H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if95e
+:_if206e
 H 4C 8B 15 $exelen ; if exelen >= 262145
 H 4C 89 55 D8 ; if exelen >= 262145
 H 49 C7 C2 01 00 04 00 ; if exelen >= 262145
 H 4D 89 D3 ; if exelen >= 262145
 H 4C 8B 55 D8 ; if exelen >= 262145
 H 4D 39 DA ; if exelen >= 262145
-H 0F 8C $_if96e ; if exelen >= 262145
+H 0F 8C $_if207e ; if exelen >= 262145
 H 4C 8D 15 $s_big ; print_error(s_big, len(s_big), 7)
 H 4C 89 55 D0 ; print_error(s_big, len(s_big), 7)
 H 49 C7 C2 19 00 00 00 ; print_error(s_big, len(s_big), 7)
@@ -3103,7 +6398,7 @@ H 48 8B 4D D0 ; print_error(s_big, len(s_big), 7)
 H 48 8B 55 C8 ; print_error(s_big, len(s_big), 7)
 H 4C 8B 45 C0 ; print_error(s_big, len(s_big), 7)
 H E8 $print_error ; print_error(s_big, len(s_big), 7)
-:_if96e
+:_if207e
 H 4C 8B 55 F0 ; CloseHandle(fh)
 H 4C 89 55 D0 ; CloseHandle(fh)
 H 48 8B 4D D0 ; CloseHandle(fh)
@@ -3118,6 +6413,9 @@ H E8 $stub_name ; stub_name()
 H E8 $walk_descs ; walk_descs()
 H E8 $check_dll ; check_dll()
 H E8 $walk_funcs ; walk_funcs()
+H E8 $walk_code ; walk_code()
+H E8 $sweep_ins ; sweep_ins()
+H E8 $calc_target ; calc_target()
 H E8 $print_facts ; print_facts()
 H 49 C7 C2 00 00 00 00 ; ExitProcess(0)
 H 4C 89 55 D0 ; ExitProcess(0)
@@ -3158,6 +6456,12 @@ DB 20 56 53 49 5A 45 3D ; str s_f3 = ' VSIZE='
 DB 20 52 41 57 3D ; str s_f4 = ' RAW='
 :s_f5
 DB 20 49 4D 50 3D ; str s_f5 = ' IMP='
+:s_f6
+DB 20 49 4E 53 3D ; str s_f6 = ' INS='
+:s_f7
+DB 20 54 41 52 47 45 54 3D ; str s_f7 = ' TARGET='
+:s_f8
+DB 20 42 53 53 3D ; str s_f8 = ' BSS='
 :s_crlf
 DB 0D 0A ; str s_crlf = '\r\n'
 :s_pref
@@ -3196,13 +6500,45 @@ DZ 8 ; var thunk
 DZ 8 ; var dllfile
 :impn
 DZ 8 ; var impn
+:insmap
+DZ 8 ; var insmap
+:lenmap
+DZ 8 ; var lenmap
+:pend
+DZ 8 ; var pend
+:rawlim
+DZ 8 ; var rawlim
+:psp
+DZ 8 ; var psp
+:inscount
+DZ 8 ; var inscount
+:maxend
+DZ 8 ; var maxend
+:swcur
+DZ 8 ; var swcur
+:target
+DZ 8 ; var target
+:bss
+DZ 8 ; var bss
+:dlen
+DZ 8 ; var dlen
+:dcls
+DZ 8 ; var dcls
+:dtgt
+DZ 8 ; var dtgt
+:dpos
+DZ 8 ; var dpos
+:mpos
+DZ 8 ; var mpos
+:mreg
+DZ 8 ; var mreg
 :arg1
 DZ 80 ; var arg1[16]
 :arg2
 DZ 80 ; var arg2[16]
 :arg3
 DZ 80 ; var arg3[16]
-:w1
-DZ 100 ; var w1[32]
 :factbuf
 DZ C0 ; var factbuf[24]
+:w1
+DZ 100 ; var w1[32]

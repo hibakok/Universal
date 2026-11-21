@@ -1,0 +1,301 @@
+; bridge_self_d2.wall — декодер x86-подмножества SPEC/05, часть 2 (E9.2-2)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_d2.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь D моста (декодер) — вторая половина: короткие
+; без-modrm формы (K5-D008 decimm: push/pop 50..5F, cdqe/cqo 98/99,
+; B0..BF mov r,imm — W решает 8/4 байта, ret/int3 C3/CC — терминалы),
+; сдвиги (K5-D009 decshift: C0/C1 с imm8 и D3 по cl; reg из {rol,shl,
+; shr,sar} = {0,4,5,7} с REX.R), imm-группа (K5-D010 decgrp: 80/81/83 —
+; reg из {add,or,and,sub,xor,cmp} = {0,1,4,5,6,7} с REX.R; imm 4/1
+; байта), хвостовые группы (K5-D011 decgrp2: C6/C7 mov r/m,imm — reg НЕ
+; проверяется оракулом; F6/F7 — только neg /3 и idiv /7 (только F7);
+; FF — только inc /0, dec /1, call /2 — косвенный, целей спуску не даёт)
+; и переходы (K5-D012 decbr: E8 call rel32, E9/EB jmp — терминал пути,
+; 70..7F jcc rel8 — fall-through продолжается; цель -> dtgt как
+; конец инструкции + rel). Диспетчер K5-D013 decode_ins — REX-префикс,
+; 0F-делегация (bridge_self_d.wall) и таблица вызовов; результат —
+; глобали dlen/dcls/dtgt (длина, класс, прямая цель). Часть 1 —
+; bridge_self_d.wall (fb/rel8/rel32/modrm_skip/dec0f/decalu/decmod).
+; Эквивалентность оракулу lab_x86.decode: длины/классы/цели == —
+; всё, что нужно спуску E9.2-2 (SPEC/15 п. 3).
+
+; короткие без-modrm: push/pop (80..95, длина 1/2 с REX), cdqe/cqo
+; (152/153), B0..B7 mov r8,imm8, B8..BF mov r,imm (W: 8 байт, иначе 4),
+; C3 ret / CC int3 — класс 1 (терминал пути спуска)
+func decimm(pos, w, b)
+  if b >= 80 && b <= 95
+    dpos = pos
+    return 0
+  end
+  if b == 152 || b == 153
+    dpos = pos
+    return 0
+  end
+  if b == 195 || b == 204
+    dcls = 1
+    dpos = pos
+    return 0
+  end
+  if b >= 176 && b <= 183
+    if pos + 1 > exelen
+      return 1
+    end
+    dpos = pos + 1
+    return 0
+  end
+  if w != 0
+    if pos + 8 > exelen
+      return 1
+    end
+    dpos = pos + 8
+    return 0
+  end
+  if pos + 4 > exelen
+    return 1
+  end
+  dpos = pos + 4
+  return 0
+end
+
+; сдвиги C0/C1 (imm8) и D3 (по cl): modrm-хвост + reg в {0,4,5,7}
+; (rol/shl/shr/sar) с REX.R — прочее: отказ (как UnknownOpcode)
+func decshift(pos, rbit, b)
+  if modrm_skip(pos, rbit) != 0
+    return 1
+  end
+  if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+    return 1
+  end
+  if b == 192 || b == 193
+    if mpos + 1 > exelen
+      return 1
+    end
+    dpos = mpos + 1
+    return 0
+  end
+  dpos = mpos
+  return 0
+end
+
+; imm-группа 80/81/83: modrm-хвост + reg в {0,1,4,5,6,7} (add/or/and/
+; sub/xor/cmp) с REX.R; imm: 81 — 4 байта, 80/83 — 1 байт
+func decgrp(pos, rbit, b)
+  if modrm_skip(pos, rbit) != 0
+    return 1
+  end
+  if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+    return 1
+  end
+  if b == 129
+    if mpos + 4 > exelen
+      return 1
+    end
+    dpos = mpos + 4
+    return 0
+  end
+  if mpos + 1 > exelen
+    return 1
+  end
+  dpos = mpos + 1
+  return 0
+end
+
+; (урок E9.2-2: 0xC6 = 198, не 196 — поймано диффтестом T-E9-18 на
+; hexgen/pegen/brick/enc/splice: путь обрывался на mov [rcx],0)
+; хвостовые группы: C6/C7 mov r/m,imm (reg НЕ проверяется оракулом —
+; длина не зависит; imm 1/4 байта), F6 (только neg /3), F7 (neg /3 или
+; idiv /7), FF (inc /0, dec /1, call /2 — КОСВЕННЫЙ: целей спуску не
+; даёт, путь продолжается) — reg с REX.R
+func decgrp2(pos, rbit, b)
+  if modrm_skip(pos, rbit) != 0
+    return 1
+  end
+  if b == 198
+    if mpos + 1 > exelen
+      return 1
+    end
+    dpos = mpos + 1
+    return 0
+  end
+  if b == 199
+    if mpos + 4 > exelen
+      return 1
+    end
+    dpos = mpos + 4
+    return 0
+  end
+  if b == 246
+    if mreg != 3
+      return 1
+    end
+    dpos = mpos
+    return 0
+  end
+  if b == 247
+    if mreg != 3 && mreg != 7
+      return 1
+    end
+    dpos = mpos
+    return 0
+  end
+  if mreg != 0 && mreg != 1 && mreg != 2
+    return 1
+  end
+  dpos = mpos
+  return 0
+end
+
+; переходы: E8 call rel32 (класс 4 — цель в стек спуска, путь идёт
+; дальше), E9/EB jmp rel32/rel8 (класс 2 — терминал пути), 70..7F jcc
+; rel8 (класс 3 — цель + fall-through); dtgt = конец инструкции
+; (файловое) - rawptr + rel (смещение от начала тела)
+func decbr(pos, b)
+  var rel
+  if b == 232
+    if pos + 4 > exelen
+      return 1
+    end
+    rel = rel32(pos)
+    dpos = pos + 4
+    dtgt = dpos - rawptr + rel
+    dcls = 4
+    return 0
+  end
+  if b == 233
+    if pos + 4 > exelen
+      return 1
+    end
+    rel = rel32(pos)
+    dpos = pos + 4
+    dtgt = dpos - rawptr + rel
+    dcls = 2
+    return 0
+  end
+  if b == 235
+    if pos + 1 > exelen
+      return 1
+    end
+    rel = rel8(pos)
+    dpos = pos + 1
+    dtgt = dpos - rawptr + rel
+    dcls = 2
+    return 0
+  end
+  if pos + 1 > exelen
+    return 1
+  end
+  rel = rel8(pos)
+  dpos = pos + 1
+  dtgt = dpos - rawptr + rel
+  dcls = 3
+  return 0
+end
+
+; декодер одной инструкции @ a (смещение от начала тела): чтение
+; байтов с rawptr+a; REX 40..4F -> W/R-биты; 0F -> dec0f; диспетчер по
+; точным множествам байтов decode оракула (ALU 00..3D, группы 80/81/
+; 83, test/mov/lea 84..8D, push/pop 50..5F, cdqe/cqo 98/99, B0..BF,
+; сдвиги C0/C1/D3, C3/CC, C6/C7, переходы E8/E9/EB/70..7F, F6/F7,
+; FF); прочее — отказ (данные). Результат: dlen (длина), dcls
+; (0 прочее / 1 ret,int3 / 2 jmp / 3 jcc / 4 call rel32), dtgt (прямая
+; цель — смещение от начала тела, может быть отрицательной или за
+; пределами — фильтрует спуск). 0 = ок, 1 = отказ декодирования
+func decode_ins(a)
+  var pos
+  var b
+  var rex
+  var w
+  var rbit
+  var base
+  var alu
+  var short1
+  var short4
+  dcls = 0
+  dtgt = 0
+  pos = rawptr + a
+  b = fb(pos)
+  if b < 0
+    return 1
+  end
+  pos = pos + 1
+  rex = 0
+  if b >= 64 && b <= 79
+    rex = b
+    b = fb(pos)
+    if b < 0
+      return 1
+    end
+    pos = pos + 1
+  end
+  w = rex & 8
+  rbit = (rex & 4) * 2
+  if b == 15
+    if dec0f(pos, rbit) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  base = b & 248
+  alu = 0
+  if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+    alu = 1
+  end
+  short1 = 0
+  if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+    short1 = 1
+  end
+  short4 = 0
+  if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+    short4 = 1
+  end
+  if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+    if decalu(pos, rbit, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b == 128 || b == 129 || b == 131
+    if decgrp(pos, rbit, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+    if decmod(pos, rbit) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+    if decimm(pos, w, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b == 192 || b == 193 || b == 211
+    if decshift(pos, rbit, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+    if decgrp2(pos, rbit, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+    if decbr(pos, b) != 0
+      return 1
+    end
+    dlen = dpos - rawptr - a
+    return 0
+  end
+  return 1
+end

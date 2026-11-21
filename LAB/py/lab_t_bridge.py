@@ -1,9 +1,9 @@
-"""lab_t_bridge.py — секция 18 батареи: мост BRIDGE v1 (SPEC/15, E9.1/E9.2-1).
+"""lab_t_bridge.py — секция 18 батареи: мост BRIDGE v1 (SPEC/15, E9.1/E9.2).
 
 Вход:  колбэк check из lab_verify (kpath/kfile — единая сигнатура
          секций); артефакты читаются ИЗ РЕПОЗИТОРИЯ напрямую (правка
          EXE без обновления якоря = красный тест).
-Выход:  проверки T-E9-01..20 — мост EXE -> BRICK v2 + PEG v1:
+Выход:  проверки T-E9-01..21 — мост EXE -> BRICK v2 + PEG v1:
          (1) T-E9-01 — факты разбора seed.exe == якорю (поля тела,
              импорты, !bss) + детерминированный отказ чужому образу;
          (2) T-E9-02/03 — ПОЛНЫЕ тексты моста seed (b2 и peg) ==
@@ -26,12 +26,20 @@
              SPEC/04 минус легальные отклонения; success-мутанты:
              вход 0x1200 — легальное отклонение, регистр имени DLL);
              T-E9-20 — оракульный круг моста над bridge.exe —
-             12-й артефакт семейства, байт-в-байт.
+             12-й артефакт семейства, байт-в-байт;
+         (6) E9.2-2 (СПУСК — декодер + тени + target/bss): факт-строка
+             расширена INS/TARGET/BSS (T-E9-18/19 — с новыми отказами
+             спуска: инструкция за VirtualSize, длина тела больше
+             VirtualSize — мутанты vsize);
+             T-E9-21 — синтетика спуска: тень (цель jz ВНУТРИ соседней
+             инструкции — младший адрес побеждает), нули — данные,
+             терминал ret; факты == оракулу (в реальных артефактах
+             теней нет — синтетика закрывает правила SPEC/15 п. 3).
 Функция: DoD E9.1 — «сначала истина семантики» (прецедент E7.1/E8.1):
          семантика моста закреплена оракулом и якорями ДО инструмента
-         bridge.exe. E9.2-1 — каркас инструмента: диффтест фактов ==
-         оракулу; эмиссия b2/peg — срезы E9.2-2+.
-         Число проверок: 20.
+         bridge.exe. E9.2-1 — каркас; E9.2-2 — спуск от входа:
+         диффтест фактов == оракулу; эмиссия b2/peg — срезы E9.2-3+.
+         Число проверок: 21.
 """
 import os
 import sys
@@ -147,16 +155,21 @@ def build(kpath, kfile, kernel_host):
 
 
 def facts_line(data):
-    """Ожидаемая факт-строка каркаса — из оракула parse_family."""
+    """Ожидаемая факт-строка — из оракула parse_family (E9.2-2: с
+    полями спуска INS/TARGET/BSS)."""
     fam = lab_bridge.parse_family(data)
     pe = fam["pe"]
-    return ("U-L5-BRIDGE MODULE=%s ENTRY=%08X VSIZE=%08X RAW=%08X IMP=%d\r\n"
+    return ("U-L5-BRIDGE MODULE=%s ENTRY=%08X VSIZE=%08X RAW=%08X IMP=%d"
+            " INS=%d TARGET=%08X BSS=%08X\r\n"
             % (fam["module"], pe["addr_entry_point"], fam["vsize"],
-               fam["raw"], len(pe["imports"][0]["funcs"]))).encode("latin1")
+               fam["raw"], len(pe["imports"][0]["funcs"]),
+               len(fam["ins"]), fam["target"], fam["bss"])
+            ).encode("latin1")
 
 
 def _facts(check, bexe, data, label, tid=None):
-    """Один прогон каркаса: факты == оракулу (или отказ — по оракулу)."""
+    """Один прогон: факты (E9.2-2: с INS/TARGET/BSS) == оракулу
+    (или отказ — по оракулу)."""
     try:
         want = facts_line(data)
         err = False
@@ -166,7 +179,7 @@ def _facts(check, bexe, data, label, tid=None):
                        {"in.exe": data})
     ok = r.stdout == want and r.exit_code == (6 if err else 0)
     if tid:
-        check("%s %s: факты каркаса == оракулу" % (tid, label), ok,
+        check("%s %s: факты == оракулу" % (tid, label), ok,
               "%r код=%s" % (r.stdout[:44], r.exit_code))
     return ok
 
@@ -183,6 +196,13 @@ def _tool_cli(check, bexe, kfile):
     def mut(off, val):
         b = bytearray(seed)
         b[off] = val
+        return bytes(b)
+
+    def vsz(val):
+        # vsize (dword @ 0x190): мутанты спуска E9.2-2 — инструкция
+        # за VirtualSize (0x3D) / длина тела больше VirtualSize (0x40)
+        b = bytearray(seed)
+        b[400:404] = val.to_bytes(4, "little")
         return bytes(b)
 
     zero_body = bytes(seed[:pe["sec_raw_ptr"]]) + \
@@ -243,6 +263,10 @@ def _tool_cli(check, bexe, kfile):
          {"in.exe": mut(thunk_off, seed[thunk_off] | 1)}, S_FAMILY, 6),
         ("терминатор IDT", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": mut(idt2_off, 1)}, S_FAMILY, 6),
+        ("инструкция за vsize", ["in.exe", "t.b2", "t.peg"],
+         {"in.exe": vsz(61)}, S_FAMILY, 6),
+        ("длина тела > vsize", ["in.exe", "t.b2", "t.peg"],
+         {"in.exe": vsz(64)}, S_FAMILY, 6),
     ]
     bad = []
     for name, args, host, want, code in cases:
@@ -328,12 +352,28 @@ def run(check, kpath, kfile, kernel_host):
         if not _facts(None, bexe, kfile("L5-BRIDGE/bridge.exe"),
                       "L5-BRIDGE/bridge"):
             bad.append("bridge")
-        check("T-E9-18 факты каркаса == оракулу (12 артефактов)",
+        check("T-E9-18 факты (каркас+спуск) == оракулу (12 артефактов)",
               not bad, "; ".join(bad[:3]) if bad else "MODULE/ENTRY/"
-              "VSIZE/RAW/IMP")
+              "VSIZE/RAW/IMP/INS/TARGET/BSS")
 
         # T-E9-19: контракт CLI + семейные отказы + легальные отклонения
         _tool_cli(check, bexe, kfile)
+
+        # T-E9-21 (E9.2-2): синтетика спуска — тень (цель jz ВНУТРИ
+        # соседней mov — младший адрес побеждает), нули — данные,
+        # терминал ret; факты (INS/TARGET/BSS) == оракулу. В реальных
+        # артефактах теней нет (probe оракулом) — синтетика закрывает
+        # правила теней/нулей спуска (SPEC/15 п. 3): 0x200 jz +2,
+        # 0x202 mov eax,imm32, 0x204 (цель jz) — add eax,imm32 — ТЕНЬ,
+        # 0x207 ret, 0x208 нули — данные
+        craft = bytes([0x74, 0x02, 0xB8, 0x05, 0x05, 0x05, 0x05,
+                       0xC3, 0x00, 0x00])
+        synth = lab_pegen.wrap(
+            a["bin"][:0x200] + craft,
+            "; synth\n!module synthm\n!entry 1200\n"
+            "!idata 1000 28\n!iat 1028 48\n")
+        _facts(check, bexe, synth, "synthm (тень/нули/ret)",
+               tid="T-E9-21")
     finally:
         os.unlink(bexe)
 

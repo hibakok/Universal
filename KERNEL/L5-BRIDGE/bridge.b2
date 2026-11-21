@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 760 строк; функций: 26; ext: 8; str: 15; глобальных var: 19
+; исходник: 1448 строк; функций: 42; ext: 8; str: 18; глобальных var: 35
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -2877,6 +2877,87 @@ M mov r8, [rbp-28] ; k = out_dec(factbuf, k, impn)
 M call $out_dec ; k = out_dec(factbuf, k, impn)
 M mov r10, rax ; k = out_dec(factbuf, k, impn)
 M mov [rbp-8], r10 ; k = out_dec(factbuf, k, impn)
+M lea r10, [rip+$factbuf] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov [rbp-18], r10 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov r10, [rbp-8] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov [rbp-20], r10 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M lea r10, [rip+$s_f6] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov [rbp-28], r10 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov r10, 5 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov [rbp-30], r10 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov rcx, [rbp-18] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov rdx, [rbp-20] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov r8, [rbp-28] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov r9, [rbp-30] ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M call $copy_str ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov r10, rax ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M mov [rbp-8], r10 ; k = copy_str(factbuf, k, s_f6, len(s_f6))
+M lea r10, [rip+$factbuf] ; k = out_dec(factbuf, k, inscount)
+M mov [rbp-18], r10 ; k = out_dec(factbuf, k, inscount)
+M mov r10, [rbp-8] ; k = out_dec(factbuf, k, inscount)
+M mov [rbp-20], r10 ; k = out_dec(factbuf, k, inscount)
+M mov r10, [rip+$inscount] ; k = out_dec(factbuf, k, inscount)
+M mov [rbp-28], r10 ; k = out_dec(factbuf, k, inscount)
+M mov rcx, [rbp-18] ; k = out_dec(factbuf, k, inscount)
+M mov rdx, [rbp-20] ; k = out_dec(factbuf, k, inscount)
+M mov r8, [rbp-28] ; k = out_dec(factbuf, k, inscount)
+M call $out_dec ; k = out_dec(factbuf, k, inscount)
+M mov r10, rax ; k = out_dec(factbuf, k, inscount)
+M mov [rbp-8], r10 ; k = out_dec(factbuf, k, inscount)
+M lea r10, [rip+$factbuf] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov [rbp-18], r10 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov r10, [rbp-8] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov [rbp-20], r10 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M lea r10, [rip+$s_f7] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov [rbp-28], r10 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov r10, 8 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov [rbp-30], r10 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov rcx, [rbp-18] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov rdx, [rbp-20] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov r8, [rbp-28] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov r9, [rbp-30] ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M call $copy_str ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov r10, rax ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M mov [rbp-8], r10 ; k = copy_str(factbuf, k, s_f7, len(s_f7))
+M lea r10, [rip+$factbuf] ; k = out_hex(factbuf, k, target)
+M mov [rbp-18], r10 ; k = out_hex(factbuf, k, target)
+M mov r10, [rbp-8] ; k = out_hex(factbuf, k, target)
+M mov [rbp-20], r10 ; k = out_hex(factbuf, k, target)
+M mov r10, [rip+$target] ; k = out_hex(factbuf, k, target)
+M mov [rbp-28], r10 ; k = out_hex(factbuf, k, target)
+M mov rcx, [rbp-18] ; k = out_hex(factbuf, k, target)
+M mov rdx, [rbp-20] ; k = out_hex(factbuf, k, target)
+M mov r8, [rbp-28] ; k = out_hex(factbuf, k, target)
+M call $out_hex ; k = out_hex(factbuf, k, target)
+M mov r10, rax ; k = out_hex(factbuf, k, target)
+M mov [rbp-8], r10 ; k = out_hex(factbuf, k, target)
+M lea r10, [rip+$factbuf] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov [rbp-18], r10 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov r10, [rbp-8] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov [rbp-20], r10 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M lea r10, [rip+$s_f8] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov [rbp-28], r10 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov r10, 5 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov [rbp-30], r10 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov rcx, [rbp-18] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov rdx, [rbp-20] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov r8, [rbp-28] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov r9, [rbp-30] ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M call $copy_str ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov r10, rax ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M mov [rbp-8], r10 ; k = copy_str(factbuf, k, s_f8, len(s_f8))
+M lea r10, [rip+$factbuf] ; k = out_hex(factbuf, k, bss)
+M mov [rbp-18], r10 ; k = out_hex(factbuf, k, bss)
+M mov r10, [rbp-8] ; k = out_hex(factbuf, k, bss)
+M mov [rbp-20], r10 ; k = out_hex(factbuf, k, bss)
+M mov r10, [rip+$bss] ; k = out_hex(factbuf, k, bss)
+M mov [rbp-28], r10 ; k = out_hex(factbuf, k, bss)
+M mov rcx, [rbp-18] ; k = out_hex(factbuf, k, bss)
+M mov rdx, [rbp-20] ; k = out_hex(factbuf, k, bss)
+M mov r8, [rbp-28] ; k = out_hex(factbuf, k, bss)
+M call $out_hex ; k = out_hex(factbuf, k, bss)
+M mov r10, rax ; k = out_hex(factbuf, k, bss)
+M mov [rbp-8], r10 ; k = out_hex(factbuf, k, bss)
 M lea r10, [rip+$factbuf] ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
 M mov [rbp-18], r10 ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
 M mov r10, [rbp-8] ; k = copy_str(factbuf, k, s_crlf, len(s_crlf))
@@ -2916,6 +2997,3220 @@ M mov rax, r10 ; return 0
 M mov rsp, rbp ; выход print_facts
 M pop rbp ; выход print_facts
 M ret ; выход print_facts
+:fb
+M push rbp ; кадр fb
+M mov rbp, rsp ; кадр fb
+M sub rsp, 40 ; кадр fb
+M mov [rbp-8], rcx ; кадр fb
+M mov r10, [rbp-8] ; if off < 0
+M mov [rbp-10], r10 ; if off < 0
+M mov r10, 0 ; if off < 0
+M mov r11, r10 ; if off < 0
+M mov r10, [rbp-10] ; if off < 0
+M cmp r10, r11 ; if off < 0
+M jge $_if93e ; if off < 0
+M mov r10, 1 ; return -1
+M neg r10 ; return -1
+M mov rax, r10 ; return -1
+M mov rsp, rbp ; выход fb
+M pop rbp ; выход fb
+M ret ; выход fb
+:_if93e
+M mov r10, [rbp-8] ; if off >= exelen
+M mov [rbp-10], r10 ; if off >= exelen
+M mov r10, [rip+$exelen] ; if off >= exelen
+M mov r11, r10 ; if off >= exelen
+M mov r10, [rbp-10] ; if off >= exelen
+M cmp r10, r11 ; if off >= exelen
+M jl $_if94e ; if off >= exelen
+M mov r10, 1 ; return -1
+M neg r10 ; return -1
+M mov rax, r10 ; return -1
+M mov rsp, rbp ; выход fb
+M pop rbp ; выход fb
+M ret ; выход fb
+:_if94e
+M mov r10, [rip+$exebuf] ; return getb(exebuf, off)
+M mov [rbp-10], r10 ; return getb(exebuf, off)
+M mov r10, [rbp-8] ; return getb(exebuf, off)
+M mov r11, r10 ; return getb(exebuf, off)
+M mov r10, [rbp-10] ; return getb(exebuf, off)
+M movzx r10d, byte [r10+r11] ; return getb(exebuf, off)
+M mov rax, r10 ; return getb(exebuf, off)
+M mov rsp, rbp ; выход fb
+M pop rbp ; выход fb
+M ret ; выход fb
+:rel8
+M push rbp ; кадр rel8
+M mov rbp, rsp ; кадр rel8
+M sub rsp, 50 ; кадр rel8
+M mov [rbp-8], rcx ; кадр rel8
+M mov r10, [rip+$exebuf] ; v = getb(exebuf, pos)
+M mov [rbp-18], r10 ; v = getb(exebuf, pos)
+M mov r10, [rbp-8] ; v = getb(exebuf, pos)
+M mov r11, r10 ; v = getb(exebuf, pos)
+M mov r10, [rbp-18] ; v = getb(exebuf, pos)
+M movzx r10d, byte [r10+r11] ; v = getb(exebuf, pos)
+M mov [rbp-10], r10 ; v = getb(exebuf, pos)
+M mov r10, [rbp-10] ; if v >= 128
+M mov [rbp-18], r10 ; if v >= 128
+M mov r10, 80 ; if v >= 128
+M mov r11, r10 ; if v >= 128
+M mov r10, [rbp-18] ; if v >= 128
+M cmp r10, r11 ; if v >= 128
+M jl $_if95e ; if v >= 128
+M mov r10, [rbp-10] ; return v - 256
+M mov [rbp-18], r10 ; return v - 256
+M mov r10, 100 ; return v - 256
+M mov r11, r10 ; return v - 256
+M mov r10, [rbp-18] ; return v - 256
+M sub r10, r11 ; return v - 256
+M mov rax, r10 ; return v - 256
+M mov rsp, rbp ; выход rel8
+M pop rbp ; выход rel8
+M ret ; выход rel8
+:_if95e
+M mov r10, [rbp-10] ; return v
+M mov rax, r10 ; return v
+M mov rsp, rbp ; выход rel8
+M pop rbp ; выход rel8
+M ret ; выход rel8
+:rel32
+M push rbp ; кадр rel32
+M mov rbp, rsp ; кадр rel32
+M sub rsp, 70 ; кадр rel32
+M mov [rbp-8], rcx ; кадр rel32
+M mov r10, [rip+$exebuf] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-30], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-8] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-30] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M movzx r10d, byte [r10+r11] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-28], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 100 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-30], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rip+$exebuf] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-38], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-8] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-40], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 1 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-40] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-38] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M movzx r10d, byte [r10+r11] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-30] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M imul r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-28] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-20], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 10000 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-28], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rip+$exebuf] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-30], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-8] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-38], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 2 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-38] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-30] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M movzx r10d, byte [r10+r11] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-28] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M imul r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-20] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-18], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 1000000 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-20], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rip+$exebuf] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-28], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-8] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-30], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, 3 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-30] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-28] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M movzx r10d, byte [r10+r11] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-20] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M imul r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r11, r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-18] ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M add r10, r11 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov [rbp-10], r10 ; v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+M mov r10, [rbp-10] ; if v > 2147483647
+M mov [rbp-18], r10 ; if v > 2147483647
+M mov r10, 7FFFFFFF ; if v > 2147483647
+M mov r11, r10 ; if v > 2147483647
+M mov r10, [rbp-18] ; if v > 2147483647
+M cmp r10, r11 ; if v > 2147483647
+M jle $_if96e ; if v > 2147483647
+M mov r10, [rbp-10] ; return v - 16777216 * 256
+M mov [rbp-18], r10 ; return v - 16777216 * 256
+M mov r10, 1000000 ; return v - 16777216 * 256
+M mov [rbp-20], r10 ; return v - 16777216 * 256
+M mov r10, 100 ; return v - 16777216 * 256
+M mov r11, r10 ; return v - 16777216 * 256
+M mov r10, [rbp-20] ; return v - 16777216 * 256
+M imul r10, r11 ; return v - 16777216 * 256
+M mov r11, r10 ; return v - 16777216 * 256
+M mov r10, [rbp-18] ; return v - 16777216 * 256
+M sub r10, r11 ; return v - 16777216 * 256
+M mov rax, r10 ; return v - 16777216 * 256
+M mov rsp, rbp ; выход rel32
+M pop rbp ; выход rel32
+M ret ; выход rel32
+:_if96e
+M mov r10, [rbp-10] ; return v
+M mov rax, r10 ; return v
+M mov rsp, rbp ; выход rel32
+M pop rbp ; выход rel32
+M ret ; выход rel32
+:modrm_skip
+M push rbp ; кадр modrm_skip
+M mov rbp, rsp ; кадр modrm_skip
+M sub rsp, 90 ; кадр modrm_skip
+M mov [rbp-8], rcx ; кадр modrm_skip
+M mov [rbp-10], rdx ; кадр modrm_skip
+M mov r10, [rbp-8] ; m = fb(pos)
+M mov [rbp-58], r10 ; m = fb(pos)
+M mov rcx, [rbp-58] ; m = fb(pos)
+M call $fb ; m = fb(pos)
+M mov r10, rax ; m = fb(pos)
+M mov [rbp-18], r10 ; m = fb(pos)
+M mov r10, [rbp-18] ; if m < 0
+M mov [rbp-40], r10 ; if m < 0
+M mov r10, 0 ; if m < 0
+M mov r11, r10 ; if m < 0
+M mov r10, [rbp-40] ; if m < 0
+M cmp r10, r11 ; if m < 0
+M jge $_if97e ; if m < 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if97e
+M mov r10, [rbp-18] ; mreg = (m >> 3 & 7) + rbit
+M mov [rbp-50], r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, 3 ; mreg = (m >> 3 & 7) + rbit
+M mov r11, r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, [rbp-50] ; mreg = (m >> 3 & 7) + rbit
+M mov rcx, r11 ; mreg = (m >> 3 & 7) + rbit
+M shr r10, cl ; mreg = (m >> 3 & 7) + rbit
+M mov [rbp-48], r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, 7 ; mreg = (m >> 3 & 7) + rbit
+M mov r11, r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, [rbp-48] ; mreg = (m >> 3 & 7) + rbit
+M and r10, r11 ; mreg = (m >> 3 & 7) + rbit
+M mov [rbp-40], r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, [rbp-10] ; mreg = (m >> 3 & 7) + rbit
+M mov r11, r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, [rbp-40] ; mreg = (m >> 3 & 7) + rbit
+M add r10, r11 ; mreg = (m >> 3 & 7) + rbit
+M mov [rip+$mreg], r10 ; mreg = (m >> 3 & 7) + rbit
+M mov r10, [rbp-8] ; mpos = pos + 1
+M mov [rbp-40], r10 ; mpos = pos + 1
+M mov r10, 1 ; mpos = pos + 1
+M mov r11, r10 ; mpos = pos + 1
+M mov r10, [rbp-40] ; mpos = pos + 1
+M add r10, r11 ; mpos = pos + 1
+M mov [rip+$mpos], r10 ; mpos = pos + 1
+M mov r10, [rbp-18] ; mod = m >> 6
+M mov [rbp-40], r10 ; mod = m >> 6
+M mov r10, 6 ; mod = m >> 6
+M mov r11, r10 ; mod = m >> 6
+M mov r10, [rbp-40] ; mod = m >> 6
+M mov rcx, r11 ; mod = m >> 6
+M shr r10, cl ; mod = m >> 6
+M mov [rbp-20], r10 ; mod = m >> 6
+M mov r10, [rbp-18] ; rm = m & 7
+M mov [rbp-40], r10 ; rm = m & 7
+M mov r10, 7 ; rm = m & 7
+M mov r11, r10 ; rm = m & 7
+M mov r10, [rbp-40] ; rm = m & 7
+M and r10, r11 ; rm = m & 7
+M mov [rbp-28], r10 ; rm = m & 7
+M mov r10, [rbp-20] ; if mod == 3
+M mov [rbp-40], r10 ; if mod == 3
+M mov r10, 3 ; if mod == 3
+M mov r11, r10 ; if mod == 3
+M mov r10, [rbp-40] ; if mod == 3
+M cmp r10, r11 ; if mod == 3
+M jne $_if98e ; if mod == 3
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if98e
+M mov r10, [rbp-28] ; if rm == 4
+M mov [rbp-40], r10 ; if rm == 4
+M mov r10, 4 ; if rm == 4
+M mov r11, r10 ; if rm == 4
+M mov r10, [rbp-40] ; if rm == 4
+M cmp r10, r11 ; if rm == 4
+M jne $_if99e ; if rm == 4
+M mov r10, [rip+$mpos] ; s = fb(mpos)
+M mov [rbp-58], r10 ; s = fb(mpos)
+M mov rcx, [rbp-58] ; s = fb(mpos)
+M call $fb ; s = fb(mpos)
+M mov r10, rax ; s = fb(mpos)
+M mov [rbp-30], r10 ; s = fb(mpos)
+M mov r10, [rbp-30] ; if s < 0
+M mov [rbp-40], r10 ; if s < 0
+M mov r10, 0 ; if s < 0
+M mov r11, r10 ; if s < 0
+M mov r10, [rbp-40] ; if s < 0
+M cmp r10, r11 ; if s < 0
+M jge $_if100e ; if s < 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if100e
+M mov r10, [rbp-30] ; bas = s & 7
+M mov [rbp-40], r10 ; bas = s & 7
+M mov r10, 7 ; bas = s & 7
+M mov r11, r10 ; bas = s & 7
+M mov r10, [rbp-40] ; bas = s & 7
+M and r10, r11 ; bas = s & 7
+M mov [rbp-38], r10 ; bas = s & 7
+M mov r10, [rip+$mpos] ; mpos = mpos + 1
+M mov [rbp-40], r10 ; mpos = mpos + 1
+M mov r10, 1 ; mpos = mpos + 1
+M mov r11, r10 ; mpos = mpos + 1
+M mov r10, [rbp-40] ; mpos = mpos + 1
+M add r10, r11 ; mpos = mpos + 1
+M mov [rip+$mpos], r10 ; mpos = mpos + 1
+M mov r10, [rbp-20] ; if mod == 0 && bas == 5
+M mov [rbp-40], r10 ; if mod == 0 && bas == 5
+M mov r10, 0 ; if mod == 0 && bas == 5
+M mov r11, r10 ; if mod == 0 && bas == 5
+M mov r10, [rbp-40] ; if mod == 0 && bas == 5
+M cmp r10, r11 ; if mod == 0 && bas == 5
+M jne $_if101e ; if mod == 0 && bas == 5
+M mov r10, [rbp-38] ; if mod == 0 && bas == 5
+M mov [rbp-40], r10 ; if mod == 0 && bas == 5
+M mov r10, 5 ; if mod == 0 && bas == 5
+M mov r11, r10 ; if mod == 0 && bas == 5
+M mov r10, [rbp-40] ; if mod == 0 && bas == 5
+M cmp r10, r11 ; if mod == 0 && bas == 5
+M jne $_if101e ; if mod == 0 && bas == 5
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-48], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-48] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-40], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-40] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if102e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if102e
+M mov r10, [rip+$mpos] ; mpos = mpos + 4
+M mov [rbp-40], r10 ; mpos = mpos + 4
+M mov r10, 4 ; mpos = mpos + 4
+M mov r11, r10 ; mpos = mpos + 4
+M mov r10, [rbp-40] ; mpos = mpos + 4
+M add r10, r11 ; mpos = mpos + 4
+M mov [rip+$mpos], r10 ; mpos = mpos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if101e
+M mov r10, [rbp-20] ; if mod == 1
+M mov [rbp-40], r10 ; if mod == 1
+M mov r10, 1 ; if mod == 1
+M mov r11, r10 ; if mod == 1
+M mov r10, [rbp-40] ; if mod == 1
+M cmp r10, r11 ; if mod == 1
+M jne $_if103e ; if mod == 1
+M mov r10, [rip+$mpos] ; if mpos + 1 > exelen
+M mov [rbp-48], r10 ; if mpos + 1 > exelen
+M mov r10, 1 ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-48] ; if mpos + 1 > exelen
+M add r10, r11 ; if mpos + 1 > exelen
+M mov [rbp-40], r10 ; if mpos + 1 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-40] ; if mpos + 1 > exelen
+M cmp r10, r11 ; if mpos + 1 > exelen
+M jle $_if104e ; if mpos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if104e
+M mov r10, [rip+$mpos] ; mpos = mpos + 1
+M mov [rbp-40], r10 ; mpos = mpos + 1
+M mov r10, 1 ; mpos = mpos + 1
+M mov r11, r10 ; mpos = mpos + 1
+M mov r10, [rbp-40] ; mpos = mpos + 1
+M add r10, r11 ; mpos = mpos + 1
+M mov [rip+$mpos], r10 ; mpos = mpos + 1
+:_if103e
+M mov r10, [rbp-20] ; if mod == 2
+M mov [rbp-40], r10 ; if mod == 2
+M mov r10, 2 ; if mod == 2
+M mov r11, r10 ; if mod == 2
+M mov r10, [rbp-40] ; if mod == 2
+M cmp r10, r11 ; if mod == 2
+M jne $_if105e ; if mod == 2
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-48], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-48] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-40], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-40] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if106e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if106e
+M mov r10, [rip+$mpos] ; mpos = mpos + 4
+M mov [rbp-40], r10 ; mpos = mpos + 4
+M mov r10, 4 ; mpos = mpos + 4
+M mov r11, r10 ; mpos = mpos + 4
+M mov r10, [rbp-40] ; mpos = mpos + 4
+M add r10, r11 ; mpos = mpos + 4
+M mov [rip+$mpos], r10 ; mpos = mpos + 4
+:_if105e
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if99e
+M mov r10, [rbp-28] ; if rm == 5 && mod == 0
+M mov [rbp-40], r10 ; if rm == 5 && mod == 0
+M mov r10, 5 ; if rm == 5 && mod == 0
+M mov r11, r10 ; if rm == 5 && mod == 0
+M mov r10, [rbp-40] ; if rm == 5 && mod == 0
+M cmp r10, r11 ; if rm == 5 && mod == 0
+M jne $_if107e ; if rm == 5 && mod == 0
+M mov r10, [rbp-20] ; if rm == 5 && mod == 0
+M mov [rbp-40], r10 ; if rm == 5 && mod == 0
+M mov r10, 0 ; if rm == 5 && mod == 0
+M mov r11, r10 ; if rm == 5 && mod == 0
+M mov r10, [rbp-40] ; if rm == 5 && mod == 0
+M cmp r10, r11 ; if rm == 5 && mod == 0
+M jne $_if107e ; if rm == 5 && mod == 0
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-48], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-48] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-40], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-40] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if108e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if108e
+M mov r10, [rip+$mpos] ; mpos = mpos + 4
+M mov [rbp-40], r10 ; mpos = mpos + 4
+M mov r10, 4 ; mpos = mpos + 4
+M mov r11, r10 ; mpos = mpos + 4
+M mov r10, [rbp-40] ; mpos = mpos + 4
+M add r10, r11 ; mpos = mpos + 4
+M mov [rip+$mpos], r10 ; mpos = mpos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if107e
+M mov r10, [rbp-20] ; if mod == 1
+M mov [rbp-40], r10 ; if mod == 1
+M mov r10, 1 ; if mod == 1
+M mov r11, r10 ; if mod == 1
+M mov r10, [rbp-40] ; if mod == 1
+M cmp r10, r11 ; if mod == 1
+M jne $_if109e ; if mod == 1
+M mov r10, [rip+$mpos] ; if mpos + 1 > exelen
+M mov [rbp-48], r10 ; if mpos + 1 > exelen
+M mov r10, 1 ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-48] ; if mpos + 1 > exelen
+M add r10, r11 ; if mpos + 1 > exelen
+M mov [rbp-40], r10 ; if mpos + 1 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-40] ; if mpos + 1 > exelen
+M cmp r10, r11 ; if mpos + 1 > exelen
+M jle $_if110e ; if mpos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if110e
+M mov r10, [rip+$mpos] ; mpos = mpos + 1
+M mov [rbp-40], r10 ; mpos = mpos + 1
+M mov r10, 1 ; mpos = mpos + 1
+M mov r11, r10 ; mpos = mpos + 1
+M mov r10, [rbp-40] ; mpos = mpos + 1
+M add r10, r11 ; mpos = mpos + 1
+M mov [rip+$mpos], r10 ; mpos = mpos + 1
+:_if109e
+M mov r10, [rbp-20] ; if mod == 2
+M mov [rbp-40], r10 ; if mod == 2
+M mov r10, 2 ; if mod == 2
+M mov r11, r10 ; if mod == 2
+M mov r10, [rbp-40] ; if mod == 2
+M cmp r10, r11 ; if mod == 2
+M jne $_if111e ; if mod == 2
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-48], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-48] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-40], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-40] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if112e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:_if112e
+M mov r10, [rip+$mpos] ; mpos = mpos + 4
+M mov [rbp-40], r10 ; mpos = mpos + 4
+M mov r10, 4 ; mpos = mpos + 4
+M mov r11, r10 ; mpos = mpos + 4
+M mov r10, [rbp-40] ; mpos = mpos + 4
+M add r10, r11 ; mpos = mpos + 4
+M mov [rip+$mpos], r10 ; mpos = mpos + 4
+:_if111e
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход modrm_skip
+M pop rbp ; выход modrm_skip
+M ret ; выход modrm_skip
+:dec0f
+M push rbp ; кадр dec0f
+M mov rbp, rsp ; кадр dec0f
+M sub rsp, 70 ; кадр dec0f
+M mov [rbp-8], rcx ; кадр dec0f
+M mov [rbp-10], rdx ; кадр dec0f
+M mov r10, [rbp-8] ; b = fb(pos)
+M mov [rbp-38], r10 ; b = fb(pos)
+M mov rcx, [rbp-38] ; b = fb(pos)
+M call $fb ; b = fb(pos)
+M mov r10, rax ; b = fb(pos)
+M mov [rbp-18], r10 ; b = fb(pos)
+M mov r10, [rbp-18] ; if b < 0
+M mov [rbp-28], r10 ; if b < 0
+M mov r10, 0 ; if b < 0
+M mov r11, r10 ; if b < 0
+M mov r10, [rbp-28] ; if b < 0
+M cmp r10, r11 ; if b < 0
+M jge $_if113e ; if b < 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if113e
+M mov r10, [rbp-8] ; pos = pos + 1
+M mov [rbp-28], r10 ; pos = pos + 1
+M mov r10, 1 ; pos = pos + 1
+M mov r11, r10 ; pos = pos + 1
+M mov r10, [rbp-28] ; pos = pos + 1
+M add r10, r11 ; pos = pos + 1
+M mov [rbp-8], r10 ; pos = pos + 1
+M mov r10, [rbp-18] ; if b >= 128 && b <= 143
+M mov [rbp-28], r10 ; if b >= 128 && b <= 143
+M mov r10, 80 ; if b >= 128 && b <= 143
+M mov r11, r10 ; if b >= 128 && b <= 143
+M mov r10, [rbp-28] ; if b >= 128 && b <= 143
+M cmp r10, r11 ; if b >= 128 && b <= 143
+M jl $_if114e ; if b >= 128 && b <= 143
+M mov r10, [rbp-18] ; if b >= 128 && b <= 143
+M mov [rbp-28], r10 ; if b >= 128 && b <= 143
+M mov r10, 8F ; if b >= 128 && b <= 143
+M mov r11, r10 ; if b >= 128 && b <= 143
+M mov r10, [rbp-28] ; if b >= 128 && b <= 143
+M cmp r10, r11 ; if b >= 128 && b <= 143
+M jg $_if114e ; if b >= 128 && b <= 143
+M mov r10, [rbp-8] ; if pos + 4 > exelen
+M mov [rbp-30], r10 ; if pos + 4 > exelen
+M mov r10, 4 ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-30] ; if pos + 4 > exelen
+M add r10, r11 ; if pos + 4 > exelen
+M mov [rbp-28], r10 ; if pos + 4 > exelen
+M mov r10, [rip+$exelen] ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-28] ; if pos + 4 > exelen
+M cmp r10, r11 ; if pos + 4 > exelen
+M jle $_if115e ; if pos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if115e
+M mov r10, [rbp-8] ; rel = rel32(pos)
+M mov [rbp-38], r10 ; rel = rel32(pos)
+M mov rcx, [rbp-38] ; rel = rel32(pos)
+M call $rel32 ; rel = rel32(pos)
+M mov r10, rax ; rel = rel32(pos)
+M mov [rbp-20], r10 ; rel = rel32(pos)
+M mov r10, [rbp-8] ; dpos = pos + 4
+M mov [rbp-28], r10 ; dpos = pos + 4
+M mov r10, 4 ; dpos = pos + 4
+M mov r11, r10 ; dpos = pos + 4
+M mov r10, [rbp-28] ; dpos = pos + 4
+M add r10, r11 ; dpos = pos + 4
+M mov [rip+$dpos], r10 ; dpos = pos + 4
+M mov r10, [rip+$dpos] ; dtgt = dpos - rawptr + rel
+M mov [rbp-30], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rip+$rawptr] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-30] ; dtgt = dpos - rawptr + rel
+M sub r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rbp-28], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-20] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-28] ; dtgt = dpos - rawptr + rel
+M add r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rip+$dtgt], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, 3 ; dcls = 3
+M mov [rip+$dcls], r10 ; dcls = 3
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if114e
+M mov r10, [rbp-18] ; if b == 182 || b == 183
+M mov [rbp-28], r10 ; if b == 182 || b == 183
+M mov r10, B6 ; if b == 182 || b == 183
+M mov r11, r10 ; if b == 182 || b == 183
+M mov r10, [rbp-28] ; if b == 182 || b == 183
+M cmp r10, r11 ; if b == 182 || b == 183
+M jne $_if116d2 ; if b == 182 || b == 183
+M jmp $_if116t ; if b == 182 || b == 183
+:_if116d2
+M mov r10, [rbp-18] ; if b == 182 || b == 183
+M mov [rbp-28], r10 ; if b == 182 || b == 183
+M mov r10, B7 ; if b == 182 || b == 183
+M mov r11, r10 ; if b == 182 || b == 183
+M mov r10, [rbp-28] ; if b == 182 || b == 183
+M cmp r10, r11 ; if b == 182 || b == 183
+M jne $_if116e ; if b == 182 || b == 183
+:_if116t
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-40], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-40] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-28], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-28] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if117e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if117e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if116e
+M mov r10, [rbp-18] ; if b == 175
+M mov [rbp-28], r10 ; if b == 175
+M mov r10, AF ; if b == 175
+M mov r11, r10 ; if b == 175
+M mov r10, [rbp-28] ; if b == 175
+M cmp r10, r11 ; if b == 175
+M jne $_if118e ; if b == 175
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-40], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-40] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-28], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-28] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if119e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if119e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:_if118e
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход dec0f
+M pop rbp ; выход dec0f
+M ret ; выход dec0f
+:decalu
+M push rbp ; кадр decalu
+M mov rbp, rsp ; кадр decalu
+M sub rsp, 70 ; кадр decalu
+M mov [rbp-8], rcx ; кадр decalu
+M mov [rbp-10], rdx ; кадр decalu
+M mov [rbp-18], r8 ; кадр decalu
+M mov r10, [rbp-18] ; if (b & 7) < 4
+M mov [rbp-28], r10 ; if (b & 7) < 4
+M mov r10, 7 ; if (b & 7) < 4
+M mov r11, r10 ; if (b & 7) < 4
+M mov r10, [rbp-28] ; if (b & 7) < 4
+M and r10, r11 ; if (b & 7) < 4
+M mov [rbp-20], r10 ; if (b & 7) < 4
+M mov r10, 4 ; if (b & 7) < 4
+M mov r11, r10 ; if (b & 7) < 4
+M mov r10, [rbp-20] ; if (b & 7) < 4
+M cmp r10, r11 ; if (b & 7) < 4
+M jge $_if120e ; if (b & 7) < 4
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-30], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-30] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-20], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-20] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if121e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:_if121e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:_if120e
+M mov r10, [rbp-18] ; if (b & 7) == 4
+M mov [rbp-28], r10 ; if (b & 7) == 4
+M mov r10, 7 ; if (b & 7) == 4
+M mov r11, r10 ; if (b & 7) == 4
+M mov r10, [rbp-28] ; if (b & 7) == 4
+M and r10, r11 ; if (b & 7) == 4
+M mov [rbp-20], r10 ; if (b & 7) == 4
+M mov r10, 4 ; if (b & 7) == 4
+M mov r11, r10 ; if (b & 7) == 4
+M mov r10, [rbp-20] ; if (b & 7) == 4
+M cmp r10, r11 ; if (b & 7) == 4
+M jne $_if122e ; if (b & 7) == 4
+M mov r10, [rbp-8] ; if pos + 1 > exelen
+M mov [rbp-28], r10 ; if pos + 1 > exelen
+M mov r10, 1 ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-28] ; if pos + 1 > exelen
+M add r10, r11 ; if pos + 1 > exelen
+M mov [rbp-20], r10 ; if pos + 1 > exelen
+M mov r10, [rip+$exelen] ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-20] ; if pos + 1 > exelen
+M cmp r10, r11 ; if pos + 1 > exelen
+M jle $_if123e ; if pos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:_if123e
+M mov r10, [rbp-8] ; dpos = pos + 1
+M mov [rbp-20], r10 ; dpos = pos + 1
+M mov r10, 1 ; dpos = pos + 1
+M mov r11, r10 ; dpos = pos + 1
+M mov r10, [rbp-20] ; dpos = pos + 1
+M add r10, r11 ; dpos = pos + 1
+M mov [rip+$dpos], r10 ; dpos = pos + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:_if122e
+M mov r10, [rbp-8] ; if pos + 4 > exelen
+M mov [rbp-28], r10 ; if pos + 4 > exelen
+M mov r10, 4 ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-28] ; if pos + 4 > exelen
+M add r10, r11 ; if pos + 4 > exelen
+M mov [rbp-20], r10 ; if pos + 4 > exelen
+M mov r10, [rip+$exelen] ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-20] ; if pos + 4 > exelen
+M cmp r10, r11 ; if pos + 4 > exelen
+M jle $_if124e ; if pos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:_if124e
+M mov r10, [rbp-8] ; dpos = pos + 4
+M mov [rbp-20], r10 ; dpos = pos + 4
+M mov r10, 4 ; dpos = pos + 4
+M mov r11, r10 ; dpos = pos + 4
+M mov r10, [rbp-20] ; dpos = pos + 4
+M add r10, r11 ; dpos = pos + 4
+M mov [rip+$dpos], r10 ; dpos = pos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decalu
+M pop rbp ; выход decalu
+M ret ; выход decalu
+:decmod
+M push rbp ; кадр decmod
+M mov rbp, rsp ; кадр decmod
+M sub rsp, 60 ; кадр decmod
+M mov [rbp-8], rcx ; кадр decmod
+M mov [rbp-10], rdx ; кадр decmod
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-20], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-28], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-20] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-28] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-18], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-18] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if125e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decmod
+M pop rbp ; выход decmod
+M ret ; выход decmod
+:_if125e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decmod
+M pop rbp ; выход decmod
+M ret ; выход decmod
+:decimm
+M push rbp ; кадр decimm
+M mov rbp, rsp ; кадр decimm
+M sub rsp, 60 ; кадр decimm
+M mov [rbp-8], rcx ; кадр decimm
+M mov [rbp-10], rdx ; кадр decimm
+M mov [rbp-18], r8 ; кадр decimm
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95
+M mov [rbp-20], r10 ; if b >= 80 && b <= 95
+M mov r10, 50 ; if b >= 80 && b <= 95
+M mov r11, r10 ; if b >= 80 && b <= 95
+M mov r10, [rbp-20] ; if b >= 80 && b <= 95
+M cmp r10, r11 ; if b >= 80 && b <= 95
+M jl $_if126e ; if b >= 80 && b <= 95
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95
+M mov [rbp-20], r10 ; if b >= 80 && b <= 95
+M mov r10, 5F ; if b >= 80 && b <= 95
+M mov r11, r10 ; if b >= 80 && b <= 95
+M mov r10, [rbp-20] ; if b >= 80 && b <= 95
+M cmp r10, r11 ; if b >= 80 && b <= 95
+M jg $_if126e ; if b >= 80 && b <= 95
+M mov r10, [rbp-8] ; dpos = pos
+M mov [rip+$dpos], r10 ; dpos = pos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if126e
+M mov r10, [rbp-18] ; if b == 152 || b == 153
+M mov [rbp-20], r10 ; if b == 152 || b == 153
+M mov r10, 98 ; if b == 152 || b == 153
+M mov r11, r10 ; if b == 152 || b == 153
+M mov r10, [rbp-20] ; if b == 152 || b == 153
+M cmp r10, r11 ; if b == 152 || b == 153
+M jne $_if127d2 ; if b == 152 || b == 153
+M jmp $_if127t ; if b == 152 || b == 153
+:_if127d2
+M mov r10, [rbp-18] ; if b == 152 || b == 153
+M mov [rbp-20], r10 ; if b == 152 || b == 153
+M mov r10, 99 ; if b == 152 || b == 153
+M mov r11, r10 ; if b == 152 || b == 153
+M mov r10, [rbp-20] ; if b == 152 || b == 153
+M cmp r10, r11 ; if b == 152 || b == 153
+M jne $_if127e ; if b == 152 || b == 153
+:_if127t
+M mov r10, [rbp-8] ; dpos = pos
+M mov [rip+$dpos], r10 ; dpos = pos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if127e
+M mov r10, [rbp-18] ; if b == 195 || b == 204
+M mov [rbp-20], r10 ; if b == 195 || b == 204
+M mov r10, C3 ; if b == 195 || b == 204
+M mov r11, r10 ; if b == 195 || b == 204
+M mov r10, [rbp-20] ; if b == 195 || b == 204
+M cmp r10, r11 ; if b == 195 || b == 204
+M jne $_if128d2 ; if b == 195 || b == 204
+M jmp $_if128t ; if b == 195 || b == 204
+:_if128d2
+M mov r10, [rbp-18] ; if b == 195 || b == 204
+M mov [rbp-20], r10 ; if b == 195 || b == 204
+M mov r10, CC ; if b == 195 || b == 204
+M mov r11, r10 ; if b == 195 || b == 204
+M mov r10, [rbp-20] ; if b == 195 || b == 204
+M cmp r10, r11 ; if b == 195 || b == 204
+M jne $_if128e ; if b == 195 || b == 204
+:_if128t
+M mov r10, 1 ; dcls = 1
+M mov [rip+$dcls], r10 ; dcls = 1
+M mov r10, [rbp-8] ; dpos = pos
+M mov [rip+$dpos], r10 ; dpos = pos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if128e
+M mov r10, [rbp-18] ; if b >= 176 && b <= 183
+M mov [rbp-20], r10 ; if b >= 176 && b <= 183
+M mov r10, B0 ; if b >= 176 && b <= 183
+M mov r11, r10 ; if b >= 176 && b <= 183
+M mov r10, [rbp-20] ; if b >= 176 && b <= 183
+M cmp r10, r11 ; if b >= 176 && b <= 183
+M jl $_if129e ; if b >= 176 && b <= 183
+M mov r10, [rbp-18] ; if b >= 176 && b <= 183
+M mov [rbp-20], r10 ; if b >= 176 && b <= 183
+M mov r10, B7 ; if b >= 176 && b <= 183
+M mov r11, r10 ; if b >= 176 && b <= 183
+M mov r10, [rbp-20] ; if b >= 176 && b <= 183
+M cmp r10, r11 ; if b >= 176 && b <= 183
+M jg $_if129e ; if b >= 176 && b <= 183
+M mov r10, [rbp-8] ; if pos + 1 > exelen
+M mov [rbp-28], r10 ; if pos + 1 > exelen
+M mov r10, 1 ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-28] ; if pos + 1 > exelen
+M add r10, r11 ; if pos + 1 > exelen
+M mov [rbp-20], r10 ; if pos + 1 > exelen
+M mov r10, [rip+$exelen] ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-20] ; if pos + 1 > exelen
+M cmp r10, r11 ; if pos + 1 > exelen
+M jle $_if130e ; if pos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if130e
+M mov r10, [rbp-8] ; dpos = pos + 1
+M mov [rbp-20], r10 ; dpos = pos + 1
+M mov r10, 1 ; dpos = pos + 1
+M mov r11, r10 ; dpos = pos + 1
+M mov r10, [rbp-20] ; dpos = pos + 1
+M add r10, r11 ; dpos = pos + 1
+M mov [rip+$dpos], r10 ; dpos = pos + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if129e
+M mov r10, [rbp-10] ; if w != 0
+M mov [rbp-20], r10 ; if w != 0
+M mov r10, 0 ; if w != 0
+M mov r11, r10 ; if w != 0
+M mov r10, [rbp-20] ; if w != 0
+M cmp r10, r11 ; if w != 0
+M je $_if131e ; if w != 0
+M mov r10, [rbp-8] ; if pos + 8 > exelen
+M mov [rbp-28], r10 ; if pos + 8 > exelen
+M mov r10, 8 ; if pos + 8 > exelen
+M mov r11, r10 ; if pos + 8 > exelen
+M mov r10, [rbp-28] ; if pos + 8 > exelen
+M add r10, r11 ; if pos + 8 > exelen
+M mov [rbp-20], r10 ; if pos + 8 > exelen
+M mov r10, [rip+$exelen] ; if pos + 8 > exelen
+M mov r11, r10 ; if pos + 8 > exelen
+M mov r10, [rbp-20] ; if pos + 8 > exelen
+M cmp r10, r11 ; if pos + 8 > exelen
+M jle $_if132e ; if pos + 8 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if132e
+M mov r10, [rbp-8] ; dpos = pos + 8
+M mov [rbp-20], r10 ; dpos = pos + 8
+M mov r10, 8 ; dpos = pos + 8
+M mov r11, r10 ; dpos = pos + 8
+M mov r10, [rbp-20] ; dpos = pos + 8
+M add r10, r11 ; dpos = pos + 8
+M mov [rip+$dpos], r10 ; dpos = pos + 8
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if131e
+M mov r10, [rbp-8] ; if pos + 4 > exelen
+M mov [rbp-28], r10 ; if pos + 4 > exelen
+M mov r10, 4 ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-28] ; if pos + 4 > exelen
+M add r10, r11 ; if pos + 4 > exelen
+M mov [rbp-20], r10 ; if pos + 4 > exelen
+M mov r10, [rip+$exelen] ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-20] ; if pos + 4 > exelen
+M cmp r10, r11 ; if pos + 4 > exelen
+M jle $_if133e ; if pos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:_if133e
+M mov r10, [rbp-8] ; dpos = pos + 4
+M mov [rbp-20], r10 ; dpos = pos + 4
+M mov r10, 4 ; dpos = pos + 4
+M mov r11, r10 ; dpos = pos + 4
+M mov r10, [rbp-20] ; dpos = pos + 4
+M add r10, r11 ; dpos = pos + 4
+M mov [rip+$dpos], r10 ; dpos = pos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decimm
+M pop rbp ; выход decimm
+M ret ; выход decimm
+:decshift
+M push rbp ; кадр decshift
+M mov rbp, rsp ; кадр decshift
+M sub rsp, 70 ; кадр decshift
+M mov [rbp-8], rcx ; кадр decshift
+M mov [rbp-10], rdx ; кадр decshift
+M mov [rbp-18], r8 ; кадр decshift
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-30], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-30] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-20], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-20] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if134e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decshift
+M pop rbp ; выход decshift
+M ret ; выход decshift
+:_if134e
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, 0 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M je $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, 4 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M je $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, 5 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M je $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, 7 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M je $_if135e ; if mreg != 0 && mreg != 4 && mreg != 5 && mreg != 7
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decshift
+M pop rbp ; выход decshift
+M ret ; выход decshift
+:_if135e
+M mov r10, [rbp-18] ; if b == 192 || b == 193
+M mov [rbp-20], r10 ; if b == 192 || b == 193
+M mov r10, C0 ; if b == 192 || b == 193
+M mov r11, r10 ; if b == 192 || b == 193
+M mov r10, [rbp-20] ; if b == 192 || b == 193
+M cmp r10, r11 ; if b == 192 || b == 193
+M jne $_if136d2 ; if b == 192 || b == 193
+M jmp $_if136t ; if b == 192 || b == 193
+:_if136d2
+M mov r10, [rbp-18] ; if b == 192 || b == 193
+M mov [rbp-20], r10 ; if b == 192 || b == 193
+M mov r10, C1 ; if b == 192 || b == 193
+M mov r11, r10 ; if b == 192 || b == 193
+M mov r10, [rbp-20] ; if b == 192 || b == 193
+M cmp r10, r11 ; if b == 192 || b == 193
+M jne $_if136e ; if b == 192 || b == 193
+:_if136t
+M mov r10, [rip+$mpos] ; if mpos + 1 > exelen
+M mov [rbp-28], r10 ; if mpos + 1 > exelen
+M mov r10, 1 ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-28] ; if mpos + 1 > exelen
+M add r10, r11 ; if mpos + 1 > exelen
+M mov [rbp-20], r10 ; if mpos + 1 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-20] ; if mpos + 1 > exelen
+M cmp r10, r11 ; if mpos + 1 > exelen
+M jle $_if137e ; if mpos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decshift
+M pop rbp ; выход decshift
+M ret ; выход decshift
+:_if137e
+M mov r10, [rip+$mpos] ; dpos = mpos + 1
+M mov [rbp-20], r10 ; dpos = mpos + 1
+M mov r10, 1 ; dpos = mpos + 1
+M mov r11, r10 ; dpos = mpos + 1
+M mov r10, [rbp-20] ; dpos = mpos + 1
+M add r10, r11 ; dpos = mpos + 1
+M mov [rip+$dpos], r10 ; dpos = mpos + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decshift
+M pop rbp ; выход decshift
+M ret ; выход decshift
+:_if136e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decshift
+M pop rbp ; выход decshift
+M ret ; выход decshift
+:decgrp
+M push rbp ; кадр decgrp
+M mov rbp, rsp ; кадр decgrp
+M sub rsp, 70 ; кадр decgrp
+M mov [rbp-8], rcx ; кадр decgrp
+M mov [rbp-10], rdx ; кадр decgrp
+M mov [rbp-18], r8 ; кадр decgrp
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-30], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-30] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-20], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-20] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if138e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:_if138e
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 0 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 1 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 4 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 5 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 6 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 7 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M je $_if139e ; if mreg != 0 && mreg != 1 && mreg != 4 && mreg != 5 && mreg != 6 && mreg != 7
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:_if139e
+M mov r10, [rbp-18] ; if b == 129
+M mov [rbp-20], r10 ; if b == 129
+M mov r10, 81 ; if b == 129
+M mov r11, r10 ; if b == 129
+M mov r10, [rbp-20] ; if b == 129
+M cmp r10, r11 ; if b == 129
+M jne $_if140e ; if b == 129
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-28], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-28] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-20], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-20] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if141e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:_if141e
+M mov r10, [rip+$mpos] ; dpos = mpos + 4
+M mov [rbp-20], r10 ; dpos = mpos + 4
+M mov r10, 4 ; dpos = mpos + 4
+M mov r11, r10 ; dpos = mpos + 4
+M mov r10, [rbp-20] ; dpos = mpos + 4
+M add r10, r11 ; dpos = mpos + 4
+M mov [rip+$dpos], r10 ; dpos = mpos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:_if140e
+M mov r10, [rip+$mpos] ; if mpos + 1 > exelen
+M mov [rbp-28], r10 ; if mpos + 1 > exelen
+M mov r10, 1 ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-28] ; if mpos + 1 > exelen
+M add r10, r11 ; if mpos + 1 > exelen
+M mov [rbp-20], r10 ; if mpos + 1 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-20] ; if mpos + 1 > exelen
+M cmp r10, r11 ; if mpos + 1 > exelen
+M jle $_if142e ; if mpos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:_if142e
+M mov r10, [rip+$mpos] ; dpos = mpos + 1
+M mov [rbp-20], r10 ; dpos = mpos + 1
+M mov r10, 1 ; dpos = mpos + 1
+M mov r11, r10 ; dpos = mpos + 1
+M mov r10, [rbp-20] ; dpos = mpos + 1
+M add r10, r11 ; dpos = mpos + 1
+M mov [rip+$dpos], r10 ; dpos = mpos + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp
+M pop rbp ; выход decgrp
+M ret ; выход decgrp
+:decgrp2
+M push rbp ; кадр decgrp2
+M mov rbp, rsp ; кадр decgrp2
+M sub rsp, 70 ; кадр decgrp2
+M mov [rbp-8], rcx ; кадр decgrp2
+M mov [rbp-10], rdx ; кадр decgrp2
+M mov [rbp-18], r8 ; кадр decgrp2
+M mov r10, [rbp-8] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-30], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-10] ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-38], r10 ; if modrm_skip(pos, rbit) != 0
+M mov rcx, [rbp-30] ; if modrm_skip(pos, rbit) != 0
+M mov rdx, [rbp-38] ; if modrm_skip(pos, rbit) != 0
+M call $modrm_skip ; if modrm_skip(pos, rbit) != 0
+M mov r10, rax ; if modrm_skip(pos, rbit) != 0
+M mov [rbp-20], r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, 0 ; if modrm_skip(pos, rbit) != 0
+M mov r11, r10 ; if modrm_skip(pos, rbit) != 0
+M mov r10, [rbp-20] ; if modrm_skip(pos, rbit) != 0
+M cmp r10, r11 ; if modrm_skip(pos, rbit) != 0
+M je $_if143e ; if modrm_skip(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if143e
+M mov r10, [rbp-18] ; if b == 198
+M mov [rbp-20], r10 ; if b == 198
+M mov r10, C6 ; if b == 198
+M mov r11, r10 ; if b == 198
+M mov r10, [rbp-20] ; if b == 198
+M cmp r10, r11 ; if b == 198
+M jne $_if144e ; if b == 198
+M mov r10, [rip+$mpos] ; if mpos + 1 > exelen
+M mov [rbp-28], r10 ; if mpos + 1 > exelen
+M mov r10, 1 ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-28] ; if mpos + 1 > exelen
+M add r10, r11 ; if mpos + 1 > exelen
+M mov [rbp-20], r10 ; if mpos + 1 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 1 > exelen
+M mov r11, r10 ; if mpos + 1 > exelen
+M mov r10, [rbp-20] ; if mpos + 1 > exelen
+M cmp r10, r11 ; if mpos + 1 > exelen
+M jle $_if145e ; if mpos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if145e
+M mov r10, [rip+$mpos] ; dpos = mpos + 1
+M mov [rbp-20], r10 ; dpos = mpos + 1
+M mov r10, 1 ; dpos = mpos + 1
+M mov r11, r10 ; dpos = mpos + 1
+M mov r10, [rbp-20] ; dpos = mpos + 1
+M add r10, r11 ; dpos = mpos + 1
+M mov [rip+$dpos], r10 ; dpos = mpos + 1
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if144e
+M mov r10, [rbp-18] ; if b == 199
+M mov [rbp-20], r10 ; if b == 199
+M mov r10, C7 ; if b == 199
+M mov r11, r10 ; if b == 199
+M mov r10, [rbp-20] ; if b == 199
+M cmp r10, r11 ; if b == 199
+M jne $_if146e ; if b == 199
+M mov r10, [rip+$mpos] ; if mpos + 4 > exelen
+M mov [rbp-28], r10 ; if mpos + 4 > exelen
+M mov r10, 4 ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-28] ; if mpos + 4 > exelen
+M add r10, r11 ; if mpos + 4 > exelen
+M mov [rbp-20], r10 ; if mpos + 4 > exelen
+M mov r10, [rip+$exelen] ; if mpos + 4 > exelen
+M mov r11, r10 ; if mpos + 4 > exelen
+M mov r10, [rbp-20] ; if mpos + 4 > exelen
+M cmp r10, r11 ; if mpos + 4 > exelen
+M jle $_if147e ; if mpos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if147e
+M mov r10, [rip+$mpos] ; dpos = mpos + 4
+M mov [rbp-20], r10 ; dpos = mpos + 4
+M mov r10, 4 ; dpos = mpos + 4
+M mov r11, r10 ; dpos = mpos + 4
+M mov r10, [rbp-20] ; dpos = mpos + 4
+M add r10, r11 ; dpos = mpos + 4
+M mov [rip+$dpos], r10 ; dpos = mpos + 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if146e
+M mov r10, [rbp-18] ; if b == 246
+M mov [rbp-20], r10 ; if b == 246
+M mov r10, F6 ; if b == 246
+M mov r11, r10 ; if b == 246
+M mov r10, [rbp-20] ; if b == 246
+M cmp r10, r11 ; if b == 246
+M jne $_if148e ; if b == 246
+M mov r10, [rip+$mreg] ; if mreg != 3
+M mov [rbp-20], r10 ; if mreg != 3
+M mov r10, 3 ; if mreg != 3
+M mov r11, r10 ; if mreg != 3
+M mov r10, [rbp-20] ; if mreg != 3
+M cmp r10, r11 ; if mreg != 3
+M je $_if149e ; if mreg != 3
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if149e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if148e
+M mov r10, [rbp-18] ; if b == 247
+M mov [rbp-20], r10 ; if b == 247
+M mov r10, F7 ; if b == 247
+M mov r11, r10 ; if b == 247
+M mov r10, [rbp-20] ; if b == 247
+M cmp r10, r11 ; if b == 247
+M jne $_if150e ; if b == 247
+M mov r10, [rip+$mreg] ; if mreg != 3 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 3 && mreg != 7
+M mov r10, 3 ; if mreg != 3 && mreg != 7
+M mov r11, r10 ; if mreg != 3 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 3 && mreg != 7
+M cmp r10, r11 ; if mreg != 3 && mreg != 7
+M je $_if151e ; if mreg != 3 && mreg != 7
+M mov r10, [rip+$mreg] ; if mreg != 3 && mreg != 7
+M mov [rbp-20], r10 ; if mreg != 3 && mreg != 7
+M mov r10, 7 ; if mreg != 3 && mreg != 7
+M mov r11, r10 ; if mreg != 3 && mreg != 7
+M mov r10, [rbp-20] ; if mreg != 3 && mreg != 7
+M cmp r10, r11 ; if mreg != 3 && mreg != 7
+M je $_if151e ; if mreg != 3 && mreg != 7
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if151e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if150e
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, 0 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 2
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 2
+M je $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, 1 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 2
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 2
+M je $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, [rip+$mreg] ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov [rbp-20], r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, 2 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r11, r10 ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, [rbp-20] ; if mreg != 0 && mreg != 1 && mreg != 2
+M cmp r10, r11 ; if mreg != 0 && mreg != 1 && mreg != 2
+M je $_if152e ; if mreg != 0 && mreg != 1 && mreg != 2
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:_if152e
+M mov r10, [rip+$mpos] ; dpos = mpos
+M mov [rip+$dpos], r10 ; dpos = mpos
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decgrp2
+M pop rbp ; выход decgrp2
+M ret ; выход decgrp2
+:decbr
+M push rbp ; кадр decbr
+M mov rbp, rsp ; кадр decbr
+M sub rsp, 60 ; кадр decbr
+M mov [rbp-8], rcx ; кадр decbr
+M mov [rbp-10], rdx ; кадр decbr
+M mov r10, [rbp-10] ; if b == 232
+M mov [rbp-20], r10 ; if b == 232
+M mov r10, E8 ; if b == 232
+M mov r11, r10 ; if b == 232
+M mov r10, [rbp-20] ; if b == 232
+M cmp r10, r11 ; if b == 232
+M jne $_if153e ; if b == 232
+M mov r10, [rbp-8] ; if pos + 4 > exelen
+M mov [rbp-28], r10 ; if pos + 4 > exelen
+M mov r10, 4 ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-28] ; if pos + 4 > exelen
+M add r10, r11 ; if pos + 4 > exelen
+M mov [rbp-20], r10 ; if pos + 4 > exelen
+M mov r10, [rip+$exelen] ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-20] ; if pos + 4 > exelen
+M cmp r10, r11 ; if pos + 4 > exelen
+M jle $_if154e ; if pos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if154e
+M mov r10, [rbp-8] ; rel = rel32(pos)
+M mov [rbp-30], r10 ; rel = rel32(pos)
+M mov rcx, [rbp-30] ; rel = rel32(pos)
+M call $rel32 ; rel = rel32(pos)
+M mov r10, rax ; rel = rel32(pos)
+M mov [rbp-18], r10 ; rel = rel32(pos)
+M mov r10, [rbp-8] ; dpos = pos + 4
+M mov [rbp-20], r10 ; dpos = pos + 4
+M mov r10, 4 ; dpos = pos + 4
+M mov r11, r10 ; dpos = pos + 4
+M mov r10, [rbp-20] ; dpos = pos + 4
+M add r10, r11 ; dpos = pos + 4
+M mov [rip+$dpos], r10 ; dpos = pos + 4
+M mov r10, [rip+$dpos] ; dtgt = dpos - rawptr + rel
+M mov [rbp-28], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rip+$rawptr] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-28] ; dtgt = dpos - rawptr + rel
+M sub r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rbp-20], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-18] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-20] ; dtgt = dpos - rawptr + rel
+M add r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rip+$dtgt], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, 4 ; dcls = 4
+M mov [rip+$dcls], r10 ; dcls = 4
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if153e
+M mov r10, [rbp-10] ; if b == 233
+M mov [rbp-20], r10 ; if b == 233
+M mov r10, E9 ; if b == 233
+M mov r11, r10 ; if b == 233
+M mov r10, [rbp-20] ; if b == 233
+M cmp r10, r11 ; if b == 233
+M jne $_if155e ; if b == 233
+M mov r10, [rbp-8] ; if pos + 4 > exelen
+M mov [rbp-28], r10 ; if pos + 4 > exelen
+M mov r10, 4 ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-28] ; if pos + 4 > exelen
+M add r10, r11 ; if pos + 4 > exelen
+M mov [rbp-20], r10 ; if pos + 4 > exelen
+M mov r10, [rip+$exelen] ; if pos + 4 > exelen
+M mov r11, r10 ; if pos + 4 > exelen
+M mov r10, [rbp-20] ; if pos + 4 > exelen
+M cmp r10, r11 ; if pos + 4 > exelen
+M jle $_if156e ; if pos + 4 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if156e
+M mov r10, [rbp-8] ; rel = rel32(pos)
+M mov [rbp-30], r10 ; rel = rel32(pos)
+M mov rcx, [rbp-30] ; rel = rel32(pos)
+M call $rel32 ; rel = rel32(pos)
+M mov r10, rax ; rel = rel32(pos)
+M mov [rbp-18], r10 ; rel = rel32(pos)
+M mov r10, [rbp-8] ; dpos = pos + 4
+M mov [rbp-20], r10 ; dpos = pos + 4
+M mov r10, 4 ; dpos = pos + 4
+M mov r11, r10 ; dpos = pos + 4
+M mov r10, [rbp-20] ; dpos = pos + 4
+M add r10, r11 ; dpos = pos + 4
+M mov [rip+$dpos], r10 ; dpos = pos + 4
+M mov r10, [rip+$dpos] ; dtgt = dpos - rawptr + rel
+M mov [rbp-28], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rip+$rawptr] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-28] ; dtgt = dpos - rawptr + rel
+M sub r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rbp-20], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-18] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-20] ; dtgt = dpos - rawptr + rel
+M add r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rip+$dtgt], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, 2 ; dcls = 2
+M mov [rip+$dcls], r10 ; dcls = 2
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if155e
+M mov r10, [rbp-10] ; if b == 235
+M mov [rbp-20], r10 ; if b == 235
+M mov r10, EB ; if b == 235
+M mov r11, r10 ; if b == 235
+M mov r10, [rbp-20] ; if b == 235
+M cmp r10, r11 ; if b == 235
+M jne $_if157e ; if b == 235
+M mov r10, [rbp-8] ; if pos + 1 > exelen
+M mov [rbp-28], r10 ; if pos + 1 > exelen
+M mov r10, 1 ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-28] ; if pos + 1 > exelen
+M add r10, r11 ; if pos + 1 > exelen
+M mov [rbp-20], r10 ; if pos + 1 > exelen
+M mov r10, [rip+$exelen] ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-20] ; if pos + 1 > exelen
+M cmp r10, r11 ; if pos + 1 > exelen
+M jle $_if158e ; if pos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if158e
+M mov r10, [rbp-8] ; rel = rel8(pos)
+M mov [rbp-30], r10 ; rel = rel8(pos)
+M mov rcx, [rbp-30] ; rel = rel8(pos)
+M call $rel8 ; rel = rel8(pos)
+M mov r10, rax ; rel = rel8(pos)
+M mov [rbp-18], r10 ; rel = rel8(pos)
+M mov r10, [rbp-8] ; dpos = pos + 1
+M mov [rbp-20], r10 ; dpos = pos + 1
+M mov r10, 1 ; dpos = pos + 1
+M mov r11, r10 ; dpos = pos + 1
+M mov r10, [rbp-20] ; dpos = pos + 1
+M add r10, r11 ; dpos = pos + 1
+M mov [rip+$dpos], r10 ; dpos = pos + 1
+M mov r10, [rip+$dpos] ; dtgt = dpos - rawptr + rel
+M mov [rbp-28], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rip+$rawptr] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-28] ; dtgt = dpos - rawptr + rel
+M sub r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rbp-20], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-18] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-20] ; dtgt = dpos - rawptr + rel
+M add r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rip+$dtgt], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, 2 ; dcls = 2
+M mov [rip+$dcls], r10 ; dcls = 2
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if157e
+M mov r10, [rbp-8] ; if pos + 1 > exelen
+M mov [rbp-28], r10 ; if pos + 1 > exelen
+M mov r10, 1 ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-28] ; if pos + 1 > exelen
+M add r10, r11 ; if pos + 1 > exelen
+M mov [rbp-20], r10 ; if pos + 1 > exelen
+M mov r10, [rip+$exelen] ; if pos + 1 > exelen
+M mov r11, r10 ; if pos + 1 > exelen
+M mov r10, [rbp-20] ; if pos + 1 > exelen
+M cmp r10, r11 ; if pos + 1 > exelen
+M jle $_if159e ; if pos + 1 > exelen
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:_if159e
+M mov r10, [rbp-8] ; rel = rel8(pos)
+M mov [rbp-30], r10 ; rel = rel8(pos)
+M mov rcx, [rbp-30] ; rel = rel8(pos)
+M call $rel8 ; rel = rel8(pos)
+M mov r10, rax ; rel = rel8(pos)
+M mov [rbp-18], r10 ; rel = rel8(pos)
+M mov r10, [rbp-8] ; dpos = pos + 1
+M mov [rbp-20], r10 ; dpos = pos + 1
+M mov r10, 1 ; dpos = pos + 1
+M mov r11, r10 ; dpos = pos + 1
+M mov r10, [rbp-20] ; dpos = pos + 1
+M add r10, r11 ; dpos = pos + 1
+M mov [rip+$dpos], r10 ; dpos = pos + 1
+M mov r10, [rip+$dpos] ; dtgt = dpos - rawptr + rel
+M mov [rbp-28], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rip+$rawptr] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-28] ; dtgt = dpos - rawptr + rel
+M sub r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rbp-20], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-18] ; dtgt = dpos - rawptr + rel
+M mov r11, r10 ; dtgt = dpos - rawptr + rel
+M mov r10, [rbp-20] ; dtgt = dpos - rawptr + rel
+M add r10, r11 ; dtgt = dpos - rawptr + rel
+M mov [rip+$dtgt], r10 ; dtgt = dpos - rawptr + rel
+M mov r10, 3 ; dcls = 3
+M mov [rip+$dcls], r10 ; dcls = 3
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decbr
+M pop rbp ; выход decbr
+M ret ; выход decbr
+:decode_ins
+M push rbp ; кадр decode_ins
+M mov rbp, rsp ; кадр decode_ins
+M sub rsp, B0 ; кадр decode_ins
+M mov [rbp-8], rcx ; кадр decode_ins
+M mov r10, 0 ; dcls = 0
+M mov [rip+$dcls], r10 ; dcls = 0
+M mov r10, 0 ; dtgt = 0
+M mov [rip+$dtgt], r10 ; dtgt = 0
+M mov r10, [rip+$rawptr] ; pos = rawptr + a
+M mov [rbp-58], r10 ; pos = rawptr + a
+M mov r10, [rbp-8] ; pos = rawptr + a
+M mov r11, r10 ; pos = rawptr + a
+M mov r10, [rbp-58] ; pos = rawptr + a
+M add r10, r11 ; pos = rawptr + a
+M mov [rbp-10], r10 ; pos = rawptr + a
+M mov r10, [rbp-10] ; b = fb(pos)
+M mov [rbp-68], r10 ; b = fb(pos)
+M mov rcx, [rbp-68] ; b = fb(pos)
+M call $fb ; b = fb(pos)
+M mov r10, rax ; b = fb(pos)
+M mov [rbp-18], r10 ; b = fb(pos)
+M mov r10, [rbp-18] ; if b < 0
+M mov [rbp-58], r10 ; if b < 0
+M mov r10, 0 ; if b < 0
+M mov r11, r10 ; if b < 0
+M mov r10, [rbp-58] ; if b < 0
+M cmp r10, r11 ; if b < 0
+M jge $_if160e ; if b < 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if160e
+M mov r10, [rbp-10] ; pos = pos + 1
+M mov [rbp-58], r10 ; pos = pos + 1
+M mov r10, 1 ; pos = pos + 1
+M mov r11, r10 ; pos = pos + 1
+M mov r10, [rbp-58] ; pos = pos + 1
+M add r10, r11 ; pos = pos + 1
+M mov [rbp-10], r10 ; pos = pos + 1
+M mov r10, 0 ; rex = 0
+M mov [rbp-20], r10 ; rex = 0
+M mov r10, [rbp-18] ; if b >= 64 && b <= 79
+M mov [rbp-58], r10 ; if b >= 64 && b <= 79
+M mov r10, 40 ; if b >= 64 && b <= 79
+M mov r11, r10 ; if b >= 64 && b <= 79
+M mov r10, [rbp-58] ; if b >= 64 && b <= 79
+M cmp r10, r11 ; if b >= 64 && b <= 79
+M jl $_if161e ; if b >= 64 && b <= 79
+M mov r10, [rbp-18] ; if b >= 64 && b <= 79
+M mov [rbp-58], r10 ; if b >= 64 && b <= 79
+M mov r10, 4F ; if b >= 64 && b <= 79
+M mov r11, r10 ; if b >= 64 && b <= 79
+M mov r10, [rbp-58] ; if b >= 64 && b <= 79
+M cmp r10, r11 ; if b >= 64 && b <= 79
+M jg $_if161e ; if b >= 64 && b <= 79
+M mov r10, [rbp-18] ; rex = b
+M mov [rbp-20], r10 ; rex = b
+M mov r10, [rbp-10] ; b = fb(pos)
+M mov [rbp-68], r10 ; b = fb(pos)
+M mov rcx, [rbp-68] ; b = fb(pos)
+M call $fb ; b = fb(pos)
+M mov r10, rax ; b = fb(pos)
+M mov [rbp-18], r10 ; b = fb(pos)
+M mov r10, [rbp-18] ; if b < 0
+M mov [rbp-58], r10 ; if b < 0
+M mov r10, 0 ; if b < 0
+M mov r11, r10 ; if b < 0
+M mov r10, [rbp-58] ; if b < 0
+M cmp r10, r11 ; if b < 0
+M jge $_if162e ; if b < 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if162e
+M mov r10, [rbp-10] ; pos = pos + 1
+M mov [rbp-58], r10 ; pos = pos + 1
+M mov r10, 1 ; pos = pos + 1
+M mov r11, r10 ; pos = pos + 1
+M mov r10, [rbp-58] ; pos = pos + 1
+M add r10, r11 ; pos = pos + 1
+M mov [rbp-10], r10 ; pos = pos + 1
+:_if161e
+M mov r10, [rbp-20] ; w = rex & 8
+M mov [rbp-58], r10 ; w = rex & 8
+M mov r10, 8 ; w = rex & 8
+M mov r11, r10 ; w = rex & 8
+M mov r10, [rbp-58] ; w = rex & 8
+M and r10, r11 ; w = rex & 8
+M mov [rbp-28], r10 ; w = rex & 8
+M mov r10, [rbp-20] ; rbit = (rex & 4) * 2
+M mov [rbp-60], r10 ; rbit = (rex & 4) * 2
+M mov r10, 4 ; rbit = (rex & 4) * 2
+M mov r11, r10 ; rbit = (rex & 4) * 2
+M mov r10, [rbp-60] ; rbit = (rex & 4) * 2
+M and r10, r11 ; rbit = (rex & 4) * 2
+M mov [rbp-58], r10 ; rbit = (rex & 4) * 2
+M mov r10, 2 ; rbit = (rex & 4) * 2
+M mov r11, r10 ; rbit = (rex & 4) * 2
+M mov r10, [rbp-58] ; rbit = (rex & 4) * 2
+M imul r10, r11 ; rbit = (rex & 4) * 2
+M mov [rbp-30], r10 ; rbit = (rex & 4) * 2
+M mov r10, [rbp-18] ; if b == 15
+M mov [rbp-58], r10 ; if b == 15
+M mov r10, F ; if b == 15
+M mov r11, r10 ; if b == 15
+M mov r10, [rbp-58] ; if b == 15
+M cmp r10, r11 ; if b == 15
+M jne $_if163e ; if b == 15
+M mov r10, [rbp-10] ; if dec0f(pos, rbit) != 0
+M mov [rbp-68], r10 ; if dec0f(pos, rbit) != 0
+M mov r10, [rbp-30] ; if dec0f(pos, rbit) != 0
+M mov [rbp-70], r10 ; if dec0f(pos, rbit) != 0
+M mov rcx, [rbp-68] ; if dec0f(pos, rbit) != 0
+M mov rdx, [rbp-70] ; if dec0f(pos, rbit) != 0
+M call $dec0f ; if dec0f(pos, rbit) != 0
+M mov r10, rax ; if dec0f(pos, rbit) != 0
+M mov [rbp-58], r10 ; if dec0f(pos, rbit) != 0
+M mov r10, 0 ; if dec0f(pos, rbit) != 0
+M mov r11, r10 ; if dec0f(pos, rbit) != 0
+M mov r10, [rbp-58] ; if dec0f(pos, rbit) != 0
+M cmp r10, r11 ; if dec0f(pos, rbit) != 0
+M je $_if164e ; if dec0f(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if164e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if163e
+M mov r10, [rbp-18] ; base = b & 248
+M mov [rbp-58], r10 ; base = b & 248
+M mov r10, F8 ; base = b & 248
+M mov r11, r10 ; base = b & 248
+M mov r10, [rbp-58] ; base = b & 248
+M and r10, r11 ; base = b & 248
+M mov [rbp-38], r10 ; base = b & 248
+M mov r10, 0 ; alu = 0
+M mov [rbp-40], r10 ; alu = 0
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 0 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165d2 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jmp $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d2
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 8 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165d3 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jmp $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d3
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 20 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165d4 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jmp $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d4
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 28 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165d5 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jmp $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d5
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 30 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165d6 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jmp $_if165t ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165d6
+M mov r10, [rbp-38] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov [rbp-58], r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, 38 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r11, r10 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M mov r10, [rbp-58] ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M cmp r10, r11 ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+M jne $_if165e ; if base == 0 || base == 8 || base == 32 || base == 40 || base == 48 || base == 56
+:_if165t
+M mov r10, 1 ; alu = 1
+M mov [rbp-40], r10 ; alu = 1
+:_if165e
+M mov r10, 0 ; short1 = 0
+M mov [rbp-48], r10 ; short1 = 0
+M mov r10, [rbp-18] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov [rbp-58], r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, 4 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r11, r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, [rbp-58] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M cmp r10, r11 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jne $_if166d2 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jmp $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d2
+M mov r10, [rbp-18] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov [rbp-58], r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, C ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r11, r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, [rbp-58] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M cmp r10, r11 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jne $_if166d3 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jmp $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d3
+M mov r10, [rbp-18] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov [rbp-58], r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, 24 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r11, r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, [rbp-58] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M cmp r10, r11 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jne $_if166d4 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jmp $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d4
+M mov r10, [rbp-18] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov [rbp-58], r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, 2C ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r11, r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, [rbp-58] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M cmp r10, r11 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jne $_if166d5 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jmp $_if166t ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166d5
+M mov r10, [rbp-18] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov [rbp-58], r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, 3C ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r11, r10 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M mov r10, [rbp-58] ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M cmp r10, r11 ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+M jne $_if166e ; if b == 4 || b == 12 || b == 36 || b == 44 || b == 60
+:_if166t
+M mov r10, 1 ; short1 = 1
+M mov [rbp-48], r10 ; short1 = 1
+:_if166e
+M mov r10, 0 ; short4 = 0
+M mov [rbp-50], r10 ; short4 = 0
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, 5 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167d2 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jmp $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d2
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, D ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167d3 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jmp $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d3
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, 25 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167d4 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jmp $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d4
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, 2D ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167d5 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jmp $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d5
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, 35 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167d6 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jmp $_if167t ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167d6
+M mov r10, [rbp-18] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov [rbp-58], r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, 3D ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r11, r10 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M mov r10, [rbp-58] ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M cmp r10, r11 ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+M jne $_if167e ; if b == 5 || b == 13 || b == 37 || b == 45 || b == 53 || b == 61
+:_if167t
+M mov r10, 1 ; short4 = 1
+M mov [rbp-50], r10 ; short4 = 1
+:_if167e
+M mov r10, [rbp-18] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov [rbp-60], r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, 7 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r11, r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-60] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M and r10, r11 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov [rbp-58], r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, 4 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r11, r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-58] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M cmp r10, r11 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jge $_if168d2 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-40] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov [rbp-58], r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, 1 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r11, r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-58] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M cmp r10, r11 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jne $_if168d2 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jmp $_if168t ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168d2
+M mov r10, [rbp-48] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov [rbp-58], r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, 1 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r11, r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-58] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M cmp r10, r11 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jne $_if168d3 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jmp $_if168t ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168d3
+M mov r10, [rbp-50] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov [rbp-58], r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, 1 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r11, r10 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M mov r10, [rbp-58] ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M cmp r10, r11 ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+M jne $_if168e ; if (b & 7) < 4 && alu == 1 || short1 == 1 || short4 == 1
+:_if168t
+M mov r10, [rbp-10] ; if decalu(pos, rbit, b) != 0
+M mov [rbp-68], r10 ; if decalu(pos, rbit, b) != 0
+M mov r10, [rbp-30] ; if decalu(pos, rbit, b) != 0
+M mov [rbp-70], r10 ; if decalu(pos, rbit, b) != 0
+M mov r10, [rbp-18] ; if decalu(pos, rbit, b) != 0
+M mov [rbp-78], r10 ; if decalu(pos, rbit, b) != 0
+M mov rcx, [rbp-68] ; if decalu(pos, rbit, b) != 0
+M mov rdx, [rbp-70] ; if decalu(pos, rbit, b) != 0
+M mov r8, [rbp-78] ; if decalu(pos, rbit, b) != 0
+M call $decalu ; if decalu(pos, rbit, b) != 0
+M mov r10, rax ; if decalu(pos, rbit, b) != 0
+M mov [rbp-58], r10 ; if decalu(pos, rbit, b) != 0
+M mov r10, 0 ; if decalu(pos, rbit, b) != 0
+M mov r11, r10 ; if decalu(pos, rbit, b) != 0
+M mov r10, [rbp-58] ; if decalu(pos, rbit, b) != 0
+M cmp r10, r11 ; if decalu(pos, rbit, b) != 0
+M je $_if169e ; if decalu(pos, rbit, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if169e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if168e
+M mov r10, [rbp-18] ; if b == 128 || b == 129 || b == 131
+M mov [rbp-58], r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, 80 ; if b == 128 || b == 129 || b == 131
+M mov r11, r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, [rbp-58] ; if b == 128 || b == 129 || b == 131
+M cmp r10, r11 ; if b == 128 || b == 129 || b == 131
+M jne $_if170d2 ; if b == 128 || b == 129 || b == 131
+M jmp $_if170t ; if b == 128 || b == 129 || b == 131
+:_if170d2
+M mov r10, [rbp-18] ; if b == 128 || b == 129 || b == 131
+M mov [rbp-58], r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, 81 ; if b == 128 || b == 129 || b == 131
+M mov r11, r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, [rbp-58] ; if b == 128 || b == 129 || b == 131
+M cmp r10, r11 ; if b == 128 || b == 129 || b == 131
+M jne $_if170d3 ; if b == 128 || b == 129 || b == 131
+M jmp $_if170t ; if b == 128 || b == 129 || b == 131
+:_if170d3
+M mov r10, [rbp-18] ; if b == 128 || b == 129 || b == 131
+M mov [rbp-58], r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, 83 ; if b == 128 || b == 129 || b == 131
+M mov r11, r10 ; if b == 128 || b == 129 || b == 131
+M mov r10, [rbp-58] ; if b == 128 || b == 129 || b == 131
+M cmp r10, r11 ; if b == 128 || b == 129 || b == 131
+M jne $_if170e ; if b == 128 || b == 129 || b == 131
+:_if170t
+M mov r10, [rbp-10] ; if decgrp(pos, rbit, b) != 0
+M mov [rbp-68], r10 ; if decgrp(pos, rbit, b) != 0
+M mov r10, [rbp-30] ; if decgrp(pos, rbit, b) != 0
+M mov [rbp-70], r10 ; if decgrp(pos, rbit, b) != 0
+M mov r10, [rbp-18] ; if decgrp(pos, rbit, b) != 0
+M mov [rbp-78], r10 ; if decgrp(pos, rbit, b) != 0
+M mov rcx, [rbp-68] ; if decgrp(pos, rbit, b) != 0
+M mov rdx, [rbp-70] ; if decgrp(pos, rbit, b) != 0
+M mov r8, [rbp-78] ; if decgrp(pos, rbit, b) != 0
+M call $decgrp ; if decgrp(pos, rbit, b) != 0
+M mov r10, rax ; if decgrp(pos, rbit, b) != 0
+M mov [rbp-58], r10 ; if decgrp(pos, rbit, b) != 0
+M mov r10, 0 ; if decgrp(pos, rbit, b) != 0
+M mov r11, r10 ; if decgrp(pos, rbit, b) != 0
+M mov r10, [rbp-58] ; if decgrp(pos, rbit, b) != 0
+M cmp r10, r11 ; if decgrp(pos, rbit, b) != 0
+M je $_if171e ; if decgrp(pos, rbit, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if171e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if170e
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 84 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d2 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d2
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 85 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d3 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d3
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 88 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d4 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d4
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 89 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d5 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d5
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 8A ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d6 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d6
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 8B ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172d7 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jmp $_if172t ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172d7
+M mov r10, [rbp-18] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov [rbp-58], r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, 8D ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r11, r10 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M mov r10, [rbp-58] ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M cmp r10, r11 ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+M jne $_if172e ; if b == 132 || b == 133 || b == 136 || b == 137 || b == 138 || b == 139 || b == 141
+:_if172t
+M mov r10, [rbp-10] ; if decmod(pos, rbit) != 0
+M mov [rbp-68], r10 ; if decmod(pos, rbit) != 0
+M mov r10, [rbp-30] ; if decmod(pos, rbit) != 0
+M mov [rbp-70], r10 ; if decmod(pos, rbit) != 0
+M mov rcx, [rbp-68] ; if decmod(pos, rbit) != 0
+M mov rdx, [rbp-70] ; if decmod(pos, rbit) != 0
+M call $decmod ; if decmod(pos, rbit) != 0
+M mov r10, rax ; if decmod(pos, rbit) != 0
+M mov [rbp-58], r10 ; if decmod(pos, rbit) != 0
+M mov r10, 0 ; if decmod(pos, rbit) != 0
+M mov r11, r10 ; if decmod(pos, rbit) != 0
+M mov r10, [rbp-58] ; if decmod(pos, rbit) != 0
+M cmp r10, r11 ; if decmod(pos, rbit) != 0
+M je $_if173e ; if decmod(pos, rbit) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if173e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if172e
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, 50 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jl $_if174d2 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, 5F ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jg $_if174d2 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jmp $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d2
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, 98 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jne $_if174d3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jmp $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d3
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, 99 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jne $_if174d4 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jmp $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d4
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, C3 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jne $_if174d5 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jmp $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d5
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, CC ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jne $_if174d6 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jmp $_if174t ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174d6
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, B0 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jl $_if174e ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-18] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov [rbp-58], r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, BF ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r11, r10 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M mov r10, [rbp-58] ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M cmp r10, r11 ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+M jg $_if174e ; if b >= 80 && b <= 95 || b == 152 || b == 153 || b == 195 || b == 204 || b >= 176 && b <= 191
+:_if174t
+M mov r10, [rbp-10] ; if decimm(pos, w, b) != 0
+M mov [rbp-68], r10 ; if decimm(pos, w, b) != 0
+M mov r10, [rbp-28] ; if decimm(pos, w, b) != 0
+M mov [rbp-70], r10 ; if decimm(pos, w, b) != 0
+M mov r10, [rbp-18] ; if decimm(pos, w, b) != 0
+M mov [rbp-78], r10 ; if decimm(pos, w, b) != 0
+M mov rcx, [rbp-68] ; if decimm(pos, w, b) != 0
+M mov rdx, [rbp-70] ; if decimm(pos, w, b) != 0
+M mov r8, [rbp-78] ; if decimm(pos, w, b) != 0
+M call $decimm ; if decimm(pos, w, b) != 0
+M mov r10, rax ; if decimm(pos, w, b) != 0
+M mov [rbp-58], r10 ; if decimm(pos, w, b) != 0
+M mov r10, 0 ; if decimm(pos, w, b) != 0
+M mov r11, r10 ; if decimm(pos, w, b) != 0
+M mov r10, [rbp-58] ; if decimm(pos, w, b) != 0
+M cmp r10, r11 ; if decimm(pos, w, b) != 0
+M je $_if175e ; if decimm(pos, w, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if175e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if174e
+M mov r10, [rbp-18] ; if b == 192 || b == 193 || b == 211
+M mov [rbp-58], r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, C0 ; if b == 192 || b == 193 || b == 211
+M mov r11, r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, [rbp-58] ; if b == 192 || b == 193 || b == 211
+M cmp r10, r11 ; if b == 192 || b == 193 || b == 211
+M jne $_if176d2 ; if b == 192 || b == 193 || b == 211
+M jmp $_if176t ; if b == 192 || b == 193 || b == 211
+:_if176d2
+M mov r10, [rbp-18] ; if b == 192 || b == 193 || b == 211
+M mov [rbp-58], r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, C1 ; if b == 192 || b == 193 || b == 211
+M mov r11, r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, [rbp-58] ; if b == 192 || b == 193 || b == 211
+M cmp r10, r11 ; if b == 192 || b == 193 || b == 211
+M jne $_if176d3 ; if b == 192 || b == 193 || b == 211
+M jmp $_if176t ; if b == 192 || b == 193 || b == 211
+:_if176d3
+M mov r10, [rbp-18] ; if b == 192 || b == 193 || b == 211
+M mov [rbp-58], r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, D3 ; if b == 192 || b == 193 || b == 211
+M mov r11, r10 ; if b == 192 || b == 193 || b == 211
+M mov r10, [rbp-58] ; if b == 192 || b == 193 || b == 211
+M cmp r10, r11 ; if b == 192 || b == 193 || b == 211
+M jne $_if176e ; if b == 192 || b == 193 || b == 211
+:_if176t
+M mov r10, [rbp-10] ; if decshift(pos, rbit, b) != 0
+M mov [rbp-68], r10 ; if decshift(pos, rbit, b) != 0
+M mov r10, [rbp-30] ; if decshift(pos, rbit, b) != 0
+M mov [rbp-70], r10 ; if decshift(pos, rbit, b) != 0
+M mov r10, [rbp-18] ; if decshift(pos, rbit, b) != 0
+M mov [rbp-78], r10 ; if decshift(pos, rbit, b) != 0
+M mov rcx, [rbp-68] ; if decshift(pos, rbit, b) != 0
+M mov rdx, [rbp-70] ; if decshift(pos, rbit, b) != 0
+M mov r8, [rbp-78] ; if decshift(pos, rbit, b) != 0
+M call $decshift ; if decshift(pos, rbit, b) != 0
+M mov r10, rax ; if decshift(pos, rbit, b) != 0
+M mov [rbp-58], r10 ; if decshift(pos, rbit, b) != 0
+M mov r10, 0 ; if decshift(pos, rbit, b) != 0
+M mov r11, r10 ; if decshift(pos, rbit, b) != 0
+M mov r10, [rbp-58] ; if decshift(pos, rbit, b) != 0
+M cmp r10, r11 ; if decshift(pos, rbit, b) != 0
+M je $_if177e ; if decshift(pos, rbit, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if177e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if176e
+M mov r10, [rbp-18] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov [rbp-58], r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, C6 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r11, r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, [rbp-58] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M cmp r10, r11 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jne $_if178d2 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jmp $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d2
+M mov r10, [rbp-18] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov [rbp-58], r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, C7 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r11, r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, [rbp-58] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M cmp r10, r11 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jne $_if178d3 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jmp $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d3
+M mov r10, [rbp-18] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov [rbp-58], r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, F6 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r11, r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, [rbp-58] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M cmp r10, r11 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jne $_if178d4 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jmp $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d4
+M mov r10, [rbp-18] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov [rbp-58], r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, F7 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r11, r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, [rbp-58] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M cmp r10, r11 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jne $_if178d5 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jmp $_if178t ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178d5
+M mov r10, [rbp-18] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov [rbp-58], r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, FF ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r11, r10 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M mov r10, [rbp-58] ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M cmp r10, r11 ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+M jne $_if178e ; if b == 198 || b == 199 || b == 246 || b == 247 || b == 255
+:_if178t
+M mov r10, [rbp-10] ; if decgrp2(pos, rbit, b) != 0
+M mov [rbp-68], r10 ; if decgrp2(pos, rbit, b) != 0
+M mov r10, [rbp-30] ; if decgrp2(pos, rbit, b) != 0
+M mov [rbp-70], r10 ; if decgrp2(pos, rbit, b) != 0
+M mov r10, [rbp-18] ; if decgrp2(pos, rbit, b) != 0
+M mov [rbp-78], r10 ; if decgrp2(pos, rbit, b) != 0
+M mov rcx, [rbp-68] ; if decgrp2(pos, rbit, b) != 0
+M mov rdx, [rbp-70] ; if decgrp2(pos, rbit, b) != 0
+M mov r8, [rbp-78] ; if decgrp2(pos, rbit, b) != 0
+M call $decgrp2 ; if decgrp2(pos, rbit, b) != 0
+M mov r10, rax ; if decgrp2(pos, rbit, b) != 0
+M mov [rbp-58], r10 ; if decgrp2(pos, rbit, b) != 0
+M mov r10, 0 ; if decgrp2(pos, rbit, b) != 0
+M mov r11, r10 ; if decgrp2(pos, rbit, b) != 0
+M mov r10, [rbp-58] ; if decgrp2(pos, rbit, b) != 0
+M cmp r10, r11 ; if decgrp2(pos, rbit, b) != 0
+M je $_if179e ; if decgrp2(pos, rbit, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if179e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if178e
+M mov r10, [rbp-18] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov [rbp-58], r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, E8 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r11, r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-58] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M cmp r10, r11 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jne $_if180d2 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jmp $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d2
+M mov r10, [rbp-18] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov [rbp-58], r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, E9 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r11, r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-58] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M cmp r10, r11 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jne $_if180d3 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jmp $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d3
+M mov r10, [rbp-18] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov [rbp-58], r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, EB ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r11, r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-58] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M cmp r10, r11 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jne $_if180d4 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jmp $_if180t ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180d4
+M mov r10, [rbp-18] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov [rbp-58], r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, 70 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r11, r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-58] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M cmp r10, r11 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jl $_if180e ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-18] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov [rbp-58], r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, 7F ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r11, r10 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M mov r10, [rbp-58] ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M cmp r10, r11 ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+M jg $_if180e ; if b == 232 || b == 233 || b == 235 || b >= 112 && b <= 127
+:_if180t
+M mov r10, [rbp-10] ; if decbr(pos, b) != 0
+M mov [rbp-68], r10 ; if decbr(pos, b) != 0
+M mov r10, [rbp-18] ; if decbr(pos, b) != 0
+M mov [rbp-70], r10 ; if decbr(pos, b) != 0
+M mov rcx, [rbp-68] ; if decbr(pos, b) != 0
+M mov rdx, [rbp-70] ; if decbr(pos, b) != 0
+M call $decbr ; if decbr(pos, b) != 0
+M mov r10, rax ; if decbr(pos, b) != 0
+M mov [rbp-58], r10 ; if decbr(pos, b) != 0
+M mov r10, 0 ; if decbr(pos, b) != 0
+M mov r11, r10 ; if decbr(pos, b) != 0
+M mov r10, [rbp-58] ; if decbr(pos, b) != 0
+M cmp r10, r11 ; if decbr(pos, b) != 0
+M je $_if181e ; if decbr(pos, b) != 0
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if181e
+M mov r10, [rip+$dpos] ; dlen = dpos - rawptr - a
+M mov [rbp-60], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rip+$rawptr] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-60] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rbp-58], r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-8] ; dlen = dpos - rawptr - a
+M mov r11, r10 ; dlen = dpos - rawptr - a
+M mov r10, [rbp-58] ; dlen = dpos - rawptr - a
+M sub r10, r11 ; dlen = dpos - rawptr - a
+M mov [rip+$dlen], r10 ; dlen = dpos - rawptr - a
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:_if180e
+M mov r10, 1 ; return 1
+M mov rax, r10 ; return 1
+M mov rsp, rbp ; выход decode_ins
+M pop rbp ; выход decode_ins
+M ret ; выход decode_ins
+:walk_code
+M push rbp ; кадр walk_code
+M mov rbp, rsp ; кадр walk_code
+M sub rsp, A0 ; кадр walk_code
+M mov r10, 0 ; insmap = GlobalAlloc(0, 262145)
+M mov [rbp-40], r10 ; insmap = GlobalAlloc(0, 262145)
+M mov r10, 40001 ; insmap = GlobalAlloc(0, 262145)
+M mov [rbp-48], r10 ; insmap = GlobalAlloc(0, 262145)
+M mov rcx, [rbp-40] ; insmap = GlobalAlloc(0, 262145)
+M mov rdx, [rbp-48] ; insmap = GlobalAlloc(0, 262145)
+M call [rip+$_iat_globalalloc] ; insmap = GlobalAlloc(0, 262145)
+M mov r10, rax ; insmap = GlobalAlloc(0, 262145)
+M mov [rip+$insmap], r10 ; insmap = GlobalAlloc(0, 262145)
+M mov r10, 0 ; lenmap = GlobalAlloc(0, 262145)
+M mov [rbp-40], r10 ; lenmap = GlobalAlloc(0, 262145)
+M mov r10, 40001 ; lenmap = GlobalAlloc(0, 262145)
+M mov [rbp-48], r10 ; lenmap = GlobalAlloc(0, 262145)
+M mov rcx, [rbp-40] ; lenmap = GlobalAlloc(0, 262145)
+M mov rdx, [rbp-48] ; lenmap = GlobalAlloc(0, 262145)
+M call [rip+$_iat_globalalloc] ; lenmap = GlobalAlloc(0, 262145)
+M mov r10, rax ; lenmap = GlobalAlloc(0, 262145)
+M mov [rip+$lenmap], r10 ; lenmap = GlobalAlloc(0, 262145)
+M mov r10, 0 ; pend = GlobalAlloc(0, 1048584)
+M mov [rbp-40], r10 ; pend = GlobalAlloc(0, 1048584)
+M mov r10, 100008 ; pend = GlobalAlloc(0, 1048584)
+M mov [rbp-48], r10 ; pend = GlobalAlloc(0, 1048584)
+M mov rcx, [rbp-40] ; pend = GlobalAlloc(0, 1048584)
+M mov rdx, [rbp-48] ; pend = GlobalAlloc(0, 1048584)
+M call [rip+$_iat_globalalloc] ; pend = GlobalAlloc(0, 1048584)
+M mov r10, rax ; pend = GlobalAlloc(0, 1048584)
+M mov [rip+$pend], r10 ; pend = GlobalAlloc(0, 1048584)
+M mov r10, [rip+$insmap] ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov [rbp-20], r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, 0 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r11, r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, [rbp-20] ; if insmap == 0 || lenmap == 0 || pend == 0
+M cmp r10, r11 ; if insmap == 0 || lenmap == 0 || pend == 0
+M jne $_if182d2 ; if insmap == 0 || lenmap == 0 || pend == 0
+M jmp $_if182t ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182d2
+M mov r10, [rip+$lenmap] ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov [rbp-20], r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, 0 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r11, r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, [rbp-20] ; if insmap == 0 || lenmap == 0 || pend == 0
+M cmp r10, r11 ; if insmap == 0 || lenmap == 0 || pend == 0
+M jne $_if182d3 ; if insmap == 0 || lenmap == 0 || pend == 0
+M jmp $_if182t ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182d3
+M mov r10, [rip+$pend] ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov [rbp-20], r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, 0 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r11, r10 ; if insmap == 0 || lenmap == 0 || pend == 0
+M mov r10, [rbp-20] ; if insmap == 0 || lenmap == 0 || pend == 0
+M cmp r10, r11 ; if insmap == 0 || lenmap == 0 || pend == 0
+M jne $_if182e ; if insmap == 0 || lenmap == 0 || pend == 0
+:_if182t
+M lea r10, [rip+$s_rexe] ; print_error(s_rexe, len(s_rexe), 5)
+M mov [rbp-40], r10 ; print_error(s_rexe, len(s_rexe), 5)
+M mov r10, 1A ; print_error(s_rexe, len(s_rexe), 5)
+M mov [rbp-48], r10 ; print_error(s_rexe, len(s_rexe), 5)
+M mov r10, 5 ; print_error(s_rexe, len(s_rexe), 5)
+M mov [rbp-50], r10 ; print_error(s_rexe, len(s_rexe), 5)
+M mov rcx, [rbp-40] ; print_error(s_rexe, len(s_rexe), 5)
+M mov rdx, [rbp-48] ; print_error(s_rexe, len(s_rexe), 5)
+M mov r8, [rbp-50] ; print_error(s_rexe, len(s_rexe), 5)
+M call $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if182e
+M mov r10, [rip+$vsize] ; if vsize < rawsize
+M mov [rbp-20], r10 ; if vsize < rawsize
+M mov r10, [rip+$rawsize] ; if vsize < rawsize
+M mov r11, r10 ; if vsize < rawsize
+M mov r10, [rbp-20] ; if vsize < rawsize
+M cmp r10, r11 ; if vsize < rawsize
+M jge $_if183 ; if vsize < rawsize
+M mov r10, [rip+$vsize] ; rawlim = vsize
+M mov [rip+$rawlim], r10 ; rawlim = vsize
+M jmp $_if183e ; if vsize < rawsize
+:_if183
+M mov r10, [rip+$rawsize] ; rawlim = rawsize
+M mov [rip+$rawlim], r10 ; rawlim = rawsize
+:_if183e
+M mov r10, [rip+$pend] ; pend[0] = entryrva - 4096
+M mov [rbp-58], r10 ; pend[0] = entryrva - 4096
+M mov r10, 0 ; pend[0] = entryrva - 4096
+M mov [rbp-60], r10 ; pend[0] = entryrva - 4096
+M mov r10, [rip+$entryrva] ; pend[0] = entryrva - 4096
+M mov [rbp-20], r10 ; pend[0] = entryrva - 4096
+M mov r10, 1000 ; pend[0] = entryrva - 4096
+M mov r11, r10 ; pend[0] = entryrva - 4096
+M mov r10, [rbp-20] ; pend[0] = entryrva - 4096
+M sub r10, r11 ; pend[0] = entryrva - 4096
+M mov [rbp-68], r10 ; pend[0] = entryrva - 4096
+M mov r10, [rbp-58] ; pend[0] = entryrva - 4096
+M mov r11, [rbp-60] ; pend[0] = entryrva - 4096
+M shl r11, 3 ; pend[0] = entryrva - 4096
+M add r10, r11 ; pend[0] = entryrva - 4096
+M mov r11, [rbp-68] ; pend[0] = entryrva - 4096
+M mov [r10], r11 ; pend[0] = entryrva - 4096
+M mov r10, 1 ; psp = 1
+M mov [rip+$psp], r10 ; psp = 1
+:_w184
+M mov r10, [rip+$psp] ; while psp > 0
+M mov [rbp-20], r10 ; while psp > 0
+M mov r10, 0 ; while psp > 0
+M mov r11, r10 ; while psp > 0
+M mov r10, [rbp-20] ; while psp > 0
+M cmp r10, r11 ; while psp > 0
+M jle $_w184e ; while psp > 0
+M mov r10, [rip+$psp] ; psp = psp - 1
+M mov [rbp-20], r10 ; psp = psp - 1
+M mov r10, 1 ; psp = psp - 1
+M mov r11, r10 ; psp = psp - 1
+M mov r10, [rbp-20] ; psp = psp - 1
+M sub r10, r11 ; psp = psp - 1
+M mov [rip+$psp], r10 ; psp = psp - 1
+M mov r10, [rip+$pend] ; a = pend[psp]
+M mov [rbp-20], r10 ; a = pend[psp]
+M mov r10, [rip+$psp] ; a = pend[psp]
+M shl r10, 3 ; a = pend[psp]
+M mov r11, r10 ; a = pend[psp]
+M mov r10, [rbp-20] ; a = pend[psp]
+M add r10, r11 ; a = pend[psp]
+M mov r10, [r10] ; a = pend[psp]
+M mov [rbp-8], r10 ; a = pend[psp]
+:_w185
+M mov r10, [rbp-8] ; while a >= 0 && a < rawlim
+M mov [rbp-20], r10 ; while a >= 0 && a < rawlim
+M mov r10, 0 ; while a >= 0 && a < rawlim
+M mov r11, r10 ; while a >= 0 && a < rawlim
+M mov r10, [rbp-20] ; while a >= 0 && a < rawlim
+M cmp r10, r11 ; while a >= 0 && a < rawlim
+M jl $_w185e ; while a >= 0 && a < rawlim
+M mov r10, [rbp-8] ; while a >= 0 && a < rawlim
+M mov [rbp-20], r10 ; while a >= 0 && a < rawlim
+M mov r10, [rip+$rawlim] ; while a >= 0 && a < rawlim
+M mov r11, r10 ; while a >= 0 && a < rawlim
+M mov r10, [rbp-20] ; while a >= 0 && a < rawlim
+M cmp r10, r11 ; while a >= 0 && a < rawlim
+M jge $_w185e ; while a >= 0 && a < rawlim
+M mov r10, [rip+$insmap] ; if getb(insmap, a) == 1
+M mov [rbp-28], r10 ; if getb(insmap, a) == 1
+M mov r10, [rbp-8] ; if getb(insmap, a) == 1
+M mov r11, r10 ; if getb(insmap, a) == 1
+M mov r10, [rbp-28] ; if getb(insmap, a) == 1
+M movzx r10d, byte [r10+r11] ; if getb(insmap, a) == 1
+M mov [rbp-20], r10 ; if getb(insmap, a) == 1
+M mov r10, 1 ; if getb(insmap, a) == 1
+M mov r11, r10 ; if getb(insmap, a) == 1
+M mov r10, [rbp-20] ; if getb(insmap, a) == 1
+M cmp r10, r11 ; if getb(insmap, a) == 1
+M jne $_if186e ; if getb(insmap, a) == 1
+M jmp $_w185e ; break
+:_if186e
+M mov r10, [rbp-8] ; if decode_ins(a) != 0
+M mov [rbp-40], r10 ; if decode_ins(a) != 0
+M mov rcx, [rbp-40] ; if decode_ins(a) != 0
+M call $decode_ins ; if decode_ins(a) != 0
+M mov r10, rax ; if decode_ins(a) != 0
+M mov [rbp-20], r10 ; if decode_ins(a) != 0
+M mov r10, 0 ; if decode_ins(a) != 0
+M mov r11, r10 ; if decode_ins(a) != 0
+M mov r10, [rbp-20] ; if decode_ins(a) != 0
+M cmp r10, r11 ; if decode_ins(a) != 0
+M je $_if187e ; if decode_ins(a) != 0
+M jmp $_w185e ; break
+:_if187e
+M mov r10, 0 ; z = 0
+M mov [rbp-10], r10 ; z = 0
+M mov r10, 0 ; j = 0
+M mov [rbp-18], r10 ; j = 0
+:_w188
+M mov r10, [rbp-18] ; while j < dlen
+M mov [rbp-20], r10 ; while j < dlen
+M mov r10, [rip+$dlen] ; while j < dlen
+M mov r11, r10 ; while j < dlen
+M mov r10, [rbp-20] ; while j < dlen
+M cmp r10, r11 ; while j < dlen
+M jge $_w188e ; while j < dlen
+M mov r10, [rip+$exebuf] ; if getb(exebuf, rawptr + a + j) != 0
+M mov [rbp-28], r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rip+$rawptr] ; if getb(exebuf, rawptr + a + j) != 0
+M mov [rbp-38], r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-8] ; if getb(exebuf, rawptr + a + j) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-38] ; if getb(exebuf, rawptr + a + j) != 0
+M add r10, r11 ; if getb(exebuf, rawptr + a + j) != 0
+M mov [rbp-30], r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-18] ; if getb(exebuf, rawptr + a + j) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-30] ; if getb(exebuf, rawptr + a + j) != 0
+M add r10, r11 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-28] ; if getb(exebuf, rawptr + a + j) != 0
+M movzx r10d, byte [r10+r11] ; if getb(exebuf, rawptr + a + j) != 0
+M mov [rbp-20], r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, 0 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, [rbp-20] ; if getb(exebuf, rawptr + a + j) != 0
+M cmp r10, r11 ; if getb(exebuf, rawptr + a + j) != 0
+M je $_if189e ; if getb(exebuf, rawptr + a + j) != 0
+M mov r10, 1 ; z = 1
+M mov [rbp-10], r10 ; z = 1
+M jmp $_w188e ; break
+:_if189e
+M mov r10, [rbp-18] ; j = j + 1
+M mov [rbp-20], r10 ; j = j + 1
+M mov r10, 1 ; j = j + 1
+M mov r11, r10 ; j = j + 1
+M mov r10, [rbp-20] ; j = j + 1
+M add r10, r11 ; j = j + 1
+M mov [rbp-18], r10 ; j = j + 1
+M jmp $_w188 ; while j < dlen
+:_w188e
+M mov r10, [rbp-10] ; if z == 0
+M mov [rbp-20], r10 ; if z == 0
+M mov r10, 0 ; if z == 0
+M mov r11, r10 ; if z == 0
+M mov r10, [rbp-20] ; if z == 0
+M cmp r10, r11 ; if z == 0
+M jne $_if190e ; if z == 0
+M jmp $_w185e ; break
+:_if190e
+M mov r10, [rip+$insmap] ; setb(insmap, a, 1)
+M mov [rbp-58], r10 ; setb(insmap, a, 1)
+M mov r10, [rbp-8] ; setb(insmap, a, 1)
+M mov [rbp-60], r10 ; setb(insmap, a, 1)
+M mov r10, 1 ; setb(insmap, a, 1)
+M mov [rbp-68], r10 ; setb(insmap, a, 1)
+M mov r10, [rbp-58] ; setb(insmap, a, 1)
+M mov r11, [rbp-60] ; setb(insmap, a, 1)
+M mov al, [rbp-68] ; setb(insmap, a, 1)
+M mov [r10+r11], al ; setb(insmap, a, 1)
+M mov r10, [rip+$lenmap] ; setb(lenmap, a, dlen)
+M mov [rbp-58], r10 ; setb(lenmap, a, dlen)
+M mov r10, [rbp-8] ; setb(lenmap, a, dlen)
+M mov [rbp-60], r10 ; setb(lenmap, a, dlen)
+M mov r10, [rip+$dlen] ; setb(lenmap, a, dlen)
+M mov [rbp-68], r10 ; setb(lenmap, a, dlen)
+M mov r10, [rbp-58] ; setb(lenmap, a, dlen)
+M mov r11, [rbp-60] ; setb(lenmap, a, dlen)
+M mov al, [rbp-68] ; setb(lenmap, a, dlen)
+M mov [r10+r11], al ; setb(lenmap, a, dlen)
+M mov r10, [rip+$dcls] ; if dcls == 1
+M mov [rbp-20], r10 ; if dcls == 1
+M mov r10, 1 ; if dcls == 1
+M mov r11, r10 ; if dcls == 1
+M mov r10, [rbp-20] ; if dcls == 1
+M cmp r10, r11 ; if dcls == 1
+M jne $_if191e ; if dcls == 1
+M jmp $_w185e ; break
+:_if191e
+M mov r10, [rip+$dcls] ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov [rbp-20], r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, 2 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r11, r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, [rbp-20] ; if dcls == 2 || dcls == 3 || dcls == 4
+M cmp r10, r11 ; if dcls == 2 || dcls == 3 || dcls == 4
+M jne $_if192d2 ; if dcls == 2 || dcls == 3 || dcls == 4
+M jmp $_if192t ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192d2
+M mov r10, [rip+$dcls] ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov [rbp-20], r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, 3 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r11, r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, [rbp-20] ; if dcls == 2 || dcls == 3 || dcls == 4
+M cmp r10, r11 ; if dcls == 2 || dcls == 3 || dcls == 4
+M jne $_if192d3 ; if dcls == 2 || dcls == 3 || dcls == 4
+M jmp $_if192t ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192d3
+M mov r10, [rip+$dcls] ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov [rbp-20], r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, 4 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r11, r10 ; if dcls == 2 || dcls == 3 || dcls == 4
+M mov r10, [rbp-20] ; if dcls == 2 || dcls == 3 || dcls == 4
+M cmp r10, r11 ; if dcls == 2 || dcls == 3 || dcls == 4
+M jne $_if192e ; if dcls == 2 || dcls == 3 || dcls == 4
+:_if192t
+M mov r10, [rip+$pend] ; pend[psp] = dtgt
+M mov [rbp-58], r10 ; pend[psp] = dtgt
+M mov r10, [rip+$psp] ; pend[psp] = dtgt
+M mov [rbp-60], r10 ; pend[psp] = dtgt
+M mov r10, [rip+$dtgt] ; pend[psp] = dtgt
+M mov [rbp-68], r10 ; pend[psp] = dtgt
+M mov r10, [rbp-58] ; pend[psp] = dtgt
+M mov r11, [rbp-60] ; pend[psp] = dtgt
+M shl r11, 3 ; pend[psp] = dtgt
+M add r10, r11 ; pend[psp] = dtgt
+M mov r11, [rbp-68] ; pend[psp] = dtgt
+M mov [r10], r11 ; pend[psp] = dtgt
+M mov r10, [rip+$psp] ; psp = psp + 1
+M mov [rbp-20], r10 ; psp = psp + 1
+M mov r10, 1 ; psp = psp + 1
+M mov r11, r10 ; psp = psp + 1
+M mov r10, [rbp-20] ; psp = psp + 1
+M add r10, r11 ; psp = psp + 1
+M mov [rip+$psp], r10 ; psp = psp + 1
+:_if192e
+M mov r10, [rip+$dcls] ; if dcls == 2
+M mov [rbp-20], r10 ; if dcls == 2
+M mov r10, 2 ; if dcls == 2
+M mov r11, r10 ; if dcls == 2
+M mov r10, [rbp-20] ; if dcls == 2
+M cmp r10, r11 ; if dcls == 2
+M jne $_if193e ; if dcls == 2
+M jmp $_w185e ; break
+:_if193e
+M mov r10, [rbp-8] ; a = a + dlen
+M mov [rbp-20], r10 ; a = a + dlen
+M mov r10, [rip+$dlen] ; a = a + dlen
+M mov r11, r10 ; a = a + dlen
+M mov r10, [rbp-20] ; a = a + dlen
+M add r10, r11 ; a = a + dlen
+M mov [rbp-8], r10 ; a = a + dlen
+M jmp $_w185 ; while a >= 0 && a < rawlim
+:_w185e
+M jmp $_w184 ; while psp > 0
+:_w184e
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход walk_code
+M pop rbp ; выход walk_code
+M ret ; выход walk_code
+:sweep_ins
+M push rbp ; кадр sweep_ins
+M mov rbp, rsp ; кадр sweep_ins
+M sub rsp, 60 ; кадр sweep_ins
+M mov r10, 0 ; inscount = 0
+M mov [rip+$inscount], r10 ; inscount = 0
+M mov r10, 0 ; maxend = 0
+M mov [rip+$maxend], r10 ; maxend = 0
+M mov r10, 0 ; swcur = 0
+M mov [rip+$swcur], r10 ; swcur = 0
+M mov r10, 0 ; a = 0
+M mov [rbp-8], r10 ; a = 0
+:_w194
+M mov r10, [rbp-8] ; while a < rawlim
+M mov [rbp-20], r10 ; while a < rawlim
+M mov r10, [rip+$rawlim] ; while a < rawlim
+M mov r11, r10 ; while a < rawlim
+M mov r10, [rbp-20] ; while a < rawlim
+M cmp r10, r11 ; while a < rawlim
+M jge $_w194e ; while a < rawlim
+M mov r10, [rip+$insmap] ; if getb(insmap, a) == 1 && a >= swcur
+M mov [rbp-28], r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rbp-8] ; if getb(insmap, a) == 1 && a >= swcur
+M mov r11, r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rbp-28] ; if getb(insmap, a) == 1 && a >= swcur
+M movzx r10d, byte [r10+r11] ; if getb(insmap, a) == 1 && a >= swcur
+M mov [rbp-20], r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, 1 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r11, r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rbp-20] ; if getb(insmap, a) == 1 && a >= swcur
+M cmp r10, r11 ; if getb(insmap, a) == 1 && a >= swcur
+M jne $_if195e ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rbp-8] ; if getb(insmap, a) == 1 && a >= swcur
+M mov [rbp-20], r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rip+$swcur] ; if getb(insmap, a) == 1 && a >= swcur
+M mov r11, r10 ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rbp-20] ; if getb(insmap, a) == 1 && a >= swcur
+M cmp r10, r11 ; if getb(insmap, a) == 1 && a >= swcur
+M jl $_if195e ; if getb(insmap, a) == 1 && a >= swcur
+M mov r10, [rip+$lenmap] ; ln = getb(lenmap, a)
+M mov [rbp-20], r10 ; ln = getb(lenmap, a)
+M mov r10, [rbp-8] ; ln = getb(lenmap, a)
+M mov r11, r10 ; ln = getb(lenmap, a)
+M mov r10, [rbp-20] ; ln = getb(lenmap, a)
+M movzx r10d, byte [r10+r11] ; ln = getb(lenmap, a)
+M mov [rbp-10], r10 ; ln = getb(lenmap, a)
+M mov r10, [rbp-8] ; iend = a + ln
+M mov [rbp-20], r10 ; iend = a + ln
+M mov r10, [rbp-10] ; iend = a + ln
+M mov r11, r10 ; iend = a + ln
+M mov r10, [rbp-20] ; iend = a + ln
+M add r10, r11 ; iend = a + ln
+M mov [rbp-18], r10 ; iend = a + ln
+M mov r10, [rbp-18] ; if iend > vsize
+M mov [rbp-20], r10 ; if iend > vsize
+M mov r10, [rip+$vsize] ; if iend > vsize
+M mov r11, r10 ; if iend > vsize
+M mov r10, [rbp-20] ; if iend > vsize
+M cmp r10, r11 ; if iend > vsize
+M jle $_if196e ; if iend > vsize
+M call $fail_family ; fail_family()
+:_if196e
+M mov r10, [rbp-18] ; if iend > maxend
+M mov [rbp-20], r10 ; if iend > maxend
+M mov r10, [rip+$maxend] ; if iend > maxend
+M mov r11, r10 ; if iend > maxend
+M mov r10, [rbp-20] ; if iend > maxend
+M cmp r10, r11 ; if iend > maxend
+M jle $_if197e ; if iend > maxend
+M mov r10, [rbp-18] ; maxend = iend
+M mov [rip+$maxend], r10 ; maxend = iend
+:_if197e
+M mov r10, [rip+$inscount] ; inscount = inscount + 1
+M mov [rbp-20], r10 ; inscount = inscount + 1
+M mov r10, 1 ; inscount = inscount + 1
+M mov r11, r10 ; inscount = inscount + 1
+M mov r10, [rbp-20] ; inscount = inscount + 1
+M add r10, r11 ; inscount = inscount + 1
+M mov [rip+$inscount], r10 ; inscount = inscount + 1
+M mov r10, [rbp-18] ; swcur = iend
+M mov [rip+$swcur], r10 ; swcur = iend
+:_if195e
+M mov r10, [rbp-8] ; a = a + 1
+M mov [rbp-20], r10 ; a = a + 1
+M mov r10, 1 ; a = a + 1
+M mov r11, r10 ; a = a + 1
+M mov r10, [rbp-20] ; a = a + 1
+M add r10, r11 ; a = a + 1
+M mov [rbp-8], r10 ; a = a + 1
+M jmp $_w194 ; while a < rawlim
+:_w194e
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход sweep_ins
+M pop rbp ; выход sweep_ins
+M ret ; выход sweep_ins
+:calc_target
+M push rbp ; кадр calc_target
+M mov rbp, rsp ; кадр calc_target
+M sub rsp, 60 ; кадр calc_target
+M mov r10, 0 ; nz = 0
+M mov [rbp-10], r10 ; nz = 0
+M mov r10, [rip+$rawsize] ; k = rawsize - 1
+M mov [rbp-20], r10 ; k = rawsize - 1
+M mov r10, 1 ; k = rawsize - 1
+M mov r11, r10 ; k = rawsize - 1
+M mov r10, [rbp-20] ; k = rawsize - 1
+M sub r10, r11 ; k = rawsize - 1
+M mov [rbp-8], r10 ; k = rawsize - 1
+:_w198
+M mov r10, [rbp-8] ; while k >= 0
+M mov [rbp-20], r10 ; while k >= 0
+M mov r10, 0 ; while k >= 0
+M mov r11, r10 ; while k >= 0
+M mov r10, [rbp-20] ; while k >= 0
+M cmp r10, r11 ; while k >= 0
+M jl $_w198e ; while k >= 0
+M mov r10, [rip+$exebuf] ; if getb(exebuf, rawptr + k) != 0
+M mov [rbp-28], r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rip+$rawptr] ; if getb(exebuf, rawptr + k) != 0
+M mov [rbp-30], r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rbp-8] ; if getb(exebuf, rawptr + k) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rbp-30] ; if getb(exebuf, rawptr + k) != 0
+M add r10, r11 ; if getb(exebuf, rawptr + k) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rbp-28] ; if getb(exebuf, rawptr + k) != 0
+M movzx r10d, byte [r10+r11] ; if getb(exebuf, rawptr + k) != 0
+M mov [rbp-20], r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, 0 ; if getb(exebuf, rawptr + k) != 0
+M mov r11, r10 ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rbp-20] ; if getb(exebuf, rawptr + k) != 0
+M cmp r10, r11 ; if getb(exebuf, rawptr + k) != 0
+M je $_if199e ; if getb(exebuf, rawptr + k) != 0
+M mov r10, [rbp-8] ; nz = k + 1
+M mov [rbp-20], r10 ; nz = k + 1
+M mov r10, 1 ; nz = k + 1
+M mov r11, r10 ; nz = k + 1
+M mov r10, [rbp-20] ; nz = k + 1
+M add r10, r11 ; nz = k + 1
+M mov [rbp-10], r10 ; nz = k + 1
+M jmp $_w198e ; break
+:_if199e
+M mov r10, [rbp-8] ; k = k - 1
+M mov [rbp-20], r10 ; k = k - 1
+M mov r10, 1 ; k = k - 1
+M mov r11, r10 ; k = k - 1
+M mov r10, [rbp-20] ; k = k - 1
+M sub r10, r11 ; k = k - 1
+M mov [rbp-8], r10 ; k = k - 1
+M jmp $_w198 ; while k >= 0
+:_w198e
+M mov r10, [rbp-10] ; target = nz
+M mov [rip+$target], r10 ; target = nz
+M mov r10, [rip+$target] ; if target < 1
+M mov [rbp-20], r10 ; if target < 1
+M mov r10, 1 ; if target < 1
+M mov r11, r10 ; if target < 1
+M mov r10, [rbp-20] ; if target < 1
+M cmp r10, r11 ; if target < 1
+M jge $_if200e ; if target < 1
+M mov r10, 1 ; target = 1
+M mov [rip+$target], r10 ; target = 1
+:_if200e
+M mov r10, [rip+$maxend] ; if maxend > target
+M mov [rbp-20], r10 ; if maxend > target
+M mov r10, [rip+$target] ; if maxend > target
+M mov r11, r10 ; if maxend > target
+M mov r10, [rbp-20] ; if maxend > target
+M cmp r10, r11 ; if maxend > target
+M jle $_if201e ; if maxend > target
+M mov r10, [rip+$maxend] ; target = maxend
+M mov [rip+$target], r10 ; target = maxend
+:_if201e
+M mov r10, [rip+$target] ; fork = (target + 511) / 512 * 512
+M mov [rbp-30], r10 ; fork = (target + 511) / 512 * 512
+M mov r10, 1FF ; fork = (target + 511) / 512 * 512
+M mov r11, r10 ; fork = (target + 511) / 512 * 512
+M mov r10, [rbp-30] ; fork = (target + 511) / 512 * 512
+M add r10, r11 ; fork = (target + 511) / 512 * 512
+M mov [rbp-28], r10 ; fork = (target + 511) / 512 * 512
+M mov r10, 200 ; fork = (target + 511) / 512 * 512
+M mov r11, r10 ; fork = (target + 511) / 512 * 512
+M mov r10, [rbp-28] ; fork = (target + 511) / 512 * 512
+M mov rax, r10 ; fork = (target + 511) / 512 * 512
+M cqo ; fork = (target + 511) / 512 * 512
+M idiv r11 ; fork = (target + 511) / 512 * 512
+M mov r10, rax ; fork = (target + 511) / 512 * 512
+M mov [rbp-20], r10 ; fork = (target + 511) / 512 * 512
+M mov r10, 200 ; fork = (target + 511) / 512 * 512
+M mov r11, r10 ; fork = (target + 511) / 512 * 512
+M mov r10, [rbp-20] ; fork = (target + 511) / 512 * 512
+M imul r10, r11 ; fork = (target + 511) / 512 * 512
+M mov [rbp-18], r10 ; fork = (target + 511) / 512 * 512
+M mov r10, [rbp-18] ; if fork != rawsize
+M mov [rbp-20], r10 ; if fork != rawsize
+M mov r10, [rip+$rawsize] ; if fork != rawsize
+M mov r11, r10 ; if fork != rawsize
+M mov r10, [rbp-20] ; if fork != rawsize
+M cmp r10, r11 ; if fork != rawsize
+M je $_if202e ; if fork != rawsize
+M mov r10, [rip+$rawsize] ; target = rawsize - 511
+M mov [rbp-20], r10 ; target = rawsize - 511
+M mov r10, 1FF ; target = rawsize - 511
+M mov r11, r10 ; target = rawsize - 511
+M mov r10, [rbp-20] ; target = rawsize - 511
+M sub r10, r11 ; target = rawsize - 511
+M mov [rip+$target], r10 ; target = rawsize - 511
+:_if202e
+M mov r10, [rip+$target] ; if target > vsize
+M mov [rbp-20], r10 ; if target > vsize
+M mov r10, [rip+$vsize] ; if target > vsize
+M mov r11, r10 ; if target > vsize
+M mov r10, [rbp-20] ; if target > vsize
+M cmp r10, r11 ; if target > vsize
+M jle $_if203e ; if target > vsize
+M call $fail_family ; fail_family()
+:_if203e
+M mov r10, [rip+$vsize] ; bss = vsize - target
+M mov [rbp-20], r10 ; bss = vsize - target
+M mov r10, [rip+$target] ; bss = vsize - target
+M mov r11, r10 ; bss = vsize - target
+M mov r10, [rbp-20] ; bss = vsize - target
+M sub r10, r11 ; bss = vsize - target
+M mov [rip+$bss], r10 ; bss = vsize - target
+M mov r10, 0 ; return 0
+M mov rax, r10 ; return 0
+M mov rsp, rbp ; выход calc_target
+M pop rbp ; выход calc_target
+M ret ; выход calc_target
 :main
 M push rbp ; кадр main
 M mov rbp, rsp ; кадр main
@@ -3008,7 +6303,7 @@ M neg r10 ; if fh == -1
 M mov r11, r10 ; if fh == -1
 M mov r10, [rbp-28] ; if fh == -1
 M cmp r10, r11 ; if fh == -1
-M jne $_if93e ; if fh == -1
+M jne $_if204e ; if fh == -1
 M lea r10, [rip+$s_oexe] ; print_error(s_oexe, len(s_oexe), 4)
 M mov [rbp-30], r10 ; print_error(s_oexe, len(s_oexe), 4)
 M mov r10, 1A ; print_error(s_oexe, len(s_oexe), 4)
@@ -3019,7 +6314,7 @@ M mov rcx, [rbp-30] ; print_error(s_oexe, len(s_oexe), 4)
 M mov rdx, [rbp-38] ; print_error(s_oexe, len(s_oexe), 4)
 M mov r8, [rbp-40] ; print_error(s_oexe, len(s_oexe), 4)
 M call $print_error ; print_error(s_oexe, len(s_oexe), 4)
-:_if93e
+:_if204e
 M mov r10, 0 ; exebuf = GlobalAlloc(0, 262145)
 M mov [rbp-30], r10 ; exebuf = GlobalAlloc(0, 262145)
 M mov r10, 40001 ; exebuf = GlobalAlloc(0, 262145)
@@ -3035,7 +6330,7 @@ M mov r10, 0 ; if exebuf == 0
 M mov r11, r10 ; if exebuf == 0
 M mov r10, [rbp-28] ; if exebuf == 0
 M cmp r10, r11 ; if exebuf == 0
-M jne $_if94e ; if exebuf == 0
+M jne $_if205e ; if exebuf == 0
 M lea r10, [rip+$s_rexe] ; print_error(s_rexe, len(s_rexe), 5)
 M mov [rbp-30], r10 ; print_error(s_rexe, len(s_rexe), 5)
 M mov r10, 1A ; print_error(s_rexe, len(s_rexe), 5)
@@ -3046,7 +6341,7 @@ M mov rcx, [rbp-30] ; print_error(s_rexe, len(s_rexe), 5)
 M mov rdx, [rbp-38] ; print_error(s_rexe, len(s_rexe), 5)
 M mov r8, [rbp-40] ; print_error(s_rexe, len(s_rexe), 5)
 M call $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if94e
+:_if205e
 M mov r10, 0 ; exelen = 0
 M mov [rip+$exelen], r10 ; exelen = 0
 M mov r10, [rbp-10] ; rc = ReadFile(fh, exebuf, 262145, &exelen, 0)
@@ -3074,7 +6369,7 @@ M mov r10, 0 ; if rc == 0
 M mov r11, r10 ; if rc == 0
 M mov r10, [rbp-28] ; if rc == 0
 M cmp r10, r11 ; if rc == 0
-M jne $_if95e ; if rc == 0
+M jne $_if206e ; if rc == 0
 M lea r10, [rip+$s_rexe] ; print_error(s_rexe, len(s_rexe), 5)
 M mov [rbp-30], r10 ; print_error(s_rexe, len(s_rexe), 5)
 M mov r10, 1A ; print_error(s_rexe, len(s_rexe), 5)
@@ -3085,14 +6380,14 @@ M mov rcx, [rbp-30] ; print_error(s_rexe, len(s_rexe), 5)
 M mov rdx, [rbp-38] ; print_error(s_rexe, len(s_rexe), 5)
 M mov r8, [rbp-40] ; print_error(s_rexe, len(s_rexe), 5)
 M call $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if95e
+:_if206e
 M mov r10, [rip+$exelen] ; if exelen >= 262145
 M mov [rbp-28], r10 ; if exelen >= 262145
 M mov r10, 40001 ; if exelen >= 262145
 M mov r11, r10 ; if exelen >= 262145
 M mov r10, [rbp-28] ; if exelen >= 262145
 M cmp r10, r11 ; if exelen >= 262145
-M jl $_if96e ; if exelen >= 262145
+M jl $_if207e ; if exelen >= 262145
 M lea r10, [rip+$s_big] ; print_error(s_big, len(s_big), 7)
 M mov [rbp-30], r10 ; print_error(s_big, len(s_big), 7)
 M mov r10, 19 ; print_error(s_big, len(s_big), 7)
@@ -3103,7 +6398,7 @@ M mov rcx, [rbp-30] ; print_error(s_big, len(s_big), 7)
 M mov rdx, [rbp-38] ; print_error(s_big, len(s_big), 7)
 M mov r8, [rbp-40] ; print_error(s_big, len(s_big), 7)
 M call $print_error ; print_error(s_big, len(s_big), 7)
-:_if96e
+:_if207e
 M mov r10, [rbp-10] ; CloseHandle(fh)
 M mov [rbp-30], r10 ; CloseHandle(fh)
 M mov rcx, [rbp-30] ; CloseHandle(fh)
@@ -3118,6 +6413,9 @@ M call $stub_name ; stub_name()
 M call $walk_descs ; walk_descs()
 M call $check_dll ; check_dll()
 M call $walk_funcs ; walk_funcs()
+M call $walk_code ; walk_code()
+M call $sweep_ins ; sweep_ins()
+M call $calc_target ; calc_target()
 M call $print_facts ; print_facts()
 M mov r10, 0 ; ExitProcess(0)
 M mov [rbp-30], r10 ; ExitProcess(0)
@@ -3158,6 +6456,12 @@ DB 20 56 53 49 5A 45 3D ; str s_f3 = ' VSIZE='
 DB 20 52 41 57 3D ; str s_f4 = ' RAW='
 :s_f5
 DB 20 49 4D 50 3D ; str s_f5 = ' IMP='
+:s_f6
+DB 20 49 4E 53 3D ; str s_f6 = ' INS='
+:s_f7
+DB 20 54 41 52 47 45 54 3D ; str s_f7 = ' TARGET='
+:s_f8
+DB 20 42 53 53 3D ; str s_f8 = ' BSS='
 :s_crlf
 DB 0D 0A ; str s_crlf = '\r\n'
 :s_pref
@@ -3196,13 +6500,45 @@ DZ 8 ; var thunk
 DZ 8 ; var dllfile
 :impn
 DZ 8 ; var impn
+:insmap
+DZ 8 ; var insmap
+:lenmap
+DZ 8 ; var lenmap
+:pend
+DZ 8 ; var pend
+:rawlim
+DZ 8 ; var rawlim
+:psp
+DZ 8 ; var psp
+:inscount
+DZ 8 ; var inscount
+:maxend
+DZ 8 ; var maxend
+:swcur
+DZ 8 ; var swcur
+:target
+DZ 8 ; var target
+:bss
+DZ 8 ; var bss
+:dlen
+DZ 8 ; var dlen
+:dcls
+DZ 8 ; var dcls
+:dtgt
+DZ 8 ; var dtgt
+:dpos
+DZ 8 ; var dpos
+:mpos
+DZ 8 ; var mpos
+:mreg
+DZ 8 ; var mreg
 :arg1
 DZ 80 ; var arg1[16]
 :arg2
 DZ 80 ; var arg2[16]
 :arg3
 DZ 80 ; var arg3[16]
-:w1
-DZ 100 ; var w1[32]
 :factbuf
 DZ C0 ; var factbuf[24]
+:w1
+DZ 100 ; var w1[32]

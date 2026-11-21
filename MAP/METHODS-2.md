@@ -22,7 +22,7 @@
 | K4-M001 | mem_copy | M | готов | `MAP/M4-LIB.md` |
 | K4-M002 | mem_fill | M | готов | `MAP/M4-LIB.md` |
 
-## Слой L5 — мост M5-BRIDGE (E9.2-1: каркас bridge.exe — 26 кирпичей)
+## Слой L5 — мост M5-BRIDGE (E9.2-1/2: каркас + спуск bridge.exe — 42 кирпича)
 
 | ID | Имя | Ветвь | Статус | Карточка |
 |---|---|---|---|---|
@@ -50,5 +50,21 @@
 | K5-P014 | cstr_len | P | готов (E9.2-1) | `MAP/M5-BRIDGE.md` |
 | K5-P015 | check_dll | P | готов (E9.2-1) | `MAP/M5-BRIDGE.md` |
 | K5-P016 | walk_funcs | P | готов (E9.2-1) | `MAP/M5-BRIDGE.md` |
-| K5-P017 | print_facts | P | готов (E9.2-1) | `MAP/M5-BRIDGE.md` |
-| K5-X001 | main | X | готов (E9.2-1) | `MAP/M5-BRIDGE.md` |
+| K5-P017 | print_facts | P | готов (E9.2-1/2) | `MAP/M5-BRIDGE.md` |
+| K5-D001 | fb | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D002 | rel8 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D003 | rel32 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D004 | modrm_skip | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D005 | dec0f | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D006 | decalu | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D007 | decmod | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D008 | decimm | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D009 | decshift | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D010 | decgrp | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D011 | decgrp2 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D012 | decbr | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D013 | decode_ins | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-W001 | walk_code | W | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-W002 | sweep_ins | W | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-W003 | calc_target | W | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-X001 | main | X | готов (E9.2-1/2) | `MAP/M5-BRIDGE.md` |

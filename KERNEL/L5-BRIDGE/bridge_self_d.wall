@@ -1,0 +1,196 @@
+; bridge_self_d.wall — декодер x86-подмножества SPEC/05, часть 1 (E9.2-2)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_d.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь D моста (декодер) — байтовая сторона: чтение байтов с
+; границей (K5-D001 fb), знаковое расширение rel8/rel32 (K5-D002/K5-D003),
+; разбор modrm+SIB+disp по длине (K5-D004 modrm_skip — НОМЕРА reg/rm
+; важны для групп: mreg c учётом REX.R), 0F-путь (K5-D005 dec0f: jcc
+; rel32/movzx/imul), ALU-семейства 00..3D (K5-D006 decalu: r/m-формы +
+; AL,imm8 + eAX,imm32 — точные множества байтов как lab_x86) и
+; modrm-без-imm (K5-D007 decmod: test/mov/lea). Диспетчер и остальные
+; группы — bridge_self_d2.wall (K5-D008..D013); спуск — bridge_self_w.wall
+; (ветвь W). Эквивалентность оракулу LAB/py/lab_x86.decode: длины, класс
+; (ret/int3-терминал, jmp, jcc, call rel32), прямые цели — только они
+; нужны спуску (SPEC/15 п. 3); операнды/имена регистров — срез E9.2-3.
+; Чтение за границей файла = отказ декодирования (как IndexError
+; оракула; fb -> -1). Границы: exelen — конец файла == конец тела
+; (семейный инвариант размеров SPEC/04).
+
+; чтение байта файла по смещению off с границей: -1 = вне файла
+func fb(off)
+  if off < 0
+    return -1
+  end
+  if off >= exelen
+    return -1
+  end
+  return getb(exebuf, off)
+end
+
+; знаковый байт rel8 @ pos (вызывающий проверил границу pos+1)
+func rel8(pos)
+  var v
+  v = getb(exebuf, pos)
+  if v >= 128
+    return v - 256
+  end
+  return v
+end
+
+; знаковый dword rel32 @ pos (вызывающий проверил границу pos+4);
+; литерали WALL <= 2147483647: 2^32 выражается произведением
+func rel32(pos)
+  var v
+  v = getb(exebuf, pos) + 256 * getb(exebuf, pos + 1) + 65536 * getb(exebuf, pos + 2) + 16777216 * getb(exebuf, pos + 3)
+  if v > 2147483647
+    return v - 16777216 * 256
+  end
+  return v
+end
+
+; пропуск modrm (+SIB, +disp) с файлового смещения pos: длина — как
+; _modrm оракула (SIB всегда 1 байт; rm=100 -> SIB; mod=00&база=5 ->
+; disp32 без базы; rip-rel mod=00&rm=101 -> disp32; mod=1 -> disp8;
+; mod=2 -> disp32); граница — каждый хвост проверяется до продвижения;
+; результат: глобали mpos (смещение после modrm-хвоста) и mreg (поле reg
+; с REX.R — 0..15, нужно группам 80/81/83/C0/C1/D3/F6/F7/FF); 0 = ок,
+; 1 = за границей файла
+func modrm_skip(pos, rbit)
+  var m
+  var mod
+  var rm
+  var s
+  var bas
+  m = fb(pos)
+  if m < 0
+    return 1
+  end
+  mreg = (m >> 3 & 7) + rbit
+  mpos = pos + 1
+  mod = m >> 6
+  rm = m & 7
+  if mod == 3
+    return 0
+  end
+  if rm == 4
+    s = fb(mpos)
+    if s < 0
+      return 1
+    end
+    bas = s & 7
+    mpos = mpos + 1
+    if mod == 0 && bas == 5
+      if mpos + 4 > exelen
+        return 1
+      end
+      mpos = mpos + 4
+      return 0
+    end
+    if mod == 1
+      if mpos + 1 > exelen
+        return 1
+      end
+      mpos = mpos + 1
+    end
+    if mod == 2
+      if mpos + 4 > exelen
+        return 1
+      end
+      mpos = mpos + 4
+    end
+    return 0
+  end
+  if rm == 5 && mod == 0
+    if mpos + 4 > exelen
+      return 1
+    end
+    mpos = mpos + 4
+    return 0
+  end
+  if mod == 1
+    if mpos + 1 > exelen
+      return 1
+    end
+    mpos = mpos + 1
+  end
+  if mod == 2
+    if mpos + 4 > exelen
+      return 1
+    end
+    mpos = mpos + 4
+  end
+  return 0
+end
+
+; 0F-опкоды (после REX): 80..8F — jcc rel32 (цель -> dtgt, класс 3);
+; B6/B7 — movzx (modrm-хвост); AF — imul (modrm-хвост); прочее — отказ.
+; Результат: dpos (конец инструкции, файловое), 0 = ок
+func dec0f(pos, rbit)
+  var b
+  var rel
+  b = fb(pos)
+  if b < 0
+    return 1
+  end
+  pos = pos + 1
+  if b >= 128 && b <= 143
+    if pos + 4 > exelen
+      return 1
+    end
+    rel = rel32(pos)
+    dpos = pos + 4
+    dtgt = dpos - rawptr + rel
+    dcls = 3
+    return 0
+  end
+  if b == 182 || b == 183
+    if modrm_skip(pos, rbit) != 0
+      return 1
+    end
+    dpos = mpos
+    return 0
+  end
+  if b == 175
+    if modrm_skip(pos, rbit) != 0
+      return 1
+    end
+    dpos = mpos
+    return 0
+  end
+  return 1
+end
+
+; ALU-семейства 00..3D: r/m-формы (base 00/08/20/28/30/38 и (b&7)<4 —
+; modrm-хвост), короткие AL,imm8 (04/0C/24/2C/3C) и eAX,imm32
+; (05/0D/25/2D/35/3D) — множества ТОЧНО как decode оракула (34-е
+; хвосты и пр. — вне подмножества). Класс 0 (без ветвлений)
+func decalu(pos, rbit, b)
+  if (b & 7) < 4
+    if modrm_skip(pos, rbit) != 0
+      return 1
+    end
+    dpos = mpos
+    return 0
+  end
+  if (b & 7) == 4
+    if pos + 1 > exelen
+      return 1
+    end
+    dpos = pos + 1
+    return 0
+  end
+  if pos + 4 > exelen
+    return 1
+  end
+  dpos = pos + 4
+  return 0
+end
+
+; modrm-без-imm: test (84/85), mov (88/89/8A/8B), lea (8D) — поля reg
+; оракулом не проверяются, любая длина одна и та же; класс 0
+func decmod(pos, rbit)
+  if modrm_skip(pos, rbit) != 0
+    return 1
+  end
+  dpos = mpos
+  return 0
+end

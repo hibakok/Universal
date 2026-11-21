@@ -74,7 +74,9 @@
             hxdump); с E9.2-1 — и КАРКАС bridge.exe (M5-BRIDGE на
             WALL): фикс-пункт сборки T-E9-17, факты == оракулу на 12
             артефактах (T-E9-18), CLI/мутанты (T-E9-19), круг над
-            bridge.exe — 12-й артефакт (T-E9-20, M=2893 H=0);
+            bridge.exe — 12-й артефакт (T-E9-20); с E9.2-2 — и СПУСК:
+            факты с INS/TARGET/BSS (T-E9-18) + мутанты vsize
+            (T-E9-19) + синтетика теней (T-E9-21, M=5996 H=0);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -130,7 +132,7 @@ SHA = {
                     "0A46EE1CF7",
     "L3-UNIVM/kernel": "9F5696178E26452D66B3F0FCC3BFDE0704D926AA12B61C9A0B351EFF51BE4799",
     "L3-UVA/uva": "32ABF177E0C01AA019E05244A0E12FEB18E13CE0A28DBFA4F59C3805802145EE",
-    "L5-BRIDGE/bridge": "CE071BE15F36263467ED173E1FD5C74375474B670BBA31A6411603814A98362F",
+    "L5-BRIDGE/bridge": "AC59A297C56010E971826DFFEE8E33FB9FFAA02750958AA7F9B08081A9029161",
 }
 # модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
 # ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
