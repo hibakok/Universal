@@ -1,22 +1,18 @@
 """lab_bridge.py — оракул моста BRIDGE v1 (SPEC/15): EXE -> BRICK v2 + PEG v1.
 
-Вход:  байты EXE семейства UNIVERSAL (PE32+ по SPEC/04, собран конвейером
-       pegen; один kernel32.dll; точка входа в секции).
-Выход: bridge(data) -> (текст BRICK v2 тела, текст PEG v1 обёртки);
-       BridgeError — образ вне семейства (детерминированный отказ).
-Функция: эталонная семантика моста L5 (E9.1 — «сначала истина семантики»,
+Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04; один kernel32.dll;
+       вход в секции). Выход: bridge(data) -> (текст BRICK v2, текст
+       PEG v1); BridgeError — образ вне семейства.
+Функция: эталонная семантика моста L5 (E9.1 «сначала истина семантики»,
        прецедент E7.1/E8.1): чужой машинный код входит в наш мир как
-       ИСХОДНИК. Композиция оракулов: lab_pe (PE/импорты), lab_x86
-       (декодер SPEC/05), lab_enc (канон SPEC/09 — контроль M-строк).
-       Круг enc -> brick -> pegen(+peg) == исходный EXE байт-в-байт —
-       секция 18 батареи (T-E9-01..16). Правила — SPEC/15: спуск от
-       входа (терминалы jmp/ret/int3; нули и сбой декодирования —
-       данные; тень — младший адрес побеждает); метки l/d/iat_ (hex
-       строчными, приоритет iat_ > l > d, $base — RVA 0); M-строка
-       только при точном воспроизведении байтов enc (иначе H-строка с
-       комментарием); данные — DD/DQ c $ссылками импортов, DB <= 16,
-       DZ >= 3 нуля; длина тела = max(ненулевой хвост, концы команд),
-       выравнивающая вилка SizeOfRawData; хвост -> !bss (EXE тот же).
+       ИСХОДНИК. Композиция lab_pe + lab_x86; спуск от входа
+       (терминалы; нули/сбой — данные; тень — младший адрес побеждает);
+       метки l/d/iat_ (iat_ > l > d; $base — RVA 0; правило
+       представимости E9.2-3b); M-строка при точном воспроизведении
+       enc (иначе H-строка); данные DD/DQ с $ссылками, DB <= 16,
+       DZ >= 3; тело = max(ненулевой хвост, концы команд), вилка
+       SizeOfRawData, хвост -> !bss. Круг enc -> brick -> pegen(+peg)
+       == EXE байт-в-байт — секция 18 (T-E9-01..16). Правила — SPEC/15.
 """
 import bisect
 
@@ -40,20 +36,21 @@ def _u64(b, o):
     return int.from_bytes(b[o:o + 8], "little")
 
 def _hx(v):
-    """Число -> текст BRICK: ЗАГЛАВНЫЙ hex, знак «-» при отрицательном."""
+    """Число -> ЗАГЛАВНЫЙ hex, знак «-» при отрицательном."""
     return ("-%X" % -v) if v < 0 else "%X" % v
 
 def _san(name):
-    """Имя импорта -> суффикс метки [a-z0-9_]{1,59} (нижний регистр)."""
-    s = "".join(c if c.isalnum() else "_" for c in name.lower())
+    """Имя импорта -> суффикс [a-z0-9_]{1,59}. E9.2-3b: только ASCII
+    (латиница-1 alnum «ÿ» отвергается enc; зонд probe_e92_3b2)."""
+    s = "".join(c if "0" <= c <= "9" or "a" <= c <= "z" else "_"
+                for c in name.lower())
     return s[:59] or "f"
 
 # ------------------------------------------------------------ проход кода
 def _walk(body, entry, limit):
-    """Спуск от entry: offset -> (имя, длина, аргументы).
-
-    Путь обрывается: терминал (jmp/ret/int3), сбой декодирования,
-    выход за limit, ВСЕ-НУЛЕВЫЕ байты (нули — данные, не код)."""
+    """Спуск от entry: offset -> (имя, длина, аргументы). Путь
+    обрывается: терминал (jmp/ret/int3), сбой декодирования, выход
+    за limit, ВСЕ-НУЛЕВЫЕ байты (нули — данные, не код)."""
     def fetch(a, n):
         if a < 0 or a + n > len(body):
             raise IndexError
@@ -87,7 +84,7 @@ def _walk(body, entry, limit):
     return ins
 
 def _sweep(ins):
-    """Пересечения: младший адрес побеждает. -> dict выживших."""
+    """Пересечения: младший адрес побеждает -> dict выживших."""
     out = {}
     cursor = 0
     for a in sorted(ins):
@@ -100,9 +97,7 @@ def _sweep(ins):
 # ------------------------------------------------------------ разбор семьи
 def parse_family(data):
     """EXE семейства -> словарь фактов моста (код, длина, импорты).
-
-    Полный анализ: побочных вычислений у эмиссии нет. Отказ —
-    BridgeError (образ вне контракта SPEC/15 п. 2)."""
+    Полный анализ; отказ — BridgeError (SPEC/15 п. 2)."""
     try:
         pe = lab_pe.parse(data)
     except Exception as e:                     # noqa: BLE001 — любой крах
@@ -144,14 +139,13 @@ def parse_family(data):
         "stackcom": _u32(data, 0xE8), "heapcom": _u32(data, 0xF8),
     }
 
-# ------------------------------------------------------------ метки/импорты
+# --------------------------------------------------- метки/импорты
 def _import_map(fam):
-    """Структуры импорта -> (labels, semantic, known_rva).
-
-    labels:   offset -> имя метки (iat_*, d*);
-    semantic: offset -> ("DD"|"DQ", [текст-значения]) — $ссылки на
-              известные RVA (IDT -> INT/имя/IAT, твонки -> записи имён);
-    known_rva: RVA -> имя метки (сверка значений дескрипторов).
+    """Структуры импорта -> (labels, semantic, known_rva): offset ->
+    имя метки (iat_*, d*) / ("DD"|"DQ", [значения]) с $ссылками /
+    RVA -> имя. Представимость (E9.2-3b, SPEC/15 п. 4/6): метка НЕ
+    создаётся строго внутри выжившей инструкции (наложение разрезов
+    — невалидный b2); DQ с не-созданной меткой — сырыми байтами.
     """
     body, pe = fam["body"], fam["pe"]
     labels, semantic, known = {}, {}, {}
@@ -166,16 +160,28 @@ def _import_map(fam):
             and 0 <= name_off < limit
             and all(0 <= h < limit for _fn, h in hints)):
         return labels, semantic, known        # сырые байты (байто-точно)
+    starts = sorted(fam["ins"])
+
+    def inside_ins(o):                         # строго внутри выжившей
+        i = bisect.bisect_right(starts, o) - 1
+        return i >= 0 and starts[i] < o < \
+            starts[i] + fam["ins"][starts[i]][1]
+
     for k, (fn, h) in enumerate(hints):
-        labels[iat_off + 8 * k] = "iat_" + _san(fn)
-        labels.setdefault(h, "d%x" % (h + SECT))
-        known[h + SECT] = labels[h]
-    labels.setdefault(name_off, "d%x" % (name_off + SECT))
-    known[name_off + SECT] = labels[name_off]
-    if int_off != iat_off:
+        if not inside_ins(iat_off + 8 * k):
+            labels[iat_off + 8 * k] = "iat_" + _san(fn)
+        if not inside_ins(h):
+            labels.setdefault(h, "d%x" % (h + SECT))
+            known[h + SECT] = labels[h]
+    if not inside_ins(name_off):
+        labels.setdefault(name_off, "d%x" % (name_off + SECT))
+        known[name_off + SECT] = labels[name_off]
+    if int_off != iat_off and not inside_ins(int_off):
         labels.setdefault(int_off, "d%x" % (int_off + SECT))
-    known[int_off + SECT] = labels[int_off]
-    known[iat_off + SECT] = labels[iat_off]
+    if int_off in labels:
+        known[int_off + SECT] = labels[int_off]
+    if iat_off in labels:
+        known[iat_off + SECT] = labels[iat_off]
     idt_off = pe["dd1_import_rva"] - SECT
     if 0 <= idt_off and idt_off + 20 <= limit:
         semantic[idt_off] = ("DD", [_dollar(_u32(body, idt_off + 4 * k),
@@ -186,7 +192,8 @@ def _import_map(fam):
             v = _u64(body, base + 8 * k)
             if v == 0 and k == n:
                 t = "0"
-            elif k < n and v == hints[k][1] + SECT:
+            elif k < n and v == hints[k][1] + SECT \
+                    and hints[k][1] in labels:
                 t = "$" + labels[hints[k][1]]
             else:
                 rows = None
@@ -198,11 +205,11 @@ def _import_map(fam):
     return labels, semantic, known
 
 def _dollar(v, known):
-    """dword-значение -> $имя (если RVA известна) | hex-текст."""
+    """dword -> $имя (если RVA известна) | hex."""
     s = known.get(v)
     return "$" + s if s else _hx(v)
 
-# ------------------------------------------------------------ рендер строк
+# ------------------------------------------------ рендер строк
 def _reg(op):
     _, idx, size = op
     if size == 8:
@@ -233,7 +240,7 @@ def _mem(op, labels):
     return "[%s]" % s
 
 def _plain(op):
-    """Операнд reg/imm/cl -> текст | None (mem требует _mem)."""
+    """Операнд reg/imm/cl -> текст | None (mem — _mem)."""
     if isinstance(op, str):
         return op if op == "cl" else None
     if isinstance(op, int):                 # счётчик сдвига (lab_x86)
@@ -245,8 +252,8 @@ def _plain(op):
     return None
 
 def _mtext(name, args, ln, labels):
-    """Инструкция -> (мнемоника, [операнды]) | None (нет M-формы).
-    Слот :1 (rel8) выбирается по длине исходной инструкции (2 байта)."""
+    """Инструкция -> (мнемоника, [операнды]) | None. Слот :1 (rel8) —
+    по длине исходной инструкции (2 байта)."""
     if name in ("cdqe", "cqo", "cdq", "ret", "int3"):
         return name, []                     # аргументы декодера — шум
     rel8 = ln == 2 and name in ("jmp", "jcc")
@@ -340,20 +347,17 @@ def _note(name, args):
 def _emit_lines(fam, mode=None):
     """Факты моста -> (строки BRICK v2, статистика). Чистый рендер.
 
-    mode (срезы наращивания E9.2-3, SPEC/15 п. 10): None — канон
-    (M-строки при точном воспроизведении enc + метки + семантика);
-    "H" — только H-строки, метки l/d/iat_ и семантика DD/DQ остаются
-    (подслой для E9.2-3b); "RAW" — H-строки без меток и семантики
-    (E9.2-3a: операнды/примечания/данные; импорты и разрывы меток
-    пока сырыми байтами). Байто-точность круга сохраняется во всех
-    режимах (H-строка — те же байты)."""
+    mode (срезы E9.2-3, SPEC/15 п. 10): None — канон (M-строки при
+    точном воспроизведении enc + метки + семантика); "H" — H-строки
+    с метками/семантикой (E9.2-3b); "RAW" — без них (E9.2-3a).
+    Байто-точность круга — во всех режимах (H-строка — те же байты)."""
     body, ins = fam["body"], fam["ins"]
     limit = fam["target"]
     if mode == "RAW":
         labels, semantic = {}, {}
     else:
         labels, semantic, _known = _import_map(fam)
-    # семантика не должна пересекать инструкции/друг друга
+    # семантика не пересекает инструкции/друг друга/метки (E9.2-3b)
     ins_ranges = [(a, a + ins[a][1]) for a in ins]
     sem = {}
     for o in sorted(semantic):
@@ -364,6 +368,8 @@ def _emit_lines(fam, mode=None):
             clash = any(o < e and s < o + size for s, e in
                         ((q, q + (4 if w[0] == "DD" else 8) * len(w[1]))
                          for q, w in sem.items()))
+        if not clash:
+            clash = any(o < q < o + size for q in labels)
         if not clash:
             sem[o] = v                    # конфликт — сырыми байтами
     starts_sorted = sorted(ins)

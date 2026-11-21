@@ -95,4 +95,21 @@
 | K5-E015 | emit_h | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
 | K5-E016 | emit_data | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
 | K5-E017 | app_tpl | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
-| K5-E018 | emit_raw | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
+| K5-E018 | emit_raw | E | x — снят (E9.2-3b; заменён K5-L017) | `MAP/M5-BRIDGE-E.md` |
+| K5-L001 | imp_hints | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L002 | san_put | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L003 | imp_offs | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L004 | imp_labels | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L005 | build_sstate | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L006 | sem_add | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L007 | dq_base | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L008 | dd_idt | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L009 | sem_filter | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L010 | ins_labels | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L011 | out_hexl | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L012 | emit_labname | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L013 | emit_cut | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L014 | emit_dollar | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L015 | emit_sem | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L016 | build_maps | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
+| K5-L017 | emit_body | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |

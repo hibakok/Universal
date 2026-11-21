@@ -1,12 +1,17 @@
 """battery_groups.py — прогон батареи группами секций (LAB/ai; песочница
-ограничивает вызов 10 минутами — как сессии 48/49: 1-11 / 12 / 13-17).
+ограничивает вызов 10 минутами — как сессии 48/49/71: 1-11 / 12 /
+13-17 / 18). С E9.2-3b секция 18 выделена в группу 4: сборка моста
+подросла (352 млн шагов wall) и T-E9-22 тяжелеет (15 эмуляционных
+прогонов инструмента — 12 артефактов + синтетика меток), вместе с
+секциями 13-17 группа не вмещается в лимит.
 
-Запуск: python3 LAB/ai/battery_groups.py <1|2|3>
+Запуск: python3 LAB/ai/battery_groups.py <1|2|3|4>
   1 — секции 1-11 (целостность/PE/сценарии/оракулы/круги/enc/wall)
   2 — секция 12 (каркас wall.wall: ФИКСПУНКТ ~0.55 млрд шагов)
-  3 — секции 13-18 (оракул UNIVM / ядро kernel.exe / ассемблер
-      uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3 /
-      мост BRIDGE v1 — E9.1)
+  3 — секции 13-17 (оракул UNIVM / ядро kernel.exe / ассемблер
+      uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3)
+  4 — секция 18 (мост BRIDGE v1 — E9.1/E9.2: фикс-пункт сборки,
+      диффтесты фактов/CLI/эмиссии H/кругов)
 """
 import sys
 
@@ -38,6 +43,7 @@ def main():
         V.lab_t_uva.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_l4.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_prj.run(V.check, V.kpath, V.kfile, V.kernel_host)
+    elif grp == "4":
         V.lab_t_bridge.run(V.check, V.kpath, V.kfile, V.kernel_host)
     else:
         print("группа?") 

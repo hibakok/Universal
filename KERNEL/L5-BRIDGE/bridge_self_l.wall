@@ -1,0 +1,425 @@
+; bridge_self_l.wall — карты и семантика режима "H", часть 1 (E9.2-3b)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_l.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь L моста, ЧАСТЬ 1 — КАРТЫ И СЕМАНТИКА режима "H"
+; оракула _emit_lines(mode="H") (SPEC/15 п. 6/8): карта тела (K5-L005
+; sstate — выжившие: 1 старт /
+; 2 строго внутри; по сдампу sdump), импорты (K5-L001 imp_hints —
+; перечитывание записей INT/IAT: маскированный hint-RVA + имя с quirk
+; C-строки; K5-L002 san_put — суффикс «iat_»+san в блоб snam, san =
+; ASCII alnum нижнего регистра / прочее «_» / обрезка 59 / пусто «f»;
+; K5-L003 imp_offs — базовые смещения iat/int/name/idt; K5-L004
+; imp_labels — метки iat_/d* + known-массив; ПРАВИЛО ПРЕДСТАВИМОСТИ:
+; метка НЕ создаётся строго внутри выжившей инструкции — иначе разрез
+; попадает внутрь уже покрытых байтов (наложение строк, зонд
+; probe_e92_3b2); приоритет iat_ > d: присвоение слотов раньше
+; setdefault), семантика (K5-L006 sem_add — кандидат-тройка
+; (off, kind, h) с заменой при том же off; K5-L007 dq_base — таблица
+; IAT/INT: валидность значений v_k == hint-RVA_k И созданная метка
+; hint-структуры, терминатор 0; K5-L008 dd_idt — дескриптор IDT;
+; K5-L009 sem_filter — приёмка по возрастанию off: конфликт с
+; выжившей инструкцией / принятой строкой / МЕТКОЙ СТРОГО ВНУТРИ —
+; отпадает, сырые байты), метки операндов (K5-L010 ins_labels —
+; повторный decode выживших: цели переходов (вид 4) и rip-ссылки
+; (mripon): l* на старте выжившей/строки семантики, d* на свободном
+; данном [0, target), строго внутри — метка невозможна; $base
+; (смещение -4096) и уже меченные пропускаются — приоритет iat_ > l >
+; d). РЕНДЕР И ДРАЙВЕР — ЧАСТЬ 2 (bridge_self_l2.wall, K5-L011..L017:
+; строчный hex имён, имя метки по карте, разрезы, $значения, строки
+; DD/DQ, драйвер emit_body). Эквивалентность оракулу — диффтест
+; T-E9-22 (12 артефактов + синтетика, вкл. вырожденные: hint-RVA
+; внутрь инструкции, impn=0); круг инструментами — T-E9-23.
+; Примитивы вывода — ветвь E; декодер — D; спуск — W.
+
+; K5-L001: записи таблицы thunk (INT/IAT) по счёту impn — в кучи
+; hhrv/hno/hnl: маскированный u64 записи (бит 63 снят: отрицательное
+; в знаковой qword-арифметике WALL = бит 63 установлен — достаточно
+; прибавить 2^63 = 16777216*256*16777216*128; СРАВНИВАТЬ с 2^63 НЕЛЬЗЯ
+; — произведение представимо только как -2^63, урок E9.2-3b),
+; файловое смещение имени (hint-RVA+2
+; минус секция плюс rawptr; -1 = вне файла -> имя «?» -> san «_») и
+; его длина (quirk C-строки cstr_len — без NUL обрезается до len-1)
+func imp_hints
+  var k
+  var f
+  var v
+  var no
+  hhrv = GlobalAlloc(0, impn * 8 + 8)
+  hno = GlobalAlloc(0, impn * 8 + 8)
+  hnl = GlobalAlloc(0, impn * 8 + 8)
+  if hhrv == 0 || hno == 0 || hnl == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  k = 0
+  while k < impn
+    f = thunk + 8 * k - 4096 + rawptr
+    v = u64(f)
+    if v < 0
+      v = v + 16777216 * 256 * 16777216 * 128
+    end
+    hhrv[k] = v
+    no = v + 2 - 4096 + rawptr
+    if no < 0 || no >= exelen
+      hno[k] = -1
+      hnl[k] = 1
+    else
+      hno[k] = no
+      hnl[k] = cstr_len(no)
+    end
+    k = k + 1
+  end
+  return 0
+end
+
+; K5-L002: имя функции k -> блоб snam: «iat_» + san (NUL-терминал);
+; noffs[k] = старт имени в блобе; san == _san оракула: ASCII
+; цифра/буква (нижний регистр), прочее «_», максимум 59 символов
+; (санитизация 1:1 — обрезка на входе), пусто -> «f»; имя вне файла
+; («?») -> «_». Отображение 1:1: каждый байт -> ровно один символ
+func san_put(k)
+  var n
+  var j
+  var c
+  var cnt
+  noffs[k] = snlen
+  j = 0
+  while j < 4
+    setb(snam, snlen, getb(s_iat, j))
+    snlen = snlen + 1
+    j = j + 1
+  end
+  cnt = 0
+  if hno[k] < 0
+    setb(snam, snlen, 95)
+    snlen = snlen + 1
+    cnt = 1
+  else
+    n = hnl[k]
+    j = 0
+    while j < n && cnt < 59
+      c = getb(exebuf, hno[k] + j)
+      if c >= 65 && c <= 90
+        c = c + 32
+      end
+      if c < 48 || c > 57 && c < 97 || c > 122
+        c = 95
+      end
+      setb(snam, snlen, c)
+      snlen = snlen + 1
+      cnt = cnt + 1
+      j = j + 1
+    end
+  end
+  if cnt == 0
+    setb(snam, snlen, 102)
+    snlen = snlen + 1
+  end
+  setb(snam, snlen, 0)
+  snlen = snlen + 1
+  return 0
+end
+
+; K5-L003: базовые смещения структур импорта (от начала тела):
+; iatoff (ft @+16 дескриптора 1), nameoff (name_rva @+12), idtoff
+; (DD[1] @0x110), intoff (oft @+0, иначе ft — как thunk семейства)
+func imp_offs
+  var f
+  f = rva_off(rd32(exebuf, 272))
+  iatoff = rd32(exebuf, f + 16) - 4096
+  nameoff = rd32(exebuf, f + 12) - 4096
+  idtoff = rd32(exebuf, 272) - 4096
+  intoff = thunk - 4096
+  return 0
+end
+
+; K5-L004: метки импорта + known-массив (RVA-ссылки DD). Границы —
+; как оракул: 0 <= iatoff, iatoff + 8*(impn+1) <= target,
+; 0 <= nameoff < target, все hint-смещения в [0, target); нарушение —
+; impbad=1 (меток/семантики нет — сырые байты). labmap: 1 = d*,
+; 2 = l*, 3 = iat_. Слоты iat_ ПРИСВАИВАЮТСЯ (первые), d* — setdefault
+; (не перезаписывают); knownoff — только созданные метки
+; (границы impn=0 — как «?» оракула)
+func imp_labels
+  var k
+  var h
+  impbad = 0
+  if iatoff < 0
+    impbad = 1
+  end
+  if iatoff + 8 * (impn + 1) > target
+    impbad = 1
+  end
+  if nameoff < 0 || nameoff >= target
+    impbad = 1
+  end
+  if impbad == 0
+    k = 0
+    while k < impn
+      h = hhrv[k] - 4096
+      if h < 0 || h >= target
+        impbad = 1
+      end
+      k = k + 1
+    end
+  end
+  if impbad != 0
+    return 0
+  end
+  k = 0
+  while k < impn
+    san_put(k)
+    if getb(sstate, iatoff + 8 * k) != 2
+      setb(labmap, iatoff + 8 * k, 3)
+    end
+    h = hhrv[k] - 4096
+    if getb(sstate, h) != 2
+      if getb(labmap, h) == 0
+        setb(labmap, h, 1)
+      end
+      knownoff[kn] = h
+      kn = kn + 1
+    end
+    k = k + 1
+  end
+  if getb(sstate, nameoff) != 2
+    if getb(labmap, nameoff) == 0
+      setb(labmap, nameoff, 1)
+    end
+    knownoff[kn] = nameoff
+    kn = kn + 1
+  end
+  if intoff != iatoff && getb(sstate, intoff) != 2
+    if getb(labmap, intoff) == 0
+      setb(labmap, intoff, 1)
+    end
+  end
+  if getb(labmap, intoff) != 0
+    knownoff[kn] = intoff
+    kn = kn + 1
+  end
+  if getb(labmap, iatoff) != 0
+    knownoff[kn] = iatoff
+    kn = kn + 1
+  end
+  return 0
+end
+
+; K5-L005: карта выживших sstate по сдампу sdump (байт на смещение
+; тела: 0 пусто, 1 старт выжившей, 2 строго внутри) — правила
+; представимости меток и приёмки семантики; работа = сумма длин
+; выживших <= rawlim (один проход)
+func build_sstate
+  var i
+  var a
+  var j
+  sstate = GlobalAlloc(0, 262145)
+  if sstate == 0
+    print_error(s_rexe, len(s_rexe), 5)
+  end
+  i = 0
+  while i < inscount
+    a = sdump[i]
+    setb(sstate, a, 1)
+    j = a + 1
+    while j < a + getb(lenmap, a)
+      setb(sstate, j, 2)
+      j = j + 1
+    end
+    i = i + 1
+  end
+  return 0
+end
+
+; K5-L006: кандидат семантической строки (off, kind, h) в semrows
+; (тройки qword); СМЕЩЕНИЕ СОВПАДАЕТ — замена (семантика словаря
+; оракула: последний выигрывает); kind 1 = DD (h = idtoff),
+; 2 = DQ (h = смещение hint-структуры, -1 = терминатор «0»)
+func sem_add(off, kind, h)
+  var i
+  i = 0
+  while i < semcnt
+    if semrows[3 * i] == off
+      semrows[3 * i + 1] = kind
+      semrows[3 * i + 2] = h
+      return 0
+    end
+    i = i + 1
+  end
+  semrows[3 * i] = off
+  semrows[3 * i + 1] = kind
+  semrows[3 * i + 2] = h
+  semcnt = semcnt + 1
+  return 0
+end
+
+; K5-L007: таблица твонок @ base (IAT/INT, смещение тела): строки DQ
+; валидны, когда каждая запись k < impn равна маскированному hint-RVA_k
+; И метка hint-смещения создана (иначе ссылка «$имя» невозможна), а
+; терминатор (k = impn) нулевой; валидна — по строке-кандидату на
+; запись (метки слотов — между строк); u64 с бит 63 -> +2^64
+func dq_base(base)
+  var k
+  var v
+  var h
+  k = 0
+  while k < impn
+    v = u64(rawptr + base + 8 * k)
+    if v < 0
+      v = v + 16777216 * 256 * 16777216 * 256
+    end
+    if v != hhrv[k]
+      return 0
+    end
+    h = hhrv[k] - 4096
+    if getb(labmap, h) == 0
+      return 0
+    end
+    k = k + 1
+  end
+  v = u64(rawptr + base + 8 * impn)
+  if v < 0
+    v = v + 16777216 * 256 * 16777216 * 256
+  end
+  if v != 0
+    return 0
+  end
+  k = 0
+  while k < impn
+    sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+    k = k + 1
+  end
+  sem_add(base + 8 * impn, 2, -1)
+  return 0
+end
+
+; K5-L008: дескриптор IDT @ idtoff — кандидат DD (5 значений по
+; известным RVA — рендер emit_dollar); граница [0, target] как оракул
+func dd_idt
+  if idtoff >= 0
+    if idtoff + 20 <= target
+      sem_add(idtoff, 1, idtoff)
+    end
+  end
+  return 0
+end
+
+; K5-L009: приёмка кандидатов семантики — вставочная сортировка по
+; off (тройки), затем линейно: размер DD = 20, DQ = 8; КОНФЛИКТ —
+; любой байт диапазона занят выжившей инструкцией (sstate != 0) или
+; принятой строкой (semstate != 0), ИЛИ метка строго внутри
+; (labmap != 0 на (off, off+размер)) — кандидат отпадает (сырые
+; байты); принятые уплотняются в начало semrows + semstate
+; (1 старт / 2 внутри); semacc — счёт принятых
+func sem_filter
+  var i
+  var j
+  var o
+  var size
+  var clash
+  var t0
+  var t1
+  var t2
+  i = 1
+  while i < semcnt
+    t0 = semrows[3 * i]
+    t1 = semrows[3 * i + 1]
+    t2 = semrows[3 * i + 2]
+    j = i
+    while j > 0 && semrows[3 * (j - 1)] > t0
+      semrows[3 * j] = semrows[3 * (j - 1)]
+      semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+      semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+      j = j - 1
+    end
+    semrows[3 * j] = t0
+    semrows[3 * j + 1] = t1
+    semrows[3 * j + 2] = t2
+    i = i + 1
+  end
+  semacc = 0
+  i = 0
+  while i < semcnt
+    o = semrows[3 * i]
+    if semrows[3 * i + 1] == 1
+      size = 20
+    else
+      size = 8
+    end
+    clash = 0
+    j = o
+    while j < o + size
+      if getb(sstate, j) != 0 || getb(semstate, j) != 0
+        clash = 1
+        break
+      end
+      j = j + 1
+    end
+    if clash == 0
+      j = o + 1
+      while j < o + size
+        if getb(labmap, j) != 0
+          clash = 1
+          break
+        end
+        j = j + 1
+      end
+    end
+    if clash == 0
+      semrows[3 * semacc] = o
+      semrows[3 * semacc + 1] = semrows[3 * i + 1]
+      semrows[3 * semacc + 2] = semrows[3 * i + 2]
+      semacc = semacc + 1
+      setb(semstate, o, 1)
+      j = o + 1
+      while j < o + size
+        setb(semstate, j, 2)
+        j = j + 1
+      end
+    end
+    i = i + 1
+  end
+  return 0
+end
+
+; K5-L010: метки l*/d* по операндам выживших (повторный decode —
+; детерминирован): цель перехода (вид 4) или rip-ссылка (mripon при
+; операнде-памяти); $base (-4096), вне [0, target) и уже меченные
+; пропускаются; l* — старт выжившей/строки семантики (sstate/semstate
+; == 1), d* — свободное данное (не 2); строго внутри — метка
+; невозможна (H-строка и так H-режим; канон взял бы H-форму)
+func ins_labels
+  var i
+  var a
+  var off
+  i = 0
+  while i < inscount
+    a = sdump[i]
+    if decode_ins(a) != 0
+      fail_family()
+    end
+    off = -4097
+    if da1k == 4
+      off = da1v
+    else
+      if da2k == 4
+        off = da2v
+      end
+    end
+    if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+      off = omrip
+    end
+    if off != -4096 && off >= 0 && off < target
+      if getb(labmap, off) == 0
+        if getb(sstate, off) == 1 || getb(semstate, off) == 1
+          setb(labmap, off, 2)
+        else
+          if getb(sstate, off) != 2 && getb(semstate, off) != 2
+            setb(labmap, off, 1)
+          end
+        end
+      end
+    end
+    i = i + 1
+  end
+  return 0
+end
+

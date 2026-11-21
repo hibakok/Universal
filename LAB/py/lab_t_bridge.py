@@ -43,11 +43,25 @@
              сквозной круг raw-текста РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ
              (enc -> brick -> pegen) на мосте seed и hxdump —
              EXE == исходному (H-режим байто-точен всегда,
-             SPEC/15 п. 5).
+             SPEC/15 п. 5);
+         (8) E9.2-3b (МЕТКИ И СЕМАНТИКА — режим "H"): T-E9-22 —
+             выход t.b2 == оракулу emit_b2(mode="H") на ВСЕХ 12
+             артефактах + синтетике спуска + синтетике меток
+             (мутанты seed: hint-RVA СТРОГО ВНУТРЬ инструкции — метка
+             не создаётся, таблицы DQ — сырыми байтами, b2 валиден
+             (правило представимости SPEC/15 п. 6, зонд
+             probe_e92_3b2); ПУСТАЯ таблица импорта impn=0 — без
+             отказа: d*-метки имени/DLL, DD, DQ «0» терминатора) —
+             для мутантов ДОПОЛНИТЕЛЬНО круг оракула (текст ->
+             enc -> brick -> pegen == мутанту — валидность b2);
+             T-E9-23 — сквозной круг H-текста (метки + DD/DQ +
+             разрезы) РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ на мосте seed и hxdump.
 Функция: DoD E9.1 — «сначала истина семантики» (прецедент E7.1/E8.1):
          семантика моста закреплена оракулом и якорями ДО инструмента
          bridge.exe. E9.2-1 — каркас; E9.2-2 — спуск от входа:
-         диффтест фактов == оракулу; эмиссия b2/peg — срезы E9.2-3+.
+         диффтест фактов == оракулу; E9.2-3a — raw-эмиссия; E9.2-3b —
+         метки l/d/iat_ + семантика DD/DQ + разрезы (режим "H");
+         M-строки — E9.2-3c, PEG — E9.2-4.
          Число проверок: 23.
 """
 import os
@@ -391,15 +405,31 @@ def run(check, kpath, kfile, kernel_host):
         _facts(check, bexe, synth, "synthm (тень/нули/ret)",
                tid="T-E9-21")
 
-        # T-E9-22 (E9.2-3a): raw-эмиссия — выходной файл t.b2 ==
-        # оракулу emit_b2(mode="RAW") на ВСЕХ 12 артефактах семейства
+        # T-E9-22 (E9.2-3a/b): эмиссия — выходной файл t.b2 ==
+        # оракулу emit_b2(mode="H") на ВСЕХ 12 артефактах семейства
         # + синтетике спуска (шапка SPEC/15, H-строки с примечаниями
-        # _note — имена регистров/imm/[rip±d]/[mem]/cl, данные DZ/DB
-        # сегментов; факт-строка остаётся контрактом успеха)
+        # _note, данные DZ/DB) + МЕТКИ l/d/iat_ И СЕМАНТИКА DD/DQ +
+        # разрезы (E9.2-3b) + синтетика меток: мутант hint-ins (INT[0]
+        # указывает СТРОГО ВНУТРЬ выжившей инструкции 0x2B+1 — метка
+        # d102c не создаётся, обе таблицы DQ сырыми байтами, b2
+        # ВАЛИДЕН — правило представимости SPEC/15 п. 6) и мутант
+        # imp0 (таблица INT пуста — impn=0: без отказа, DD + DQ «0»);
+        # для мутантов — и круг оракула (enc -> brick -> pegen ==
+        # мутанту — доказательство валидности H-текста)
+        _fam = lab_bridge.parse_family(kfile("L0-SEED/seed.exe"))
+        _imp = _fam["pe"]["imports"][0]
+        _intf = _imp["oft_rva"] - 0x1000 + _fam["pe"]["sec_raw_ptr"]
+        _seed = kfile("L0-SEED/seed.exe")
+        mut_hint = bytearray(_seed)
+        mut_hint[_intf:_intf + 8] = (0x102C).to_bytes(8, "little")
+        mut_hint = bytes(mut_hint)
+        mut_imp0 = bytearray(_seed)
+        mut_imp0[_intf:_intf + 8] = (0).to_bytes(8, "little")
+        mut_imp0 = bytes(mut_imp0)
         bad = []
         for m in ARTIFACTS:
             data = kfile("%s.exe" % m)
-            want, _st = lab_bridge.emit_b2(data, mode="RAW")
+            want, _st = lab_bridge.emit_b2(data, mode="H")
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             if r.exit_code != 0 or \
@@ -407,19 +437,32 @@ def run(check, kpath, kfile, kernel_host):
                 bad.append("%s (код %s, %d Б)"
                            % (m, r.exit_code,
                               len(r.files.get("t.b2") or b"")))
-        want, _st = lab_bridge.emit_b2(synth, mode="RAW")
-        r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
-                           {"in.exe": synth})
-        if r.exit_code != 0 or r.files.get("t.b2") != want.encode("utf-8"):
-            bad.append("synthm (код %s)" % r.exit_code)
-        check("T-E9-22 raw-эмиссия .b2 == оракулу (12 артефактов"
-              " + синтетика)", not bad,
-              "; ".join(bad[:2]) if bad else "H/DZ/DB; шапка; примечания")
+        synth_cases = [(synth, "synthm"), (mut_hint, "hint-ins"),
+                       (mut_imp0, "imp0")]
+        for data, mname in synth_cases:
+            want, _st = lab_bridge.emit_b2(data, mode="H")
+            r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                               {"in.exe": data})
+            ok = (r.exit_code == 0
+                  and r.files.get("t.b2") == want.encode("utf-8"))
+            if ok and mname != "synthm":      # круг = валидность b2
+                try:
+                    _b = lab_brick.assemble(
+                        lab_enc.normalize(want).encode("utf-8"))
+                    ok = lab_pegen.wrap(_b, lab_bridge.emit_peg(data)) \
+                        == data
+                except Exception as _e:         # noqa: BLE001
+                    ok = False
+            if not ok:
+                bad.append("%s (код %s)" % (mname, r.exit_code))
+        check("T-E9-22 эмиссия .b2 (H: метки l/d/iat_ + DD/DQ + разрезы)"
+              " == оракулу (12 артефактов + синтетика)", not bad,
+              "; ".join(bad[:2]) if bad else "шапка; H/DZ/DB/DD/DQ; метки")
 
-        # T-E9-23 (E9.2-3a): сквозной круг raw-текста РЕАЛЬНЫМИ
-        # ИНСТРУМЕНТАМИ (H-режим байто-точен всегда, SPEC/15 п. 5):
-        # bridge.exe -> t.b2 (raw) -> enc -> brick -> pegen(+peg
-        # оракула) == исходный EXE (seed и hxdump)
+        # T-E9-23 (E9.2-3a/b): сквозной круг H-текста РЕАЛЬНЫМИ
+        # ИНСТРУМЕНТАМИ (метки + семантика + разрезы байто-точны,
+        # SPEC/15 п. 5/6/8): bridge.exe -> t.b2 (H) -> enc -> brick ->
+        # pegen(+peg оракула) == исходный EXE (seed и hxdump)
         bad = []
         for m in ("L0-SEED/seed", "L0-HXDUMP/hxdump"):
             data = kfile("%s.exe" % m)

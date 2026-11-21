@@ -1,5 +1,5 @@
 ; UNIVERSAL / WALL v2 / сгенерировано компилятором WALL (SPEC/11)
-; исходник: 2411 строк; функций: 70; ext: 8; str: 36; глобальных var: 68
+; исходник: 3074 строк; функций: 86; ext: 8; str: 39; глобальных var: 87
 ; --- импорты: фиксированная область 0x200 байт (SPEC/11) ---
 :_idt
 DD $_intt 0 0 $_dll $_iat ; описатель импорта kernel32
@@ -9830,27 +9830,93 @@ H 4C 89 D0 ; return 0
 H 48 89 EC ; выход app_tpl
 H 5D ; выход app_tpl
 H C3 ; выход app_tpl
-:emit_raw
-H 55 ; кадр emit_raw
-H 48 89 E5 ; кадр emit_raw
-H 48 81 EC A0 00 00 00 ; кадр emit_raw
-H 48 89 4D F8 ; кадр emit_raw
-H 49 C7 C2 00 00 00 00 ; outmem = GlobalAlloc(0, 8388608)
-H 4C 89 55 B8 ; outmem = GlobalAlloc(0, 8388608)
-H 49 C7 C2 00 00 80 00 ; outmem = GlobalAlloc(0, 8388608)
-H 4C 89 55 B0 ; outmem = GlobalAlloc(0, 8388608)
-H 48 8B 4D B8 ; outmem = GlobalAlloc(0, 8388608)
-H 48 8B 55 B0 ; outmem = GlobalAlloc(0, 8388608)
-H FF 15 $_iat_globalalloc ; outmem = GlobalAlloc(0, 8388608)
-H 49 89 C2 ; outmem = GlobalAlloc(0, 8388608)
-H 4C 89 15 $outmem ; outmem = GlobalAlloc(0, 8388608)
-H 4C 8B 15 $outmem ; if outmem == 0
-H 4C 89 55 C8 ; if outmem == 0
-H 49 C7 C2 00 00 00 00 ; if outmem == 0
-H 4D 89 D3 ; if outmem == 0
-H 4C 8B 55 C8 ; if outmem == 0
-H 4D 39 DA ; if outmem == 0
-H 0F 85 $_if300e ; if outmem == 0
+:imp_hints
+H 55 ; кадр imp_hints
+H 48 89 E5 ; кадр imp_hints
+H 48 81 EC A0 00 00 00 ; кадр imp_hints
+H 49 C7 C2 00 00 00 00 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B8 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 15 $impn ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D0 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D0 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4D 0F AF D3 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D8 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D8 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4D 01 DA ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B0 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 4D B8 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 55 B0 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H FF 15 $_iat_globalalloc ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 49 89 C2 ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 15 $hhrv ; hhrv = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 00 00 00 00 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B8 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 15 $impn ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D0 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D0 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4D 0F AF D3 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D8 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D8 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4D 01 DA ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B0 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 4D B8 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 55 B0 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H FF 15 $_iat_globalalloc ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 49 89 C2 ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 15 $hno ; hno = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 00 00 00 00 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B8 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 15 $impn ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D0 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D0 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4D 0F AF D3 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D8 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 D8 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4D 01 DA ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 B0 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 4D B8 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 55 B0 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H FF 15 $_iat_globalalloc ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 49 89 C2 ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 15 $hnl ; hnl = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 15 $hhrv ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 89 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 49 C7 C2 00 00 00 00 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 89 D3 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 8B 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 39 DA ; if hhrv == 0 || hno == 0 || hnl == 0
+H 0F 85 $_if300d2 ; if hhrv == 0 || hno == 0 || hnl == 0
+H E9 $_if300t ; if hhrv == 0 || hno == 0 || hnl == 0
+:_if300d2
+H 4C 8B 15 $hno ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 89 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 49 C7 C2 00 00 00 00 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 89 D3 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 8B 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 39 DA ; if hhrv == 0 || hno == 0 || hnl == 0
+H 0F 85 $_if300d3 ; if hhrv == 0 || hno == 0 || hnl == 0
+H E9 $_if300t ; if hhrv == 0 || hno == 0 || hnl == 0
+:_if300d3
+H 4C 8B 15 $hnl ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 89 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 49 C7 C2 00 00 00 00 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 89 D3 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4C 8B 55 D8 ; if hhrv == 0 || hno == 0 || hnl == 0
+H 4D 39 DA ; if hhrv == 0 || hno == 0 || hnl == 0
+H 0F 85 $_if300e ; if hhrv == 0 || hno == 0 || hnl == 0
+:_if300t
 H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 89 55 B8 ; print_error(s_rexe, len(s_rexe), 5)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
@@ -9862,243 +9928,3638 @@ H 48 8B 55 B0 ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 8B 45 A8 ; print_error(s_rexe, len(s_rexe), 5)
 H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
 :_if300e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F8 ; k = 0
+:_w301
+H 4C 8B 55 F8 ; while k < impn
+H 4C 89 55 D8 ; while k < impn
+H 4C 8B 15 $impn ; while k < impn
+H 4D 89 D3 ; while k < impn
+H 4C 8B 55 D8 ; while k < impn
+H 4D 39 DA ; while k < impn
+H 0F 8D $_w301e ; while k < impn
+H 4C 8B 15 $thunk ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 89 55 C8 ; f = thunk + 8 * k - 4096 + rawptr
+H 49 C7 C2 08 00 00 00 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 89 55 C0 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 F8 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 89 D3 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 C0 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 0F AF D3 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 89 D3 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 C8 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 01 DA ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 89 55 D0 ; f = thunk + 8 * k - 4096 + rawptr
+H 49 C7 C2 00 10 00 00 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 89 D3 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 D0 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 29 DA ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 89 55 D8 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 15 $rawptr ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 89 D3 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 D8 ; f = thunk + 8 * k - 4096 + rawptr
+H 4D 01 DA ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 89 55 F0 ; f = thunk + 8 * k - 4096 + rawptr
+H 4C 8B 55 F0 ; v = u64(f)
+H 4C 89 55 B8 ; v = u64(f)
+H 48 8B 4D B8 ; v = u64(f)
+H E8 $u64 ; v = u64(f)
+H 49 89 C2 ; v = u64(f)
+H 4C 89 55 E8 ; v = u64(f)
+H 4C 8B 55 E8 ; if v < 0
+H 4C 89 55 D8 ; if v < 0
+H 49 C7 C2 00 00 00 00 ; if v < 0
+H 4D 89 D3 ; if v < 0
+H 4C 8B 55 D8 ; if v < 0
+H 4D 39 DA ; if v < 0
+H 0F 8D $_if302e ; if v < 0
+H 4C 8B 55 E8 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 89 55 D8 ; v = v + 16777216 * 256 * 16777216 * 128
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 89 55 C0 ; v = v + 16777216 * 256 * 16777216 * 128
+H 49 C7 C2 00 01 00 00 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 8B 55 C0 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 89 55 C8 ; v = v + 16777216 * 256 * 16777216 * 128
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 8B 55 C8 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 89 55 D0 ; v = v + 16777216 * 256 * 16777216 * 128
+H 49 C7 C2 80 00 00 00 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 8B 55 D0 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 8B 55 D8 ; v = v + 16777216 * 256 * 16777216 * 128
+H 4D 01 DA ; v = v + 16777216 * 256 * 16777216 * 128
+H 4C 89 55 E8 ; v = v + 16777216 * 256 * 16777216 * 128
+:_if302e
+H 4C 8B 15 $hhrv ; hhrv[k] = v
+H 4C 89 55 A0 ; hhrv[k] = v
+H 4C 8B 55 F8 ; hhrv[k] = v
+H 4C 89 55 98 ; hhrv[k] = v
+H 4C 8B 55 E8 ; hhrv[k] = v
+H 4C 89 55 90 ; hhrv[k] = v
+H 4C 8B 55 A0 ; hhrv[k] = v
+H 4C 8B 5D 98 ; hhrv[k] = v
+H 49 C1 E3 03 ; hhrv[k] = v
+H 4D 01 DA ; hhrv[k] = v
+H 4C 8B 5D 90 ; hhrv[k] = v
+H 4D 89 1A ; hhrv[k] = v
+H 4C 8B 55 E8 ; no = v + 2 - 4096 + rawptr
+H 4C 89 55 C8 ; no = v + 2 - 4096 + rawptr
+H 49 C7 C2 02 00 00 00 ; no = v + 2 - 4096 + rawptr
+H 4D 89 D3 ; no = v + 2 - 4096 + rawptr
+H 4C 8B 55 C8 ; no = v + 2 - 4096 + rawptr
+H 4D 01 DA ; no = v + 2 - 4096 + rawptr
+H 4C 89 55 D0 ; no = v + 2 - 4096 + rawptr
+H 49 C7 C2 00 10 00 00 ; no = v + 2 - 4096 + rawptr
+H 4D 89 D3 ; no = v + 2 - 4096 + rawptr
+H 4C 8B 55 D0 ; no = v + 2 - 4096 + rawptr
+H 4D 29 DA ; no = v + 2 - 4096 + rawptr
+H 4C 89 55 D8 ; no = v + 2 - 4096 + rawptr
+H 4C 8B 15 $rawptr ; no = v + 2 - 4096 + rawptr
+H 4D 89 D3 ; no = v + 2 - 4096 + rawptr
+H 4C 8B 55 D8 ; no = v + 2 - 4096 + rawptr
+H 4D 01 DA ; no = v + 2 - 4096 + rawptr
+H 4C 89 55 E0 ; no = v + 2 - 4096 + rawptr
+H 4C 8B 55 E0 ; if no < 0 || no >= exelen
+H 4C 89 55 D8 ; if no < 0 || no >= exelen
+H 49 C7 C2 00 00 00 00 ; if no < 0 || no >= exelen
+H 4D 89 D3 ; if no < 0 || no >= exelen
+H 4C 8B 55 D8 ; if no < 0 || no >= exelen
+H 4D 39 DA ; if no < 0 || no >= exelen
+H 0F 8D $_if303d2 ; if no < 0 || no >= exelen
+H E9 $_if303t ; if no < 0 || no >= exelen
+:_if303d2
+H 4C 8B 55 E0 ; if no < 0 || no >= exelen
+H 4C 89 55 D8 ; if no < 0 || no >= exelen
+H 4C 8B 15 $exelen ; if no < 0 || no >= exelen
+H 4D 89 D3 ; if no < 0 || no >= exelen
+H 4C 8B 55 D8 ; if no < 0 || no >= exelen
+H 4D 39 DA ; if no < 0 || no >= exelen
+H 0F 8C $_if303 ; if no < 0 || no >= exelen
+:_if303t
+H 4C 8B 15 $hno ; hno[k] = -1
+H 4C 89 55 A0 ; hno[k] = -1
+H 4C 8B 55 F8 ; hno[k] = -1
+H 4C 89 55 98 ; hno[k] = -1
+H 49 C7 C2 01 00 00 00 ; hno[k] = -1
+H 49 F7 DA ; hno[k] = -1
+H 4C 89 55 90 ; hno[k] = -1
+H 4C 8B 55 A0 ; hno[k] = -1
+H 4C 8B 5D 98 ; hno[k] = -1
+H 49 C1 E3 03 ; hno[k] = -1
+H 4D 01 DA ; hno[k] = -1
+H 4C 8B 5D 90 ; hno[k] = -1
+H 4D 89 1A ; hno[k] = -1
+H 4C 8B 15 $hnl ; hnl[k] = 1
+H 4C 89 55 A0 ; hnl[k] = 1
+H 4C 8B 55 F8 ; hnl[k] = 1
+H 4C 89 55 98 ; hnl[k] = 1
+H 49 C7 C2 01 00 00 00 ; hnl[k] = 1
+H 4C 89 55 90 ; hnl[k] = 1
+H 4C 8B 55 A0 ; hnl[k] = 1
+H 4C 8B 5D 98 ; hnl[k] = 1
+H 49 C1 E3 03 ; hnl[k] = 1
+H 4D 01 DA ; hnl[k] = 1
+H 4C 8B 5D 90 ; hnl[k] = 1
+H 4D 89 1A ; hnl[k] = 1
+H E9 $_if303e ; if no < 0 || no >= exelen
+:_if303
+H 4C 8B 15 $hno ; hno[k] = no
+H 4C 89 55 A0 ; hno[k] = no
+H 4C 8B 55 F8 ; hno[k] = no
+H 4C 89 55 98 ; hno[k] = no
+H 4C 8B 55 E0 ; hno[k] = no
+H 4C 89 55 90 ; hno[k] = no
+H 4C 8B 55 A0 ; hno[k] = no
+H 4C 8B 5D 98 ; hno[k] = no
+H 49 C1 E3 03 ; hno[k] = no
+H 4D 01 DA ; hno[k] = no
+H 4C 8B 5D 90 ; hno[k] = no
+H 4D 89 1A ; hno[k] = no
+H 4C 8B 15 $hnl ; hnl[k] = cstr_len(no)
+H 4C 89 55 A0 ; hnl[k] = cstr_len(no)
+H 4C 8B 55 F8 ; hnl[k] = cstr_len(no)
+H 4C 89 55 98 ; hnl[k] = cstr_len(no)
+H 4C 8B 55 E0 ; hnl[k] = cstr_len(no)
+H 4C 89 55 B8 ; hnl[k] = cstr_len(no)
+H 48 8B 4D B8 ; hnl[k] = cstr_len(no)
+H E8 $cstr_len ; hnl[k] = cstr_len(no)
+H 49 89 C2 ; hnl[k] = cstr_len(no)
+H 4C 89 55 90 ; hnl[k] = cstr_len(no)
+H 4C 8B 55 A0 ; hnl[k] = cstr_len(no)
+H 4C 8B 5D 98 ; hnl[k] = cstr_len(no)
+H 49 C1 E3 03 ; hnl[k] = cstr_len(no)
+H 4D 01 DA ; hnl[k] = cstr_len(no)
+H 4C 8B 5D 90 ; hnl[k] = cstr_len(no)
+H 4D 89 1A ; hnl[k] = cstr_len(no)
+:_if303e
+H 4C 8B 55 F8 ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F8 ; k = k + 1
+H E9 $_w301 ; while k < impn
+:_w301e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход imp_hints
+H 5D ; выход imp_hints
+H C3 ; выход imp_hints
+:san_put
+H 55 ; кадр san_put
+H 48 89 E5 ; кадр san_put
+H 48 81 EC 90 00 00 00 ; кадр san_put
+H 48 89 4D F8 ; кадр san_put
+H 4C 8B 15 $noffs ; noffs[k] = snlen
+H 4C 89 55 B8 ; noffs[k] = snlen
+H 4C 8B 55 F8 ; noffs[k] = snlen
+H 4C 89 55 B0 ; noffs[k] = snlen
+H 4C 8B 15 $snlen ; noffs[k] = snlen
+H 4C 89 55 A8 ; noffs[k] = snlen
+H 4C 8B 55 B8 ; noffs[k] = snlen
+H 4C 8B 5D B0 ; noffs[k] = snlen
+H 49 C1 E3 03 ; noffs[k] = snlen
+H 4D 01 DA ; noffs[k] = snlen
+H 4C 8B 5D A8 ; noffs[k] = snlen
+H 4D 89 1A ; noffs[k] = snlen
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 55 E8 ; j = 0
+:_w304
+H 4C 8B 55 E8 ; while j < 4
+H 4C 89 55 D0 ; while j < 4
+H 49 C7 C2 04 00 00 00 ; while j < 4
+H 4D 89 D3 ; while j < 4
+H 4C 8B 55 D0 ; while j < 4
+H 4D 39 DA ; while j < 4
+H 0F 8D $_w304e ; while j < 4
+H 4C 8B 15 $snam ; setb(snam, snlen, getb(s_iat, j))
+H 4C 89 55 B8 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 15 $snlen ; setb(snam, snlen, getb(s_iat, j))
+H 4C 89 55 B0 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8D 15 $s_iat ; setb(snam, snlen, getb(s_iat, j))
+H 4C 89 55 D0 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 55 E8 ; setb(snam, snlen, getb(s_iat, j))
+H 4D 89 D3 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 55 D0 ; setb(snam, snlen, getb(s_iat, j))
+H 47 0F B6 14 1A ; setb(snam, snlen, getb(s_iat, j))
+H 4C 89 55 A8 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 55 B8 ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 5D B0 ; setb(snam, snlen, getb(s_iat, j))
+H 8A 45 A8 ; setb(snam, snlen, getb(s_iat, j))
+H 43 88 04 1A ; setb(snam, snlen, getb(s_iat, j))
+H 4C 8B 15 $snlen ; snlen = snlen + 1
+H 4C 89 55 D0 ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; snlen = snlen + 1
+H 4D 89 D3 ; snlen = snlen + 1
+H 4C 8B 55 D0 ; snlen = snlen + 1
+H 4D 01 DA ; snlen = snlen + 1
+H 4C 89 15 $snlen ; snlen = snlen + 1
+H 4C 8B 55 E8 ; j = j + 1
+H 4C 89 55 D0 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 D0 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 E8 ; j = j + 1
+H E9 $_w304 ; while j < 4
+:_w304e
+H 49 C7 C2 00 00 00 00 ; cnt = 0
+H 4C 89 55 D8 ; cnt = 0
+H 4C 8B 15 $hno ; if hno[k] < 0
+H 4C 89 55 C8 ; if hno[k] < 0
+H 4C 8B 55 F8 ; if hno[k] < 0
+H 49 C1 E2 03 ; if hno[k] < 0
+H 4D 89 D3 ; if hno[k] < 0
+H 4C 8B 55 C8 ; if hno[k] < 0
+H 4D 01 DA ; if hno[k] < 0
+H 4D 8B 12 ; if hno[k] < 0
+H 4C 89 55 D0 ; if hno[k] < 0
+H 49 C7 C2 00 00 00 00 ; if hno[k] < 0
+H 4D 89 D3 ; if hno[k] < 0
+H 4C 8B 55 D0 ; if hno[k] < 0
+H 4D 39 DA ; if hno[k] < 0
+H 0F 8D $_if305 ; if hno[k] < 0
+H 4C 8B 15 $snam ; setb(snam, snlen, 95)
+H 4C 89 55 B8 ; setb(snam, snlen, 95)
+H 4C 8B 15 $snlen ; setb(snam, snlen, 95)
+H 4C 89 55 B0 ; setb(snam, snlen, 95)
+H 49 C7 C2 5F 00 00 00 ; setb(snam, snlen, 95)
+H 4C 89 55 A8 ; setb(snam, snlen, 95)
+H 4C 8B 55 B8 ; setb(snam, snlen, 95)
+H 4C 8B 5D B0 ; setb(snam, snlen, 95)
+H 8A 45 A8 ; setb(snam, snlen, 95)
+H 43 88 04 1A ; setb(snam, snlen, 95)
+H 4C 8B 15 $snlen ; snlen = snlen + 1
+H 4C 89 55 D0 ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; snlen = snlen + 1
+H 4D 89 D3 ; snlen = snlen + 1
+H 4C 8B 55 D0 ; snlen = snlen + 1
+H 4D 01 DA ; snlen = snlen + 1
+H 4C 89 15 $snlen ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; cnt = 1
+H 4C 89 55 D8 ; cnt = 1
+H E9 $_if305e ; if hno[k] < 0
+:_if305
+H 4C 8B 15 $hnl ; n = hnl[k]
+H 4C 89 55 D0 ; n = hnl[k]
+H 4C 8B 55 F8 ; n = hnl[k]
+H 49 C1 E2 03 ; n = hnl[k]
+H 4D 89 D3 ; n = hnl[k]
+H 4C 8B 55 D0 ; n = hnl[k]
+H 4D 01 DA ; n = hnl[k]
+H 4D 8B 12 ; n = hnl[k]
+H 4C 89 55 F0 ; n = hnl[k]
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 55 E8 ; j = 0
+:_w306
+H 4C 8B 55 E8 ; while j < n && cnt < 59
+H 4C 89 55 D0 ; while j < n && cnt < 59
+H 4C 8B 55 F0 ; while j < n && cnt < 59
+H 4D 89 D3 ; while j < n && cnt < 59
+H 4C 8B 55 D0 ; while j < n && cnt < 59
+H 4D 39 DA ; while j < n && cnt < 59
+H 0F 8D $_w306e ; while j < n && cnt < 59
+H 4C 8B 55 D8 ; while j < n && cnt < 59
+H 4C 89 55 D0 ; while j < n && cnt < 59
+H 49 C7 C2 3B 00 00 00 ; while j < n && cnt < 59
+H 4D 89 D3 ; while j < n && cnt < 59
+H 4C 8B 55 D0 ; while j < n && cnt < 59
+H 4D 39 DA ; while j < n && cnt < 59
+H 0F 8D $_w306e ; while j < n && cnt < 59
+H 4C 8B 15 $exebuf ; c = getb(exebuf, hno[k] + j)
+H 4C 89 55 D0 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 15 $hno ; c = getb(exebuf, hno[k] + j)
+H 4C 89 55 C0 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 F8 ; c = getb(exebuf, hno[k] + j)
+H 49 C1 E2 03 ; c = getb(exebuf, hno[k] + j)
+H 4D 89 D3 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 C0 ; c = getb(exebuf, hno[k] + j)
+H 4D 01 DA ; c = getb(exebuf, hno[k] + j)
+H 4D 8B 12 ; c = getb(exebuf, hno[k] + j)
+H 4C 89 55 C8 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 E8 ; c = getb(exebuf, hno[k] + j)
+H 4D 89 D3 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 C8 ; c = getb(exebuf, hno[k] + j)
+H 4D 01 DA ; c = getb(exebuf, hno[k] + j)
+H 4D 89 D3 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 D0 ; c = getb(exebuf, hno[k] + j)
+H 47 0F B6 14 1A ; c = getb(exebuf, hno[k] + j)
+H 4C 89 55 E0 ; c = getb(exebuf, hno[k] + j)
+H 4C 8B 55 E0 ; if c >= 65 && c <= 90
+H 4C 89 55 D0 ; if c >= 65 && c <= 90
+H 49 C7 C2 41 00 00 00 ; if c >= 65 && c <= 90
+H 4D 89 D3 ; if c >= 65 && c <= 90
+H 4C 8B 55 D0 ; if c >= 65 && c <= 90
+H 4D 39 DA ; if c >= 65 && c <= 90
+H 0F 8C $_if307e ; if c >= 65 && c <= 90
+H 4C 8B 55 E0 ; if c >= 65 && c <= 90
+H 4C 89 55 D0 ; if c >= 65 && c <= 90
+H 49 C7 C2 5A 00 00 00 ; if c >= 65 && c <= 90
+H 4D 89 D3 ; if c >= 65 && c <= 90
+H 4C 8B 55 D0 ; if c >= 65 && c <= 90
+H 4D 39 DA ; if c >= 65 && c <= 90
+H 0F 8F $_if307e ; if c >= 65 && c <= 90
+H 4C 8B 55 E0 ; c = c + 32
+H 4C 89 55 D0 ; c = c + 32
+H 49 C7 C2 20 00 00 00 ; c = c + 32
+H 4D 89 D3 ; c = c + 32
+H 4C 8B 55 D0 ; c = c + 32
+H 4D 01 DA ; c = c + 32
+H 4C 89 55 E0 ; c = c + 32
+:_if307e
+H 4C 8B 55 E0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 89 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 49 C7 C2 30 00 00 00 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 89 D3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 8B 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 39 DA ; if c < 48 || c > 57 && c < 97 || c > 122
+H 0F 8D $_if308d2 ; if c < 48 || c > 57 && c < 97 || c > 122
+H E9 $_if308t ; if c < 48 || c > 57 && c < 97 || c > 122
+:_if308d2
+H 4C 8B 55 E0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 89 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 49 C7 C2 39 00 00 00 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 89 D3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 8B 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 39 DA ; if c < 48 || c > 57 && c < 97 || c > 122
+H 0F 8E $_if308d3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 8B 55 E0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 89 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 49 C7 C2 61 00 00 00 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 89 D3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 8B 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 39 DA ; if c < 48 || c > 57 && c < 97 || c > 122
+H 0F 8D $_if308d3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H E9 $_if308t ; if c < 48 || c > 57 && c < 97 || c > 122
+:_if308d3
+H 4C 8B 55 E0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 89 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 49 C7 C2 7A 00 00 00 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 89 D3 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4C 8B 55 D0 ; if c < 48 || c > 57 && c < 97 || c > 122
+H 4D 39 DA ; if c < 48 || c > 57 && c < 97 || c > 122
+H 0F 8E $_if308e ; if c < 48 || c > 57 && c < 97 || c > 122
+:_if308t
+H 49 C7 C2 5F 00 00 00 ; c = 95
+H 4C 89 55 E0 ; c = 95
+:_if308e
+H 4C 8B 15 $snam ; setb(snam, snlen, c)
+H 4C 89 55 B8 ; setb(snam, snlen, c)
+H 4C 8B 15 $snlen ; setb(snam, snlen, c)
+H 4C 89 55 B0 ; setb(snam, snlen, c)
+H 4C 8B 55 E0 ; setb(snam, snlen, c)
+H 4C 89 55 A8 ; setb(snam, snlen, c)
+H 4C 8B 55 B8 ; setb(snam, snlen, c)
+H 4C 8B 5D B0 ; setb(snam, snlen, c)
+H 8A 45 A8 ; setb(snam, snlen, c)
+H 43 88 04 1A ; setb(snam, snlen, c)
+H 4C 8B 15 $snlen ; snlen = snlen + 1
+H 4C 89 55 D0 ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; snlen = snlen + 1
+H 4D 89 D3 ; snlen = snlen + 1
+H 4C 8B 55 D0 ; snlen = snlen + 1
+H 4D 01 DA ; snlen = snlen + 1
+H 4C 89 15 $snlen ; snlen = snlen + 1
+H 4C 8B 55 D8 ; cnt = cnt + 1
+H 4C 89 55 D0 ; cnt = cnt + 1
+H 49 C7 C2 01 00 00 00 ; cnt = cnt + 1
+H 4D 89 D3 ; cnt = cnt + 1
+H 4C 8B 55 D0 ; cnt = cnt + 1
+H 4D 01 DA ; cnt = cnt + 1
+H 4C 89 55 D8 ; cnt = cnt + 1
+H 4C 8B 55 E8 ; j = j + 1
+H 4C 89 55 D0 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 D0 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 E8 ; j = j + 1
+H E9 $_w306 ; while j < n && cnt < 59
+:_w306e
+:_if305e
+H 4C 8B 55 D8 ; if cnt == 0
+H 4C 89 55 D0 ; if cnt == 0
+H 49 C7 C2 00 00 00 00 ; if cnt == 0
+H 4D 89 D3 ; if cnt == 0
+H 4C 8B 55 D0 ; if cnt == 0
+H 4D 39 DA ; if cnt == 0
+H 0F 85 $_if309e ; if cnt == 0
+H 4C 8B 15 $snam ; setb(snam, snlen, 102)
+H 4C 89 55 B8 ; setb(snam, snlen, 102)
+H 4C 8B 15 $snlen ; setb(snam, snlen, 102)
+H 4C 89 55 B0 ; setb(snam, snlen, 102)
+H 49 C7 C2 66 00 00 00 ; setb(snam, snlen, 102)
+H 4C 89 55 A8 ; setb(snam, snlen, 102)
+H 4C 8B 55 B8 ; setb(snam, snlen, 102)
+H 4C 8B 5D B0 ; setb(snam, snlen, 102)
+H 8A 45 A8 ; setb(snam, snlen, 102)
+H 43 88 04 1A ; setb(snam, snlen, 102)
+H 4C 8B 15 $snlen ; snlen = snlen + 1
+H 4C 89 55 D0 ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; snlen = snlen + 1
+H 4D 89 D3 ; snlen = snlen + 1
+H 4C 8B 55 D0 ; snlen = snlen + 1
+H 4D 01 DA ; snlen = snlen + 1
+H 4C 89 15 $snlen ; snlen = snlen + 1
+:_if309e
+H 4C 8B 15 $snam ; setb(snam, snlen, 0)
+H 4C 89 55 B8 ; setb(snam, snlen, 0)
+H 4C 8B 15 $snlen ; setb(snam, snlen, 0)
+H 4C 89 55 B0 ; setb(snam, snlen, 0)
+H 49 C7 C2 00 00 00 00 ; setb(snam, snlen, 0)
+H 4C 89 55 A8 ; setb(snam, snlen, 0)
+H 4C 8B 55 B8 ; setb(snam, snlen, 0)
+H 4C 8B 5D B0 ; setb(snam, snlen, 0)
+H 8A 45 A8 ; setb(snam, snlen, 0)
+H 43 88 04 1A ; setb(snam, snlen, 0)
+H 4C 8B 15 $snlen ; snlen = snlen + 1
+H 4C 89 55 D0 ; snlen = snlen + 1
+H 49 C7 C2 01 00 00 00 ; snlen = snlen + 1
+H 4D 89 D3 ; snlen = snlen + 1
+H 4C 8B 55 D0 ; snlen = snlen + 1
+H 4D 01 DA ; snlen = snlen + 1
+H 4C 89 15 $snlen ; snlen = snlen + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход san_put
+H 5D ; выход san_put
+H C3 ; выход san_put
+:imp_offs
+H 55 ; кадр imp_offs
+H 48 89 E5 ; кадр imp_offs
+H 48 83 EC 60 ; кадр imp_offs
+H 4C 8B 15 $exebuf ; f = rva_off(rd32(exebuf, 272))
+H 4C 89 55 E0 ; f = rva_off(rd32(exebuf, 272))
+H 49 C7 C2 10 01 00 00 ; f = rva_off(rd32(exebuf, 272))
+H 4C 89 55 D8 ; f = rva_off(rd32(exebuf, 272))
+H 48 8B 4D E0 ; f = rva_off(rd32(exebuf, 272))
+H 48 8B 55 D8 ; f = rva_off(rd32(exebuf, 272))
+H E8 $rd32 ; f = rva_off(rd32(exebuf, 272))
+H 49 89 C2 ; f = rva_off(rd32(exebuf, 272))
+H 4C 89 55 E0 ; f = rva_off(rd32(exebuf, 272))
+H 48 8B 4D E0 ; f = rva_off(rd32(exebuf, 272))
+H E8 $rva_off ; f = rva_off(rd32(exebuf, 272))
+H 49 89 C2 ; f = rva_off(rd32(exebuf, 272))
+H 4C 89 55 F8 ; f = rva_off(rd32(exebuf, 272))
+H 4C 8B 15 $exebuf ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 89 55 E0 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 8B 55 F8 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 89 55 E8 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 49 C7 C2 10 00 00 00 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4D 89 D3 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 8B 55 E8 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4D 01 DA ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 89 55 D8 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 48 8B 4D E0 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 48 8B 55 D8 ; iatoff = rd32(exebuf, f + 16) - 4096
+H E8 $rd32 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 49 89 C2 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 89 55 F0 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 49 C7 C2 00 10 00 00 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4D 89 D3 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 8B 55 F0 ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4D 29 DA ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 89 15 $iatoff ; iatoff = rd32(exebuf, f + 16) - 4096
+H 4C 8B 15 $exebuf ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 89 55 E0 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 8B 55 F8 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 89 55 E8 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 49 C7 C2 0C 00 00 00 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4D 89 D3 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 8B 55 E8 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4D 01 DA ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 89 55 D8 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 48 8B 4D E0 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 48 8B 55 D8 ; nameoff = rd32(exebuf, f + 12) - 4096
+H E8 $rd32 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 49 89 C2 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 89 55 F0 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 49 C7 C2 00 10 00 00 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4D 89 D3 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 8B 55 F0 ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4D 29 DA ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 89 15 $nameoff ; nameoff = rd32(exebuf, f + 12) - 4096
+H 4C 8B 15 $exebuf ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 89 55 E0 ; idtoff = rd32(exebuf, 272) - 4096
+H 49 C7 C2 10 01 00 00 ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 89 55 D8 ; idtoff = rd32(exebuf, 272) - 4096
+H 48 8B 4D E0 ; idtoff = rd32(exebuf, 272) - 4096
+H 48 8B 55 D8 ; idtoff = rd32(exebuf, 272) - 4096
+H E8 $rd32 ; idtoff = rd32(exebuf, 272) - 4096
+H 49 89 C2 ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 89 55 F0 ; idtoff = rd32(exebuf, 272) - 4096
+H 49 C7 C2 00 10 00 00 ; idtoff = rd32(exebuf, 272) - 4096
+H 4D 89 D3 ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 8B 55 F0 ; idtoff = rd32(exebuf, 272) - 4096
+H 4D 29 DA ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 89 15 $idtoff ; idtoff = rd32(exebuf, 272) - 4096
+H 4C 8B 15 $thunk ; intoff = thunk - 4096
+H 4C 89 55 F0 ; intoff = thunk - 4096
+H 49 C7 C2 00 10 00 00 ; intoff = thunk - 4096
+H 4D 89 D3 ; intoff = thunk - 4096
+H 4C 8B 55 F0 ; intoff = thunk - 4096
+H 4D 29 DA ; intoff = thunk - 4096
+H 4C 89 15 $intoff ; intoff = thunk - 4096
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход imp_offs
+H 5D ; выход imp_offs
+H C3 ; выход imp_offs
+:imp_labels
+H 55 ; кадр imp_labels
+H 48 89 E5 ; кадр imp_labels
+H 48 81 EC 80 00 00 00 ; кадр imp_labels
+H 49 C7 C2 00 00 00 00 ; impbad = 0
+H 4C 89 15 $impbad ; impbad = 0
+H 4C 8B 15 $iatoff ; if iatoff < 0
+H 4C 89 55 E8 ; if iatoff < 0
+H 49 C7 C2 00 00 00 00 ; if iatoff < 0
+H 4D 89 D3 ; if iatoff < 0
+H 4C 8B 55 E8 ; if iatoff < 0
+H 4D 39 DA ; if iatoff < 0
+H 0F 8D $_if310e ; if iatoff < 0
+H 49 C7 C2 01 00 00 00 ; impbad = 1
+H 4C 89 15 $impbad ; impbad = 1
+:_if310e
+H 4C 8B 15 $iatoff ; if iatoff + 8 * (impn + 1) > target
+H 4C 89 55 E0 ; if iatoff + 8 * (impn + 1) > target
+H 49 C7 C2 08 00 00 00 ; if iatoff + 8 * (impn + 1) > target
+H 4C 89 55 D8 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 15 $impn ; if iatoff + 8 * (impn + 1) > target
+H 4C 89 55 D0 ; if iatoff + 8 * (impn + 1) > target
+H 49 C7 C2 01 00 00 00 ; if iatoff + 8 * (impn + 1) > target
+H 4D 89 D3 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 55 D0 ; if iatoff + 8 * (impn + 1) > target
+H 4D 01 DA ; if iatoff + 8 * (impn + 1) > target
+H 4D 89 D3 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 55 D8 ; if iatoff + 8 * (impn + 1) > target
+H 4D 0F AF D3 ; if iatoff + 8 * (impn + 1) > target
+H 4D 89 D3 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 55 E0 ; if iatoff + 8 * (impn + 1) > target
+H 4D 01 DA ; if iatoff + 8 * (impn + 1) > target
+H 4C 89 55 E8 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 15 $target ; if iatoff + 8 * (impn + 1) > target
+H 4D 89 D3 ; if iatoff + 8 * (impn + 1) > target
+H 4C 8B 55 E8 ; if iatoff + 8 * (impn + 1) > target
+H 4D 39 DA ; if iatoff + 8 * (impn + 1) > target
+H 0F 8E $_if311e ; if iatoff + 8 * (impn + 1) > target
+H 49 C7 C2 01 00 00 00 ; impbad = 1
+H 4C 89 15 $impbad ; impbad = 1
+:_if311e
+H 4C 8B 15 $nameoff ; if nameoff < 0 || nameoff >= target
+H 4C 89 55 E8 ; if nameoff < 0 || nameoff >= target
+H 49 C7 C2 00 00 00 00 ; if nameoff < 0 || nameoff >= target
+H 4D 89 D3 ; if nameoff < 0 || nameoff >= target
+H 4C 8B 55 E8 ; if nameoff < 0 || nameoff >= target
+H 4D 39 DA ; if nameoff < 0 || nameoff >= target
+H 0F 8D $_if312d2 ; if nameoff < 0 || nameoff >= target
+H E9 $_if312t ; if nameoff < 0 || nameoff >= target
+:_if312d2
+H 4C 8B 15 $nameoff ; if nameoff < 0 || nameoff >= target
+H 4C 89 55 E8 ; if nameoff < 0 || nameoff >= target
+H 4C 8B 15 $target ; if nameoff < 0 || nameoff >= target
+H 4D 89 D3 ; if nameoff < 0 || nameoff >= target
+H 4C 8B 55 E8 ; if nameoff < 0 || nameoff >= target
+H 4D 39 DA ; if nameoff < 0 || nameoff >= target
+H 0F 8C $_if312e ; if nameoff < 0 || nameoff >= target
+:_if312t
+H 49 C7 C2 01 00 00 00 ; impbad = 1
+H 4C 89 15 $impbad ; impbad = 1
+:_if312e
+H 4C 8B 15 $impbad ; if impbad == 0
+H 4C 89 55 E8 ; if impbad == 0
+H 49 C7 C2 00 00 00 00 ; if impbad == 0
+H 4D 89 D3 ; if impbad == 0
+H 4C 8B 55 E8 ; if impbad == 0
+H 4D 39 DA ; if impbad == 0
+H 0F 85 $_if313e ; if impbad == 0
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F8 ; k = 0
+:_w314
+H 4C 8B 55 F8 ; while k < impn
+H 4C 89 55 E8 ; while k < impn
+H 4C 8B 15 $impn ; while k < impn
+H 4D 89 D3 ; while k < impn
+H 4C 8B 55 E8 ; while k < impn
+H 4D 39 DA ; while k < impn
+H 0F 8D $_w314e ; while k < impn
+H 4C 8B 15 $hhrv ; h = hhrv[k] - 4096
+H 4C 89 55 E0 ; h = hhrv[k] - 4096
+H 4C 8B 55 F8 ; h = hhrv[k] - 4096
+H 49 C1 E2 03 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 E0 ; h = hhrv[k] - 4096
+H 4D 01 DA ; h = hhrv[k] - 4096
+H 4D 8B 12 ; h = hhrv[k] - 4096
+H 4C 89 55 E8 ; h = hhrv[k] - 4096
+H 49 C7 C2 00 10 00 00 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 E8 ; h = hhrv[k] - 4096
+H 4D 29 DA ; h = hhrv[k] - 4096
+H 4C 89 55 F0 ; h = hhrv[k] - 4096
+H 4C 8B 55 F0 ; if h < 0 || h >= target
+H 4C 89 55 E8 ; if h < 0 || h >= target
+H 49 C7 C2 00 00 00 00 ; if h < 0 || h >= target
+H 4D 89 D3 ; if h < 0 || h >= target
+H 4C 8B 55 E8 ; if h < 0 || h >= target
+H 4D 39 DA ; if h < 0 || h >= target
+H 0F 8D $_if315d2 ; if h < 0 || h >= target
+H E9 $_if315t ; if h < 0 || h >= target
+:_if315d2
+H 4C 8B 55 F0 ; if h < 0 || h >= target
+H 4C 89 55 E8 ; if h < 0 || h >= target
+H 4C 8B 15 $target ; if h < 0 || h >= target
+H 4D 89 D3 ; if h < 0 || h >= target
+H 4C 8B 55 E8 ; if h < 0 || h >= target
+H 4D 39 DA ; if h < 0 || h >= target
+H 0F 8C $_if315e ; if h < 0 || h >= target
+:_if315t
+H 49 C7 C2 01 00 00 00 ; impbad = 1
+H 4C 89 15 $impbad ; impbad = 1
+:_if315e
+H 4C 8B 55 F8 ; k = k + 1
+H 4C 89 55 E8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 E8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F8 ; k = k + 1
+H E9 $_w314 ; while k < impn
+:_w314e
+:_if313e
+H 4C 8B 15 $impbad ; if impbad != 0
+H 4C 89 55 E8 ; if impbad != 0
+H 49 C7 C2 00 00 00 00 ; if impbad != 0
+H 4D 89 D3 ; if impbad != 0
+H 4C 8B 55 E8 ; if impbad != 0
+H 4D 39 DA ; if impbad != 0
+H 0F 84 $_if316e ; if impbad != 0
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход imp_labels
+H 5D ; выход imp_labels
+H C3 ; выход imp_labels
+:_if316e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F8 ; k = 0
+:_w317
+H 4C 8B 55 F8 ; while k < impn
+H 4C 89 55 E8 ; while k < impn
+H 4C 8B 15 $impn ; while k < impn
+H 4D 89 D3 ; while k < impn
+H 4C 8B 55 E8 ; while k < impn
+H 4D 39 DA ; while k < impn
+H 0F 8D $_w317e ; while k < impn
+H 4C 8B 55 F8 ; san_put(k)
+H 4C 89 55 C8 ; san_put(k)
+H 48 8B 4D C8 ; san_put(k)
+H E8 $san_put ; san_put(k)
+H 4C 8B 15 $sstate ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 89 55 E0 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 15 $iatoff ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 89 55 D8 ; if getb(sstate, iatoff + 8 * k) != 2
+H 49 C7 C2 08 00 00 00 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 89 55 D0 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 55 F8 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 89 D3 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 55 D0 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 0F AF D3 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 89 D3 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 55 D8 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 01 DA ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 89 D3 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 55 E0 ; if getb(sstate, iatoff + 8 * k) != 2
+H 47 0F B6 14 1A ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 89 55 E8 ; if getb(sstate, iatoff + 8 * k) != 2
+H 49 C7 C2 02 00 00 00 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 89 D3 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 55 E8 ; if getb(sstate, iatoff + 8 * k) != 2
+H 4D 39 DA ; if getb(sstate, iatoff + 8 * k) != 2
+H 0F 84 $_if318e ; if getb(sstate, iatoff + 8 * k) != 2
+H 4C 8B 15 $labmap ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 89 55 C0 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 15 $iatoff ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 89 55 E8 ; setb(labmap, iatoff + 8 * k, 3)
+H 49 C7 C2 08 00 00 00 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 89 55 E0 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 55 F8 ; setb(labmap, iatoff + 8 * k, 3)
+H 4D 89 D3 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 55 E0 ; setb(labmap, iatoff + 8 * k, 3)
+H 4D 0F AF D3 ; setb(labmap, iatoff + 8 * k, 3)
+H 4D 89 D3 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 55 E8 ; setb(labmap, iatoff + 8 * k, 3)
+H 4D 01 DA ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 89 55 B8 ; setb(labmap, iatoff + 8 * k, 3)
+H 49 C7 C2 03 00 00 00 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 89 55 B0 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 55 C0 ; setb(labmap, iatoff + 8 * k, 3)
+H 4C 8B 5D B8 ; setb(labmap, iatoff + 8 * k, 3)
+H 8A 45 B0 ; setb(labmap, iatoff + 8 * k, 3)
+H 43 88 04 1A ; setb(labmap, iatoff + 8 * k, 3)
+:_if318e
+H 4C 8B 15 $hhrv ; h = hhrv[k] - 4096
+H 4C 89 55 E0 ; h = hhrv[k] - 4096
+H 4C 8B 55 F8 ; h = hhrv[k] - 4096
+H 49 C1 E2 03 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 E0 ; h = hhrv[k] - 4096
+H 4D 01 DA ; h = hhrv[k] - 4096
+H 4D 8B 12 ; h = hhrv[k] - 4096
+H 4C 89 55 E8 ; h = hhrv[k] - 4096
+H 49 C7 C2 00 10 00 00 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 E8 ; h = hhrv[k] - 4096
+H 4D 29 DA ; h = hhrv[k] - 4096
+H 4C 89 55 F0 ; h = hhrv[k] - 4096
+H 4C 8B 15 $sstate ; if getb(sstate, h) != 2
+H 4C 89 55 E0 ; if getb(sstate, h) != 2
+H 4C 8B 55 F0 ; if getb(sstate, h) != 2
+H 4D 89 D3 ; if getb(sstate, h) != 2
+H 4C 8B 55 E0 ; if getb(sstate, h) != 2
+H 47 0F B6 14 1A ; if getb(sstate, h) != 2
+H 4C 89 55 E8 ; if getb(sstate, h) != 2
+H 49 C7 C2 02 00 00 00 ; if getb(sstate, h) != 2
+H 4D 89 D3 ; if getb(sstate, h) != 2
+H 4C 8B 55 E8 ; if getb(sstate, h) != 2
+H 4D 39 DA ; if getb(sstate, h) != 2
+H 0F 84 $_if319e ; if getb(sstate, h) != 2
+H 4C 8B 15 $labmap ; if getb(labmap, h) == 0
+H 4C 89 55 E0 ; if getb(labmap, h) == 0
+H 4C 8B 55 F0 ; if getb(labmap, h) == 0
+H 4D 89 D3 ; if getb(labmap, h) == 0
+H 4C 8B 55 E0 ; if getb(labmap, h) == 0
+H 47 0F B6 14 1A ; if getb(labmap, h) == 0
+H 4C 89 55 E8 ; if getb(labmap, h) == 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, h) == 0
+H 4D 89 D3 ; if getb(labmap, h) == 0
+H 4C 8B 55 E8 ; if getb(labmap, h) == 0
+H 4D 39 DA ; if getb(labmap, h) == 0
+H 0F 85 $_if320e ; if getb(labmap, h) == 0
+H 4C 8B 15 $labmap ; setb(labmap, h, 1)
+H 4C 89 55 C0 ; setb(labmap, h, 1)
+H 4C 8B 55 F0 ; setb(labmap, h, 1)
+H 4C 89 55 B8 ; setb(labmap, h, 1)
+H 49 C7 C2 01 00 00 00 ; setb(labmap, h, 1)
+H 4C 89 55 B0 ; setb(labmap, h, 1)
+H 4C 8B 55 C0 ; setb(labmap, h, 1)
+H 4C 8B 5D B8 ; setb(labmap, h, 1)
+H 8A 45 B0 ; setb(labmap, h, 1)
+H 43 88 04 1A ; setb(labmap, h, 1)
+:_if320e
+H 4C 8B 15 $knownoff ; knownoff[kn] = h
+H 4C 89 55 C0 ; knownoff[kn] = h
+H 4C 8B 15 $kn ; knownoff[kn] = h
+H 4C 89 55 B8 ; knownoff[kn] = h
+H 4C 8B 55 F0 ; knownoff[kn] = h
+H 4C 89 55 B0 ; knownoff[kn] = h
+H 4C 8B 55 C0 ; knownoff[kn] = h
+H 4C 8B 5D B8 ; knownoff[kn] = h
+H 49 C1 E3 03 ; knownoff[kn] = h
+H 4D 01 DA ; knownoff[kn] = h
+H 4C 8B 5D B0 ; knownoff[kn] = h
+H 4D 89 1A ; knownoff[kn] = h
+H 4C 8B 15 $kn ; kn = kn + 1
+H 4C 89 55 E8 ; kn = kn + 1
+H 49 C7 C2 01 00 00 00 ; kn = kn + 1
+H 4D 89 D3 ; kn = kn + 1
+H 4C 8B 55 E8 ; kn = kn + 1
+H 4D 01 DA ; kn = kn + 1
+H 4C 89 15 $kn ; kn = kn + 1
+:_if319e
+H 4C 8B 55 F8 ; k = k + 1
+H 4C 89 55 E8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 E8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F8 ; k = k + 1
+H E9 $_w317 ; while k < impn
+:_w317e
+H 4C 8B 15 $sstate ; if getb(sstate, nameoff) != 2
+H 4C 89 55 E0 ; if getb(sstate, nameoff) != 2
+H 4C 8B 15 $nameoff ; if getb(sstate, nameoff) != 2
+H 4D 89 D3 ; if getb(sstate, nameoff) != 2
+H 4C 8B 55 E0 ; if getb(sstate, nameoff) != 2
+H 47 0F B6 14 1A ; if getb(sstate, nameoff) != 2
+H 4C 89 55 E8 ; if getb(sstate, nameoff) != 2
+H 49 C7 C2 02 00 00 00 ; if getb(sstate, nameoff) != 2
+H 4D 89 D3 ; if getb(sstate, nameoff) != 2
+H 4C 8B 55 E8 ; if getb(sstate, nameoff) != 2
+H 4D 39 DA ; if getb(sstate, nameoff) != 2
+H 0F 84 $_if321e ; if getb(sstate, nameoff) != 2
+H 4C 8B 15 $labmap ; if getb(labmap, nameoff) == 0
+H 4C 89 55 E0 ; if getb(labmap, nameoff) == 0
+H 4C 8B 15 $nameoff ; if getb(labmap, nameoff) == 0
+H 4D 89 D3 ; if getb(labmap, nameoff) == 0
+H 4C 8B 55 E0 ; if getb(labmap, nameoff) == 0
+H 47 0F B6 14 1A ; if getb(labmap, nameoff) == 0
+H 4C 89 55 E8 ; if getb(labmap, nameoff) == 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, nameoff) == 0
+H 4D 89 D3 ; if getb(labmap, nameoff) == 0
+H 4C 8B 55 E8 ; if getb(labmap, nameoff) == 0
+H 4D 39 DA ; if getb(labmap, nameoff) == 0
+H 0F 85 $_if322e ; if getb(labmap, nameoff) == 0
+H 4C 8B 15 $labmap ; setb(labmap, nameoff, 1)
+H 4C 89 55 C0 ; setb(labmap, nameoff, 1)
+H 4C 8B 15 $nameoff ; setb(labmap, nameoff, 1)
+H 4C 89 55 B8 ; setb(labmap, nameoff, 1)
+H 49 C7 C2 01 00 00 00 ; setb(labmap, nameoff, 1)
+H 4C 89 55 B0 ; setb(labmap, nameoff, 1)
+H 4C 8B 55 C0 ; setb(labmap, nameoff, 1)
+H 4C 8B 5D B8 ; setb(labmap, nameoff, 1)
+H 8A 45 B0 ; setb(labmap, nameoff, 1)
+H 43 88 04 1A ; setb(labmap, nameoff, 1)
+:_if322e
+H 4C 8B 15 $knownoff ; knownoff[kn] = nameoff
+H 4C 89 55 C0 ; knownoff[kn] = nameoff
+H 4C 8B 15 $kn ; knownoff[kn] = nameoff
+H 4C 89 55 B8 ; knownoff[kn] = nameoff
+H 4C 8B 15 $nameoff ; knownoff[kn] = nameoff
+H 4C 89 55 B0 ; knownoff[kn] = nameoff
+H 4C 8B 55 C0 ; knownoff[kn] = nameoff
+H 4C 8B 5D B8 ; knownoff[kn] = nameoff
+H 49 C1 E3 03 ; knownoff[kn] = nameoff
+H 4D 01 DA ; knownoff[kn] = nameoff
+H 4C 8B 5D B0 ; knownoff[kn] = nameoff
+H 4D 89 1A ; knownoff[kn] = nameoff
+H 4C 8B 15 $kn ; kn = kn + 1
+H 4C 89 55 E8 ; kn = kn + 1
+H 49 C7 C2 01 00 00 00 ; kn = kn + 1
+H 4D 89 D3 ; kn = kn + 1
+H 4C 8B 55 E8 ; kn = kn + 1
+H 4D 01 DA ; kn = kn + 1
+H 4C 89 15 $kn ; kn = kn + 1
+:_if321e
+H 4C 8B 15 $intoff ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 89 55 E8 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 15 $iatoff ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4D 89 D3 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 55 E8 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4D 39 DA ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 0F 84 $_if323e ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 15 $sstate ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 89 55 E0 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 15 $intoff ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4D 89 D3 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 55 E0 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 47 0F B6 14 1A ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 89 55 E8 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 49 C7 C2 02 00 00 00 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4D 89 D3 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 55 E8 ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4D 39 DA ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 0F 84 $_if323e ; if intoff != iatoff && getb(sstate, intoff) != 2
+H 4C 8B 15 $labmap ; if getb(labmap, intoff) == 0
+H 4C 89 55 E0 ; if getb(labmap, intoff) == 0
+H 4C 8B 15 $intoff ; if getb(labmap, intoff) == 0
+H 4D 89 D3 ; if getb(labmap, intoff) == 0
+H 4C 8B 55 E0 ; if getb(labmap, intoff) == 0
+H 47 0F B6 14 1A ; if getb(labmap, intoff) == 0
+H 4C 89 55 E8 ; if getb(labmap, intoff) == 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, intoff) == 0
+H 4D 89 D3 ; if getb(labmap, intoff) == 0
+H 4C 8B 55 E8 ; if getb(labmap, intoff) == 0
+H 4D 39 DA ; if getb(labmap, intoff) == 0
+H 0F 85 $_if324e ; if getb(labmap, intoff) == 0
+H 4C 8B 15 $labmap ; setb(labmap, intoff, 1)
+H 4C 89 55 C0 ; setb(labmap, intoff, 1)
+H 4C 8B 15 $intoff ; setb(labmap, intoff, 1)
+H 4C 89 55 B8 ; setb(labmap, intoff, 1)
+H 49 C7 C2 01 00 00 00 ; setb(labmap, intoff, 1)
+H 4C 89 55 B0 ; setb(labmap, intoff, 1)
+H 4C 8B 55 C0 ; setb(labmap, intoff, 1)
+H 4C 8B 5D B8 ; setb(labmap, intoff, 1)
+H 8A 45 B0 ; setb(labmap, intoff, 1)
+H 43 88 04 1A ; setb(labmap, intoff, 1)
+:_if324e
+:_if323e
+H 4C 8B 15 $labmap ; if getb(labmap, intoff) != 0
+H 4C 89 55 E0 ; if getb(labmap, intoff) != 0
+H 4C 8B 15 $intoff ; if getb(labmap, intoff) != 0
+H 4D 89 D3 ; if getb(labmap, intoff) != 0
+H 4C 8B 55 E0 ; if getb(labmap, intoff) != 0
+H 47 0F B6 14 1A ; if getb(labmap, intoff) != 0
+H 4C 89 55 E8 ; if getb(labmap, intoff) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, intoff) != 0
+H 4D 89 D3 ; if getb(labmap, intoff) != 0
+H 4C 8B 55 E8 ; if getb(labmap, intoff) != 0
+H 4D 39 DA ; if getb(labmap, intoff) != 0
+H 0F 84 $_if325e ; if getb(labmap, intoff) != 0
+H 4C 8B 15 $knownoff ; knownoff[kn] = intoff
+H 4C 89 55 C0 ; knownoff[kn] = intoff
+H 4C 8B 15 $kn ; knownoff[kn] = intoff
+H 4C 89 55 B8 ; knownoff[kn] = intoff
+H 4C 8B 15 $intoff ; knownoff[kn] = intoff
+H 4C 89 55 B0 ; knownoff[kn] = intoff
+H 4C 8B 55 C0 ; knownoff[kn] = intoff
+H 4C 8B 5D B8 ; knownoff[kn] = intoff
+H 49 C1 E3 03 ; knownoff[kn] = intoff
+H 4D 01 DA ; knownoff[kn] = intoff
+H 4C 8B 5D B0 ; knownoff[kn] = intoff
+H 4D 89 1A ; knownoff[kn] = intoff
+H 4C 8B 15 $kn ; kn = kn + 1
+H 4C 89 55 E8 ; kn = kn + 1
+H 49 C7 C2 01 00 00 00 ; kn = kn + 1
+H 4D 89 D3 ; kn = kn + 1
+H 4C 8B 55 E8 ; kn = kn + 1
+H 4D 01 DA ; kn = kn + 1
+H 4C 89 15 $kn ; kn = kn + 1
+:_if325e
+H 4C 8B 15 $labmap ; if getb(labmap, iatoff) != 0
+H 4C 89 55 E0 ; if getb(labmap, iatoff) != 0
+H 4C 8B 15 $iatoff ; if getb(labmap, iatoff) != 0
+H 4D 89 D3 ; if getb(labmap, iatoff) != 0
+H 4C 8B 55 E0 ; if getb(labmap, iatoff) != 0
+H 47 0F B6 14 1A ; if getb(labmap, iatoff) != 0
+H 4C 89 55 E8 ; if getb(labmap, iatoff) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, iatoff) != 0
+H 4D 89 D3 ; if getb(labmap, iatoff) != 0
+H 4C 8B 55 E8 ; if getb(labmap, iatoff) != 0
+H 4D 39 DA ; if getb(labmap, iatoff) != 0
+H 0F 84 $_if326e ; if getb(labmap, iatoff) != 0
+H 4C 8B 15 $knownoff ; knownoff[kn] = iatoff
+H 4C 89 55 C0 ; knownoff[kn] = iatoff
+H 4C 8B 15 $kn ; knownoff[kn] = iatoff
+H 4C 89 55 B8 ; knownoff[kn] = iatoff
+H 4C 8B 15 $iatoff ; knownoff[kn] = iatoff
+H 4C 89 55 B0 ; knownoff[kn] = iatoff
+H 4C 8B 55 C0 ; knownoff[kn] = iatoff
+H 4C 8B 5D B8 ; knownoff[kn] = iatoff
+H 49 C1 E3 03 ; knownoff[kn] = iatoff
+H 4D 01 DA ; knownoff[kn] = iatoff
+H 4C 8B 5D B0 ; knownoff[kn] = iatoff
+H 4D 89 1A ; knownoff[kn] = iatoff
+H 4C 8B 15 $kn ; kn = kn + 1
+H 4C 89 55 E8 ; kn = kn + 1
+H 49 C7 C2 01 00 00 00 ; kn = kn + 1
+H 4D 89 D3 ; kn = kn + 1
+H 4C 8B 55 E8 ; kn = kn + 1
+H 4D 01 DA ; kn = kn + 1
+H 4C 89 15 $kn ; kn = kn + 1
+:_if326e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход imp_labels
+H 5D ; выход imp_labels
+H C3 ; выход imp_labels
+:build_sstate
+H 55 ; кадр build_sstate
+H 48 89 E5 ; кадр build_sstate
+H 48 81 EC 90 00 00 00 ; кадр build_sstate
+H 49 C7 C2 00 00 00 00 ; sstate = GlobalAlloc(0, 262145)
+H 4C 89 55 C8 ; sstate = GlobalAlloc(0, 262145)
+H 49 C7 C2 01 00 04 00 ; sstate = GlobalAlloc(0, 262145)
+H 4C 89 55 C0 ; sstate = GlobalAlloc(0, 262145)
+H 48 8B 4D C8 ; sstate = GlobalAlloc(0, 262145)
+H 48 8B 55 C0 ; sstate = GlobalAlloc(0, 262145)
+H FF 15 $_iat_globalalloc ; sstate = GlobalAlloc(0, 262145)
+H 49 89 C2 ; sstate = GlobalAlloc(0, 262145)
+H 4C 89 15 $sstate ; sstate = GlobalAlloc(0, 262145)
+H 4C 8B 15 $sstate ; if sstate == 0
+H 4C 89 55 E0 ; if sstate == 0
+H 49 C7 C2 00 00 00 00 ; if sstate == 0
+H 4D 89 D3 ; if sstate == 0
+H 4C 8B 55 E0 ; if sstate == 0
+H 4D 39 DA ; if sstate == 0
+H 0F 85 $_if327e ; if sstate == 0
+H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 C0 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 B8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 4D C8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 55 C0 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 8B 45 B8 ; print_error(s_rexe, len(s_rexe), 5)
+H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if327e
+H 49 C7 C2 00 00 00 00 ; i = 0
+H 4C 89 55 F8 ; i = 0
+:_w328
+H 4C 8B 55 F8 ; while i < inscount
+H 4C 89 55 E0 ; while i < inscount
+H 4C 8B 15 $inscount ; while i < inscount
+H 4D 89 D3 ; while i < inscount
+H 4C 8B 55 E0 ; while i < inscount
+H 4D 39 DA ; while i < inscount
+H 0F 8D $_w328e ; while i < inscount
+H 4C 8B 15 $sdump ; a = sdump[i]
+H 4C 89 55 E0 ; a = sdump[i]
+H 4C 8B 55 F8 ; a = sdump[i]
+H 49 C1 E2 03 ; a = sdump[i]
+H 4D 89 D3 ; a = sdump[i]
+H 4C 8B 55 E0 ; a = sdump[i]
+H 4D 01 DA ; a = sdump[i]
+H 4D 8B 12 ; a = sdump[i]
+H 4C 89 55 F0 ; a = sdump[i]
+H 4C 8B 15 $sstate ; setb(sstate, a, 1)
+H 4C 89 55 B0 ; setb(sstate, a, 1)
+H 4C 8B 55 F0 ; setb(sstate, a, 1)
+H 4C 89 55 A8 ; setb(sstate, a, 1)
+H 49 C7 C2 01 00 00 00 ; setb(sstate, a, 1)
+H 4C 89 55 A0 ; setb(sstate, a, 1)
+H 4C 8B 55 B0 ; setb(sstate, a, 1)
+H 4C 8B 5D A8 ; setb(sstate, a, 1)
+H 8A 45 A0 ; setb(sstate, a, 1)
+H 43 88 04 1A ; setb(sstate, a, 1)
+H 4C 8B 55 F0 ; j = a + 1
+H 4C 89 55 E0 ; j = a + 1
+H 49 C7 C2 01 00 00 00 ; j = a + 1
+H 4D 89 D3 ; j = a + 1
+H 4C 8B 55 E0 ; j = a + 1
+H 4D 01 DA ; j = a + 1
+H 4C 89 55 E8 ; j = a + 1
+:_w329
+H 4C 8B 55 E8 ; while j < a + getb(lenmap, a)
+H 4C 89 55 E0 ; while j < a + getb(lenmap, a)
+H 4C 8B 55 F0 ; while j < a + getb(lenmap, a)
+H 4C 89 55 D8 ; while j < a + getb(lenmap, a)
+H 4C 8B 15 $lenmap ; while j < a + getb(lenmap, a)
+H 4C 89 55 D0 ; while j < a + getb(lenmap, a)
+H 4C 8B 55 F0 ; while j < a + getb(lenmap, a)
+H 4D 89 D3 ; while j < a + getb(lenmap, a)
+H 4C 8B 55 D0 ; while j < a + getb(lenmap, a)
+H 47 0F B6 14 1A ; while j < a + getb(lenmap, a)
+H 4D 89 D3 ; while j < a + getb(lenmap, a)
+H 4C 8B 55 D8 ; while j < a + getb(lenmap, a)
+H 4D 01 DA ; while j < a + getb(lenmap, a)
+H 4D 89 D3 ; while j < a + getb(lenmap, a)
+H 4C 8B 55 E0 ; while j < a + getb(lenmap, a)
+H 4D 39 DA ; while j < a + getb(lenmap, a)
+H 0F 8D $_w329e ; while j < a + getb(lenmap, a)
+H 4C 8B 15 $sstate ; setb(sstate, j, 2)
+H 4C 89 55 B0 ; setb(sstate, j, 2)
+H 4C 8B 55 E8 ; setb(sstate, j, 2)
+H 4C 89 55 A8 ; setb(sstate, j, 2)
+H 49 C7 C2 02 00 00 00 ; setb(sstate, j, 2)
+H 4C 89 55 A0 ; setb(sstate, j, 2)
+H 4C 8B 55 B0 ; setb(sstate, j, 2)
+H 4C 8B 5D A8 ; setb(sstate, j, 2)
+H 8A 45 A0 ; setb(sstate, j, 2)
+H 43 88 04 1A ; setb(sstate, j, 2)
+H 4C 8B 55 E8 ; j = j + 1
+H 4C 89 55 E0 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 E0 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 E8 ; j = j + 1
+H E9 $_w329 ; while j < a + getb(lenmap, a)
+:_w329e
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 E0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_w328 ; while i < inscount
+:_w328e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход build_sstate
+H 5D ; выход build_sstate
+H C3 ; выход build_sstate
+:sem_add
+H 55 ; кадр sem_add
+H 48 89 E5 ; кадр sem_add
+H 48 81 EC 80 00 00 00 ; кадр sem_add
+H 48 89 4D F8 ; кадр sem_add
+H 48 89 55 F0 ; кадр sem_add
+H 4C 89 45 E8 ; кадр sem_add
+H 49 C7 C2 00 00 00 00 ; i = 0
+H 4C 89 55 E0 ; i = 0
+:_w330
+H 4C 8B 55 E0 ; while i < semcnt
+H 4C 89 55 D8 ; while i < semcnt
+H 4C 8B 15 $semcnt ; while i < semcnt
+H 4D 89 D3 ; while i < semcnt
+H 4C 8B 55 D8 ; while i < semcnt
+H 4D 39 DA ; while i < semcnt
+H 0F 8D $_w330e ; while i < semcnt
+H 4C 8B 15 $semrows ; if semrows[3 * i] == off
+H 4C 89 55 D0 ; if semrows[3 * i] == off
+H 49 C7 C2 03 00 00 00 ; if semrows[3 * i] == off
+H 4C 89 55 C8 ; if semrows[3 * i] == off
+H 4C 8B 55 E0 ; if semrows[3 * i] == off
+H 4D 89 D3 ; if semrows[3 * i] == off
+H 4C 8B 55 C8 ; if semrows[3 * i] == off
+H 4D 0F AF D3 ; if semrows[3 * i] == off
+H 49 C1 E2 03 ; if semrows[3 * i] == off
+H 4D 89 D3 ; if semrows[3 * i] == off
+H 4C 8B 55 D0 ; if semrows[3 * i] == off
+H 4D 01 DA ; if semrows[3 * i] == off
+H 4D 8B 12 ; if semrows[3 * i] == off
+H 4C 89 55 D8 ; if semrows[3 * i] == off
+H 4C 8B 55 F8 ; if semrows[3 * i] == off
+H 4D 89 D3 ; if semrows[3 * i] == off
+H 4C 8B 55 D8 ; if semrows[3 * i] == off
+H 4D 39 DA ; if semrows[3 * i] == off
+H 0F 85 $_if331e ; if semrows[3 * i] == off
+H 4C 8B 15 $semrows ; semrows[3 * i + 1] = kind
+H 4C 89 55 C0 ; semrows[3 * i + 1] = kind
+H 49 C7 C2 03 00 00 00 ; semrows[3 * i + 1] = kind
+H 4C 89 55 D0 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 E0 ; semrows[3 * i + 1] = kind
+H 4D 89 D3 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 D0 ; semrows[3 * i + 1] = kind
+H 4D 0F AF D3 ; semrows[3 * i + 1] = kind
+H 4C 89 55 D8 ; semrows[3 * i + 1] = kind
+H 49 C7 C2 01 00 00 00 ; semrows[3 * i + 1] = kind
+H 4D 89 D3 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 D8 ; semrows[3 * i + 1] = kind
+H 4D 01 DA ; semrows[3 * i + 1] = kind
+H 4C 89 55 B8 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 F0 ; semrows[3 * i + 1] = kind
+H 4C 89 55 B0 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 C0 ; semrows[3 * i + 1] = kind
+H 4C 8B 5D B8 ; semrows[3 * i + 1] = kind
+H 49 C1 E3 03 ; semrows[3 * i + 1] = kind
+H 4D 01 DA ; semrows[3 * i + 1] = kind
+H 4C 8B 5D B0 ; semrows[3 * i + 1] = kind
+H 4D 89 1A ; semrows[3 * i + 1] = kind
+H 4C 8B 15 $semrows ; semrows[3 * i + 2] = h
+H 4C 89 55 C0 ; semrows[3 * i + 2] = h
+H 49 C7 C2 03 00 00 00 ; semrows[3 * i + 2] = h
+H 4C 89 55 D0 ; semrows[3 * i + 2] = h
+H 4C 8B 55 E0 ; semrows[3 * i + 2] = h
+H 4D 89 D3 ; semrows[3 * i + 2] = h
+H 4C 8B 55 D0 ; semrows[3 * i + 2] = h
+H 4D 0F AF D3 ; semrows[3 * i + 2] = h
+H 4C 89 55 D8 ; semrows[3 * i + 2] = h
+H 49 C7 C2 02 00 00 00 ; semrows[3 * i + 2] = h
+H 4D 89 D3 ; semrows[3 * i + 2] = h
+H 4C 8B 55 D8 ; semrows[3 * i + 2] = h
+H 4D 01 DA ; semrows[3 * i + 2] = h
+H 4C 89 55 B8 ; semrows[3 * i + 2] = h
+H 4C 8B 55 E8 ; semrows[3 * i + 2] = h
+H 4C 89 55 B0 ; semrows[3 * i + 2] = h
+H 4C 8B 55 C0 ; semrows[3 * i + 2] = h
+H 4C 8B 5D B8 ; semrows[3 * i + 2] = h
+H 49 C1 E3 03 ; semrows[3 * i + 2] = h
+H 4D 01 DA ; semrows[3 * i + 2] = h
+H 4C 8B 5D B0 ; semrows[3 * i + 2] = h
+H 4D 89 1A ; semrows[3 * i + 2] = h
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход sem_add
+H 5D ; выход sem_add
+H C3 ; выход sem_add
+:_if331e
+H 4C 8B 55 E0 ; i = i + 1
+H 4C 89 55 D8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 D8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H E9 $_w330 ; while i < semcnt
+:_w330e
+H 4C 8B 15 $semrows ; semrows[3 * i] = off
+H 4C 89 55 C0 ; semrows[3 * i] = off
+H 49 C7 C2 03 00 00 00 ; semrows[3 * i] = off
+H 4C 89 55 D8 ; semrows[3 * i] = off
+H 4C 8B 55 E0 ; semrows[3 * i] = off
+H 4D 89 D3 ; semrows[3 * i] = off
+H 4C 8B 55 D8 ; semrows[3 * i] = off
+H 4D 0F AF D3 ; semrows[3 * i] = off
+H 4C 89 55 B8 ; semrows[3 * i] = off
+H 4C 8B 55 F8 ; semrows[3 * i] = off
+H 4C 89 55 B0 ; semrows[3 * i] = off
+H 4C 8B 55 C0 ; semrows[3 * i] = off
+H 4C 8B 5D B8 ; semrows[3 * i] = off
+H 49 C1 E3 03 ; semrows[3 * i] = off
+H 4D 01 DA ; semrows[3 * i] = off
+H 4C 8B 5D B0 ; semrows[3 * i] = off
+H 4D 89 1A ; semrows[3 * i] = off
+H 4C 8B 15 $semrows ; semrows[3 * i + 1] = kind
+H 4C 89 55 C0 ; semrows[3 * i + 1] = kind
+H 49 C7 C2 03 00 00 00 ; semrows[3 * i + 1] = kind
+H 4C 89 55 D0 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 E0 ; semrows[3 * i + 1] = kind
+H 4D 89 D3 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 D0 ; semrows[3 * i + 1] = kind
+H 4D 0F AF D3 ; semrows[3 * i + 1] = kind
+H 4C 89 55 D8 ; semrows[3 * i + 1] = kind
+H 49 C7 C2 01 00 00 00 ; semrows[3 * i + 1] = kind
+H 4D 89 D3 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 D8 ; semrows[3 * i + 1] = kind
+H 4D 01 DA ; semrows[3 * i + 1] = kind
+H 4C 89 55 B8 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 F0 ; semrows[3 * i + 1] = kind
+H 4C 89 55 B0 ; semrows[3 * i + 1] = kind
+H 4C 8B 55 C0 ; semrows[3 * i + 1] = kind
+H 4C 8B 5D B8 ; semrows[3 * i + 1] = kind
+H 49 C1 E3 03 ; semrows[3 * i + 1] = kind
+H 4D 01 DA ; semrows[3 * i + 1] = kind
+H 4C 8B 5D B0 ; semrows[3 * i + 1] = kind
+H 4D 89 1A ; semrows[3 * i + 1] = kind
+H 4C 8B 15 $semrows ; semrows[3 * i + 2] = h
+H 4C 89 55 C0 ; semrows[3 * i + 2] = h
+H 49 C7 C2 03 00 00 00 ; semrows[3 * i + 2] = h
+H 4C 89 55 D0 ; semrows[3 * i + 2] = h
+H 4C 8B 55 E0 ; semrows[3 * i + 2] = h
+H 4D 89 D3 ; semrows[3 * i + 2] = h
+H 4C 8B 55 D0 ; semrows[3 * i + 2] = h
+H 4D 0F AF D3 ; semrows[3 * i + 2] = h
+H 4C 89 55 D8 ; semrows[3 * i + 2] = h
+H 49 C7 C2 02 00 00 00 ; semrows[3 * i + 2] = h
+H 4D 89 D3 ; semrows[3 * i + 2] = h
+H 4C 8B 55 D8 ; semrows[3 * i + 2] = h
+H 4D 01 DA ; semrows[3 * i + 2] = h
+H 4C 89 55 B8 ; semrows[3 * i + 2] = h
+H 4C 8B 55 E8 ; semrows[3 * i + 2] = h
+H 4C 89 55 B0 ; semrows[3 * i + 2] = h
+H 4C 8B 55 C0 ; semrows[3 * i + 2] = h
+H 4C 8B 5D B8 ; semrows[3 * i + 2] = h
+H 49 C1 E3 03 ; semrows[3 * i + 2] = h
+H 4D 01 DA ; semrows[3 * i + 2] = h
+H 4C 8B 5D B0 ; semrows[3 * i + 2] = h
+H 4D 89 1A ; semrows[3 * i + 2] = h
+H 4C 8B 15 $semcnt ; semcnt = semcnt + 1
+H 4C 89 55 D8 ; semcnt = semcnt + 1
+H 49 C7 C2 01 00 00 00 ; semcnt = semcnt + 1
+H 4D 89 D3 ; semcnt = semcnt + 1
+H 4C 8B 55 D8 ; semcnt = semcnt + 1
+H 4D 01 DA ; semcnt = semcnt + 1
+H 4C 89 15 $semcnt ; semcnt = semcnt + 1
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход sem_add
+H 5D ; выход sem_add
+H C3 ; выход sem_add
+:dq_base
+H 55 ; кадр dq_base
+H 48 89 E5 ; кадр dq_base
+H 48 81 EC 90 00 00 00 ; кадр dq_base
+H 48 89 4D F8 ; кадр dq_base
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F0 ; k = 0
+:_w332
+H 4C 8B 55 F0 ; while k < impn
+H 4C 89 55 D8 ; while k < impn
+H 4C 8B 15 $impn ; while k < impn
+H 4D 89 D3 ; while k < impn
+H 4C 8B 55 D8 ; while k < impn
+H 4D 39 DA ; while k < impn
+H 0F 8D $_w332e ; while k < impn
+H 4C 8B 15 $rawptr ; v = u64(rawptr + base + 8 * k)
+H 4C 89 55 D0 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 F8 ; v = u64(rawptr + base + 8 * k)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 D0 ; v = u64(rawptr + base + 8 * k)
+H 4D 01 DA ; v = u64(rawptr + base + 8 * k)
+H 4C 89 55 D8 ; v = u64(rawptr + base + 8 * k)
+H 49 C7 C2 08 00 00 00 ; v = u64(rawptr + base + 8 * k)
+H 4C 89 55 D0 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 F0 ; v = u64(rawptr + base + 8 * k)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 D0 ; v = u64(rawptr + base + 8 * k)
+H 4D 0F AF D3 ; v = u64(rawptr + base + 8 * k)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 D8 ; v = u64(rawptr + base + 8 * k)
+H 4D 01 DA ; v = u64(rawptr + base + 8 * k)
+H 4C 89 55 B8 ; v = u64(rawptr + base + 8 * k)
+H 48 8B 4D B8 ; v = u64(rawptr + base + 8 * k)
+H E8 $u64 ; v = u64(rawptr + base + 8 * k)
+H 49 89 C2 ; v = u64(rawptr + base + 8 * k)
+H 4C 89 55 E8 ; v = u64(rawptr + base + 8 * k)
+H 4C 8B 55 E8 ; if v < 0
+H 4C 89 55 D8 ; if v < 0
+H 49 C7 C2 00 00 00 00 ; if v < 0
+H 4D 89 D3 ; if v < 0
+H 4C 8B 55 D8 ; if v < 0
+H 4D 39 DA ; if v < 0
+H 0F 8D $_if333e ; if v < 0
+H 4C 8B 55 E8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 D8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 C0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 01 00 00 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 C0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 C8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 C8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 D0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 01 00 00 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 D0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 D8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 01 DA ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 E8 ; v = v + 16777216 * 256 * 16777216 * 256
+:_if333e
+H 4C 8B 55 E8 ; if v != hhrv[k]
+H 4C 89 55 D8 ; if v != hhrv[k]
+H 4C 8B 15 $hhrv ; if v != hhrv[k]
+H 4C 89 55 D0 ; if v != hhrv[k]
+H 4C 8B 55 F0 ; if v != hhrv[k]
+H 49 C1 E2 03 ; if v != hhrv[k]
+H 4D 89 D3 ; if v != hhrv[k]
+H 4C 8B 55 D0 ; if v != hhrv[k]
+H 4D 01 DA ; if v != hhrv[k]
+H 4D 8B 12 ; if v != hhrv[k]
+H 4D 89 D3 ; if v != hhrv[k]
+H 4C 8B 55 D8 ; if v != hhrv[k]
+H 4D 39 DA ; if v != hhrv[k]
+H 0F 84 $_if334e ; if v != hhrv[k]
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dq_base
+H 5D ; выход dq_base
+H C3 ; выход dq_base
+:_if334e
+H 4C 8B 15 $hhrv ; h = hhrv[k] - 4096
+H 4C 89 55 D0 ; h = hhrv[k] - 4096
+H 4C 8B 55 F0 ; h = hhrv[k] - 4096
+H 49 C1 E2 03 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 D0 ; h = hhrv[k] - 4096
+H 4D 01 DA ; h = hhrv[k] - 4096
+H 4D 8B 12 ; h = hhrv[k] - 4096
+H 4C 89 55 D8 ; h = hhrv[k] - 4096
+H 49 C7 C2 00 10 00 00 ; h = hhrv[k] - 4096
+H 4D 89 D3 ; h = hhrv[k] - 4096
+H 4C 8B 55 D8 ; h = hhrv[k] - 4096
+H 4D 29 DA ; h = hhrv[k] - 4096
+H 4C 89 55 E0 ; h = hhrv[k] - 4096
+H 4C 8B 15 $labmap ; if getb(labmap, h) == 0
+H 4C 89 55 D0 ; if getb(labmap, h) == 0
+H 4C 8B 55 E0 ; if getb(labmap, h) == 0
+H 4D 89 D3 ; if getb(labmap, h) == 0
+H 4C 8B 55 D0 ; if getb(labmap, h) == 0
+H 47 0F B6 14 1A ; if getb(labmap, h) == 0
+H 4C 89 55 D8 ; if getb(labmap, h) == 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, h) == 0
+H 4D 89 D3 ; if getb(labmap, h) == 0
+H 4C 8B 55 D8 ; if getb(labmap, h) == 0
+H 4D 39 DA ; if getb(labmap, h) == 0
+H 0F 85 $_if335e ; if getb(labmap, h) == 0
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dq_base
+H 5D ; выход dq_base
+H C3 ; выход dq_base
+:_if335e
+H 4C 8B 55 F0 ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F0 ; k = k + 1
+H E9 $_w332 ; while k < impn
+:_w332e
+H 4C 8B 15 $rawptr ; v = u64(rawptr + base + 8 * impn)
+H 4C 89 55 D0 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 55 F8 ; v = u64(rawptr + base + 8 * impn)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 55 D0 ; v = u64(rawptr + base + 8 * impn)
+H 4D 01 DA ; v = u64(rawptr + base + 8 * impn)
+H 4C 89 55 D8 ; v = u64(rawptr + base + 8 * impn)
+H 49 C7 C2 08 00 00 00 ; v = u64(rawptr + base + 8 * impn)
+H 4C 89 55 D0 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 15 $impn ; v = u64(rawptr + base + 8 * impn)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 55 D0 ; v = u64(rawptr + base + 8 * impn)
+H 4D 0F AF D3 ; v = u64(rawptr + base + 8 * impn)
+H 4D 89 D3 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 55 D8 ; v = u64(rawptr + base + 8 * impn)
+H 4D 01 DA ; v = u64(rawptr + base + 8 * impn)
+H 4C 89 55 B8 ; v = u64(rawptr + base + 8 * impn)
+H 48 8B 4D B8 ; v = u64(rawptr + base + 8 * impn)
+H E8 $u64 ; v = u64(rawptr + base + 8 * impn)
+H 49 89 C2 ; v = u64(rawptr + base + 8 * impn)
+H 4C 89 55 E8 ; v = u64(rawptr + base + 8 * impn)
+H 4C 8B 55 E8 ; if v < 0
+H 4C 89 55 D8 ; if v < 0
+H 49 C7 C2 00 00 00 00 ; if v < 0
+H 4D 89 D3 ; if v < 0
+H 4C 8B 55 D8 ; if v < 0
+H 4D 39 DA ; if v < 0
+H 0F 8D $_if336e ; if v < 0
+H 4C 8B 55 E8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 D8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 C0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 01 00 00 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 C0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 C8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 00 00 01 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 C8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 D0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 49 C7 C2 00 01 00 00 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 D0 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 0F AF D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 89 D3 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 8B 55 D8 ; v = v + 16777216 * 256 * 16777216 * 256
+H 4D 01 DA ; v = v + 16777216 * 256 * 16777216 * 256
+H 4C 89 55 E8 ; v = v + 16777216 * 256 * 16777216 * 256
+:_if336e
+H 4C 8B 55 E8 ; if v != 0
+H 4C 89 55 D8 ; if v != 0
+H 49 C7 C2 00 00 00 00 ; if v != 0
+H 4D 89 D3 ; if v != 0
+H 4C 8B 55 D8 ; if v != 0
+H 4D 39 DA ; if v != 0
+H 0F 84 $_if337e ; if v != 0
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dq_base
+H 5D ; выход dq_base
+H C3 ; выход dq_base
+:_if337e
+H 49 C7 C2 00 00 00 00 ; k = 0
+H 4C 89 55 F0 ; k = 0
+:_w338
+H 4C 8B 55 F0 ; while k < impn
+H 4C 89 55 D8 ; while k < impn
+H 4C 8B 15 $impn ; while k < impn
+H 4D 89 D3 ; while k < impn
+H 4C 8B 55 D8 ; while k < impn
+H 4D 39 DA ; while k < impn
+H 0F 8D $_w338e ; while k < impn
+H 4C 8B 55 F8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 D8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 49 C7 C2 08 00 00 00 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 D0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 F0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 89 D3 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 D0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 0F AF D3 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 89 D3 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 D8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 01 DA ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 B8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 49 C7 C2 02 00 00 00 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 B0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 15 $hhrv ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 D0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 F0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 49 C1 E2 03 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 89 D3 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 D0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 01 DA ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 8B 12 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 D8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 49 C7 C2 00 10 00 00 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 89 D3 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 D8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4D 29 DA ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 89 55 A8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 48 8B 4D B8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 48 8B 55 B0 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 45 A8 ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H E8 $sem_add ; sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+H 4C 8B 55 F0 ; k = k + 1
+H 4C 89 55 D8 ; k = k + 1
+H 49 C7 C2 01 00 00 00 ; k = k + 1
+H 4D 89 D3 ; k = k + 1
+H 4C 8B 55 D8 ; k = k + 1
+H 4D 01 DA ; k = k + 1
+H 4C 89 55 F0 ; k = k + 1
+H E9 $_w338 ; while k < impn
+:_w338e
+H 4C 8B 55 F8 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 89 55 D8 ; sem_add(base + 8 * impn, 2, -1)
+H 49 C7 C2 08 00 00 00 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 89 55 D0 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 8B 15 $impn ; sem_add(base + 8 * impn, 2, -1)
+H 4D 89 D3 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 8B 55 D0 ; sem_add(base + 8 * impn, 2, -1)
+H 4D 0F AF D3 ; sem_add(base + 8 * impn, 2, -1)
+H 4D 89 D3 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 8B 55 D8 ; sem_add(base + 8 * impn, 2, -1)
+H 4D 01 DA ; sem_add(base + 8 * impn, 2, -1)
+H 4C 89 55 B8 ; sem_add(base + 8 * impn, 2, -1)
+H 49 C7 C2 02 00 00 00 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 89 55 B0 ; sem_add(base + 8 * impn, 2, -1)
+H 49 C7 C2 01 00 00 00 ; sem_add(base + 8 * impn, 2, -1)
+H 49 F7 DA ; sem_add(base + 8 * impn, 2, -1)
+H 4C 89 55 A8 ; sem_add(base + 8 * impn, 2, -1)
+H 48 8B 4D B8 ; sem_add(base + 8 * impn, 2, -1)
+H 48 8B 55 B0 ; sem_add(base + 8 * impn, 2, -1)
+H 4C 8B 45 A8 ; sem_add(base + 8 * impn, 2, -1)
+H E8 $sem_add ; sem_add(base + 8 * impn, 2, -1)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dq_base
+H 5D ; выход dq_base
+H C3 ; выход dq_base
+:dd_idt
+H 55 ; кадр dd_idt
+H 48 89 E5 ; кадр dd_idt
+H 48 83 EC 60 ; кадр dd_idt
+H 4C 8B 15 $idtoff ; if idtoff >= 0
+H 4C 89 55 F8 ; if idtoff >= 0
+H 49 C7 C2 00 00 00 00 ; if idtoff >= 0
+H 4D 89 D3 ; if idtoff >= 0
+H 4C 8B 55 F8 ; if idtoff >= 0
+H 4D 39 DA ; if idtoff >= 0
+H 0F 8C $_if339e ; if idtoff >= 0
+H 4C 8B 15 $idtoff ; if idtoff + 20 <= target
+H 4C 89 55 F0 ; if idtoff + 20 <= target
+H 49 C7 C2 14 00 00 00 ; if idtoff + 20 <= target
+H 4D 89 D3 ; if idtoff + 20 <= target
+H 4C 8B 55 F0 ; if idtoff + 20 <= target
+H 4D 01 DA ; if idtoff + 20 <= target
+H 4C 89 55 F8 ; if idtoff + 20 <= target
+H 4C 8B 15 $target ; if idtoff + 20 <= target
+H 4D 89 D3 ; if idtoff + 20 <= target
+H 4C 8B 55 F8 ; if idtoff + 20 <= target
+H 4D 39 DA ; if idtoff + 20 <= target
+H 0F 8F $_if340e ; if idtoff + 20 <= target
+H 4C 8B 15 $idtoff ; sem_add(idtoff, 1, idtoff)
+H 4C 89 55 E8 ; sem_add(idtoff, 1, idtoff)
+H 49 C7 C2 01 00 00 00 ; sem_add(idtoff, 1, idtoff)
+H 4C 89 55 E0 ; sem_add(idtoff, 1, idtoff)
+H 4C 8B 15 $idtoff ; sem_add(idtoff, 1, idtoff)
+H 4C 89 55 D8 ; sem_add(idtoff, 1, idtoff)
+H 48 8B 4D E8 ; sem_add(idtoff, 1, idtoff)
+H 48 8B 55 E0 ; sem_add(idtoff, 1, idtoff)
+H 4C 8B 45 D8 ; sem_add(idtoff, 1, idtoff)
+H E8 $sem_add ; sem_add(idtoff, 1, idtoff)
+:_if340e
+:_if339e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход dd_idt
+H 5D ; выход dd_idt
+H C3 ; выход dd_idt
+:sem_filter
+H 55 ; кадр sem_filter
+H 48 89 E5 ; кадр sem_filter
+H 48 81 EC B0 00 00 00 ; кадр sem_filter
+H 49 C7 C2 01 00 00 00 ; i = 1
+H 4C 89 55 F8 ; i = 1
+:_w341
+H 4C 8B 55 F8 ; while i < semcnt
+H 4C 89 55 B8 ; while i < semcnt
+H 4C 8B 15 $semcnt ; while i < semcnt
+H 4D 89 D3 ; while i < semcnt
+H 4C 8B 55 B8 ; while i < semcnt
+H 4D 39 DA ; while i < semcnt
+H 0F 8D $_w341e ; while i < semcnt
+H 4C 8B 15 $semrows ; t0 = semrows[3 * i]
+H 4C 89 55 B8 ; t0 = semrows[3 * i]
+H 49 C7 C2 03 00 00 00 ; t0 = semrows[3 * i]
+H 4C 89 55 B0 ; t0 = semrows[3 * i]
+H 4C 8B 55 F8 ; t0 = semrows[3 * i]
+H 4D 89 D3 ; t0 = semrows[3 * i]
+H 4C 8B 55 B0 ; t0 = semrows[3 * i]
+H 4D 0F AF D3 ; t0 = semrows[3 * i]
+H 49 C1 E2 03 ; t0 = semrows[3 * i]
+H 4D 89 D3 ; t0 = semrows[3 * i]
+H 4C 8B 55 B8 ; t0 = semrows[3 * i]
+H 4D 01 DA ; t0 = semrows[3 * i]
+H 4D 8B 12 ; t0 = semrows[3 * i]
+H 4C 89 55 D0 ; t0 = semrows[3 * i]
+H 4C 8B 15 $semrows ; t1 = semrows[3 * i + 1]
+H 4C 89 55 B8 ; t1 = semrows[3 * i + 1]
+H 49 C7 C2 03 00 00 00 ; t1 = semrows[3 * i + 1]
+H 4C 89 55 A8 ; t1 = semrows[3 * i + 1]
+H 4C 8B 55 F8 ; t1 = semrows[3 * i + 1]
+H 4D 89 D3 ; t1 = semrows[3 * i + 1]
+H 4C 8B 55 A8 ; t1 = semrows[3 * i + 1]
+H 4D 0F AF D3 ; t1 = semrows[3 * i + 1]
+H 4C 89 55 B0 ; t1 = semrows[3 * i + 1]
+H 49 C7 C2 01 00 00 00 ; t1 = semrows[3 * i + 1]
+H 4D 89 D3 ; t1 = semrows[3 * i + 1]
+H 4C 8B 55 B0 ; t1 = semrows[3 * i + 1]
+H 4D 01 DA ; t1 = semrows[3 * i + 1]
+H 49 C1 E2 03 ; t1 = semrows[3 * i + 1]
+H 4D 89 D3 ; t1 = semrows[3 * i + 1]
+H 4C 8B 55 B8 ; t1 = semrows[3 * i + 1]
+H 4D 01 DA ; t1 = semrows[3 * i + 1]
+H 4D 8B 12 ; t1 = semrows[3 * i + 1]
+H 4C 89 55 C8 ; t1 = semrows[3 * i + 1]
+H 4C 8B 15 $semrows ; t2 = semrows[3 * i + 2]
+H 4C 89 55 B8 ; t2 = semrows[3 * i + 2]
+H 49 C7 C2 03 00 00 00 ; t2 = semrows[3 * i + 2]
+H 4C 89 55 A8 ; t2 = semrows[3 * i + 2]
+H 4C 8B 55 F8 ; t2 = semrows[3 * i + 2]
+H 4D 89 D3 ; t2 = semrows[3 * i + 2]
+H 4C 8B 55 A8 ; t2 = semrows[3 * i + 2]
+H 4D 0F AF D3 ; t2 = semrows[3 * i + 2]
+H 4C 89 55 B0 ; t2 = semrows[3 * i + 2]
+H 49 C7 C2 02 00 00 00 ; t2 = semrows[3 * i + 2]
+H 4D 89 D3 ; t2 = semrows[3 * i + 2]
+H 4C 8B 55 B0 ; t2 = semrows[3 * i + 2]
+H 4D 01 DA ; t2 = semrows[3 * i + 2]
+H 49 C1 E2 03 ; t2 = semrows[3 * i + 2]
+H 4D 89 D3 ; t2 = semrows[3 * i + 2]
+H 4C 8B 55 B8 ; t2 = semrows[3 * i + 2]
+H 4D 01 DA ; t2 = semrows[3 * i + 2]
+H 4D 8B 12 ; t2 = semrows[3 * i + 2]
+H 4C 89 55 C0 ; t2 = semrows[3 * i + 2]
+H 4C 8B 55 F8 ; j = i
+H 4C 89 55 F0 ; j = i
+:_w342
+H 4C 8B 55 F0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 89 55 B8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 49 C7 C2 00 00 00 00 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 89 D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 B8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 39 DA ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 0F 8E $_w342e ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 15 $semrows ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 89 55 B0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 49 C7 C2 03 00 00 00 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 89 55 A8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 F0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 89 55 A0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 49 C7 C2 01 00 00 00 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 89 D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 A0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 29 DA ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 89 D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 A8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 0F AF D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 49 C1 E2 03 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 89 D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 B0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 01 DA ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 8B 12 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 89 55 B8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 D0 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 89 D3 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 55 B8 ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4D 39 DA ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 0F 8E $_w342e ; while j > 0 && semrows[3 * (j - 1)] > t0
+H 4C 8B 15 $semrows ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 98 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 B8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 F0 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 89 D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 B8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 0F AF D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 90 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 15 $semrows ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 B8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 B0 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 F0 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 A8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 89 D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 A8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 29 DA ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 89 D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 B0 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 0F AF D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 49 C1 E2 03 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 89 D3 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 B8 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 01 DA ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 8B 12 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 89 55 88 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 55 98 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 5D 90 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 49 C1 E3 03 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 01 DA ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 5D 88 ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4D 89 1A ; semrows[3 * j] = semrows[3 * (j - 1)]
+H 4C 8B 15 $semrows ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 98 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 B0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 F0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 B0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 0F AF D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 B8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 B8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 01 DA ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 90 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 15 $semrows ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 B8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 A8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 F0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 A0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 A0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 29 DA ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 A8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 0F AF D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 B0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 B0 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 01 DA ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C1 E2 03 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 D3 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 B8 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 01 DA ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 8B 12 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 89 55 88 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 55 98 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 5D 90 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 49 C1 E3 03 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 01 DA ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 5D 88 ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4D 89 1A ; semrows[3 * j + 1] = semrows[3 * (j - 1) + 1]
+H 4C 8B 15 $semrows ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 98 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 B0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 F0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 B0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 0F AF D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 B8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C7 C2 02 00 00 00 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 B8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 01 DA ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 90 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 15 $semrows ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 B8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 A8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 F0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 A0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 A0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 29 DA ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 A8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 0F AF D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 B0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C7 C2 02 00 00 00 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 B0 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 01 DA ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C1 E2 03 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 D3 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 B8 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 01 DA ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 8B 12 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 89 55 88 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 98 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 5D 90 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 49 C1 E3 03 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 01 DA ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 5D 88 ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4D 89 1A ; semrows[3 * j + 2] = semrows[3 * (j - 1) + 2]
+H 4C 8B 55 F0 ; j = j - 1
+H 4C 89 55 B8 ; j = j - 1
+H 49 C7 C2 01 00 00 00 ; j = j - 1
+H 4D 89 D3 ; j = j - 1
+H 4C 8B 55 B8 ; j = j - 1
+H 4D 29 DA ; j = j - 1
+H 4C 89 55 F0 ; j = j - 1
+H E9 $_w342 ; while j > 0 && semrows[3 * (j - 1)] > t0
+:_w342e
+H 4C 8B 15 $semrows ; semrows[3 * j] = t0
+H 4C 89 55 98 ; semrows[3 * j] = t0
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j] = t0
+H 4C 89 55 B8 ; semrows[3 * j] = t0
+H 4C 8B 55 F0 ; semrows[3 * j] = t0
+H 4D 89 D3 ; semrows[3 * j] = t0
+H 4C 8B 55 B8 ; semrows[3 * j] = t0
+H 4D 0F AF D3 ; semrows[3 * j] = t0
+H 4C 89 55 90 ; semrows[3 * j] = t0
+H 4C 8B 55 D0 ; semrows[3 * j] = t0
+H 4C 89 55 88 ; semrows[3 * j] = t0
+H 4C 8B 55 98 ; semrows[3 * j] = t0
+H 4C 8B 5D 90 ; semrows[3 * j] = t0
+H 49 C1 E3 03 ; semrows[3 * j] = t0
+H 4D 01 DA ; semrows[3 * j] = t0
+H 4C 8B 5D 88 ; semrows[3 * j] = t0
+H 4D 89 1A ; semrows[3 * j] = t0
+H 4C 8B 15 $semrows ; semrows[3 * j + 1] = t1
+H 4C 89 55 98 ; semrows[3 * j + 1] = t1
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 1] = t1
+H 4C 89 55 B0 ; semrows[3 * j + 1] = t1
+H 4C 8B 55 F0 ; semrows[3 * j + 1] = t1
+H 4D 89 D3 ; semrows[3 * j + 1] = t1
+H 4C 8B 55 B0 ; semrows[3 * j + 1] = t1
+H 4D 0F AF D3 ; semrows[3 * j + 1] = t1
+H 4C 89 55 B8 ; semrows[3 * j + 1] = t1
+H 49 C7 C2 01 00 00 00 ; semrows[3 * j + 1] = t1
+H 4D 89 D3 ; semrows[3 * j + 1] = t1
+H 4C 8B 55 B8 ; semrows[3 * j + 1] = t1
+H 4D 01 DA ; semrows[3 * j + 1] = t1
+H 4C 89 55 90 ; semrows[3 * j + 1] = t1
+H 4C 8B 55 C8 ; semrows[3 * j + 1] = t1
+H 4C 89 55 88 ; semrows[3 * j + 1] = t1
+H 4C 8B 55 98 ; semrows[3 * j + 1] = t1
+H 4C 8B 5D 90 ; semrows[3 * j + 1] = t1
+H 49 C1 E3 03 ; semrows[3 * j + 1] = t1
+H 4D 01 DA ; semrows[3 * j + 1] = t1
+H 4C 8B 5D 88 ; semrows[3 * j + 1] = t1
+H 4D 89 1A ; semrows[3 * j + 1] = t1
+H 4C 8B 15 $semrows ; semrows[3 * j + 2] = t2
+H 4C 89 55 98 ; semrows[3 * j + 2] = t2
+H 49 C7 C2 03 00 00 00 ; semrows[3 * j + 2] = t2
+H 4C 89 55 B0 ; semrows[3 * j + 2] = t2
+H 4C 8B 55 F0 ; semrows[3 * j + 2] = t2
+H 4D 89 D3 ; semrows[3 * j + 2] = t2
+H 4C 8B 55 B0 ; semrows[3 * j + 2] = t2
+H 4D 0F AF D3 ; semrows[3 * j + 2] = t2
+H 4C 89 55 B8 ; semrows[3 * j + 2] = t2
+H 49 C7 C2 02 00 00 00 ; semrows[3 * j + 2] = t2
+H 4D 89 D3 ; semrows[3 * j + 2] = t2
+H 4C 8B 55 B8 ; semrows[3 * j + 2] = t2
+H 4D 01 DA ; semrows[3 * j + 2] = t2
+H 4C 89 55 90 ; semrows[3 * j + 2] = t2
+H 4C 8B 55 C0 ; semrows[3 * j + 2] = t2
+H 4C 89 55 88 ; semrows[3 * j + 2] = t2
+H 4C 8B 55 98 ; semrows[3 * j + 2] = t2
+H 4C 8B 5D 90 ; semrows[3 * j + 2] = t2
+H 49 C1 E3 03 ; semrows[3 * j + 2] = t2
+H 4D 01 DA ; semrows[3 * j + 2] = t2
+H 4C 8B 5D 88 ; semrows[3 * j + 2] = t2
+H 4D 89 1A ; semrows[3 * j + 2] = t2
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 B8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 B8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_w341 ; while i < semcnt
+:_w341e
+H 49 C7 C2 00 00 00 00 ; semacc = 0
+H 4C 89 15 $semacc ; semacc = 0
+H 49 C7 C2 00 00 00 00 ; i = 0
+H 4C 89 55 F8 ; i = 0
+:_w343
+H 4C 8B 55 F8 ; while i < semcnt
+H 4C 89 55 B8 ; while i < semcnt
+H 4C 8B 15 $semcnt ; while i < semcnt
+H 4D 89 D3 ; while i < semcnt
+H 4C 8B 55 B8 ; while i < semcnt
+H 4D 39 DA ; while i < semcnt
+H 0F 8D $_w343e ; while i < semcnt
+H 4C 8B 15 $semrows ; o = semrows[3 * i]
+H 4C 89 55 B8 ; o = semrows[3 * i]
+H 49 C7 C2 03 00 00 00 ; o = semrows[3 * i]
+H 4C 89 55 B0 ; o = semrows[3 * i]
+H 4C 8B 55 F8 ; o = semrows[3 * i]
+H 4D 89 D3 ; o = semrows[3 * i]
+H 4C 8B 55 B0 ; o = semrows[3 * i]
+H 4D 0F AF D3 ; o = semrows[3 * i]
+H 49 C1 E2 03 ; o = semrows[3 * i]
+H 4D 89 D3 ; o = semrows[3 * i]
+H 4C 8B 55 B8 ; o = semrows[3 * i]
+H 4D 01 DA ; o = semrows[3 * i]
+H 4D 8B 12 ; o = semrows[3 * i]
+H 4C 89 55 E8 ; o = semrows[3 * i]
+H 4C 8B 15 $semrows ; if semrows[3 * i + 1] == 1
+H 4C 89 55 B0 ; if semrows[3 * i + 1] == 1
+H 49 C7 C2 03 00 00 00 ; if semrows[3 * i + 1] == 1
+H 4C 89 55 A0 ; if semrows[3 * i + 1] == 1
+H 4C 8B 55 F8 ; if semrows[3 * i + 1] == 1
+H 4D 89 D3 ; if semrows[3 * i + 1] == 1
+H 4C 8B 55 A0 ; if semrows[3 * i + 1] == 1
+H 4D 0F AF D3 ; if semrows[3 * i + 1] == 1
+H 4C 89 55 A8 ; if semrows[3 * i + 1] == 1
+H 49 C7 C2 01 00 00 00 ; if semrows[3 * i + 1] == 1
+H 4D 89 D3 ; if semrows[3 * i + 1] == 1
+H 4C 8B 55 A8 ; if semrows[3 * i + 1] == 1
+H 4D 01 DA ; if semrows[3 * i + 1] == 1
+H 49 C1 E2 03 ; if semrows[3 * i + 1] == 1
+H 4D 89 D3 ; if semrows[3 * i + 1] == 1
+H 4C 8B 55 B0 ; if semrows[3 * i + 1] == 1
+H 4D 01 DA ; if semrows[3 * i + 1] == 1
+H 4D 8B 12 ; if semrows[3 * i + 1] == 1
+H 4C 89 55 B8 ; if semrows[3 * i + 1] == 1
+H 49 C7 C2 01 00 00 00 ; if semrows[3 * i + 1] == 1
+H 4D 89 D3 ; if semrows[3 * i + 1] == 1
+H 4C 8B 55 B8 ; if semrows[3 * i + 1] == 1
+H 4D 39 DA ; if semrows[3 * i + 1] == 1
+H 0F 85 $_if344 ; if semrows[3 * i + 1] == 1
+H 49 C7 C2 14 00 00 00 ; size = 20
+H 4C 89 55 E0 ; size = 20
+H E9 $_if344e ; if semrows[3 * i + 1] == 1
+:_if344
+H 49 C7 C2 08 00 00 00 ; size = 8
+H 4C 89 55 E0 ; size = 8
+:_if344e
+H 49 C7 C2 00 00 00 00 ; clash = 0
+H 4C 89 55 D8 ; clash = 0
+H 4C 8B 55 E8 ; j = o
+H 4C 89 55 F0 ; j = o
+:_w345
+H 4C 8B 55 F0 ; while j < o + size
+H 4C 89 55 B8 ; while j < o + size
+H 4C 8B 55 E8 ; while j < o + size
+H 4C 89 55 B0 ; while j < o + size
+H 4C 8B 55 E0 ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B0 ; while j < o + size
+H 4D 01 DA ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B8 ; while j < o + size
+H 4D 39 DA ; while j < o + size
+H 0F 8D $_w345e ; while j < o + size
+H 4C 8B 15 $sstate ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 89 55 B0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 F0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 89 D3 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 B0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 47 0F B6 14 1A ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 89 55 B8 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 89 D3 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 B8 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 39 DA ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 0F 84 $_if346d2 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H E9 $_if346t ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+:_if346d2
+H 4C 8B 15 $semstate ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 89 55 B0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 F0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 89 D3 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 B0 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 47 0F B6 14 1A ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 89 55 B8 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 89 D3 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4C 8B 55 B8 ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 4D 39 DA ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+H 0F 84 $_if346e ; if getb(sstate, j) != 0 || getb(semstate, j) != 0
+:_if346t
+H 49 C7 C2 01 00 00 00 ; clash = 1
+H 4C 89 55 D8 ; clash = 1
+H E9 $_w345e ; break
+:_if346e
+H 4C 8B 55 F0 ; j = j + 1
+H 4C 89 55 B8 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 B8 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 F0 ; j = j + 1
+H E9 $_w345 ; while j < o + size
+:_w345e
+H 4C 8B 55 D8 ; if clash == 0
+H 4C 89 55 B8 ; if clash == 0
+H 49 C7 C2 00 00 00 00 ; if clash == 0
+H 4D 89 D3 ; if clash == 0
+H 4C 8B 55 B8 ; if clash == 0
+H 4D 39 DA ; if clash == 0
+H 0F 85 $_if347e ; if clash == 0
+H 4C 8B 55 E8 ; j = o + 1
+H 4C 89 55 B8 ; j = o + 1
+H 49 C7 C2 01 00 00 00 ; j = o + 1
+H 4D 89 D3 ; j = o + 1
+H 4C 8B 55 B8 ; j = o + 1
+H 4D 01 DA ; j = o + 1
+H 4C 89 55 F0 ; j = o + 1
+:_w348
+H 4C 8B 55 F0 ; while j < o + size
+H 4C 89 55 B8 ; while j < o + size
+H 4C 8B 55 E8 ; while j < o + size
+H 4C 89 55 B0 ; while j < o + size
+H 4C 8B 55 E0 ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B0 ; while j < o + size
+H 4D 01 DA ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B8 ; while j < o + size
+H 4D 39 DA ; while j < o + size
+H 0F 8D $_w348e ; while j < o + size
+H 4C 8B 15 $labmap ; if getb(labmap, j) != 0
+H 4C 89 55 B0 ; if getb(labmap, j) != 0
+H 4C 8B 55 F0 ; if getb(labmap, j) != 0
+H 4D 89 D3 ; if getb(labmap, j) != 0
+H 4C 8B 55 B0 ; if getb(labmap, j) != 0
+H 47 0F B6 14 1A ; if getb(labmap, j) != 0
+H 4C 89 55 B8 ; if getb(labmap, j) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, j) != 0
+H 4D 89 D3 ; if getb(labmap, j) != 0
+H 4C 8B 55 B8 ; if getb(labmap, j) != 0
+H 4D 39 DA ; if getb(labmap, j) != 0
+H 0F 84 $_if349e ; if getb(labmap, j) != 0
+H 49 C7 C2 01 00 00 00 ; clash = 1
+H 4C 89 55 D8 ; clash = 1
+H E9 $_w348e ; break
+:_if349e
+H 4C 8B 55 F0 ; j = j + 1
+H 4C 89 55 B8 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 B8 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 F0 ; j = j + 1
+H E9 $_w348 ; while j < o + size
+:_w348e
+:_if347e
+H 4C 8B 55 D8 ; if clash == 0
+H 4C 89 55 B8 ; if clash == 0
+H 49 C7 C2 00 00 00 00 ; if clash == 0
+H 4D 89 D3 ; if clash == 0
+H 4C 8B 55 B8 ; if clash == 0
+H 4D 39 DA ; if clash == 0
+H 0F 85 $_if350e ; if clash == 0
+H 4C 8B 15 $semrows ; semrows[3 * semacc] = o
+H 4C 89 55 98 ; semrows[3 * semacc] = o
+H 49 C7 C2 03 00 00 00 ; semrows[3 * semacc] = o
+H 4C 89 55 B8 ; semrows[3 * semacc] = o
+H 4C 8B 15 $semacc ; semrows[3 * semacc] = o
+H 4D 89 D3 ; semrows[3 * semacc] = o
+H 4C 8B 55 B8 ; semrows[3 * semacc] = o
+H 4D 0F AF D3 ; semrows[3 * semacc] = o
+H 4C 89 55 90 ; semrows[3 * semacc] = o
+H 4C 8B 55 E8 ; semrows[3 * semacc] = o
+H 4C 89 55 88 ; semrows[3 * semacc] = o
+H 4C 8B 55 98 ; semrows[3 * semacc] = o
+H 4C 8B 5D 90 ; semrows[3 * semacc] = o
+H 49 C1 E3 03 ; semrows[3 * semacc] = o
+H 4D 01 DA ; semrows[3 * semacc] = o
+H 4C 8B 5D 88 ; semrows[3 * semacc] = o
+H 4D 89 1A ; semrows[3 * semacc] = o
+H 4C 8B 15 $semrows ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 98 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 B0 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 15 $semacc ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 B0 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 0F AF D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 B8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 B8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 01 DA ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 90 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 15 $semrows ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 B8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 A8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 F8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 A8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 0F AF D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 B0 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C7 C2 01 00 00 00 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 B0 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 01 DA ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C1 E2 03 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 D3 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 B8 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 01 DA ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 8B 12 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 89 55 88 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 55 98 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 5D 90 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 49 C1 E3 03 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 01 DA ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 5D 88 ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4D 89 1A ; semrows[3 * semacc + 1] = semrows[3 * i + 1]
+H 4C 8B 15 $semrows ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 98 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 B0 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 15 $semacc ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 B0 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 0F AF D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 B8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C7 C2 02 00 00 00 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 B8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 01 DA ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 90 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 15 $semrows ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 B8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C7 C2 03 00 00 00 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 A8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 F8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 A8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 0F AF D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 B0 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C7 C2 02 00 00 00 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 B0 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 01 DA ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C1 E2 03 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 D3 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 B8 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 01 DA ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 8B 12 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 89 55 88 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 55 98 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 5D 90 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 49 C1 E3 03 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 01 DA ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 5D 88 ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4D 89 1A ; semrows[3 * semacc + 2] = semrows[3 * i + 2]
+H 4C 8B 15 $semacc ; semacc = semacc + 1
+H 4C 89 55 B8 ; semacc = semacc + 1
+H 49 C7 C2 01 00 00 00 ; semacc = semacc + 1
+H 4D 89 D3 ; semacc = semacc + 1
+H 4C 8B 55 B8 ; semacc = semacc + 1
+H 4D 01 DA ; semacc = semacc + 1
+H 4C 89 15 $semacc ; semacc = semacc + 1
+H 4C 8B 15 $semstate ; setb(semstate, o, 1)
+H 4C 89 55 98 ; setb(semstate, o, 1)
+H 4C 8B 55 E8 ; setb(semstate, o, 1)
+H 4C 89 55 90 ; setb(semstate, o, 1)
+H 49 C7 C2 01 00 00 00 ; setb(semstate, o, 1)
+H 4C 89 55 88 ; setb(semstate, o, 1)
+H 4C 8B 55 98 ; setb(semstate, o, 1)
+H 4C 8B 5D 90 ; setb(semstate, o, 1)
+H 8A 45 88 ; setb(semstate, o, 1)
+H 43 88 04 1A ; setb(semstate, o, 1)
+H 4C 8B 55 E8 ; j = o + 1
+H 4C 89 55 B8 ; j = o + 1
+H 49 C7 C2 01 00 00 00 ; j = o + 1
+H 4D 89 D3 ; j = o + 1
+H 4C 8B 55 B8 ; j = o + 1
+H 4D 01 DA ; j = o + 1
+H 4C 89 55 F0 ; j = o + 1
+:_w351
+H 4C 8B 55 F0 ; while j < o + size
+H 4C 89 55 B8 ; while j < o + size
+H 4C 8B 55 E8 ; while j < o + size
+H 4C 89 55 B0 ; while j < o + size
+H 4C 8B 55 E0 ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B0 ; while j < o + size
+H 4D 01 DA ; while j < o + size
+H 4D 89 D3 ; while j < o + size
+H 4C 8B 55 B8 ; while j < o + size
+H 4D 39 DA ; while j < o + size
+H 0F 8D $_w351e ; while j < o + size
+H 4C 8B 15 $semstate ; setb(semstate, j, 2)
+H 4C 89 55 98 ; setb(semstate, j, 2)
+H 4C 8B 55 F0 ; setb(semstate, j, 2)
+H 4C 89 55 90 ; setb(semstate, j, 2)
+H 49 C7 C2 02 00 00 00 ; setb(semstate, j, 2)
+H 4C 89 55 88 ; setb(semstate, j, 2)
+H 4C 8B 55 98 ; setb(semstate, j, 2)
+H 4C 8B 5D 90 ; setb(semstate, j, 2)
+H 8A 45 88 ; setb(semstate, j, 2)
+H 43 88 04 1A ; setb(semstate, j, 2)
+H 4C 8B 55 F0 ; j = j + 1
+H 4C 89 55 B8 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 B8 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 F0 ; j = j + 1
+H E9 $_w351 ; while j < o + size
+:_w351e
+:_if350e
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 B8 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 B8 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_w343 ; while i < semcnt
+:_w343e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход sem_filter
+H 5D ; выход sem_filter
+H C3 ; выход sem_filter
+:ins_labels
+H 55 ; кадр ins_labels
+H 48 89 E5 ; кадр ins_labels
+H 48 81 EC 80 00 00 00 ; кадр ins_labels
+H 49 C7 C2 00 00 00 00 ; i = 0
+H 4C 89 55 F8 ; i = 0
+:_w352
+H 4C 8B 55 F8 ; while i < inscount
+H 4C 89 55 E0 ; while i < inscount
+H 4C 8B 15 $inscount ; while i < inscount
+H 4D 89 D3 ; while i < inscount
+H 4C 8B 55 E0 ; while i < inscount
+H 4D 39 DA ; while i < inscount
+H 0F 8D $_w352e ; while i < inscount
+H 4C 8B 15 $sdump ; a = sdump[i]
+H 4C 89 55 E0 ; a = sdump[i]
+H 4C 8B 55 F8 ; a = sdump[i]
+H 49 C1 E2 03 ; a = sdump[i]
+H 4D 89 D3 ; a = sdump[i]
+H 4C 8B 55 E0 ; a = sdump[i]
+H 4D 01 DA ; a = sdump[i]
+H 4D 8B 12 ; a = sdump[i]
+H 4C 89 55 F0 ; a = sdump[i]
+H 4C 8B 55 F0 ; if decode_ins(a) != 0
+H 4C 89 55 D0 ; if decode_ins(a) != 0
+H 48 8B 4D D0 ; if decode_ins(a) != 0
+H E8 $decode_ins ; if decode_ins(a) != 0
+H 49 89 C2 ; if decode_ins(a) != 0
+H 4C 89 55 E0 ; if decode_ins(a) != 0
+H 49 C7 C2 00 00 00 00 ; if decode_ins(a) != 0
+H 4D 89 D3 ; if decode_ins(a) != 0
+H 4C 8B 55 E0 ; if decode_ins(a) != 0
+H 4D 39 DA ; if decode_ins(a) != 0
+H 0F 84 $_if353e ; if decode_ins(a) != 0
+H E8 $fail_family ; fail_family()
+:_if353e
+H 49 C7 C2 01 10 00 00 ; off = -4097
+H 49 F7 DA ; off = -4097
+H 4C 89 55 E8 ; off = -4097
+H 4C 8B 15 $da1k ; if da1k == 4
+H 4C 89 55 E0 ; if da1k == 4
+H 49 C7 C2 04 00 00 00 ; if da1k == 4
+H 4D 89 D3 ; if da1k == 4
+H 4C 8B 55 E0 ; if da1k == 4
+H 4D 39 DA ; if da1k == 4
+H 0F 85 $_if354 ; if da1k == 4
+H 4C 8B 15 $da1v ; off = da1v
+H 4C 89 55 E8 ; off = da1v
+H E9 $_if354e ; if da1k == 4
+:_if354
+H 4C 8B 15 $da2k ; if da2k == 4
+H 4C 89 55 E0 ; if da2k == 4
+H 49 C7 C2 04 00 00 00 ; if da2k == 4
+H 4D 89 D3 ; if da2k == 4
+H 4C 8B 55 E0 ; if da2k == 4
+H 4D 39 DA ; if da2k == 4
+H 0F 85 $_if355e ; if da2k == 4
+H 4C 8B 15 $da2v ; off = da2v
+H 4C 89 55 E8 ; off = da2v
+:_if355e
+:_if354e
+H 4C 8B 15 $mripon ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 89 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 49 C7 C2 01 00 00 00 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 89 D3 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 39 DA ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 0F 85 $_if356d2 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 15 $da1k ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 89 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 49 C7 C2 02 00 00 00 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 89 D3 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 39 DA ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 0F 85 $_if356d2 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H E9 $_if356t ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+:_if356d2
+H 4C 8B 15 $mripon ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 89 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 49 C7 C2 01 00 00 00 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 89 D3 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 39 DA ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 0F 85 $_if356e ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 15 $da2k ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 89 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 49 C7 C2 02 00 00 00 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 89 D3 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4C 8B 55 E0 ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 4D 39 DA ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+H 0F 85 $_if356e ; if mripon == 1 && da1k == 2 || mripon == 1 && da2k == 2
+:_if356t
+H 4C 8B 15 $omrip ; off = omrip
+H 4C 89 55 E8 ; off = omrip
+:_if356e
+H 4C 8B 55 E8 ; if off != -4096 && off >= 0 && off < target
+H 4C 89 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 49 C7 C2 00 10 00 00 ; if off != -4096 && off >= 0 && off < target
+H 49 F7 DA ; if off != -4096 && off >= 0 && off < target
+H 4D 89 D3 ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 4D 39 DA ; if off != -4096 && off >= 0 && off < target
+H 0F 84 $_if357e ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 55 E8 ; if off != -4096 && off >= 0 && off < target
+H 4C 89 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 49 C7 C2 00 00 00 00 ; if off != -4096 && off >= 0 && off < target
+H 4D 89 D3 ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 4D 39 DA ; if off != -4096 && off >= 0 && off < target
+H 0F 8C $_if357e ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 55 E8 ; if off != -4096 && off >= 0 && off < target
+H 4C 89 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 15 $target ; if off != -4096 && off >= 0 && off < target
+H 4D 89 D3 ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 55 E0 ; if off != -4096 && off >= 0 && off < target
+H 4D 39 DA ; if off != -4096 && off >= 0 && off < target
+H 0F 8D $_if357e ; if off != -4096 && off >= 0 && off < target
+H 4C 8B 15 $labmap ; if getb(labmap, off) == 0
+H 4C 89 55 D8 ; if getb(labmap, off) == 0
+H 4C 8B 55 E8 ; if getb(labmap, off) == 0
+H 4D 89 D3 ; if getb(labmap, off) == 0
+H 4C 8B 55 D8 ; if getb(labmap, off) == 0
+H 47 0F B6 14 1A ; if getb(labmap, off) == 0
+H 4C 89 55 E0 ; if getb(labmap, off) == 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, off) == 0
+H 4D 89 D3 ; if getb(labmap, off) == 0
+H 4C 8B 55 E0 ; if getb(labmap, off) == 0
+H 4D 39 DA ; if getb(labmap, off) == 0
+H 0F 85 $_if358e ; if getb(labmap, off) == 0
+H 4C 8B 15 $sstate ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 89 55 D8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 E8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 89 D3 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 D8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 47 0F B6 14 1A ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 89 55 E0 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 89 D3 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 E0 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 39 DA ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 0F 85 $_if359d2 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H E9 $_if359t ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+:_if359d2
+H 4C 8B 15 $semstate ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 89 55 D8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 E8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 89 D3 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 D8 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 47 0F B6 14 1A ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 89 55 E0 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 89 D3 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4C 8B 55 E0 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 4D 39 DA ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+H 0F 85 $_if359 ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+:_if359t
+H 4C 8B 15 $labmap ; setb(labmap, off, 2)
+H 4C 89 55 C8 ; setb(labmap, off, 2)
+H 4C 8B 55 E8 ; setb(labmap, off, 2)
+H 4C 89 55 C0 ; setb(labmap, off, 2)
+H 49 C7 C2 02 00 00 00 ; setb(labmap, off, 2)
+H 4C 89 55 B8 ; setb(labmap, off, 2)
+H 4C 8B 55 C8 ; setb(labmap, off, 2)
+H 4C 8B 5D C0 ; setb(labmap, off, 2)
+H 8A 45 B8 ; setb(labmap, off, 2)
+H 43 88 04 1A ; setb(labmap, off, 2)
+H E9 $_if359e ; if getb(sstate, off) == 1 || getb(semstate, off) == 1
+:_if359
+H 4C 8B 15 $sstate ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 89 55 D8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 E8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 89 D3 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 D8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 47 0F B6 14 1A ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 89 55 E0 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 49 C7 C2 02 00 00 00 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 89 D3 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 E0 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 39 DA ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 0F 84 $_if360e ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 15 $semstate ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 89 55 D8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 E8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 89 D3 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 D8 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 47 0F B6 14 1A ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 89 55 E0 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 49 C7 C2 02 00 00 00 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 89 D3 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 55 E0 ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4D 39 DA ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 0F 84 $_if360e ; if getb(sstate, off) != 2 && getb(semstate, off) != 2
+H 4C 8B 15 $labmap ; setb(labmap, off, 1)
+H 4C 89 55 C8 ; setb(labmap, off, 1)
+H 4C 8B 55 E8 ; setb(labmap, off, 1)
+H 4C 89 55 C0 ; setb(labmap, off, 1)
+H 49 C7 C2 01 00 00 00 ; setb(labmap, off, 1)
+H 4C 89 55 B8 ; setb(labmap, off, 1)
+H 4C 8B 55 C8 ; setb(labmap, off, 1)
+H 4C 8B 5D C0 ; setb(labmap, off, 1)
+H 8A 45 B8 ; setb(labmap, off, 1)
+H 43 88 04 1A ; setb(labmap, off, 1)
+:_if360e
+:_if359e
+:_if358e
+:_if357e
+H 4C 8B 55 F8 ; i = i + 1
+H 4C 89 55 E0 ; i = i + 1
+H 49 C7 C2 01 00 00 00 ; i = i + 1
+H 4D 89 D3 ; i = i + 1
+H 4C 8B 55 E0 ; i = i + 1
+H 4D 01 DA ; i = i + 1
+H 4C 89 55 F8 ; i = i + 1
+H E9 $_w352 ; while i < inscount
+:_w352e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход ins_labels
+H 5D ; выход ins_labels
+H C3 ; выход ins_labels
+:out_hexl
+H 55 ; кадр out_hexl
+H 48 89 E5 ; кадр out_hexl
+H 48 81 EC 30 01 00 00 ; кадр out_hexl
+H 48 89 4D F8 ; кадр out_hexl
+H 4C 8B 55 F8 ; if v == 0
+H 4C 89 95 38 FF FF FF ; if v == 0
+H 49 C7 C2 00 00 00 00 ; if v == 0
+H 4D 89 D3 ; if v == 0
+H 4C 8B 95 38 FF FF FF ; if v == 0
+H 4D 39 DA ; if v == 0
+H 0F 85 $_if361e ; if v == 0
+H 49 C7 C2 30 00 00 00 ; app_ch(48)
+H 4C 89 95 20 FF FF FF ; app_ch(48)
+H 48 8B 8D 20 FF FF FF ; app_ch(48)
+H E8 $app_ch ; app_ch(48)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход out_hexl
+H 5D ; выход out_hexl
+H C3 ; выход out_hexl
+:_if361e
+H 49 C7 C2 00 00 00 00 ; n = 0
+H 4C 89 95 50 FF FF FF ; n = 0
+:_w362
+H 4C 8B 55 F8 ; while v > 0
+H 4C 89 95 38 FF FF FF ; while v > 0
+H 49 C7 C2 00 00 00 00 ; while v > 0
+H 4D 89 D3 ; while v > 0
+H 4C 8B 95 38 FF FF FF ; while v > 0
+H 4D 39 DA ; while v > 0
+H 0F 8E $_w362e ; while v > 0
+H 4C 8B 55 F8 ; c = v & 15
+H 4C 89 95 38 FF FF FF ; c = v & 15
+H 49 C7 C2 0F 00 00 00 ; c = v & 15
+H 4D 89 D3 ; c = v & 15
+H 4C 8B 95 38 FF FF FF ; c = v & 15
+H 4D 21 DA ; c = v & 15
+H 4C 89 95 40 FF FF FF ; c = v & 15
+H 4C 8B 95 40 FF FF FF ; if c < 10
+H 4C 89 95 38 FF FF FF ; if c < 10
+H 49 C7 C2 0A 00 00 00 ; if c < 10
+H 4D 89 D3 ; if c < 10
+H 4C 8B 95 38 FF FF FF ; if c < 10
+H 4D 39 DA ; if c < 10
+H 0F 8D $_if363 ; if c < 10
+H 4C 8B 95 40 FF FF FF ; c = c + 48
+H 4C 89 95 38 FF FF FF ; c = c + 48
+H 49 C7 C2 30 00 00 00 ; c = c + 48
+H 4D 89 D3 ; c = c + 48
+H 4C 8B 95 38 FF FF FF ; c = c + 48
+H 4D 01 DA ; c = c + 48
+H 4C 89 95 40 FF FF FF ; c = c + 48
+H E9 $_if363e ; if c < 10
+:_if363
+H 4C 8B 95 40 FF FF FF ; c = c + 87
+H 4C 89 95 38 FF FF FF ; c = c + 87
+H 49 C7 C2 57 00 00 00 ; c = c + 87
+H 4D 89 D3 ; c = c + 87
+H 4C 8B 95 38 FF FF FF ; c = c + 87
+H 4D 01 DA ; c = c + 87
+H 4C 89 95 40 FF FF FF ; c = c + 87
+:_if363e
+H 4C 8D 95 58 FF FF FF ; setb(t, n, c)
+H 4C 89 95 18 FF FF FF ; setb(t, n, c)
+H 4C 8B 95 50 FF FF FF ; setb(t, n, c)
+H 4C 89 95 10 FF FF FF ; setb(t, n, c)
+H 4C 8B 95 40 FF FF FF ; setb(t, n, c)
+H 4C 89 95 08 FF FF FF ; setb(t, n, c)
+H 4C 8B 95 18 FF FF FF ; setb(t, n, c)
+H 4C 8B 9D 10 FF FF FF ; setb(t, n, c)
+H 8A 85 08 FF FF FF ; setb(t, n, c)
+H 43 88 04 1A ; setb(t, n, c)
+H 4C 8B 55 F8 ; v = v >> 4
+H 4C 89 95 38 FF FF FF ; v = v >> 4
+H 49 C7 C2 04 00 00 00 ; v = v >> 4
+H 4D 89 D3 ; v = v >> 4
+H 4C 8B 95 38 FF FF FF ; v = v >> 4
+H 4C 89 D9 ; v = v >> 4
+H 49 D3 EA ; v = v >> 4
+H 4C 89 55 F8 ; v = v >> 4
+H 4C 8B 95 50 FF FF FF ; n = n + 1
+H 4C 89 95 38 FF FF FF ; n = n + 1
+H 49 C7 C2 01 00 00 00 ; n = n + 1
+H 4D 89 D3 ; n = n + 1
+H 4C 8B 95 38 FF FF FF ; n = n + 1
+H 4D 01 DA ; n = n + 1
+H 4C 89 95 50 FF FF FF ; n = n + 1
+H E9 $_w362 ; while v > 0
+:_w362e
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 95 48 FF FF FF ; j = 0
+:_w364
+H 4C 8B 95 48 FF FF FF ; while j < n
+H 4C 89 95 38 FF FF FF ; while j < n
+H 4C 8B 95 50 FF FF FF ; while j < n
+H 4D 89 D3 ; while j < n
+H 4C 8B 95 38 FF FF FF ; while j < n
+H 4D 39 DA ; while j < n
+H 0F 8D $_w364e ; while j < n
+H 4C 8D 95 58 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4C 89 95 38 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 50 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4C 89 95 28 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 49 C7 C2 01 00 00 00 ; app_ch(getb(t, n - 1 - j))
+H 4D 89 D3 ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 28 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4D 29 DA ; app_ch(getb(t, n - 1 - j))
+H 4C 89 95 30 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 48 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4D 89 D3 ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 30 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 4D 29 DA ; app_ch(getb(t, n - 1 - j))
+H 4D 89 D3 ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 38 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 47 0F B6 14 1A ; app_ch(getb(t, n - 1 - j))
+H 4C 89 95 20 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H 48 8B 8D 20 FF FF FF ; app_ch(getb(t, n - 1 - j))
+H E8 $app_ch ; app_ch(getb(t, n - 1 - j))
+H 4C 8B 95 48 FF FF FF ; j = j + 1
+H 4C 89 95 38 FF FF FF ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 95 38 FF FF FF ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 95 48 FF FF FF ; j = j + 1
+H E9 $_w364 ; while j < n
+:_w364e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход out_hexl
+H 5D ; выход out_hexl
+H C3 ; выход out_hexl
+:emit_labname
+H 55 ; кадр emit_labname
+H 48 89 E5 ; кадр emit_labname
+H 48 83 EC 60 ; кадр emit_labname
+H 48 89 4D F8 ; кадр emit_labname
+H 4C 8B 15 $labmap ; if getb(labmap, off) == 1
+H 4C 89 55 D8 ; if getb(labmap, off) == 1
+H 4C 8B 55 F8 ; if getb(labmap, off) == 1
+H 4D 89 D3 ; if getb(labmap, off) == 1
+H 4C 8B 55 D8 ; if getb(labmap, off) == 1
+H 47 0F B6 14 1A ; if getb(labmap, off) == 1
+H 4C 89 55 E0 ; if getb(labmap, off) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(labmap, off) == 1
+H 4D 89 D3 ; if getb(labmap, off) == 1
+H 4C 8B 55 E0 ; if getb(labmap, off) == 1
+H 4D 39 DA ; if getb(labmap, off) == 1
+H 0F 85 $_if365e ; if getb(labmap, off) == 1
+H 49 C7 C2 64 00 00 00 ; app_ch(100)
+H 4C 89 55 D0 ; app_ch(100)
+H 48 8B 4D D0 ; app_ch(100)
+H E8 $app_ch ; app_ch(100)
+H 4C 8B 55 F8 ; out_hexl(off + 4096)
+H 4C 89 55 E0 ; out_hexl(off + 4096)
+H 49 C7 C2 00 10 00 00 ; out_hexl(off + 4096)
+H 4D 89 D3 ; out_hexl(off + 4096)
+H 4C 8B 55 E0 ; out_hexl(off + 4096)
+H 4D 01 DA ; out_hexl(off + 4096)
+H 4C 89 55 D0 ; out_hexl(off + 4096)
+H 48 8B 4D D0 ; out_hexl(off + 4096)
+H E8 $out_hexl ; out_hexl(off + 4096)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_labname
+H 5D ; выход emit_labname
+H C3 ; выход emit_labname
+:_if365e
+H 4C 8B 15 $labmap ; if getb(labmap, off) == 2
+H 4C 89 55 D8 ; if getb(labmap, off) == 2
+H 4C 8B 55 F8 ; if getb(labmap, off) == 2
+H 4D 89 D3 ; if getb(labmap, off) == 2
+H 4C 8B 55 D8 ; if getb(labmap, off) == 2
+H 47 0F B6 14 1A ; if getb(labmap, off) == 2
+H 4C 89 55 E0 ; if getb(labmap, off) == 2
+H 49 C7 C2 02 00 00 00 ; if getb(labmap, off) == 2
+H 4D 89 D3 ; if getb(labmap, off) == 2
+H 4C 8B 55 E0 ; if getb(labmap, off) == 2
+H 4D 39 DA ; if getb(labmap, off) == 2
+H 0F 85 $_if366e ; if getb(labmap, off) == 2
+H 49 C7 C2 6C 00 00 00 ; app_ch(108)
+H 4C 89 55 D0 ; app_ch(108)
+H 48 8B 4D D0 ; app_ch(108)
+H E8 $app_ch ; app_ch(108)
+H 4C 8B 55 F8 ; out_hexl(off + 4096)
+H 4C 89 55 E0 ; out_hexl(off + 4096)
+H 49 C7 C2 00 10 00 00 ; out_hexl(off + 4096)
+H 4D 89 D3 ; out_hexl(off + 4096)
+H 4C 8B 55 E0 ; out_hexl(off + 4096)
+H 4D 01 DA ; out_hexl(off + 4096)
+H 4C 89 55 D0 ; out_hexl(off + 4096)
+H 48 8B 4D D0 ; out_hexl(off + 4096)
+H E8 $out_hexl ; out_hexl(off + 4096)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_labname
+H 5D ; выход emit_labname
+H C3 ; выход emit_labname
+:_if366e
+H 4C 8B 55 F8 ; k = (off - iatoff) / 8
+H 4C 89 55 D8 ; k = (off - iatoff) / 8
+H 4C 8B 15 $iatoff ; k = (off - iatoff) / 8
+H 4D 89 D3 ; k = (off - iatoff) / 8
+H 4C 8B 55 D8 ; k = (off - iatoff) / 8
+H 4D 29 DA ; k = (off - iatoff) / 8
+H 4C 89 55 E0 ; k = (off - iatoff) / 8
+H 49 C7 C2 08 00 00 00 ; k = (off - iatoff) / 8
+H 4D 89 D3 ; k = (off - iatoff) / 8
+H 4C 8B 55 E0 ; k = (off - iatoff) / 8
+H 4C 89 D0 ; k = (off - iatoff) / 8
+H 48 99 ; k = (off - iatoff) / 8
+H 49 F7 FB ; k = (off - iatoff) / 8
+H 49 89 C2 ; k = (off - iatoff) / 8
+H 4C 89 55 F0 ; k = (off - iatoff) / 8
+H 4C 8B 15 $noffs ; p = noffs[k]
+H 4C 89 55 E0 ; p = noffs[k]
+H 4C 8B 55 F0 ; p = noffs[k]
+H 49 C1 E2 03 ; p = noffs[k]
+H 4D 89 D3 ; p = noffs[k]
+H 4C 8B 55 E0 ; p = noffs[k]
+H 4D 01 DA ; p = noffs[k]
+H 4D 8B 12 ; p = noffs[k]
+H 4C 89 55 E8 ; p = noffs[k]
+:_w367
+H 4C 8B 15 $snam ; while getb(snam, p) != 0
+H 4C 89 55 D8 ; while getb(snam, p) != 0
+H 4C 8B 55 E8 ; while getb(snam, p) != 0
+H 4D 89 D3 ; while getb(snam, p) != 0
+H 4C 8B 55 D8 ; while getb(snam, p) != 0
+H 47 0F B6 14 1A ; while getb(snam, p) != 0
+H 4C 89 55 E0 ; while getb(snam, p) != 0
+H 49 C7 C2 00 00 00 00 ; while getb(snam, p) != 0
+H 4D 89 D3 ; while getb(snam, p) != 0
+H 4C 8B 55 E0 ; while getb(snam, p) != 0
+H 4D 39 DA ; while getb(snam, p) != 0
+H 0F 84 $_w367e ; while getb(snam, p) != 0
+H 4C 8B 15 $snam ; app_ch(getb(snam, p))
+H 4C 89 55 E0 ; app_ch(getb(snam, p))
+H 4C 8B 55 E8 ; app_ch(getb(snam, p))
+H 4D 89 D3 ; app_ch(getb(snam, p))
+H 4C 8B 55 E0 ; app_ch(getb(snam, p))
+H 47 0F B6 14 1A ; app_ch(getb(snam, p))
+H 4C 89 55 D0 ; app_ch(getb(snam, p))
+H 48 8B 4D D0 ; app_ch(getb(snam, p))
+H E8 $app_ch ; app_ch(getb(snam, p))
+H 4C 8B 55 E8 ; p = p + 1
+H 4C 89 55 E0 ; p = p + 1
+H 49 C7 C2 01 00 00 00 ; p = p + 1
+H 4D 89 D3 ; p = p + 1
+H 4C 8B 55 E0 ; p = p + 1
+H 4D 01 DA ; p = p + 1
+H 4C 89 55 E8 ; p = p + 1
+H E9 $_w367 ; while getb(snam, p) != 0
+:_w367e
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_labname
+H 5D ; выход emit_labname
+H C3 ; выход emit_labname
+:emit_cut
+H 55 ; кадр emit_cut
+H 48 89 E5 ; кадр emit_cut
+H 48 83 EC 60 ; кадр emit_cut
+H 48 89 4D F8 ; кадр emit_cut
+H 49 C7 C2 3A 00 00 00 ; app_ch(58)
+H 4C 89 55 F0 ; app_ch(58)
+H 48 8B 4D F0 ; app_ch(58)
+H E8 $app_ch ; app_ch(58)
+H 4C 8B 55 F8 ; emit_labname(off)
+H 4C 89 55 F0 ; emit_labname(off)
+H 48 8B 4D F0 ; emit_labname(off)
+H E8 $emit_labname ; emit_labname(off)
+H 4C 8B 15 $outbuf ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 F0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 15 $outcur ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 E8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8D 15 $s_at ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 E0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 49 C7 C2 04 00 00 00 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 D8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 48 8B 4D F0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 48 8B 55 E8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 45 E0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 4D D8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H E8 $copy_str ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 49 89 C2 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 15 $outcur ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 55 F8 ; out_hex4m(off)
+H 4C 89 55 F0 ; out_hex4m(off)
+H 48 8B 4D F0 ; out_hex4m(off)
+H E8 $out_hex4m ; out_hex4m(off)
+H 49 C7 C2 0A 00 00 00 ; app_ch(10)
+H 4C 89 55 F0 ; app_ch(10)
+H 48 8B 4D F0 ; app_ch(10)
+H E8 $app_ch ; app_ch(10)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_cut
+H 5D ; выход emit_cut
+H C3 ; выход emit_cut
+:emit_dollar
+H 55 ; кадр emit_dollar
+H 48 89 E5 ; кадр emit_dollar
+H 48 83 EC 60 ; кадр emit_dollar
+H 48 89 4D F8 ; кадр emit_dollar
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 55 F0 ; j = 0
+:_w368
+H 4C 8B 55 F0 ; while j < kn
+H 4C 89 55 E8 ; while j < kn
+H 4C 8B 15 $kn ; while j < kn
+H 4D 89 D3 ; while j < kn
+H 4C 8B 55 E8 ; while j < kn
+H 4D 39 DA ; while j < kn
+H 0F 8D $_w368e ; while j < kn
+H 4C 8B 15 $knownoff ; if knownoff[j] + 4096 == v
+H 4C 89 55 D8 ; if knownoff[j] + 4096 == v
+H 4C 8B 55 F0 ; if knownoff[j] + 4096 == v
+H 49 C1 E2 03 ; if knownoff[j] + 4096 == v
+H 4D 89 D3 ; if knownoff[j] + 4096 == v
+H 4C 8B 55 D8 ; if knownoff[j] + 4096 == v
+H 4D 01 DA ; if knownoff[j] + 4096 == v
+H 4D 8B 12 ; if knownoff[j] + 4096 == v
+H 4C 89 55 E0 ; if knownoff[j] + 4096 == v
+H 49 C7 C2 00 10 00 00 ; if knownoff[j] + 4096 == v
+H 4D 89 D3 ; if knownoff[j] + 4096 == v
+H 4C 8B 55 E0 ; if knownoff[j] + 4096 == v
+H 4D 01 DA ; if knownoff[j] + 4096 == v
+H 4C 89 55 E8 ; if knownoff[j] + 4096 == v
+H 4C 8B 55 F8 ; if knownoff[j] + 4096 == v
+H 4D 89 D3 ; if knownoff[j] + 4096 == v
+H 4C 8B 55 E8 ; if knownoff[j] + 4096 == v
+H 4D 39 DA ; if knownoff[j] + 4096 == v
+H 0F 85 $_if369e ; if knownoff[j] + 4096 == v
+H 49 C7 C2 24 00 00 00 ; app_ch(36)
+H 4C 89 55 D0 ; app_ch(36)
+H 48 8B 4D D0 ; app_ch(36)
+H E8 $app_ch ; app_ch(36)
+H 4C 8B 15 $knownoff ; emit_labname(knownoff[j])
+H 4C 89 55 E8 ; emit_labname(knownoff[j])
+H 4C 8B 55 F0 ; emit_labname(knownoff[j])
+H 49 C1 E2 03 ; emit_labname(knownoff[j])
+H 4D 89 D3 ; emit_labname(knownoff[j])
+H 4C 8B 55 E8 ; emit_labname(knownoff[j])
+H 4D 01 DA ; emit_labname(knownoff[j])
+H 4D 8B 12 ; emit_labname(knownoff[j])
+H 4C 89 55 D0 ; emit_labname(knownoff[j])
+H 48 8B 4D D0 ; emit_labname(knownoff[j])
+H E8 $emit_labname ; emit_labname(knownoff[j])
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_dollar
+H 5D ; выход emit_dollar
+H C3 ; выход emit_dollar
+:_if369e
+H 4C 8B 55 F0 ; j = j + 1
+H 4C 89 55 E8 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 E8 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 F0 ; j = j + 1
+H E9 $_w368 ; while j < kn
+:_w368e
+H 4C 8B 55 F8 ; out_hexv(v)
+H 4C 89 55 D0 ; out_hexv(v)
+H 48 8B 4D D0 ; out_hexv(v)
+H E8 $out_hexv ; out_hexv(v)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_dollar
+H 5D ; выход emit_dollar
+H C3 ; выход emit_dollar
+:emit_sem
+H 55 ; кадр emit_sem
+H 48 89 E5 ; кадр emit_sem
+H 48 81 EC 90 00 00 00 ; кадр emit_sem
+H 48 89 4D F8 ; кадр emit_sem
+H 4C 8B 15 $semrows ; off = semrows[3 * i]
+H 4C 89 55 D0 ; off = semrows[3 * i]
+H 49 C7 C2 03 00 00 00 ; off = semrows[3 * i]
+H 4C 89 55 C8 ; off = semrows[3 * i]
+H 4C 8B 55 F8 ; off = semrows[3 * i]
+H 4D 89 D3 ; off = semrows[3 * i]
+H 4C 8B 55 C8 ; off = semrows[3 * i]
+H 4D 0F AF D3 ; off = semrows[3 * i]
+H 49 C1 E2 03 ; off = semrows[3 * i]
+H 4D 89 D3 ; off = semrows[3 * i]
+H 4C 8B 55 D0 ; off = semrows[3 * i]
+H 4D 01 DA ; off = semrows[3 * i]
+H 4D 8B 12 ; off = semrows[3 * i]
+H 4C 89 55 F0 ; off = semrows[3 * i]
+H 4C 8B 15 $semrows ; kind = semrows[3 * i + 1]
+H 4C 89 55 D0 ; kind = semrows[3 * i + 1]
+H 49 C7 C2 03 00 00 00 ; kind = semrows[3 * i + 1]
+H 4C 89 55 C0 ; kind = semrows[3 * i + 1]
+H 4C 8B 55 F8 ; kind = semrows[3 * i + 1]
+H 4D 89 D3 ; kind = semrows[3 * i + 1]
+H 4C 8B 55 C0 ; kind = semrows[3 * i + 1]
+H 4D 0F AF D3 ; kind = semrows[3 * i + 1]
+H 4C 89 55 C8 ; kind = semrows[3 * i + 1]
+H 49 C7 C2 01 00 00 00 ; kind = semrows[3 * i + 1]
+H 4D 89 D3 ; kind = semrows[3 * i + 1]
+H 4C 8B 55 C8 ; kind = semrows[3 * i + 1]
+H 4D 01 DA ; kind = semrows[3 * i + 1]
+H 49 C1 E2 03 ; kind = semrows[3 * i + 1]
+H 4D 89 D3 ; kind = semrows[3 * i + 1]
+H 4C 8B 55 D0 ; kind = semrows[3 * i + 1]
+H 4D 01 DA ; kind = semrows[3 * i + 1]
+H 4D 8B 12 ; kind = semrows[3 * i + 1]
+H 4C 89 55 E8 ; kind = semrows[3 * i + 1]
+H 4C 8B 15 $semrows ; h = semrows[3 * i + 2]
+H 4C 89 55 D0 ; h = semrows[3 * i + 2]
+H 49 C7 C2 03 00 00 00 ; h = semrows[3 * i + 2]
+H 4C 89 55 C0 ; h = semrows[3 * i + 2]
+H 4C 8B 55 F8 ; h = semrows[3 * i + 2]
+H 4D 89 D3 ; h = semrows[3 * i + 2]
+H 4C 8B 55 C0 ; h = semrows[3 * i + 2]
+H 4D 0F AF D3 ; h = semrows[3 * i + 2]
+H 4C 89 55 C8 ; h = semrows[3 * i + 2]
+H 49 C7 C2 02 00 00 00 ; h = semrows[3 * i + 2]
+H 4D 89 D3 ; h = semrows[3 * i + 2]
+H 4C 8B 55 C8 ; h = semrows[3 * i + 2]
+H 4D 01 DA ; h = semrows[3 * i + 2]
+H 49 C1 E2 03 ; h = semrows[3 * i + 2]
+H 4D 89 D3 ; h = semrows[3 * i + 2]
+H 4C 8B 55 D0 ; h = semrows[3 * i + 2]
+H 4D 01 DA ; h = semrows[3 * i + 2]
+H 4D 8B 12 ; h = semrows[3 * i + 2]
+H 4C 89 55 E0 ; h = semrows[3 * i + 2]
+H 4C 8B 55 E8 ; if kind == 1
+H 4C 89 55 D0 ; if kind == 1
+H 49 C7 C2 01 00 00 00 ; if kind == 1
+H 4D 89 D3 ; if kind == 1
+H 4C 8B 55 D0 ; if kind == 1
+H 4D 39 DA ; if kind == 1
+H 0F 85 $_if370 ; if kind == 1
+H 4C 8B 15 $outbuf ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 89 55 B8 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 8B 15 $outcur ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 89 55 B0 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 8D 15 $s_dd ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 89 55 A8 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 49 C7 C2 03 00 00 00 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 89 55 A0 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 48 8B 4D B8 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 48 8B 55 B0 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 8B 45 A8 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 8B 4D A0 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H E8 $copy_str ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 49 89 C2 ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 4C 89 15 $outcur ; outcur = copy_str(outbuf, outcur, s_dd, len(s_dd))
+H 49 C7 C2 00 00 00 00 ; j = 0
+H 4C 89 55 D8 ; j = 0
+:_w371
+H 4C 8B 55 D8 ; while j < 5
+H 4C 89 55 D0 ; while j < 5
+H 49 C7 C2 05 00 00 00 ; while j < 5
+H 4D 89 D3 ; while j < 5
+H 4C 8B 55 D0 ; while j < 5
+H 4D 39 DA ; while j < 5
+H 0F 8D $_w371e ; while j < 5
+H 4C 8B 55 D8 ; if j > 0
+H 4C 89 55 D0 ; if j > 0
+H 49 C7 C2 00 00 00 00 ; if j > 0
+H 4D 89 D3 ; if j > 0
+H 4C 8B 55 D0 ; if j > 0
+H 4D 39 DA ; if j > 0
+H 0F 8E $_if372e ; if j > 0
+H 49 C7 C2 20 00 00 00 ; app_ch(32)
+H 4C 89 55 B8 ; app_ch(32)
+H 48 8B 4D B8 ; app_ch(32)
+H E8 $app_ch ; app_ch(32)
+:_if372e
+H 4C 8B 15 $exebuf ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 B8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 15 $rawptr ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 C8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 E0 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 89 D3 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 C8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 01 DA ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 D0 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 49 C7 C2 04 00 00 00 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 C8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 D8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 89 D3 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 C8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 0F AF D3 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 89 D3 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 D0 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4D 01 DA ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 B0 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 48 8B 4D B8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 48 8B 55 B0 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H E8 $rd32 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 49 89 C2 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 89 55 B8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 48 8B 4D B8 ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H E8 $emit_dollar ; emit_dollar(rd32(exebuf, rawptr + h + 4 * j))
+H 4C 8B 55 D8 ; j = j + 1
+H 4C 89 55 D0 ; j = j + 1
+H 49 C7 C2 01 00 00 00 ; j = j + 1
+H 4D 89 D3 ; j = j + 1
+H 4C 8B 55 D0 ; j = j + 1
+H 4D 01 DA ; j = j + 1
+H 4C 89 55 D8 ; j = j + 1
+H E9 $_w371 ; while j < 5
+:_w371e
+H E9 $_if370e ; if kind == 1
+:_if370
+H 4C 8B 15 $outbuf ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 89 55 B8 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 8B 15 $outcur ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 89 55 B0 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 8D 15 $s_dq ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 89 55 A8 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 49 C7 C2 03 00 00 00 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 89 55 A0 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 48 8B 4D B8 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 48 8B 55 B0 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 8B 45 A8 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 8B 4D A0 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H E8 $copy_str ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 49 89 C2 ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 89 15 $outcur ; outcur = copy_str(outbuf, outcur, s_dq, len(s_dq))
+H 4C 8B 55 E0 ; if h < 0
+H 4C 89 55 D0 ; if h < 0
+H 49 C7 C2 00 00 00 00 ; if h < 0
+H 4D 89 D3 ; if h < 0
+H 4C 8B 55 D0 ; if h < 0
+H 4D 39 DA ; if h < 0
+H 0F 8D $_if373 ; if h < 0
+H 49 C7 C2 30 00 00 00 ; app_ch(48)
+H 4C 89 55 B8 ; app_ch(48)
+H 48 8B 4D B8 ; app_ch(48)
+H E8 $app_ch ; app_ch(48)
+H E9 $_if373e ; if h < 0
+:_if373
+H 49 C7 C2 24 00 00 00 ; app_ch(36)
+H 4C 89 55 B8 ; app_ch(36)
+H 48 8B 4D B8 ; app_ch(36)
+H E8 $app_ch ; app_ch(36)
+H 4C 8B 55 E0 ; emit_labname(h)
+H 4C 89 55 B8 ; emit_labname(h)
+H 48 8B 4D B8 ; emit_labname(h)
+H E8 $emit_labname ; emit_labname(h)
+:_if373e
+:_if370e
+H 4C 8B 15 $outbuf ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 B8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 15 $outcur ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 B0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8D 15 $s_at ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 A8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 49 C7 C2 04 00 00 00 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 55 A0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 48 8B 4D B8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 48 8B 55 B0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 45 A8 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 4D A0 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H E8 $copy_str ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 49 89 C2 ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 89 15 $outcur ; outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+H 4C 8B 55 F0 ; out_hex4m(off)
+H 4C 89 55 B8 ; out_hex4m(off)
+H 48 8B 4D B8 ; out_hex4m(off)
+H E8 $out_hex4m ; out_hex4m(off)
+H 49 C7 C2 0A 00 00 00 ; app_ch(10)
+H 4C 89 55 B8 ; app_ch(10)
+H 48 8B 4D B8 ; app_ch(10)
+H E8 $app_ch ; app_ch(10)
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход emit_sem
+H 5D ; выход emit_sem
+H C3 ; выход emit_sem
+:build_maps
+H 55 ; кадр build_maps
+H 48 89 E5 ; кадр build_maps
+H 48 83 EC 70 ; кадр build_maps
+H 49 C7 C2 00 00 00 00 ; labmap = GlobalAlloc(0, 262145)
+H 4C 89 55 D8 ; labmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 01 00 04 00 ; labmap = GlobalAlloc(0, 262145)
+H 4C 89 55 D0 ; labmap = GlobalAlloc(0, 262145)
+H 48 8B 4D D8 ; labmap = GlobalAlloc(0, 262145)
+H 48 8B 55 D0 ; labmap = GlobalAlloc(0, 262145)
+H FF 15 $_iat_globalalloc ; labmap = GlobalAlloc(0, 262145)
+H 49 89 C2 ; labmap = GlobalAlloc(0, 262145)
+H 4C 89 15 $labmap ; labmap = GlobalAlloc(0, 262145)
+H 49 C7 C2 00 00 00 00 ; semstate = GlobalAlloc(0, 262145)
+H 4C 89 55 D8 ; semstate = GlobalAlloc(0, 262145)
+H 49 C7 C2 01 00 04 00 ; semstate = GlobalAlloc(0, 262145)
+H 4C 89 55 D0 ; semstate = GlobalAlloc(0, 262145)
+H 48 8B 4D D8 ; semstate = GlobalAlloc(0, 262145)
+H 48 8B 55 D0 ; semstate = GlobalAlloc(0, 262145)
+H FF 15 $_iat_globalalloc ; semstate = GlobalAlloc(0, 262145)
+H 49 89 C2 ; semstate = GlobalAlloc(0, 262145)
+H 4C 89 15 $semstate ; semstate = GlobalAlloc(0, 262145)
+H 4C 8B 15 $labmap ; if labmap == 0 || semstate == 0
+H 4C 89 55 F8 ; if labmap == 0 || semstate == 0
+H 49 C7 C2 00 00 00 00 ; if labmap == 0 || semstate == 0
+H 4D 89 D3 ; if labmap == 0 || semstate == 0
+H 4C 8B 55 F8 ; if labmap == 0 || semstate == 0
+H 4D 39 DA ; if labmap == 0 || semstate == 0
+H 0F 85 $_if374d2 ; if labmap == 0 || semstate == 0
+H E9 $_if374t ; if labmap == 0 || semstate == 0
+:_if374d2
+H 4C 8B 15 $semstate ; if labmap == 0 || semstate == 0
+H 4C 89 55 F8 ; if labmap == 0 || semstate == 0
+H 49 C7 C2 00 00 00 00 ; if labmap == 0 || semstate == 0
+H 4D 89 D3 ; if labmap == 0 || semstate == 0
+H 4C 8B 55 F8 ; if labmap == 0 || semstate == 0
+H 4D 39 DA ; if labmap == 0 || semstate == 0
+H 0F 85 $_if374e ; if labmap == 0 || semstate == 0
+:_if374t
+H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 D8 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 4D D8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 8B 45 C8 ; print_error(s_rexe, len(s_rexe), 5)
+H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if374e
+H E8 $build_sstate ; build_sstate()
+H E8 $imp_hints ; imp_hints()
+H E8 $imp_offs ; imp_offs()
+H 49 C7 C2 00 00 00 00 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 89 55 D8 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 8B 15 $impn ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 89 55 F0 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 49 C7 C2 08 00 00 00 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4D 89 D3 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 8B 55 F0 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4D 0F AF D3 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 89 55 F8 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 49 C7 C2 20 00 00 00 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4D 89 D3 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 8B 55 F8 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4D 01 DA ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 89 55 D0 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 48 8B 4D D8 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 48 8B 55 D0 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H FF 15 $_iat_globalalloc ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 49 89 C2 ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 4C 89 15 $knownoff ; knownoff = GlobalAlloc(0, impn * 8 + 32)
+H 49 C7 C2 00 00 00 00 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D8 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 15 $impn ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 F0 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 F0 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4D 0F AF D3 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 F8 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 08 00 00 00 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4D 89 D3 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 8B 55 F8 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4D 01 DA ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 55 D0 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 4D D8 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 48 8B 55 D0 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H FF 15 $_iat_globalalloc ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 49 89 C2 ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 4C 89 15 $noffs ; noffs = GlobalAlloc(0, impn * 8 + 8)
+H 49 C7 C2 00 00 00 00 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 89 55 D8 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 8B 15 $impn ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 89 55 F0 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 49 C7 C2 40 00 00 00 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4D 89 D3 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 8B 55 F0 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4D 0F AF D3 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 89 55 F8 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 49 C7 C2 40 00 00 00 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4D 89 D3 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 8B 55 F8 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4D 01 DA ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 89 55 D0 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 48 8B 4D D8 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 48 8B 55 D0 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H FF 15 $_iat_globalalloc ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 49 89 C2 ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 4C 89 15 $snam ; snam = GlobalAlloc(0, impn * 64 + 64)
+H 49 C7 C2 00 00 00 00 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 D8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 49 C7 C2 02 00 00 00 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 E0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 15 $impn ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 89 D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 55 E0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 0F AF D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 E8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 49 C7 C2 03 00 00 00 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 89 D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 55 E8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 01 DA ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 F0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 49 C7 C2 18 00 00 00 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 89 D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 55 F0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 0F AF D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 F8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 49 C7 C2 18 00 00 00 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 89 D3 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 55 F8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4D 01 DA ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 55 D0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 48 8B 4D D8 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 48 8B 55 D0 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H FF 15 $_iat_globalalloc ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 49 89 C2 ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 89 15 $semrows ; semrows = GlobalAlloc(0, (2 * impn + 3) * 24 + 24)
+H 4C 8B 15 $knownoff ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 89 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 49 C7 C2 00 00 00 00 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 89 D3 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 8B 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 39 DA ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 0F 85 $_if375d2 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H E9 $_if375t ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+:_if375d2
+H 4C 8B 15 $noffs ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 89 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 49 C7 C2 00 00 00 00 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 89 D3 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 8B 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 39 DA ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 0F 85 $_if375d3 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H E9 $_if375t ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+:_if375d3
+H 4C 8B 15 $snam ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 89 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 49 C7 C2 00 00 00 00 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 89 D3 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 8B 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 39 DA ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 0F 85 $_if375d4 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H E9 $_if375t ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+:_if375d4
+H 4C 8B 15 $semrows ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 89 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 49 C7 C2 00 00 00 00 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 89 D3 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4C 8B 55 F8 ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 4D 39 DA ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+H 0F 85 $_if375e ; if knownoff == 0 || noffs == 0 || snam == 0 || semrows == 0
+:_if375t
+H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 D8 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 4D D8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 55 D0 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 8B 45 C8 ; print_error(s_rexe, len(s_rexe), 5)
+H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if375e
+H 49 C7 C2 00 00 00 00 ; kn = 0
+H 4C 89 15 $kn ; kn = 0
+H 49 C7 C2 00 00 00 00 ; snlen = 0
+H 4C 89 15 $snlen ; snlen = 0
+H 49 C7 C2 00 00 00 00 ; semcnt = 0
+H 4C 89 15 $semcnt ; semcnt = 0
+H 49 C7 C2 00 00 00 00 ; semacc = 0
+H 4C 89 15 $semacc ; semacc = 0
+H E8 $imp_labels ; imp_labels()
+H 4C 8B 15 $impbad ; if impbad == 0
+H 4C 89 55 F8 ; if impbad == 0
+H 49 C7 C2 00 00 00 00 ; if impbad == 0
+H 4D 89 D3 ; if impbad == 0
+H 4C 8B 55 F8 ; if impbad == 0
+H 4D 39 DA ; if impbad == 0
+H 0F 85 $_if376e ; if impbad == 0
+H E8 $dd_idt ; dd_idt()
+H 4C 8B 15 $iatoff ; dq_base(iatoff)
+H 4C 89 55 D8 ; dq_base(iatoff)
+H 48 8B 4D D8 ; dq_base(iatoff)
+H E8 $dq_base ; dq_base(iatoff)
+H 4C 8B 15 $intoff ; if intoff != iatoff
+H 4C 89 55 F8 ; if intoff != iatoff
+H 4C 8B 15 $iatoff ; if intoff != iatoff
+H 4D 89 D3 ; if intoff != iatoff
+H 4C 8B 55 F8 ; if intoff != iatoff
+H 4D 39 DA ; if intoff != iatoff
+H 0F 84 $_if377e ; if intoff != iatoff
+H 4C 8B 15 $intoff ; dq_base(intoff)
+H 4C 89 55 D8 ; dq_base(intoff)
+H 48 8B 4D D8 ; dq_base(intoff)
+H E8 $dq_base ; dq_base(intoff)
+:_if377e
+H E8 $sem_filter ; sem_filter()
+:_if376e
+H E8 $ins_labels ; ins_labels()
+H 49 C7 C2 00 00 00 00 ; return 0
+H 4C 89 D0 ; return 0
+H 48 89 EC ; выход build_maps
+H 5D ; выход build_maps
+H C3 ; выход build_maps
+:emit_body
+H 55 ; кадр emit_body
+H 48 89 E5 ; кадр emit_body
+H 48 81 EC B0 00 00 00 ; кадр emit_body
+H 48 89 4D F8 ; кадр emit_body
+H 49 C7 C2 00 00 00 00 ; outmem = GlobalAlloc(0, 8388608)
+H 4C 89 55 A8 ; outmem = GlobalAlloc(0, 8388608)
+H 49 C7 C2 00 00 80 00 ; outmem = GlobalAlloc(0, 8388608)
+H 4C 89 55 A0 ; outmem = GlobalAlloc(0, 8388608)
+H 48 8B 4D A8 ; outmem = GlobalAlloc(0, 8388608)
+H 48 8B 55 A0 ; outmem = GlobalAlloc(0, 8388608)
+H FF 15 $_iat_globalalloc ; outmem = GlobalAlloc(0, 8388608)
+H 49 89 C2 ; outmem = GlobalAlloc(0, 8388608)
+H 4C 89 15 $outmem ; outmem = GlobalAlloc(0, 8388608)
+H 4C 8B 15 $outmem ; if outmem == 0
+H 4C 89 55 C8 ; if outmem == 0
+H 49 C7 C2 00 00 00 00 ; if outmem == 0
+H 4D 89 D3 ; if outmem == 0
+H 4C 8B 55 C8 ; if outmem == 0
+H 4D 39 DA ; if outmem == 0
+H 0F 85 $_if378e ; if outmem == 0
+H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 A8 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 A0 ; print_error(s_rexe, len(s_rexe), 5)
+H 49 C7 C2 05 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 89 55 98 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 4D A8 ; print_error(s_rexe, len(s_rexe), 5)
+H 48 8B 55 A0 ; print_error(s_rexe, len(s_rexe), 5)
+H 4C 8B 45 98 ; print_error(s_rexe, len(s_rexe), 5)
+H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
+:_if378e
 H 4C 8B 15 $outmem ; outbuf = outmem
 H 4C 89 15 $outbuf ; outbuf = outmem
 H 49 C7 C2 00 00 00 00 ; outcur = 0
 H 4C 89 15 $outcur ; outcur = 0
 H 49 C7 C2 00 00 00 00 ; app_tpl(0, 74)
-H 4C 89 55 B8 ; app_tpl(0, 74)
+H 4C 89 55 A8 ; app_tpl(0, 74)
 H 49 C7 C2 4A 00 00 00 ; app_tpl(0, 74)
-H 4C 89 55 B0 ; app_tpl(0, 74)
-H 48 8B 4D B8 ; app_tpl(0, 74)
-H 48 8B 55 B0 ; app_tpl(0, 74)
+H 4C 89 55 A0 ; app_tpl(0, 74)
+H 48 8B 4D A8 ; app_tpl(0, 74)
+H 48 8B 55 A0 ; app_tpl(0, 74)
 H E8 $app_tpl ; app_tpl(0, 74)
 H 4C 8B 15 $outbuf ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 89 55 B8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 89 55 A8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 8B 15 $outcur ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 89 55 B0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 89 55 A0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 8B 15 $exebuf ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 89 55 C8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 49 C7 C2 4D 00 00 00 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4D 89 D3 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 8B 55 C8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4D 01 DA ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 89 55 A8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 89 55 98 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 8B 15 $modlen ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 89 55 A0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 48 8B 4D B8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 48 8B 55 B0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 8B 45 A8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-H 4C 8B 4D A0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 89 55 90 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 48 8B 4D A8 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 48 8B 55 A0 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 8B 45 98 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+H 4C 8B 4D 90 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H E8 $copy_str ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 49 89 C2 ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 4C 89 15 $outcur ; outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
 H 49 C7 C2 4A 00 00 00 ; app_tpl(74, 112)
-H 4C 89 55 B8 ; app_tpl(74, 112)
+H 4C 89 55 A8 ; app_tpl(74, 112)
 H 49 C7 C2 70 00 00 00 ; app_tpl(74, 112)
-H 4C 89 55 B0 ; app_tpl(74, 112)
-H 48 8B 4D B8 ; app_tpl(74, 112)
-H 48 8B 55 B0 ; app_tpl(74, 112)
+H 4C 89 55 A0 ; app_tpl(74, 112)
+H 48 8B 4D A8 ; app_tpl(74, 112)
+H 48 8B 55 A0 ; app_tpl(74, 112)
 H E8 $app_tpl ; app_tpl(74, 112)
 H 4C 8B 15 $target ; out_hexv(target)
-H 4C 89 55 B8 ; out_hexv(target)
-H 48 8B 4D B8 ; out_hexv(target)
+H 4C 89 55 A8 ; out_hexv(target)
+H 48 8B 4D A8 ; out_hexv(target)
 H E8 $out_hexv ; out_hexv(target)
 H 49 C7 C2 70 00 00 00 ; app_tpl(112, 122)
-H 4C 89 55 B8 ; app_tpl(112, 122)
+H 4C 89 55 A8 ; app_tpl(112, 122)
 H 49 C7 C2 7A 00 00 00 ; app_tpl(112, 122)
-H 4C 89 55 B0 ; app_tpl(112, 122)
-H 48 8B 4D B8 ; app_tpl(112, 122)
-H 48 8B 55 B0 ; app_tpl(112, 122)
+H 4C 89 55 A0 ; app_tpl(112, 122)
+H 48 8B 4D A8 ; app_tpl(112, 122)
+H 48 8B 55 A0 ; app_tpl(112, 122)
 H E8 $app_tpl ; app_tpl(112, 122)
 H 4C 8B 15 $bss ; out_hexv(bss)
-H 4C 89 55 B8 ; out_hexv(bss)
-H 48 8B 4D B8 ; out_hexv(bss)
+H 4C 89 55 A8 ; out_hexv(bss)
+H 48 8B 4D A8 ; out_hexv(bss)
 H E8 $out_hexv ; out_hexv(bss)
 H 49 C7 C2 7A 00 00 00 ; app_tpl(122, 199)
-H 4C 89 55 B8 ; app_tpl(122, 199)
+H 4C 89 55 A8 ; app_tpl(122, 199)
 H 49 C7 C2 C7 00 00 00 ; app_tpl(122, 199)
-H 4C 89 55 B0 ; app_tpl(122, 199)
-H 48 8B 4D B8 ; app_tpl(122, 199)
-H 48 8B 55 B0 ; app_tpl(122, 199)
+H 4C 89 55 A0 ; app_tpl(122, 199)
+H 48 8B 4D A8 ; app_tpl(122, 199)
+H 48 8B 55 A0 ; app_tpl(122, 199)
 H E8 $app_tpl ; app_tpl(122, 199)
-H 49 C7 C2 00 00 00 00 ; lo = 0
-H 4C 89 55 E8 ; lo = 0
-H 49 C7 C2 00 00 00 00 ; k = 0
-H 4C 89 55 F0 ; k = 0
-:_w301
-H 4C 8B 55 F0 ; while k < inscount
-H 4C 89 55 C8 ; while k < inscount
-H 4C 8B 15 $inscount ; while k < inscount
-H 4D 89 D3 ; while k < inscount
-H 4C 8B 55 C8 ; while k < inscount
-H 4D 39 DA ; while k < inscount
-H 0F 8D $_w301e ; while k < inscount
-H 4C 8B 15 $lenmap ; ln = getb(lenmap, sdump[k])
-H 4C 89 55 C8 ; ln = getb(lenmap, sdump[k])
-H 4C 8B 15 $sdump ; ln = getb(lenmap, sdump[k])
-H 4C 89 55 C0 ; ln = getb(lenmap, sdump[k])
-H 4C 8B 55 F0 ; ln = getb(lenmap, sdump[k])
-H 49 C1 E2 03 ; ln = getb(lenmap, sdump[k])
-H 4D 89 D3 ; ln = getb(lenmap, sdump[k])
-H 4C 8B 55 C0 ; ln = getb(lenmap, sdump[k])
-H 4D 01 DA ; ln = getb(lenmap, sdump[k])
-H 4D 8B 12 ; ln = getb(lenmap, sdump[k])
-H 4D 89 D3 ; ln = getb(lenmap, sdump[k])
-H 4C 8B 55 C8 ; ln = getb(lenmap, sdump[k])
-H 47 0F B6 14 1A ; ln = getb(lenmap, sdump[k])
-H 4C 89 55 E0 ; ln = getb(lenmap, sdump[k])
-H 4C 8B 55 E8 ; emit_data(lo, sdump[k])
-H 4C 89 55 B8 ; emit_data(lo, sdump[k])
-H 4C 8B 15 $sdump ; emit_data(lo, sdump[k])
-H 4C 89 55 C8 ; emit_data(lo, sdump[k])
-H 4C 8B 55 F0 ; emit_data(lo, sdump[k])
-H 49 C1 E2 03 ; emit_data(lo, sdump[k])
-H 4D 89 D3 ; emit_data(lo, sdump[k])
-H 4C 8B 55 C8 ; emit_data(lo, sdump[k])
-H 4D 01 DA ; emit_data(lo, sdump[k])
-H 4D 8B 12 ; emit_data(lo, sdump[k])
-H 4C 89 55 B0 ; emit_data(lo, sdump[k])
-H 48 8B 4D B8 ; emit_data(lo, sdump[k])
-H 48 8B 55 B0 ; emit_data(lo, sdump[k])
-H E8 $emit_data ; emit_data(lo, sdump[k])
-H 4C 8B 15 $sdump ; emit_h(sdump[k])
-H 4C 89 55 C8 ; emit_h(sdump[k])
-H 4C 8B 55 F0 ; emit_h(sdump[k])
-H 49 C1 E2 03 ; emit_h(sdump[k])
-H 4D 89 D3 ; emit_h(sdump[k])
-H 4C 8B 55 C8 ; emit_h(sdump[k])
-H 4D 01 DA ; emit_h(sdump[k])
-H 4D 8B 12 ; emit_h(sdump[k])
-H 4C 89 55 B8 ; emit_h(sdump[k])
-H 48 8B 4D B8 ; emit_h(sdump[k])
-H E8 $emit_h ; emit_h(sdump[k])
-H 4C 8B 15 $sdump ; lo = sdump[k] + ln
-H 4C 89 55 C0 ; lo = sdump[k] + ln
-H 4C 8B 55 F0 ; lo = sdump[k] + ln
-H 49 C1 E2 03 ; lo = sdump[k] + ln
-H 4D 89 D3 ; lo = sdump[k] + ln
-H 4C 8B 55 C0 ; lo = sdump[k] + ln
-H 4D 01 DA ; lo = sdump[k] + ln
-H 4D 8B 12 ; lo = sdump[k] + ln
-H 4C 89 55 C8 ; lo = sdump[k] + ln
-H 4C 8B 55 E0 ; lo = sdump[k] + ln
-H 4D 89 D3 ; lo = sdump[k] + ln
-H 4C 8B 55 C8 ; lo = sdump[k] + ln
-H 4D 01 DA ; lo = sdump[k] + ln
-H 4C 89 55 E8 ; lo = sdump[k] + ln
-H 4C 8B 55 F0 ; k = k + 1
-H 4C 89 55 C8 ; k = k + 1
-H 49 C7 C2 01 00 00 00 ; k = k + 1
-H 4D 89 D3 ; k = k + 1
-H 4C 8B 55 C8 ; k = k + 1
-H 4D 01 DA ; k = k + 1
-H 4C 89 55 F0 ; k = k + 1
-H E9 $_w301 ; while k < inscount
-:_w301e
-H 4C 8B 55 E8 ; emit_data(lo, target)
-H 4C 89 55 B8 ; emit_data(lo, target)
-H 4C 8B 15 $target ; emit_data(lo, target)
-H 4C 89 55 B0 ; emit_data(lo, target)
-H 48 8B 4D B8 ; emit_data(lo, target)
-H 48 8B 55 B0 ; emit_data(lo, target)
-H E8 $emit_data ; emit_data(lo, target)
+H 49 C7 C2 00 00 00 00 ; o = 0
+H 4C 89 55 E0 ; o = 0
+H 49 C7 C2 00 00 00 00 ; ri = 0
+H 4C 89 55 D0 ; ri = 0
+:_w379
+H 4C 8B 55 E0 ; while o < target
+H 4C 89 55 C8 ; while o < target
+H 4C 8B 15 $target ; while o < target
+H 4D 89 D3 ; while o < target
+H 4C 8B 55 C8 ; while o < target
+H 4D 39 DA ; while o < target
+H 0F 8D $_w379e ; while o < target
+H 4C 8B 15 $labmap ; if getb(labmap, o) != 0
+H 4C 89 55 C0 ; if getb(labmap, o) != 0
+H 4C 8B 55 E0 ; if getb(labmap, o) != 0
+H 4D 89 D3 ; if getb(labmap, o) != 0
+H 4C 8B 55 C0 ; if getb(labmap, o) != 0
+H 47 0F B6 14 1A ; if getb(labmap, o) != 0
+H 4C 89 55 C8 ; if getb(labmap, o) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, o) != 0
+H 4D 89 D3 ; if getb(labmap, o) != 0
+H 4C 8B 55 C8 ; if getb(labmap, o) != 0
+H 4D 39 DA ; if getb(labmap, o) != 0
+H 0F 84 $_if380e ; if getb(labmap, o) != 0
+H 4C 8B 55 E0 ; emit_cut(o)
+H 4C 89 55 A8 ; emit_cut(o)
+H 48 8B 4D A8 ; emit_cut(o)
+H E8 $emit_cut ; emit_cut(o)
+:_if380e
+H 4C 8B 15 $semstate ; if getb(semstate, o) == 1
+H 4C 89 55 C0 ; if getb(semstate, o) == 1
+H 4C 8B 55 E0 ; if getb(semstate, o) == 1
+H 4D 89 D3 ; if getb(semstate, o) == 1
+H 4C 8B 55 C0 ; if getb(semstate, o) == 1
+H 47 0F B6 14 1A ; if getb(semstate, o) == 1
+H 4C 89 55 C8 ; if getb(semstate, o) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(semstate, o) == 1
+H 4D 89 D3 ; if getb(semstate, o) == 1
+H 4C 8B 55 C8 ; if getb(semstate, o) == 1
+H 4D 39 DA ; if getb(semstate, o) == 1
+H 0F 85 $_if381 ; if getb(semstate, o) == 1
+H 4C 8B 55 D0 ; emit_sem(ri)
+H 4C 89 55 A8 ; emit_sem(ri)
+H 48 8B 4D A8 ; emit_sem(ri)
+H E8 $emit_sem ; emit_sem(ri)
+H 4C 8B 15 $semrows ; if semrows[3 * ri + 1] == 1
+H 4C 89 55 C0 ; if semrows[3 * ri + 1] == 1
+H 49 C7 C2 03 00 00 00 ; if semrows[3 * ri + 1] == 1
+H 4C 89 55 B0 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 D0 ; if semrows[3 * ri + 1] == 1
+H 4D 89 D3 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 B0 ; if semrows[3 * ri + 1] == 1
+H 4D 0F AF D3 ; if semrows[3 * ri + 1] == 1
+H 4C 89 55 B8 ; if semrows[3 * ri + 1] == 1
+H 49 C7 C2 01 00 00 00 ; if semrows[3 * ri + 1] == 1
+H 4D 89 D3 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 B8 ; if semrows[3 * ri + 1] == 1
+H 4D 01 DA ; if semrows[3 * ri + 1] == 1
+H 49 C1 E2 03 ; if semrows[3 * ri + 1] == 1
+H 4D 89 D3 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 C0 ; if semrows[3 * ri + 1] == 1
+H 4D 01 DA ; if semrows[3 * ri + 1] == 1
+H 4D 8B 12 ; if semrows[3 * ri + 1] == 1
+H 4C 89 55 C8 ; if semrows[3 * ri + 1] == 1
+H 49 C7 C2 01 00 00 00 ; if semrows[3 * ri + 1] == 1
+H 4D 89 D3 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 C8 ; if semrows[3 * ri + 1] == 1
+H 4D 39 DA ; if semrows[3 * ri + 1] == 1
+H 0F 85 $_if382 ; if semrows[3 * ri + 1] == 1
+H 4C 8B 55 E0 ; o = o + 20
+H 4C 89 55 C8 ; o = o + 20
+H 49 C7 C2 14 00 00 00 ; o = o + 20
+H 4D 89 D3 ; o = o + 20
+H 4C 8B 55 C8 ; o = o + 20
+H 4D 01 DA ; o = o + 20
+H 4C 89 55 E0 ; o = o + 20
+H E9 $_if382e ; if semrows[3 * ri + 1] == 1
+:_if382
+H 4C 8B 55 E0 ; o = o + 8
+H 4C 89 55 C8 ; o = o + 8
+H 49 C7 C2 08 00 00 00 ; o = o + 8
+H 4D 89 D3 ; o = o + 8
+H 4C 8B 55 C8 ; o = o + 8
+H 4D 01 DA ; o = o + 8
+H 4C 89 55 E0 ; o = o + 8
+:_if382e
+H 4C 8B 55 D0 ; ri = ri + 1
+H 4C 89 55 C8 ; ri = ri + 1
+H 49 C7 C2 01 00 00 00 ; ri = ri + 1
+H 4D 89 D3 ; ri = ri + 1
+H 4C 8B 55 C8 ; ri = ri + 1
+H 4D 01 DA ; ri = ri + 1
+H 4C 89 55 D0 ; ri = ri + 1
+H E9 $_if381e ; if getb(semstate, o) == 1
+:_if381
+H 4C 8B 15 $sstate ; if getb(sstate, o) == 1
+H 4C 89 55 C0 ; if getb(sstate, o) == 1
+H 4C 8B 55 E0 ; if getb(sstate, o) == 1
+H 4D 89 D3 ; if getb(sstate, o) == 1
+H 4C 8B 55 C0 ; if getb(sstate, o) == 1
+H 47 0F B6 14 1A ; if getb(sstate, o) == 1
+H 4C 89 55 C8 ; if getb(sstate, o) == 1
+H 49 C7 C2 01 00 00 00 ; if getb(sstate, o) == 1
+H 4D 89 D3 ; if getb(sstate, o) == 1
+H 4C 8B 55 C8 ; if getb(sstate, o) == 1
+H 4D 39 DA ; if getb(sstate, o) == 1
+H 0F 85 $_if383 ; if getb(sstate, o) == 1
+H 4C 8B 55 E0 ; emit_h(o)
+H 4C 89 55 A8 ; emit_h(o)
+H 48 8B 4D A8 ; emit_h(o)
+H E8 $emit_h ; emit_h(o)
+H 4C 8B 55 E0 ; o = o + getb(lenmap, o)
+H 4C 89 55 C8 ; o = o + getb(lenmap, o)
+H 4C 8B 15 $lenmap ; o = o + getb(lenmap, o)
+H 4C 89 55 C0 ; o = o + getb(lenmap, o)
+H 4C 8B 55 E0 ; o = o + getb(lenmap, o)
+H 4D 89 D3 ; o = o + getb(lenmap, o)
+H 4C 8B 55 C0 ; o = o + getb(lenmap, o)
+H 47 0F B6 14 1A ; o = o + getb(lenmap, o)
+H 4D 89 D3 ; o = o + getb(lenmap, o)
+H 4C 8B 55 C8 ; o = o + getb(lenmap, o)
+H 4D 01 DA ; o = o + getb(lenmap, o)
+H 4C 89 55 E0 ; o = o + getb(lenmap, o)
+H E9 $_if383e ; if getb(sstate, o) == 1
+:_if383
+H 4C 8B 55 E0 ; hi = o + 1
+H 4C 89 55 C8 ; hi = o + 1
+H 49 C7 C2 01 00 00 00 ; hi = o + 1
+H 4D 89 D3 ; hi = o + 1
+H 4C 8B 55 C8 ; hi = o + 1
+H 4D 01 DA ; hi = o + 1
+H 4C 89 55 D8 ; hi = o + 1
+:_w384
+H 4C 8B 55 D8 ; while hi < target
+H 4C 89 55 C8 ; while hi < target
+H 4C 8B 15 $target ; while hi < target
+H 4D 89 D3 ; while hi < target
+H 4C 8B 55 C8 ; while hi < target
+H 4D 39 DA ; while hi < target
+H 0F 8D $_w384e ; while hi < target
+H 4C 8B 15 $labmap ; if getb(labmap, hi) != 0
+H 4C 89 55 C0 ; if getb(labmap, hi) != 0
+H 4C 8B 55 D8 ; if getb(labmap, hi) != 0
+H 4D 89 D3 ; if getb(labmap, hi) != 0
+H 4C 8B 55 C0 ; if getb(labmap, hi) != 0
+H 47 0F B6 14 1A ; if getb(labmap, hi) != 0
+H 4C 89 55 C8 ; if getb(labmap, hi) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(labmap, hi) != 0
+H 4D 89 D3 ; if getb(labmap, hi) != 0
+H 4C 8B 55 C8 ; if getb(labmap, hi) != 0
+H 4D 39 DA ; if getb(labmap, hi) != 0
+H 0F 84 $_if385e ; if getb(labmap, hi) != 0
+H E9 $_w384e ; break
+:_if385e
+H 4C 8B 15 $semstate ; if getb(semstate, hi) != 0
+H 4C 89 55 C0 ; if getb(semstate, hi) != 0
+H 4C 8B 55 D8 ; if getb(semstate, hi) != 0
+H 4D 89 D3 ; if getb(semstate, hi) != 0
+H 4C 8B 55 C0 ; if getb(semstate, hi) != 0
+H 47 0F B6 14 1A ; if getb(semstate, hi) != 0
+H 4C 89 55 C8 ; if getb(semstate, hi) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(semstate, hi) != 0
+H 4D 89 D3 ; if getb(semstate, hi) != 0
+H 4C 8B 55 C8 ; if getb(semstate, hi) != 0
+H 4D 39 DA ; if getb(semstate, hi) != 0
+H 0F 84 $_if386e ; if getb(semstate, hi) != 0
+H E9 $_w384e ; break
+:_if386e
+H 4C 8B 15 $sstate ; if getb(sstate, hi) != 0
+H 4C 89 55 C0 ; if getb(sstate, hi) != 0
+H 4C 8B 55 D8 ; if getb(sstate, hi) != 0
+H 4D 89 D3 ; if getb(sstate, hi) != 0
+H 4C 8B 55 C0 ; if getb(sstate, hi) != 0
+H 47 0F B6 14 1A ; if getb(sstate, hi) != 0
+H 4C 89 55 C8 ; if getb(sstate, hi) != 0
+H 49 C7 C2 00 00 00 00 ; if getb(sstate, hi) != 0
+H 4D 89 D3 ; if getb(sstate, hi) != 0
+H 4C 8B 55 C8 ; if getb(sstate, hi) != 0
+H 4D 39 DA ; if getb(sstate, hi) != 0
+H 0F 84 $_if387e ; if getb(sstate, hi) != 0
+H E9 $_w384e ; break
+:_if387e
+H 4C 8B 55 D8 ; hi = hi + 1
+H 4C 89 55 C8 ; hi = hi + 1
+H 49 C7 C2 01 00 00 00 ; hi = hi + 1
+H 4D 89 D3 ; hi = hi + 1
+H 4C 8B 55 C8 ; hi = hi + 1
+H 4D 01 DA ; hi = hi + 1
+H 4C 89 55 D8 ; hi = hi + 1
+H E9 $_w384 ; while hi < target
+:_w384e
+H 4C 8B 55 E0 ; emit_data(o, hi)
+H 4C 89 55 A8 ; emit_data(o, hi)
+H 4C 8B 55 D8 ; emit_data(o, hi)
+H 4C 89 55 A0 ; emit_data(o, hi)
+H 48 8B 4D A8 ; emit_data(o, hi)
+H 48 8B 55 A0 ; emit_data(o, hi)
+H E8 $emit_data ; emit_data(o, hi)
+H 4C 8B 55 D8 ; o = hi
+H 4C 89 55 E0 ; o = hi
+:_if383e
+:_if381e
+H E9 $_w379 ; while o < target
+:_w379e
 H 4C 8D 15 $w1 ; widen(w1, arg2, nlen2)
-H 4C 89 55 B8 ; widen(w1, arg2, nlen2)
-H 4C 8D 15 $arg2 ; widen(w1, arg2, nlen2)
-H 4C 89 55 B0 ; widen(w1, arg2, nlen2)
-H 4C 8B 55 F8 ; widen(w1, arg2, nlen2)
 H 4C 89 55 A8 ; widen(w1, arg2, nlen2)
-H 48 8B 4D B8 ; widen(w1, arg2, nlen2)
-H 48 8B 55 B0 ; widen(w1, arg2, nlen2)
-H 4C 8B 45 A8 ; widen(w1, arg2, nlen2)
+H 4C 8D 15 $arg2 ; widen(w1, arg2, nlen2)
+H 4C 89 55 A0 ; widen(w1, arg2, nlen2)
+H 4C 8B 55 F8 ; widen(w1, arg2, nlen2)
+H 4C 89 55 98 ; widen(w1, arg2, nlen2)
+H 48 8B 4D A8 ; widen(w1, arg2, nlen2)
+H 48 8B 55 A0 ; widen(w1, arg2, nlen2)
+H 4C 8B 45 98 ; widen(w1, arg2, nlen2)
 H E8 $widen ; widen(w1, arg2, nlen2)
 H 4C 8D 15 $w1 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 89 55 B8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 49 C7 C2 00 00 00 40 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 89 55 B0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H 4C 89 55 A8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 49 C7 C2 02 00 00 00 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 49 C7 C2 00 00 00 40 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H 4C 89 55 A0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 89 55 80 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 48 8B 4D B8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 48 8B 55 B0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 8B 45 A8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 8B 4D A0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 8B 55 80 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 89 55 98 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 49 C7 C2 02 00 00 00 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 89 55 90 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 49 C7 C2 00 00 00 00 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 89 95 70 FF FF FF ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 48 8B 4D A8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 48 8B 55 A0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 8B 45 98 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 8B 4D 90 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 8B 95 70 FF FF FF ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H 4C 89 54 24 20 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H FF 15 $_iat_createfile2 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
 H 49 89 C2 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 89 55 D8 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-H 4C 8B 55 D8 ; if fh == -1
+H 4C 89 55 F0 ; fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+H 4C 8B 55 F0 ; if fh == -1
 H 4C 89 55 C8 ; if fh == -1
 H 49 C7 C2 01 00 00 00 ; if fh == -1
 H 49 F7 DA ; if fh == -1
 H 4D 89 D3 ; if fh == -1
 H 4C 8B 55 C8 ; if fh == -1
 H 4D 39 DA ; if fh == -1
-H 0F 85 $_if302e ; if fh == -1
+H 0F 85 $_if388e ; if fh == -1
 H 4C 8D 15 $s_oout ; print_error(s_oout, len(s_oout), 8)
-H 4C 89 55 B8 ; print_error(s_oout, len(s_oout), 8)
-H 49 C7 C2 1A 00 00 00 ; print_error(s_oout, len(s_oout), 8)
-H 4C 89 55 B0 ; print_error(s_oout, len(s_oout), 8)
-H 49 C7 C2 08 00 00 00 ; print_error(s_oout, len(s_oout), 8)
 H 4C 89 55 A8 ; print_error(s_oout, len(s_oout), 8)
-H 48 8B 4D B8 ; print_error(s_oout, len(s_oout), 8)
-H 48 8B 55 B0 ; print_error(s_oout, len(s_oout), 8)
-H 4C 8B 45 A8 ; print_error(s_oout, len(s_oout), 8)
+H 49 C7 C2 1A 00 00 00 ; print_error(s_oout, len(s_oout), 8)
+H 4C 89 55 A0 ; print_error(s_oout, len(s_oout), 8)
+H 49 C7 C2 08 00 00 00 ; print_error(s_oout, len(s_oout), 8)
+H 4C 89 55 98 ; print_error(s_oout, len(s_oout), 8)
+H 48 8B 4D A8 ; print_error(s_oout, len(s_oout), 8)
+H 48 8B 55 A0 ; print_error(s_oout, len(s_oout), 8)
+H 4C 8B 45 98 ; print_error(s_oout, len(s_oout), 8)
 H E8 $print_error ; print_error(s_oout, len(s_oout), 8)
-:_if302e
+:_if388e
 H 49 C7 C2 00 00 00 00 ; written = 0
 H 4C 89 15 $written ; written = 0
-H 4C 8B 55 D8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 89 55 B8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 15 $outbuf ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 89 55 B0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 15 $outcur ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 55 F0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H 4C 89 55 A8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8D 15 $written ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 15 $outbuf ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H 4C 89 55 A0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 15 $outcur ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 89 55 98 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8D 15 $written ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 89 55 90 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H 49 C7 C2 00 00 00 00 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 89 55 80 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 48 8B 4D B8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 48 8B 55 B0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 45 A8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 4D A0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 55 80 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 89 95 70 FF FF FF ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 48 8B 4D A8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 48 8B 55 A0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 45 98 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 4D 90 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 95 70 FF FF FF ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H 4C 89 54 24 20 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H FF 15 $_iat_writefile ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
 H 49 89 C2 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 89 55 D0 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
-H 4C 8B 55 D0 ; if rc == 0
+H 4C 89 55 E8 ; rc = WriteFile(fh, outbuf, outcur, &written, 0)
+H 4C 8B 55 E8 ; if rc == 0
 H 4C 89 55 C8 ; if rc == 0
 H 49 C7 C2 00 00 00 00 ; if rc == 0
 H 4D 89 D3 ; if rc == 0
 H 4C 8B 55 C8 ; if rc == 0
 H 4D 39 DA ; if rc == 0
-H 0F 85 $_if303e ; if rc == 0
+H 0F 85 $_if389e ; if rc == 0
 H 4C 8D 15 $s_wout ; print_error(s_wout, len(s_wout), 9)
-H 4C 89 55 B8 ; print_error(s_wout, len(s_wout), 9)
-H 49 C7 C2 1B 00 00 00 ; print_error(s_wout, len(s_wout), 9)
-H 4C 89 55 B0 ; print_error(s_wout, len(s_wout), 9)
-H 49 C7 C2 09 00 00 00 ; print_error(s_wout, len(s_wout), 9)
 H 4C 89 55 A8 ; print_error(s_wout, len(s_wout), 9)
-H 48 8B 4D B8 ; print_error(s_wout, len(s_wout), 9)
-H 48 8B 55 B0 ; print_error(s_wout, len(s_wout), 9)
-H 4C 8B 45 A8 ; print_error(s_wout, len(s_wout), 9)
+H 49 C7 C2 1B 00 00 00 ; print_error(s_wout, len(s_wout), 9)
+H 4C 89 55 A0 ; print_error(s_wout, len(s_wout), 9)
+H 49 C7 C2 09 00 00 00 ; print_error(s_wout, len(s_wout), 9)
+H 4C 89 55 98 ; print_error(s_wout, len(s_wout), 9)
+H 48 8B 4D A8 ; print_error(s_wout, len(s_wout), 9)
+H 48 8B 55 A0 ; print_error(s_wout, len(s_wout), 9)
+H 4C 8B 45 98 ; print_error(s_wout, len(s_wout), 9)
 H E8 $print_error ; print_error(s_wout, len(s_wout), 9)
-:_if303e
-H 4C 8B 55 D8 ; CloseHandle(fh)
-H 4C 89 55 B8 ; CloseHandle(fh)
-H 48 8B 4D B8 ; CloseHandle(fh)
+:_if389e
+H 4C 8B 55 F0 ; CloseHandle(fh)
+H 4C 89 55 A8 ; CloseHandle(fh)
+H 48 8B 4D A8 ; CloseHandle(fh)
 H FF 15 $_iat_closehandle ; CloseHandle(fh)
 H 49 C7 C2 00 00 00 00 ; return 0
 H 4C 89 D0 ; return 0
-H 48 89 EC ; выход emit_raw
-H 5D ; выход emit_raw
-H C3 ; выход emit_raw
+H 48 89 EC ; выход emit_body
+H 5D ; выход emit_body
+H C3 ; выход emit_body
 :main
 H 55 ; кадр main
 H 48 89 E5 ; кадр main
@@ -10193,7 +13654,7 @@ H 49 F7 DA ; if fh == -1
 H 4D 89 D3 ; if fh == -1
 H 4C 8B 55 D0 ; if fh == -1
 H 4D 39 DA ; if fh == -1
-H 0F 85 $_if304e ; if fh == -1
+H 0F 85 $_if390e ; if fh == -1
 H 4C 8D 15 $s_oexe ; print_error(s_oexe, len(s_oexe), 4)
 H 4C 89 55 C8 ; print_error(s_oexe, len(s_oexe), 4)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_oexe, len(s_oexe), 4)
@@ -10204,7 +13665,7 @@ H 48 8B 4D C8 ; print_error(s_oexe, len(s_oexe), 4)
 H 48 8B 55 C0 ; print_error(s_oexe, len(s_oexe), 4)
 H 4C 8B 45 B8 ; print_error(s_oexe, len(s_oexe), 4)
 H E8 $print_error ; print_error(s_oexe, len(s_oexe), 4)
-:_if304e
+:_if390e
 H 49 C7 C2 00 00 00 00 ; exebuf = GlobalAlloc(0, 262145)
 H 4C 89 55 C8 ; exebuf = GlobalAlloc(0, 262145)
 H 49 C7 C2 01 00 04 00 ; exebuf = GlobalAlloc(0, 262145)
@@ -10220,7 +13681,7 @@ H 49 C7 C2 00 00 00 00 ; if exebuf == 0
 H 4D 89 D3 ; if exebuf == 0
 H 4C 8B 55 D0 ; if exebuf == 0
 H 4D 39 DA ; if exebuf == 0
-H 0F 85 $_if305e ; if exebuf == 0
+H 0F 85 $_if391e ; if exebuf == 0
 H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 89 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
@@ -10231,7 +13692,7 @@ H 48 8B 4D C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 48 8B 55 C0 ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 8B 45 B8 ; print_error(s_rexe, len(s_rexe), 5)
 H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if305e
+:_if391e
 H 49 C7 C2 00 00 00 00 ; exelen = 0
 H 4C 89 15 $exelen ; exelen = 0
 H 4C 8B 55 F0 ; rc = ReadFile(fh, exebuf, 262145, &exelen, 0)
@@ -10259,7 +13720,7 @@ H 49 C7 C2 00 00 00 00 ; if rc == 0
 H 4D 89 D3 ; if rc == 0
 H 4C 8B 55 D0 ; if rc == 0
 H 4D 39 DA ; if rc == 0
-H 0F 85 $_if306e ; if rc == 0
+H 0F 85 $_if392e ; if rc == 0
 H 4C 8D 15 $s_rexe ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 89 55 C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 49 C7 C2 1A 00 00 00 ; print_error(s_rexe, len(s_rexe), 5)
@@ -10270,14 +13731,14 @@ H 48 8B 4D C8 ; print_error(s_rexe, len(s_rexe), 5)
 H 48 8B 55 C0 ; print_error(s_rexe, len(s_rexe), 5)
 H 4C 8B 45 B8 ; print_error(s_rexe, len(s_rexe), 5)
 H E8 $print_error ; print_error(s_rexe, len(s_rexe), 5)
-:_if306e
+:_if392e
 H 4C 8B 15 $exelen ; if exelen >= 262145
 H 4C 89 55 D0 ; if exelen >= 262145
 H 49 C7 C2 01 00 04 00 ; if exelen >= 262145
 H 4D 89 D3 ; if exelen >= 262145
 H 4C 8B 55 D0 ; if exelen >= 262145
 H 4D 39 DA ; if exelen >= 262145
-H 0F 8C $_if307e ; if exelen >= 262145
+H 0F 8C $_if393e ; if exelen >= 262145
 H 4C 8D 15 $s_big ; print_error(s_big, len(s_big), 7)
 H 4C 89 55 C8 ; print_error(s_big, len(s_big), 7)
 H 49 C7 C2 19 00 00 00 ; print_error(s_big, len(s_big), 7)
@@ -10288,7 +13749,7 @@ H 48 8B 4D C8 ; print_error(s_big, len(s_big), 7)
 H 48 8B 55 C0 ; print_error(s_big, len(s_big), 7)
 H 4C 8B 45 B8 ; print_error(s_big, len(s_big), 7)
 H E8 $print_error ; print_error(s_big, len(s_big), 7)
-:_if307e
+:_if393e
 H 4C 8B 55 F0 ; CloseHandle(fh)
 H 4C 89 55 C8 ; CloseHandle(fh)
 H 48 8B 4D C8 ; CloseHandle(fh)
@@ -10307,10 +13768,11 @@ H E8 $walk_code ; walk_code()
 H E8 $sweep_ins ; sweep_ins()
 H E8 $calc_target ; calc_target()
 H E8 $init_tables ; init_tables()
-H 4C 8B 55 D8 ; emit_raw(nlen2)
-H 4C 89 55 C8 ; emit_raw(nlen2)
-H 48 8B 4D C8 ; emit_raw(nlen2)
-H E8 $emit_raw ; emit_raw(nlen2)
+H E8 $build_maps ; build_maps()
+H 4C 8B 55 D8 ; emit_body(nlen2)
+H 4C 89 55 C8 ; emit_body(nlen2)
+H 48 8B 4D C8 ; emit_body(nlen2)
+H E8 $emit_body ; emit_body(nlen2)
 H E8 $print_facts ; print_facts()
 H 49 C7 C2 00 00 00 00 ; ExitProcess(0)
 H 4C 89 55 C8 ; ExitProcess(0)
@@ -10380,6 +13842,12 @@ DB 20 3B 20 40 ; str s_at = ' ; @'
 DB 44 5A 20 ; str s_dz = 'DZ '
 :s_db
 DB 44 42 20 ; str s_db = 'DB '
+:s_iat
+DB 69 61 74 5F ; str s_iat = 'iat_'
+:s_dd
+DB 44 44 20 ; str s_dd = 'DD '
+:s_dq
+DB 44 51 20 ; str s_dq = 'DQ '
 :s_mem
 DB 5B 6D 65 6D 5D ; str s_mem = '[mem]'
 :s_rip
@@ -10564,6 +14032,44 @@ DZ 8 ; var outmem
 DZ 8 ; var outbuf
 :outcur
 DZ 8 ; var outcur
+:iatoff
+DZ 8 ; var iatoff
+:intoff
+DZ 8 ; var intoff
+:nameoff
+DZ 8 ; var nameoff
+:idtoff
+DZ 8 ; var idtoff
+:impbad
+DZ 8 ; var impbad
+:kn
+DZ 8 ; var kn
+:snlen
+DZ 8 ; var snlen
+:semcnt
+DZ 8 ; var semcnt
+:semacc
+DZ 8 ; var semacc
+:hhrv
+DZ 8 ; var hhrv
+:hno
+DZ 8 ; var hno
+:hnl
+DZ 8 ; var hnl
+:snam
+DZ 8 ; var snam
+:noffs
+DZ 8 ; var noffs
+:knownoff
+DZ 8 ; var knownoff
+:semrows
+DZ 8 ; var semrows
+:labmap
+DZ 8 ; var labmap
+:sstate
+DZ 8 ; var sstate
+:semstate
+DZ 8 ; var semstate
 :arg1
 DZ 80 ; var arg1[16]
 :arg2
@@ -10587,4 +14093,4 @@ DZ 88 ; var o_r32[17]
 :tplb
 DZ C8 ; var tplb[25]
 :w1
-DZ 100 ; var w1[32]
+DZ 200 ; var w1[64]

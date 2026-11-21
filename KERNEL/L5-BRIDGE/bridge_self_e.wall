@@ -1,25 +1,22 @@
-; bridge_self_e.wall — эмиссия тела b2, raw-режим H-строк (E9.2-3a)
+; bridge_self_e.wall — примитивы эмиссии тела b2 (E9.2-3a/b)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_e.wall | слой: L5 (исходник — WALL)
-; | роль: ветвь E моста — ВЫВОД .b2 (SPEC/15 п. 5/6/7, режим RAW
-; оракула _emit_lines(mode="RAW")): шапка (3 строки SPEC/15 — кириллица
-; UTF-8 хранится HEX-текстом в литерале s_tpl корня (литералы WALL
-; только ASCII 0x20..0x7E; идиома wall_self_blob — K2-E000 blob_dec)
-; и декодируется в массив tplb при старте), инструкции — H-строки
-; «H <байты> ; @<смещ4> <примечание>» (примечание == _note оракула:
-; имена регистров по таблицам s_r64/s_r8/s_r16/s_r32 — смещения имён
-; считаются при старте fill_offs, jcc — «j<cc> <цель>», знаковый hex
-; imm/целей, [rip±d] знаковый dec, [mem], cl, счётчики), данные — DZ
-; (пробег >= 3 нулей) и DB (<= 16 байт; нулевой пробег короче 3 входит
-; в DB) — сегменты между стартам выживших инструкций (сдамп sdump
-; заполняет sweep_ins, ветвь W) от 0 до target; запись файла
-; <выход>.b2 (CreateFile2 GENERIC_WRITE/CREATE_ALWAYS — как wall.exe/
-; uva.exe; новые коды 8 ERR=OPEN OUT / 9 ERR=WRITE OUT). M-строки/метки
-; l/d/iat_/семантика DD/DQ импортов — срезы E9.2-3b/c (режимы "H"/
-; канон оракула); PEG-выход — E9.2-4. Предел вывода: outmem 8388608 Б
-; кучи — с запасом над худшим случаем raw-текста (1-байтовые
-; инструкции ~22 Б/байт тела: 262144 * 22 = 5.8 МиБ). Диффтест:
-; T-E9-22 (12 артефактов + синтетика == оракулу RAW), T-E9-23
-; (сквозной круг raw инструментами enc/brick/pegen).
+; | роль: ветвь E моста — ПРИМИТИВЫ вывода .b2 (SPEC/15 п. 5/6/7):
+; шапка (3 строки SPEC/15 — кириллица UTF-8 хранится HEX-текстом в
+; литерале s_tpl корня (литералы WALL только ASCII 0x20..0x7E; идиома
+; wall_self_blob — K2-E000 blob_dec) и декодируется в массив tplb при
+; старте), инструкции — H-строки «H <байты> ; @<смещ4> <примечание>"
+; (примечание == _note оракула: имена регистров по таблицам s_r64/
+; s_r8/s_r16/s_r32 — смещения имён считаются при старте fill_offs,
+; jcc — «j<cc> <цель>», знаковый hex imm/целей, [rip±d] знаковый dec,
+; [mem], cl, счётчики), данные — DZ (пробег >= 3 нулей) и DB (<= 16
+; байт; нулевой пробег короче 3 входит в DB). ДРАЙВЕР эмиссии (разрезы
+; с метками l/d/iat_ + семантика DD/DQ + запись файла) — срез E9.2-3b
+; в ветви L (bridge_self_l.wall, emit_body K5-L017); M-строки — E9.2-3c;
+; PEG-выход — E9.2-4. Предел вывода: outmem 8388608 Б кучи (выделяет
+; драйвер L) — с запасом над худшим случаем H-текста (~22 Б/байт тела
+; + ~15 Б/метку: 262144*22 + 131072*15 < 7.9 МиБ). Диффтесты: T-E9-22
+; (12 артефактов + синтетика == оракулу emit_b2(mode="H")), T-E9-23
+; (сквозной круг инструментами enc/brick/pegen).
 
 ; смещения NUL-разделённых имён (n имён) в блобе base -> массив offs
 ; (offs[i] — старт имени i; offs[n] — конец блоба)
@@ -393,52 +390,5 @@ func app_tpl(lo, hi)
     app_ch(getb(tplb, j))
     j = j + 1
   end
-  return 0
-end
-
-; РЕЗУЛЬТАТ среза: полная raw-эмиссия тела b2 + запись <выход>.b2.
-; Шапка SPEC/15 (модуль из заглушки, target/bss), затем выжившие
-; инструкции (сдамп sdump — по возрастанию; данные между ними и до
-; target). nlen2 — длина слова-пути выхода (аргумент 2 CLI)
-func emit_raw(nlen2)
-  var k
-  var lo
-  var ln
-  var fh
-  var rc
-  outmem = GlobalAlloc(0, 8388608)
-  if outmem == 0
-    print_error(s_rexe, len(s_rexe), 5)
-  end
-  outbuf = outmem
-  outcur = 0
-  app_tpl(0, 74)
-  outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-  app_tpl(74, 112)
-  out_hexv(target)
-  app_tpl(112, 122)
-  out_hexv(bss)
-  app_tpl(122, 199)
-  lo = 0
-  k = 0
-  while k < inscount
-    ln = getb(lenmap, sdump[k])
-    emit_data(lo, sdump[k])
-    emit_h(sdump[k])
-    lo = sdump[k] + ln
-    k = k + 1
-  end
-  emit_data(lo, target)
-  widen(w1, arg2, nlen2)
-  fh = CreateFile2(w1, 1073741824, 0, 2, 0)
-  if fh == -1
-    print_error(s_oout, len(s_oout), 8)
-  end
-  written = 0
-  rc = WriteFile(fh, outbuf, outcur, &written, 0)
-  if rc == 0
-    print_error(s_wout, len(s_wout), 9)
-  end
-  CloseHandle(fh)
   return 0
 end

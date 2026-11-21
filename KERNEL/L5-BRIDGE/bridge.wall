@@ -19,15 +19,22 @@
 ; INS/TARGET/BSS == оракулу (T-E9-18/T-E9-21).
 ; Срез E9.2-3a (RAW-ЭМИССИЯ): декодер расширен ПОЛНЫМИ операндами
 ; (мнемоника/регистры/imm/память/цели — сырьё примечаний H-строк),
-; ветвь E (bridge_self_e.wall) — шапка SPEC/15 + H-строки выживших
-; инструкций + данные DZ/DB между ними (режим RAW оракула
-; _emit_lines) + ЗАПИСЬ <выход>.b2 (коды 8/9 — OPEN/WRITE OUT);
-; M-строки/метки/семантика — срезы E9.2-3b/c, PEG — E9.2-4.
+; ветвь E (bridge_self_e.wall) — примитивы вывода: шапка SPEC/15 +
+; H-строки выживших инструкций + данные DZ/DB между ними.
+; Срез E9.2-3b (МЕТКИ И СЕМАНТИКА — режим "H" оракула): ветвь L
+; (bridge_self_l.wall) — метки l/d/iat_ (приоритет iat_ > l > d;
+; правило представимости: метка невозможна строго внутри выжившей
+; инструкции — сырые байты; зонд probe_e92_3b2), семантика DD/DQ
+; импортов с $ссылками (приёмка строк без пересечений с инструкциями /
+; друг другом / метками внутри), разрезы «:имя ; @смещ» и ДРАЙВЕР
+; эмиссии emit_body (линейный проход по событиям, запись <выход>.b2);
+; M-строки — срез E9.2-3c, PEG — E9.2-4.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
-; bridge_self_d2.wall; спуск W — bridge_self_w.wall; эмиссия E —
-; bridge_self_e.wall).
+; bridge_self_d2.wall; спуск W — bridge_self_w.wall; примитивы эмиссии
+; E — bridge_self_e.wall; метки/семантика/драйвер L —
+; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
 ; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8),
@@ -51,7 +58,7 @@ ext CloseHandle
 ext GlobalAlloc
 
 ; Порядок глобалей — канон читаемости моста (0 H-строк в разборе
-; bridge.exe): СКАЛЯРЫ ПЕРВЫМИ, массивы в конце; ПОСЛЕДНИМ — w1[32]
+; bridge.exe): СКАЛЯРЫ ПЕРВЫМИ, массивы в конце; ПОСЛЕДНИМ — w1[64]
 ; (урок E9.2-2: при factbuf последним рост тела срезом спуска сдвинул
 ; vsize mod 0x200 с 0xBF на 0xE9 > 0xC1 — выравнивающий хвост
 ; (raw-0x1FF..vsize) стал начинаться ДО базы factbuf, и 18 lea
@@ -63,6 +70,10 @@ ext GlobalAlloc
 ; аргументов — ровно контракт read_arg (127 байт + NUL = 128);
 ; w1 — 2*127+2 = 256; factbuf — 24 qword (152 Б строки фактов с
 ; INS/TARGET/BSS хватает с запасом).
+; E9.2-3b: урок E9.2-2 обобщён — хвост (raw-0x1FF..vsize) всегда
+; < 0x200 Б, при w1[64] (0x200 Б) последним хвост ПОЛНОСТЬЮ внутри
+; w1 при ЛЮБОМ vsize (w1base = vsize-0x200 <= raw-0x1FF) —
+; БЕЗУСЛОВНЫЙ инвариант, пересчёт при росте больше не нужен.
 var hstdout
 var cmdline
 var written
@@ -119,6 +130,25 @@ var sdump
 var outmem
 var outbuf
 var outcur
+var iatoff
+var intoff
+var nameoff
+var idtoff
+var impbad
+var kn
+var snlen
+var semcnt
+var semacc
+var hhrv
+var hno
+var hnl
+var snam
+var noffs
+var knownoff
+var semrows
+var labmap
+var sstate
+var semstate
 var arg1[16]
 var arg2[16]
 var arg3[16]
@@ -130,7 +160,7 @@ var o_r8[17]
 var o_r16[17]
 var o_r32[17]
 var tplb[25]
-var w1[32]
+var w1[64]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
 str s_long = 'U-L5-BRIDGE ERR=LONG NAME\r\n'
@@ -156,6 +186,9 @@ str s_h = 'H '
 str s_at = ' ; @'
 str s_dz = 'DZ '
 str s_db = 'DB '
+str s_iat = 'iat_'
+str s_dd = 'DD '
+str s_dq = 'DQ '
 str s_mem = '[mem]'
 str s_rip = '[rip'
 str s_cl = 'cl'
@@ -175,6 +208,8 @@ str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D1822
 !include bridge_self_d2.wall
 !include bridge_self_w.wall
 !include bridge_self_e.wall
+!include bridge_self_l.wall
+!include bridge_self_l2.wall
 
 func main
   var i
@@ -223,7 +258,8 @@ func main
   sweep_ins()
   calc_target()
   init_tables()
-  emit_raw(nlen2)
+  build_maps()
+  emit_body(nlen2)
   print_facts()
   ExitProcess(0)
 end
