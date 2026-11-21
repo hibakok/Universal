@@ -1,0 +1,389 @@
+; bridge_self_m3.wall — кодировщики ALU и MOV ветви M, часть 3 (E9.2-3c)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_m3.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь M моста, ЧАСТЬ 3 — ALU И MOV: K5-M022 m_alu_base
+; (базовый опкод семейства по dname: add 00 / or 08 / and 20 / sub 28 /
+; xor 30 / cmp 38), K5-M023 m_alu_ext (/ext по dname: 0/1/4/5/6/7),
+; K5-M024 m_alu_imm — выбор формы группы imm (== _alu_imm оракула:
+; размер 8 -> 80 + imm8 (диапазон -80..FF); иначе imm8s -> 83; иначе
+; 81 + imm32 (при 64 — диапазон int32); глобали mopc/mis8; 1 = вне
+; диапазона -> H), K5-M025 m_balu — add/or/and/sub/xor/cmp по парам
+; операндов (r,r — base(+1) /r; r,i — 80/83/81 /ext; r,m — base(+2/+3);
+; m,r — base(+1); m,i — группа /ext c kw по размеру mem, rip+imm — H)
+; — == _enc_alu; K5-M026 m_bmov — mov по парам (r,r — 88/89; r,i8 —
+; B0+r; r,i32 — B8+r; r64,i32sext — 48|b C7 C0+r; r,m — 8A/8B; m,r —
+; 88/89; m,i — C6/C7 c kw, rip+imm — H; imm64 (вид 7) — H — ==
+; _enc_mov). Порядок байтов — канон enc: [REX] оп [modrm [SIB] disp]
+; [imm]; слот rip — последний (m_enc_mem). Транслитерация-свидетель:
+; LAB/ai/trace_m.py (46470/46470); драйвер — часть 4 (m4).
+
+; K5-M022: базовый опкод ALU-семейства по dname (1 add .. 6 cmp)
+func m_alu_base
+  if dname == 1
+    return 0
+  end
+  if dname == 2
+    return 8
+  end
+  if dname == 3
+    return 32
+  end
+  if dname == 4
+    return 40
+  end
+  if dname == 5
+    return 48
+  end
+  return 56
+end
+
+; K5-M023: /ext ALU-семейства по dname (группы 80/83/81 и mod=3 mem,reg)
+func m_alu_ext
+  if dname == 1
+    return 0
+  end
+  if dname == 2
+    return 1
+  end
+  if dname == 3
+    return 4
+  end
+  if dname == 4
+    return 5
+  end
+  if dname == 5
+    return 6
+  end
+  return 7
+end
+
+; K5-M024: форма группы imm по значению v и размеру приёмника (==
+; _alu_imm): size8 != 0 — 80 + imm8 (-80..FF); иначе s8 -> 83 + imm8;
+; иначе 81 + imm32 (при size64 — не шире int32; значения декода всегда
+; в диапазоне — страховка); глобали mopc (опкод), mis8 (имм 1 Б | 0 =
+; 4 Б); 1 = вне диапазона (H-фолбэк)
+func m_alu_imm(v, size8, size64)
+  mis8 = 0
+  if size8 != 0
+    if v < -128 || v > 255
+      return 1
+    end
+    mopc = 128
+    mis8 = 1
+    return 0
+  end
+  if v >= -128 && v <= 127
+    mopc = 131
+    mis8 = 1
+    return 0
+  end
+  if size64 != 0
+    if v > 2147483647
+      return 1
+    end
+  end
+  mopc = 129
+  return 0
+end
+
+; K5-M025: add/or/and/sub/xor/cmp — кодировка по паре операндов
+; (r,r / r,i / r,m / m,r / m,i; детерминированный порядок байтов — ==
+; _enc_alu): рендер «оп1, оп2» (m,imm — kw по размеру mem), затем
+; кодировка в mbuf; 0 = M, 1 = H
+func m_balu
+  var base
+  var ext
+  var op
+  var size8
+  var size64
+  base = m_alu_base()
+  ext = m_alu_ext()
+  if da1k == 1 && da2k == 1
+    if da1s != da2s
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = base + 1
+    if da1s == 8
+      op = base
+    end
+    m_rex(da1s, da2r, 0, da1r)
+    m_put(op)
+    m_put(192 + (da2r & 7) * 8 + (da1r & 7))
+    return 0
+  end
+  if da1k == 1 && da2k == 3
+    size8 = 0
+    size64 = 0
+    if da1s == 8
+      size8 = 1
+    end
+    if da1s == 64
+      size64 = 1
+    end
+    if m_alu_imm(da2v, size8, size64) != 0
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    m_rex(da1s, 0, 0, da1r)
+    m_put(mopc)
+    m_put(192 + ext * 8 + (da1r & 7))
+    if mis8 != 0
+      m_put(da2v & 255)
+    else
+      m_put4(da2v)
+    end
+    return 0
+  end
+  if da1k == 1 && da2k == 2
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = base + 3
+    if da1s == 8
+      op = base + 2
+    end
+    m_rex(da1s, da1r, omidx, ombase)
+    m_put(op)
+    m_enc_mem(da1r & 7)
+    return 0
+  end
+  if da1k == 2 && da2k == 1
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = base + 1
+    if da2s == 8
+      op = base
+    end
+    m_rex(da2s, da2r, omidx, ombase)
+    m_put(op)
+    m_enc_mem(da2r & 7)
+    return 0
+  end
+  if da1k == 2 && da2k == 3
+    if da1s != 8 && da1s != 32 && da1s != 64
+      return 1
+    end
+    if mripon == 1
+      return 1
+    end
+    size8 = 0
+    size64 = 0
+    if da1s == 8
+      size8 = 1
+    end
+    if da1s == 64
+      size64 = 1
+    end
+    if m_alu_imm(da2v, size8, size64) != 0
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 1) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    m_rex(da1s, 0, omidx, ombase)
+    m_put(mopc)
+    m_enc_mem(ext)
+    if mis8 != 0
+      m_put(da2v & 255)
+    else
+      m_put4(da2v)
+    end
+    return 0
+  end
+  return 1
+end
+
+; K5-M026: mov — кодировка по паре операндов (r,r / r,i / r,m / m,r /
+; m,i; imm64 вид 7 — H — == _enc_mov): r,i8 — B0+r; r,i32 — B8+r;
+; r64,i32 — 48|b C7 C0+r; m,i — C6/C7 c kw; rip+imm — H; рендер
+; «оп1, оп2» (m,i — kw по размеру mem); 0 = M, 1 = H
+func m_bmov
+  var op
+  if da1k == 1 && da2k == 1
+    if da1s != da2s
+      return 1
+    end
+    if da1s == 16
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = 137
+    if da1s == 8
+      op = 136
+    end
+    m_rex(da1s, da2r, 0, da1r)
+    m_put(op)
+    m_put(192 + (da2r & 7) * 8 + (da1r & 7))
+    return 0
+  end
+  if da1k == 1 && da2k == 3
+    if da1s == 8
+      if da2v < -128 || da2v > 255
+        return 1
+      end
+      app_ch(32)
+      if m_opr(1, 0) != 0
+        return 1
+      end
+      outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+      if m_opr(2, 0) != 0
+        return 1
+      end
+      m_rex(0, 0, 0, da1r)
+      m_put(176 + (da1r & 7))
+      m_put(da2v & 255)
+      return 0
+    end
+    if da1s == 32
+      app_ch(32)
+      if m_opr(1, 0) != 0
+        return 1
+      end
+      outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+      if m_opr(2, 0) != 0
+        return 1
+      end
+      m_rex(0, 0, 0, da1r)
+      m_put(184 + (da1r & 7))
+      m_put4(da2v)
+      return 0
+    end
+    if da1s != 64
+      return 1
+    end
+    if da2v > 2147483647
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    m_rex(64, 0, 0, da1r)
+    m_put(199)
+    m_put(192 + (da1r & 7))
+    m_put4(da2v)
+    return 0
+  end
+  if da1k == 1 && da2k == 2
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = 139
+    if da1s == 8
+      op = 138
+    end
+    m_rex(da1s, da1r, omidx, ombase)
+    m_put(op)
+    m_enc_mem(da1r & 7)
+    return 0
+  end
+  if da1k == 2 && da2k == 1
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = 137
+    if da2s == 8
+      op = 136
+    end
+    m_rex(da2s, da2r, omidx, ombase)
+    m_put(op)
+    m_enc_mem(da2r & 7)
+    return 0
+  end
+  if da1k == 2 && da2k == 3
+    if da1s != 8 && da1s != 32 && da1s != 64
+      return 1
+    end
+    if mripon == 1
+      return 1
+    end
+    if da1s == 8
+      if da2v < 0 || da2v > 255
+        return 1
+      end
+      app_ch(32)
+      if m_opr(1, 1) != 0
+        return 1
+      end
+      outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+      if m_opr(2, 0) != 0
+        return 1
+      end
+      m_rex(0, 0, omidx, ombase)
+      m_put(198)
+      m_enc_mem(0)
+      m_put(da2v & 255)
+      return 0
+    end
+    if da1s == 64
+      if da2v > 2147483647
+        return 1
+      end
+    end
+    app_ch(32)
+    if m_opr(1, 1) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    m_rex(da1s, 0, omidx, ombase)
+    m_put(199)
+    m_enc_mem(0)
+    m_put4(da2v)
+    return 0
+  end
+  return 1
+end

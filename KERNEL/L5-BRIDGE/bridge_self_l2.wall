@@ -1,7 +1,8 @@
-; bridge_self_l2.wall — рендер и драйвер эмиссии, часть 2 (E9.2-3b)
+; bridge_self_l2.wall — рендер и драйвер эмиссии, часть 2 (E9.2-3b/c)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_l2.wall | слой: L5 (исходник —
-; WALL) | роль: ветвь L моста, ЧАСТЬ 2 — РЕНДЕР И ДРАЙВЕР режима "H"
-; оракула _emit_lines(mode="H") (SPEC/15 п. 6/8): K5-L011 out_hexl
+; WALL) | роль: ветвь L моста, ЧАСТЬ 2 — РЕНДЕР И ДРАЙВЕР (КАНОН:
+; E9.2-3c — m_line ветви M ПЕРЕД emit_h, счёты mcount/hcount в
+; факт-строку; режимы RAW/H оракула — срезы E9.2-3a/b): K5-L011 out_hexl
 ; (СТРОЧНЫЙ hex без ведущих нулей — имена l*/d*: «l%x»/«d%x»), K5-L012
 ; emit_labname (имя метки по labmap: d*/l* | iat_ из блоба snam —
 ; индекс (off-iatoff)/8), K5-L013 emit_cut (строка разреза «:имя ;
@@ -16,7 +17,8 @@
 ; CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe; outmem 8388608 Б).
 ; Карты/семантика — часть 1 (bridge_self_l.wall, K5-L001..L010 +
 ; K5-L016 build_maps); примитивы вывода/H-строки/данные — ветвь E;
-; эквивалентность оракулу — T-E9-22/23.
+; M-строки — ветвь M (bridge_self_m*.wall); эквивалентность оракулу —
+; T-E9-22/23 (канон).
 
 ; K5-L011: СТРОЧНЫЙ hex без ведущих нулей (имена l*/d*: «l%x»/«d%x»
 ; оракула), v >= 0
@@ -174,13 +176,16 @@ func build_maps
   return 0
 end
 
-; K5-L017: ДРАЙВЕР эмиссии тела b2 (режим H, == оракул _emit_lines
-; mode="H"): шапка SPEC/15 (шаблон tplb + модуль/target/bss), затем
-; линейный проход [0, target) по разрезам: строка метки (labmap),
-; строка семантики (semstate == 1 — курсор ri по принятым semrows,
-; размер DD 20 / DQ 8), H-строка выжившей (sstate == 1), между
-; разрезами — данные DZ/DB (поиск следующего события вперёд — каждый
-; байт посещён ≤ 2 раз, линейно); запись <выход>.b2 (CreateFile2
+; K5-L017: ДРАЙВЕР эмиссии тела b2 (E9.2-3c: КАНОН mode=None —
+; выжившая сначала M-строкой m_line ветви M (точное воспроизведение
+; enc, иначе H-фолбэк; счёты mcount/hcount — в факт-строку):
+; == оракул _emit_lines без mode): шапка SPEC/15 (шаблон tplb +
+; модуль/target/bss), затем линейный проход [0, target)
+; по разрезам: строка метки (labmap), строка семантики (semstate == 1
+; — курсор ri по принятым semrows, размер DD 20 / DQ 8), M/H-строка
+; выжившей (sstate == 1 — m_line, при провале emit_h), между разрезами
+; — данные DZ/DB (поиск следующего события вперёд — каждый байт
+; посещён ≤ 2 раз, линейно); запись <выход>.b2 (CreateFile2
 ; WRITE/CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe); outmem
 ; 8388608 Б. nlen2 — длина слова-пути выхода (аргумент 2 CLI)
 func emit_body(nlen2)
@@ -195,6 +200,8 @@ func emit_body(nlen2)
   end
   outbuf = outmem
   outcur = 0
+  mcount = 0
+  hcount = 0
   app_tpl(0, 74)
   outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
   app_tpl(74, 112)
@@ -218,7 +225,10 @@ func emit_body(nlen2)
       ri = ri + 1
     else
       if getb(sstate, o) == 1
-        emit_h(o)
+        if m_line(o) != 0
+          emit_h(o)
+          hcount = hcount + 1
+        end
         o = o + getb(lenmap, o)
       else
         hi = o + 1

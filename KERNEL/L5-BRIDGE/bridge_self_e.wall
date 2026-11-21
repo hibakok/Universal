@@ -39,7 +39,8 @@ end
 
 ; стартовые таблицы: мнемоники (28), условия jcc (16), регистры
 ; 64/8/16/32 бит (16 имен каждый) — блобы s_* корня bridge.wall;
-; шапка — HEX-литерал s_tpl (199 байт UTF-8) -> массив tplb
+; слова размера kw (4 — byte/word/dword/qword с пробелом, E9.2-3c —
+; ветвь M); шапка — HEX-литерал s_tpl (199 байт UTF-8) -> массив tplb
 func init_tables
   fill_offs(s_mn, o_mn, 28)
   fill_offs(s_cc, o_cc, 16)
@@ -47,6 +48,7 @@ func init_tables
   fill_offs(s_r8, o_r8, 16)
   fill_offs(s_r16, o_r16, 16)
   fill_offs(s_r32, o_r32, 16)
+  fill_offs(s_kw, o_kw, 4)
   tpl_dec()
   return 0
 end

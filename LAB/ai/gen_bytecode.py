@@ -124,14 +124,63 @@ FUNCS = {
                        "семантика + метки операндов"),
     ]),
     "l2": ("рендер и драйвер (bridge_self_l2.wall — часть 2, срез "
-           "E9.2-3b)", [
+           "E9.2-3b/c)", [
         ("out_hexl", "СТРОЧНЫЙ hex без нулей (имена l*/d*)"),
         ("emit_labname", "имя метки по labmap (d/l/iat_ из snam)"),
         ("emit_cut", "строка разреза «:имя ; @смещ4»"),
         ("emit_dollar", "dword -> «$имя» (knownoff) | ЗАГЛАВНЫЙ hex"),
         ("emit_sem", "строка DD (5 значений) / DQ ($имя | 0)"),
-        ("emit_body", "ДРАЙВЕР: шапка + проход по разрезам [0, target) "
-                      "+ запись .b2 (коды 8/9)"),
+        ("emit_body", "ДРАЙВЕР (КАНОН): шапка + проход по разрезам "
+                      "[0, target) — выжившая сначала m_line (M), при "
+                      "провале emit_h; счёты mcount/hcount; запись .b2 "
+                      "(коды 8/9)"),
+    ]),
+    "m": ("примитивы ветви M (bridge_self_m.wall — срез E9.2-3c)", [
+        ("m_put", "байт в буфер кодировки mbuf"),
+        ("m_put4", "dword LittleEndian в mbuf (imm32/disp32)"),
+        ("m_rex", "REX-префикс по аргументам-значениям (w==64, r/x/b "
+                  "— коды регистров)"),
+        ("m_enc_mem", "modrm+SIB+disp операнда-памяти (rip -> слот 4 Б "
+                      "в конце) — == _enc_mem"),
+        ("m_cmp", "СВЕРКА mbuf с телом (слот последним; значение слота "
+                  "== метка - конец слота) — == _template"),
+        ("m_kw", "слово размера byte/word/dword/qword + пробел"),
+        ("m_dollar", "«$имя» ($base/-4096 | labmap; «:1» при rel8)"),
+        ("m_opmem", "рендер памяти [base+idx±disp] | [rip+$имя] (kw; "
+                    "масштаб 1)"),
+        ("m_opr", "ренер одного операнда (рег/imm/cnt/cl/mem; 16 бит "
+                  "-> H)"),
+    ]),
+    "m2": ("кодировщики простых семейств (bridge_self_m2.wall — "
+           "E9.2-3c)", [
+        ("m_bsimple", "cdqe/cqo/ret/int3 (SIMPLE)"),
+        ("m_bjmp", "jmp ($base/метка; EB слот 1 / E9 слот 4)"),
+        ("m_bjcc", "jcc (70|cc слот 1 / 0F 80|cc слот 4)"),
+        ("m_bcall", "call (E8 $метка | FF 15 [rip+$имя])"),
+        ("m_bmovzx", "movzx r32/r64 <- r8/mem 8/16 (0F B6/B7, kw)"),
+        ("m_bstack", "push/pop r64 (5x + REX.B)"),
+        ("m_btest", "test r,r (84/85)"),
+        ("m_blea", "lea r32/r64, mem (8D, без kw)"),
+        ("m_bimul", "imul r64,r64 (REX.WRB 0F AF /r)"),
+        ("m_bshift", "rol/shl/shr/sar (C0/C1 imm8 | D2/D3 cl)"),
+        ("m_bf7", "neg/idiv (F7 /3 /7)"),
+        ("m_bff", "inc/dec (FF /0 /1)"),
+    ]),
+    "m3": ("кодировщики ALU и MOV (bridge_self_m3.wall — E9.2-3c)", [
+        ("m_alu_base", "базовый опкод ALU по dname (00/08/20/28/30/38)"),
+        ("m_alu_ext", "/ext ALU по dname (0/1/4/5/6/7)"),
+        ("m_alu_imm", "форма группы imm 80/83/81 по значению/размеру "
+                      "(глобали mopc/mis8)"),
+        ("m_balu", "add/or/and/sub/xor/cmp по парам операндов "
+                   "(r,r/r,i/r,m/m,r/m,i)"),
+        ("m_bmov", "mov по парам (r,r/r,i8 B0/r,i32 B8/r64 C7/"
+                   "r,m 8A-8B/m,r 88-89/m,i C6-C7; imm64 -> H)"),
+    ]),
+    "m4": ("драйвер ветви M (bridge_self_m4.wall — E9.2-3c)", [
+        ("m_body", "диспетчер по dname: имя мнемоники (jcc — j+cc) + "
+                   "кодировщик семейства (рендер операндов)"),
+        ("m_line", "ДРАЙВЕР M-строки: decode + «M » + m_body + m_cmp + "
+                   "хвост « ; @смещ4»; провал — откат и 1 (H-фолбэк)"),
     ]),
 }
 
@@ -147,22 +196,26 @@ GLOB_ORDER = ["hstdout", "cmdline", "written", "wlen", "exebuf",
               "outbuf", "outcur", "iatoff", "intoff", "nameoff",
               "idtoff", "impbad", "kn", "snlen", "semcnt", "semacc",
               "hhrv", "hno", "hnl", "snam", "noffs", "knownoff",
-              "semrows", "labmap", "sstate", "semstate"]
+              "semrows", "labmap", "sstate", "semstate",
+              "mblen", "mslot", "mslotz", "mslof", "mopc", "mis8",
+              "mcount", "hcount"]
 ARRS = [("arg1", 0x80), ("arg2", 0x80), ("arg3", 0x80),
         ("factbuf", 0xC0), ("o_mn", 0xE8), ("o_cc", 0x88),
         ("o_r64", 0x88), ("o_r8", 0x88), ("o_r16", 0x88),
-        ("o_r32", 0x88), ("tplb", 0xC8), ("w1", 0x200)]
+        ("o_r32", 0x88), ("o_kw", 0x28), ("tplb", 0xC8),
+        ("mbuf", 0xC0), ("w1", 0x200)]
 STR_ORDER = ["s_use", "s_long", "s_oexe", "s_rexe", "s_family",
              "s_big", "s_oout", "s_wout", "s_f1", "s_f2", "s_f3",
-             "s_f4", "s_f5", "s_f6", "s_f7", "s_f8", "s_crlf",
-             "s_pref", "s_needle", "s_dll", "s_h", "s_at", "s_dz",
+             "s_f4", "s_f5", "s_f6", "s_f7", "s_f8", "s_f9", "s_fa",
+             "s_crlf", "s_pref", "s_needle", "s_dll", "s_h", "s_at",
+             "s_ml", "s_ripl", "s_base", "s_s1", "s_kw", "s_dz",
              "s_db", "s_iat", "s_dd", "s_dq", "s_mem", "s_rip",
              "s_cl", "s_j", "s_comma", "s_mn", "s_cc", "s_r64",
              "s_r8", "s_r16", "s_r32", "s_tpl"]
 
-B2_SHA = "40A6E7DEF75209A7A3670E12644A971C1B49A2F927CC1A3FBA9F29C76003C47D"
-BRICK_SHA = "FA6CDBCF8C65267ABFC129698F7AB6455CE08363F1372ABA47DE483B042F211D"
-EXE_SHA = "283CA3D75D1A7A946C5FD88FBC93F7DB5D755616DA8B9831E76EF639D2A0ED1F"
+B2_SHA = "E945ED20E63EF1008DCA4D3F920C3EA6D88F141AB27589DE273AFB0D0DF8619F"
+BRICK_SHA = "A9EFC7357E1E1D34EF65BC7499054D339E755992BEDEEC4CB0747FEA30C0CD23"
+EXE_SHA = "B3598A111827D646BB5D597489BE38F18D68FA38AB90274684AE25BA529BC167"
 
 
 def main():
@@ -178,18 +231,18 @@ def main():
     w("")
     w("| Параметр | Значение |")
     w("|---|---|")
-    w("| Файл | KERNEL/L5-BRIDGE/bridge.exe, 62976 байта (0xF600) |")
+    w("| Файл | KERNEL/L5-BRIDGE/bridge.exe, 88576 байтов (0x15A00) |")
     w("| SHA-256 | %s |" % EXE_SHA)
-    w("| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a/3b): "
+    w("| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a/3b/3c): "
       "сборка из bridge.wall — wall.exe(splice(bridge.wall)) -> "
       "bridge.b2 -> enc -> bridge.brick -> brick -> pegen + bridge.peg. "
       "Воспроизводимость закреплена в батарее (T-E9-17); bridge.b2 == "
       "оракулу LAB/py/lab_l2.py байт-в-байт |")
-    w("| Исходник | KERNEL/L5-BRIDGE/bridge.wall — корень + 8 частей "
-      "bridge_self_*.wall (WALL v2, разрез SPEC/10); склейка 89709 Б "
-      "(33% предела входа 256 КиБ; 3074 строки — заголовок bridge.b2) |")
-    w("| Тело секции | 62354 байта (0xF392), RVA 0x1000, SRD 0xF400 |")
-    w("| VirtualSize | 0xF392 (одна секция); target 0xF201, bss 0x191 "
+    w("| Исходник | KERNEL/L5-BRIDGE/bridge.wall — корень + 12 частей "
+      "bridge_self_*.wall (WALL v2, разрез SPEC/10); склейка 123983 Б "
+      "(47% предела входа 256 КиБ; 4362 строки — заголовок bridge.b2) |")
+    w("| Тело секции | 87943 байта (0x15787), RVA 0x1000, SRD 0x15800 |")
+    w("| VirtualSize | 0x15787 (одна секция); target 0x15601, bss 0x186 "
       "(хвост — виртуальные нули) |")
     w("| Точка входа | 0x1200 (:_entry — константа SPEC/11 п. 6: после "
       "фиксированной области импортов 0x200) |")
@@ -200,14 +253,14 @@ def main():
       "CloseHandle, GlobalAlloc |")
     w("| DOS-заглушка | «Universal L0 bridge. No DOS support.» (имя "
       "модуля — bridge.peg) |")
-    w("| M-строк в исходнике | 12998 (bridge.b2; 100% M — H=0, круг "
-      "T-E9-20: M=12998 H=0) |")
-    w("| Меток в исходнике | 885 из 2048 (лимит brick; карта — "
+    w("| M-строк в исходнике | 18701 (bridge.b2; 100% M — H=0, круг "
+      "T-E9-20: M=18701 H=0) |")
+    w("| Меток в исходнике | 1203 из 2048 (лимит brick; карта — "
       "LAB/ai/bridge_labelmap.py) |")
-    w("| Функций | 86 (карта — §2) + данные (§3) |")
+    w("| Функций | 114 (карта — §2) + данные (§3) |")
     w("| Компилятор сборки | wall.exe (M2-WALL, самосборный) — "
-      "конвейер под эмуляцией LAB (T-E9-17: 351949143 + 45361314 + "
-      "34316664 + 5046 шагов; шаг wall выше лимита lab_run 200 млн — "
+      "конвейер под эмуляцией LAB (T-E9-17: 594593328 + 63479986 + "
+      "63726951 + 5046 шагов; шаг wall выше лимита lab_run 200 млн — "
       "прямой lab_win с лимитом 2 млрд, прецедент T-E6-49a) |")
     w("")
     w("## 2. Карта функций (RVA — LAB/ai/bridge_labelmap.py по "
@@ -215,10 +268,11 @@ def main():
     w("")
     w("Группировка — по частям bridge.wall (состав — CARD.md; кирпичи "
       "K5-* — MAP/M5-BRIDGE.md, MAP/M5-BRIDGE-D.md, "
-      "MAP/M5-BRIDGE-E.md и MAP/M5-BRIDGE-L.md).")
+      "MAP/M5-BRIDGE-E.md, MAP/M5-BRIDGE-L.md и MAP/M5-BRIDGE-M.md).")
     w("")
     w("```")
-    for key in ("c", "pe", "d", "d2", "w", "e", "l", "l2"):
+    for key in ("c", "pe", "d", "d2", "w", "e", "l", "l2",
+                "m", "m2", "m3", "m4"):
         title, funcs = FUNCS[key]
         w("%s:" % title)
         for name, desc in funcs:
@@ -232,18 +286,18 @@ def main():
     w("  main ................. %04X  CLI -> чтение EXE -> проверки -> "
       "спуск ->" % lbl["main"])
     w("                               таблицы -> карты (L) -> эмиссия .b2 "
-      "(H) -> факты")
+      "(КАНОН M/H) -> факты M=/H=")
     w("```")
     w("")
     w("## 3. Данные образа (RVA)")
     w("")
     w("```")
-    w("строки (39): " + " ".join(
+    w("строки (46): " + " ".join(
         "%s %04X" % (n, lbl[n]) for n in STR_ORDER[:4]))
     for i in range(4, len(STR_ORDER), 5):
         w("  " + " ".join("%s %04X" % (n, lbl[n])
                           for n in STR_ORDER[i:i + 5]))
-    w("глобали (78): " + " ".join(
+    w("глобали (86): " + " ".join(
         "%s %04X" % (n, lbl[n]) for n in GLOB_ORDER[:4]))
     for i in range(4, len(GLOB_ORDER), 6):
         w("  " + " ".join("%s %04X" % (n, lbl[n])
@@ -257,17 +311,19 @@ def main():
                       for n, sz in ARRS[6:9]))
     w("  " + " ".join("%s %04X (0x%X)" % (n, lbl[n], sz)
                       for n, sz in ARRS[9:12]))
-    w("конец тела: %04X (vsize 0xF392)" % (lbl["w1"] + 0x200))
+    w("  " + " ".join("%s %04X (0x%X)" % (n, lbl[n], sz)
+                      for n, sz in ARRS[12:14]))
+    w("конец тела: %04X (vsize 0x15787)" % (lbl["w1"] + 0x200))
     w("```")
     w("")
     w("Массивы объявлены ПОСЛЕ скаляров, ПОСЛЕДНИЙ — w1[64] (0x200 Б; "
       "урок E9.2-2, ОБЩЁН срезом E9.2-3b): выравнивающий хвост "
-      "(0xF201..0xF392, 0x191 Б) всегда < 0x200 Б и падает внутрь w1 "
+      "(0x15601..0x15787, 0x186 Б) всегда < 0x200 Б и падает внутрь w1 "
       "при ЛЮБОМ vsize (w1base = vsize-0x200 <= raw-0x1FF — "
       "БЕЗУСЛОВНЫЙ инвариант, пересчёт при росте больше не нужен); "
       "rip-ссылок внутрь хвоста нет (lea — только базы массивов, они "
       "ниже target), разбор моста над bridge.exe даёт 0 H-строк "
-      "(M=12998; как kernel/uva — T-E9-20).")
+      "(M=18701; как kernel/uva — T-E9-20).")
     w("")
     w("## 4. Контроль воспроизведения")
     w("")
@@ -283,8 +339,8 @@ def main():
     w("pegen.exe  bridge_s.bin bridge.peg bridge.exe   (== артефакт)")
     w("```")
     w("")
-    w("SHA-256 артефактов: bridge.b2 — 40A6E7DE…03C47D, bridge.brick — "
-      "FA6CDBCF…42F211D, bridge.exe — 283CA3D7…2A0ED1F (полные — "
+    w("SHA-256 артефактов: bridge.b2 — E945ED20…F8619F, bridge.brick — "
+      "A9EFC735…C0CD23, bridge.exe — B3598A11…29BC167 (полные — "
       "VERIFY.md).")
     w("")
     io.open("KERNEL/L5-BRIDGE/BYTECODE.md", "w",

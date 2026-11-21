@@ -1,0 +1,115 @@
+; bridge_self_m4.wall — драйвер ветви M (M-строки канона), часть 4 (E9.2-3c)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_m4.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь M моста, ЧАСТЬ 4 — ДРАЙВЕР M-строк: K5-M027
+; m_body — диспетчер по dname (ид блоба s_mn; 0 = jcc — имя «j»+
+; условие из s_cc): имя мнемоники в вывод (без операндов — без
+; пробела; простые cdqe/cqo/ret/int3 — m_bsimple), затем кодировщик
+; семейства (m2/m3) рендерит « оп1[, оп2]» и заполняет mbuf; cdq (14)
+; — сразу H (нет в SIMPLE оракула enc); K5-M028 m_line — ДРАЙВЕР:
+; decode_ins(lo), «M » (s_ml), m_body, СВЕРКА m_cmp(lo) с байтами тела
+; (слот последним, значение слота == смещение метки − конец слота),
+; хвост « ; @смещ4\n» (s_at/out_hex4m — как разрезы ветви L), mcount++;
+; провал любой стадии — ОТКАТ outcur к save и 1 (H-фолбэк: вызывающий
+; драйвер emit_body ветви L звёнет emit_h; H-строка — те же байты,
+; SPEC/15 п. 5). Порядок включения частей ветви M свободен (вызовы
+; вперёд разрешены WALL — как emit_body -> m_line). Транслитерация-
+; свидетель: LAB/ai/trace_m.py (46470/46470 решений и текстов строк);
+; диффтесты — T-E9-22 (канон mode=None), T-E9-23 (круг M-текста
+; инструментами enc/brick/pegen == EXE).
+
+; K5-M027: диспетчер тела M-строки: имя + кодировка — по dname;
+; возвращает 0/1 (провал = H-фолбэк)
+func m_body
+  mblen = 0
+  mslot = -1
+  mslotz = 0
+  mslof = 0
+  if dname == 0
+    outcur = copy_str(outbuf, outcur, s_j, len(s_j))
+    app_name(s_cc, o_cc, dcc)
+    return m_bjcc()
+  end
+  if dname == 17
+    app_name(s_mn, o_mn, 17)
+    return m_bjmp()
+  end
+  if dname == 18
+    app_name(s_mn, o_mn, 18)
+    return m_bcall()
+  end
+  if dname == 12 || dname == 13 || dname == 15 || dname == 16
+    app_name(s_mn, o_mn, dname)
+    return m_bsimple()
+  end
+  if dname == 14
+    return 1
+  end
+  if dname == 19
+    app_name(s_mn, o_mn, 19)
+    return m_bmovzx()
+  end
+  if dname == 10 || dname == 11
+    app_name(s_mn, o_mn, dname)
+    return m_bstack()
+  end
+  if dname == 7
+    app_name(s_mn, o_mn, 7)
+    return m_btest()
+  end
+  if dname == 9
+    app_name(s_mn, o_mn, 9)
+    return m_blea()
+  end
+  if dname == 20
+    app_name(s_mn, o_mn, 20)
+    return m_bimul()
+  end
+  if dname == 21 || dname == 22 || dname == 23 || dname == 24
+    app_name(s_mn, o_mn, dname)
+    return m_bshift()
+  end
+  if dname == 25 || dname == 26
+    app_name(s_mn, o_mn, dname)
+    return m_bf7()
+  end
+  if dname == 27 || dname == 28
+    app_name(s_mn, o_mn, dname)
+    return m_bff()
+  end
+  if dname >= 1 && dname <= 6
+    app_name(s_mn, o_mn, dname)
+    return m_balu()
+  end
+  if dname == 8
+    app_name(s_mn, o_mn, 8)
+    return m_bmov()
+  end
+  return 1
+end
+
+; K5-M028: ДРАЙВЕР M-строки выжившей инструкции @ lo (смещение тела):
+; decode (детерминирован — спуск уже разобрал), «M », тело (имя +
+; операнды + кодировка mbuf), сверка m_cmp (байто-точность — главный
+; контроль: enc воспроизводит ТОЧНО или H-фолбэк), хвост « ; @смещ4»,
+; mcount++; провал — откат outcur и 1
+func m_line(lo)
+  var save
+  if decode_ins(lo) != 0
+    fail_family()
+  end
+  save = outcur
+  outcur = copy_str(outbuf, outcur, s_ml, len(s_ml))
+  if m_body() != 0
+    outcur = save
+    return 1
+  end
+  if m_cmp(lo) != 0
+    outcur = save
+    return 1
+  end
+  outcur = copy_str(outbuf, outcur, s_at, len(s_at))
+  out_hex4m(lo)
+  app_ch(10)
+  mcount = mcount + 1
+  return 0
+end

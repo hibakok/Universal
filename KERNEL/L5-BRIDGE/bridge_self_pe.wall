@@ -376,11 +376,15 @@ func walk_funcs
   return 0
 end
 
-; факт-строка (срезы E9.2-1/2): MODULE=<имя> ENTRY=<hex8>
+; факт-строка (срезы E9.2-1/2/3c): MODULE=<имя> ENTRY=<hex8>
 ; VSIZE=<hex8> RAW=<hex8> IMP=<dec> INS=<dec> TARGET=<hex8> BSS=<hex8>
-; + CRLF — в factbuf, одним WriteFile в stdout (имя — байты
-; exebuf[77..77+modlen)); INS/TARGET/BSS — факты спуска (глобали ветви W:
-; inscount/target/bss — значения == parse_family оракула)
+; M=<dec> H=<dec> + CRLF — в factbuf, одним WriteFile в stdout (имя —
+; байты exebuf[77..77+modlen)); INS/TARGET/BSS — факты спуска (глобали
+; ветви W: inscount/target/bss — значения == parse_family оракула);
+; M/H (E9.2-3c) — ВЫХОД моста: числа M-/H-строк записанного <выход>.b2
+; (глобали mcount/hcount драйвера emit_body — == статистика m/h
+; оракула emit_b2 без mode; замена факт-строки реальным выходом —
+; ROADMAP E9.2-3c: факты PE сохранены префиксом, выход добавлен)
 func print_facts
   var k
   k = 0
@@ -400,6 +404,10 @@ func print_facts
   k = out_hex(factbuf, k, target)
   k = copy_str(factbuf, k, s_f8, len(s_f8))
   k = out_hex(factbuf, k, bss)
+  k = copy_str(factbuf, k, s_f9, len(s_f9))
+  k = out_dec(factbuf, k, mcount)
+  k = copy_str(factbuf, k, s_fa, len(s_fa))
+  k = out_dec(factbuf, k, hcount)
   k = copy_str(factbuf, k, s_crlf, len(s_crlf))
   written = 0
   WriteFile(hstdout, factbuf, k, &written, 0)

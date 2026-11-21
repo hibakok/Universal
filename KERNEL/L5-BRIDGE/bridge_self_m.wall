@@ -1,0 +1,325 @@
+; bridge_self_m.wall — примитивы ветви M (M-строки канона), часть 1 (E9.2-3c)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_m.wall | слой: L5 (исходник — WALL)
+; | роль: ветвь M моста, ЧАСТЬ 1 — ПРИМИТИВЫ решения «M или H» и рендера
+; M-строк (SPEC/15 п. 5: M-строка эмитится ТОГДА И ТОЛЬКО ТОГДА, когда
+; кодировщик enc (SPEC/09) воспроизводит инструкцию ТОЧНО; иначе
+; H-фолбэк — вопрос читаемости, НЕ корректности: байто-точность круга
+; сохраняется ВСЕГДА): буфер кодировки mbuf (K5-M001 m_put / K5-M002
+; m_put4 — dword LittleEndian), REX (K5-M003 m_rex — аргументы-
+; ЗНАЧЕНИЯ: w==64 | r/x/b — индекс >= 8), сборка modrm+SIB+disp
+; операнда-памяти (K5-M004 m_enc_mem — == _enc_mem оракула lab_enc;
+; rip -> слот 4 Б в конце), СВЕРКА с телом (K5-M005 m_cmp — ==
+; _template оракула: фиксированные байты побайтово, слот ПОСЛЕДНИЙ
+; (mblen == mslot, mslot+mslotz == dlen), значение слота из тела ==
+; смещение метки − конец слота), слово размера (K5-M006 m_kw —
+; byte/word/dword/qword + пробел), «$имя» (K5-M007 m_dollar — $base
+; (смещение -4096) | имя метки по labmap, суффикс «:1» короткой
+; формы), рендер операнда-памяти (K5-M008 m_opmem — kw + [base+idx±disp]
+; | [rip+$имя]; масштаб != 1 / нет базы / нет метки -> H) и рендер
+; одного операнда (K5-M009 m_opr — рег (16 бит -> H — вне канона enc) /
+; imm знаковый ЗАГЛАВНЫЙ hex / счётчик / cl / память c kw).
+; Кодировщики семейств — ЧАСТИ 2/3 (bridge_self_m2/m3.wall: простые
+; семейства + ALU/mov), ДРАЙВЕР — часть 4 (bridge_self_m4.wall:
+; m_body/m_line); рендер имени/шапки/H-строк/данных — ветвь E; метки —
+; L. Эквивалентность оракулу — транслитерация LAB/ai/trace_m.py
+; (46470/46470 решений и текстов строк, 12 артефактов + синтетика) +
+; T-E9-22 (канон mode=None).
+
+; K5-M001: байт в буфер кодировки mbuf (глобали mbuf/mblen); максимум
+; фиксированных байтов инструкции — 13 (rex+op+modrm+sib+disp32+imm32)
+; — mbuf[24] с запасом
+func m_put(b)
+  setb(mbuf, mblen, b)
+  mblen = mblen + 1
+  return 0
+end
+
+; K5-M002: dword v LittleEndian в mbuf (imm32/disp32; отрицательные —
+; битовый образ: v & 255 и сдвиги дают правильные байты дополнения)
+func m_put4(v)
+  m_put(v & 255)
+  m_put((v >> 8) & 255)
+  m_put((v >> 16) & 255)
+  m_put((v >> 24) & 255)
+  return 0
+end
+
+; K5-M003: REX-байт по аргументам-ЗНАЧЕНИЯМ (== _rex оракула): w —
+; размер операнда (REX.W при 64), r/x/b — КОДЫ регистров (бит при >= 8;
+; -1 «нет» — 0); v = 0 -> префикса нет
+func m_rex(w, r, x, b)
+  var v
+  var f
+  v = 0
+  if w == 64
+    v = v + 8
+  end
+  if r >= 8
+    v = v + 4
+  end
+  if x >= 8
+    v = v + 2
+  end
+  if b >= 8
+    v = v + 1
+  end
+  if v != 0
+    m_put(64 + v)
+  end
+  return 0
+end
+
+; K5-M004: modrm+SIB+disp ОПЕРАНДА-ПАМЯТИ (глобали om* от decode_ins)
+; в mbuf — == _enc_mem оракула: regv — значение поля reg (0..7);
+; rip -> modrm 05|regv<<3 и СЛОТ (mslot/mslotz/mslof — цель omrip);
+; SIB при индексе или базе &7 == 4 (rsp/r12); mod по disp (0 — без
+; хвоста, КРОМЕ rbp/r13 (rm 5 / SIB-база 5) -> mod 1 + байт 0; -128..127
+; -> disp8; иначе disp32); слот всегда ПОСЛЕДНИЙ (заполняет вызывающий
+; после фиксированных байтов)
+func m_enc_mem(regv)
+  var d
+  var mod
+  var rm
+  var sib
+  var usesib
+  mslot = -1
+  mslotz = 0
+  mslof = 0
+  if mripon == 1
+    m_put(5 + regv * 8)
+    mslot = mblen
+    mslotz = 4
+    mslof = omrip
+    return 0
+  end
+  d = omdisp
+  usesib = 0
+  sib = 0
+  rm = 0
+  if omidx >= 0 || (ombase & 7) == 4
+    usesib = 1
+    sib = 4
+    if omidx >= 0
+      sib = omidx & 7
+    end
+    sib = sib * 8 + (ombase & 7)
+    rm = 4
+  else
+    rm = ombase & 7
+  end
+  mod = 0
+  if d == 0
+    if rm == 4
+      if usesib == 1 && (ombase & 7) == 5
+        mod = 1
+      end
+    else
+      if rm == 5
+        mod = 1
+      end
+    end
+  else
+    if d >= -128 && d <= 127
+      mod = 1
+    else
+      mod = 2
+    end
+  end
+  m_put(mod * 64 + regv * 8 + rm)
+  if usesib == 1
+    m_put(sib)
+  end
+  if mod == 1
+    if d == 0
+      m_put(0)
+    else
+      m_put(d & 255)
+    end
+  end
+  if mod == 2
+    m_put4(d)
+  end
+  return 0
+end
+
+; K5-M005: СВЕРКА mbuf с байтами инструкции @ lo (== _template оракула):
+; без слота — mblen == dlen и побайтовое равенство; со слотом — слот
+; ПОСЛЕДНИЙ (mblen == mslot — слот сразу за фиксированными; mslot +
+; mslotz == dlen), фиксированные байты равны, значение слота из ТЕЛА
+; (знаковое, 1/4 Б) == смещение метки mslof − конец слота; 0 = M!, 1 = H
+func m_cmp(lo)
+  var j
+  var want
+  if mslot < 0
+    if mblen != dlen
+      return 1
+    end
+    j = 0
+    while j < mblen
+      if getb(exebuf, rawptr + lo + j) != getb(mbuf, j)
+        return 1
+      end
+      j = j + 1
+    end
+    return 0
+  end
+  if mblen != mslot
+    return 1
+  end
+  if mslot + mslotz != dlen
+    return 1
+  end
+  j = 0
+  while j < mslot
+    if getb(exebuf, rawptr + lo + j) != getb(mbuf, j)
+      return 1
+    end
+    j = j + 1
+  end
+  if mslotz == 1
+    want = getb(exebuf, rawptr + lo + mslot)
+    if want >= 128
+      want = want - 256
+    end
+  else
+    want = rel32(rawptr + lo + mslot)
+  end
+  if want != mslof - (lo + mslot + mslotz)
+    return 1
+  end
+  return 0
+end
+
+; K5-M006: слово размера size (8/16/32/64) + пробел в вывод («byte »
+; и т.д. — KW оракула; блоб s_kw с именами ВМЕСТЕ с пробелом)
+func m_kw(size)
+  if size == 8
+    app_name(s_kw, o_kw, 0)
+    return 0
+  end
+  if size == 16
+    app_name(s_kw, o_kw, 1)
+    return 0
+  end
+  if size == 32
+    app_name(s_kw, o_kw, 2)
+    return 0
+  end
+  app_name(s_kw, o_kw, 3)
+  return 0
+end
+
+; K5-M007: «$имя» (+ «:1» при rel8 != 0): $base (смещение -4096) |
+; имя метки off по labmap (emit_labname ветви L)
+func m_dollar(off, rsh8)
+  app_ch(36)
+  if off == -4096
+    outcur = copy_str(outbuf, outcur, s_base, len(s_base))
+  else
+    emit_labname(off)
+  end
+  if rsh8 != 0
+    outcur = copy_str(outbuf, outcur, s_s1, len(s_s1))
+  end
+  return 0
+end
+
+; K5-M008: рендер операнда-памяти слота slot (kw != 0 — слово размера
+; по daXs) в вывод — == _mem оракула: [rip+$имя] (метка по labmap;
+; $base — RVA 0) | [base+idx±disp] (имена r64; масштаб ТОЛЬКО 1;
+; disp 0 — пусто, < 0 — «-hex», > 0 — «+hex»); провал (масштаб,
+; нет базы — SIB-абсолют, нет метки rip) -> 1 = H-фолбэк
+func m_opmem(slot, kw)
+  var off
+  var d
+  if kw != 0
+    if slot == 1
+      m_kw(da1s)
+    else
+      m_kw(da2s)
+    end
+  end
+  if mripon == 1
+    off = omrip
+    if off != -4096
+      if getb(labmap, off) == 0
+        return 1
+      end
+    end
+    outcur = copy_str(outbuf, outcur, s_ripl, len(s_ripl))
+    if off == -4096
+      outcur = copy_str(outbuf, outcur, s_base, len(s_base))
+    else
+      emit_labname(off)
+    end
+    app_ch(93)
+    return 0
+  end
+  if omscale != 1
+    return 1
+  end
+  if ombase < 0
+    return 1
+  end
+  app_ch(91)
+  app_name(s_r64, o_r64, ombase)
+  if omidx >= 0
+    app_ch(43)
+    app_name(s_r64, o_r64, omidx)
+  end
+  d = omdisp
+  if d < 0
+    app_ch(45)
+    out_hexv(-d)
+  else
+    if d > 0
+      app_ch(43)
+      out_hexv(d)
+    end
+  end
+  app_ch(93)
+  return 0
+end
+
+; K5-M009: рендер ОДНОГО операнда слота slot (kw — память): рег (имя
+; по таблицам E; 16 бит -> H — вне канона enc), imm (вид 3 — знаковый
+; ЗАГЛАВНЫЙ hex), счётчик (вид 6 — hex), cl (вид 5), память (вид 2 —
+; m_opmem); виды 4 (цель) и 7 (imm64) -> 1 = H-фолбэк (управляет
+; только кодировщик переходов/вызовов / enc их не воспроизводит)
+func m_opr(slot, kw)
+  var k
+  var v
+  if slot == 1
+    k = da1k
+    v = da1v
+  else
+    k = da2k
+    v = da2v
+  end
+  if k == 1
+    if slot == 1
+      if da1s == 16
+        return 1
+      end
+      app_reg(da1r, da1s)
+    else
+      if da2s == 16
+        return 1
+      end
+      app_reg(da2r, da2s)
+    end
+    return 0
+  end
+  if k == 3 || k == 6
+    out_hxs(v)
+    return 0
+  end
+  if k == 5
+    outcur = copy_str(outbuf, outcur, s_cl, len(s_cl))
+    return 0
+  end
+  if k == 2
+    return m_opmem(slot, kw)
+  end
+  return 1
+end

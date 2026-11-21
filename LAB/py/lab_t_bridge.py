@@ -55,13 +55,24 @@
              для мутантов ДОПОЛНИТЕЛЬНО круг оракула (текст ->
              enc -> brick -> pegen == мутанту — валидность b2);
              T-E9-23 — сквозной круг H-текста (метки + DD/DQ +
-             разрезы) РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ на мосте seed и hxdump.
+             разрезы) РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ на мосте seed и hxdump;
+         (9) E9.2-3c (M-СТРОКИ — КАНОН, mode=None): T-E9-22 — выход
+             t.b2 == оракулу КАНОНА emit_b2 (M-строка при точном
+             воспроизведении enc, иначе H-фолбэк — контроль
+             повторным кодированием в инструменте: ветвь M
+             bridge_self_m*.wall, 28 кирпичей; транслитерация-свидетель
+             LAB/ai/trace_m.py — 46470/46470 решений и текстов) на ВСЕХ
+             12 артефактах + синтетике; факт-строка расширена ВЫХОДОМ
+             M=<м>/H=<h> (T-E9-18 — замена факт-строки реальным
+             выходом ROADMAP E9.2-3c: статистика == оракулу); T-E9-23 —
+             сквозной круг КАНОННОГО текста (M-строки парсятся enc)
+             РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ на мосте seed и hxdump.
 Функция: DoD E9.1 — «сначала истина семантики» (прецедент E7.1/E8.1):
          семантика моста закреплена оракулом и якорями ДО инструмента
          bridge.exe. E9.2-1 — каркас; E9.2-2 — спуск от входа:
          диффтест фактов == оракулу; E9.2-3a — raw-эмиссия; E9.2-3b —
          метки l/d/iat_ + семантика DD/DQ + разрезы (режим "H");
-         M-строки — E9.2-3c, PEG — E9.2-4.
+         E9.2-3c — M-строки канона + выход M=/H=; PEG — E9.2-4.
          Число проверок: 23.
 """
 import os
@@ -186,19 +197,23 @@ def build(kpath, kfile, kernel_host):
 
 def facts_line(data):
     """Ожидаемая факт-строка — из оракула parse_family (E9.2-2: с
-    полями спуска INS/TARGET/BSS)."""
+    полями спуска INS/TARGET/BSS; E9.2-3c: с выходом моста M=/H=
+    — статистика emit_b2 канона: замена факт-строки реальным
+    выходом, SPEC/15 п. 10)."""
     fam = lab_bridge.parse_family(data)
     pe = fam["pe"]
+    _t, st = lab_bridge.emit_b2(data)
     return ("U-L5-BRIDGE MODULE=%s ENTRY=%08X VSIZE=%08X RAW=%08X IMP=%d"
-            " INS=%d TARGET=%08X BSS=%08X\r\n"
+            " INS=%d TARGET=%08X BSS=%08X M=%d H=%d\r\n"
             % (fam["module"], pe["addr_entry_point"], fam["vsize"],
                fam["raw"], len(pe["imports"][0]["funcs"]),
-               len(fam["ins"]), fam["target"], fam["bss"])
+               len(fam["ins"]), fam["target"], fam["bss"],
+               st["m"], st["h"])
             ).encode("latin1")
 
 
 def _facts(check, bexe, data, label, tid=None):
-    """Один прогон: факты (E9.2-2: с INS/TARGET/BSS) == оракулу
+    """Один прогон: факты + выход M=/H= (E9.2-3c) == оракулу
     (или отказ — по оракулу)."""
     try:
         want = facts_line(data)
@@ -313,8 +328,16 @@ def _tool_cli(check, bexe, kfile):
           % (len(cases) + len(legal)), not bad, "; ".join(bad[:2]))
 
 
-def run(check, kpath, kfile, kernel_host):
-    """Секция 18: T-E9-01..20 — мост BRIDGE v1 (E9.1 + каркас E9.2-1)."""
+def run(check, kpath, kfile, kernel_host, use_repo=False):
+    """Секция 18: T-E9-01..23 — мост BRIDGE v1 (E9.1 + E9.2-1..3c).
+
+    use_repo (группа 4 песочницы, с E9.2-3c: сборка моста выросла до
+    ~595 млн шагов wall и секция 18 целиком не вмещается в 10-минутный
+    лимит песочницы — прецедент выделения секции 18 в группу 4):
+    True — БЕЗ сборки: T-E9-18..23 гоняются на артефакте репозитория
+    bridge.exe (фикс-пункт T-E9-17 — отдельная группа 5 / полный прогон
+    в CI); тело синтетики — сборка bridge.brick оракулом brick.
+    """
     seed = kfile("L0-SEED/seed.exe")
 
     # T-E9-01: факты разбора == якорю; чужой образ — отказ
@@ -353,25 +376,39 @@ def run(check, kpath, kfile, kernel_host):
     _tool_circle(check, kpath, kfile, "L0-HXDUMP/hxdump", "T-E9-16")
 
     # T-E9-17: сборка моста — фикс-пункт (E9.2-1): bridge.wall ->
-    # (wall/enc/brick/pegen + bridge.peg) -> артефакты байт-в-байт
-    ok, a, note = build(kpath, kfile, kernel_host)
-    if ok:
-        oracle = lab_l2.compile_wall(
-            lab_splice.splice("L5-BRIDGE/bridge.wall", kernel_host())
-            .decode("latin1")).encode()
-        ok = (a["b2"] == oracle == kfile("L5-BRIDGE/bridge.b2")
-              and a["brick"] == kfile("L5-BRIDGE/bridge.brick")
-              and a["exe"] == kfile("L5-BRIDGE/bridge.exe"))
-    check("T-E9-17 фикс-пункт: bridge.wall -> артефакты (байт-в-байт)",
-          ok, note)
-    if not ok:
-        return                                   # дальше без моста нет смысла
+    # (wall/enc/brick/pegen + bridge.peg) -> артефакты байт-в-байт;
+    # при use_repo сборка пропускается (группа 4 — артефакт репо;
+    # фикс-пункт — группа 5 / CI — run_fixpoint)
+    a = None
+    if not use_repo:
+        ok, a, note = build(kpath, kfile, kernel_host)
+        if ok:
+            oracle = lab_l2.compile_wall(
+                lab_splice.splice("L5-BRIDGE/bridge.wall", kernel_host())
+                .decode("latin1")).encode()
+            ok = (a["b2"] == oracle == kfile("L5-BRIDGE/bridge.b2")
+                  and a["brick"] == kfile("L5-BRIDGE/bridge.brick")
+                  and a["exe"] == kfile("L5-BRIDGE/bridge.exe"))
+        check("T-E9-17 фикс-пункт: bridge.wall -> артефакты (байт-в-байт)",
+              ok, note)
+        if not ok:
+            return                               # дальше без моста нет смысла
 
     fd, bexe = tempfile.mkstemp(suffix=".exe")
     os.close(fd)
     try:
-        with open(bexe, "wb") as f:
-            f.write(a["exe"])
+        if use_repo:
+            with open(bexe, "wb") as f:
+                f.write(kfile("L5-BRIDGE/bridge.exe"))
+        else:
+            with open(bexe, "wb") as f:
+                f.write(a["exe"])
+
+        # тело для синтетики T-E9-21: сборка (или артефакт репо)
+        if use_repo:
+            body = lab_brick.assemble(kfile("L5-BRIDGE/bridge.brick"))
+        else:
+            body = a["bin"]
 
         # T-E9-18: факт-строка каркаса == оракулу на всём семействе
         # (11 артефактов + bridge.exe — 12-й член семейства)
@@ -399,23 +436,23 @@ def run(check, kpath, kfile, kernel_host):
         craft = bytes([0x74, 0x02, 0xB8, 0x05, 0x05, 0x05, 0x05,
                        0xC3, 0x00, 0x00])
         synth = lab_pegen.wrap(
-            a["bin"][:0x200] + craft,
+            body[:0x200] + craft,
             "; synth\n!module synthm\n!entry 1200\n"
             "!idata 1000 28\n!iat 1028 48\n")
         _facts(check, bexe, synth, "synthm (тень/нули/ret)",
                tid="T-E9-21")
 
-        # T-E9-22 (E9.2-3a/b): эмиссия — выходной файл t.b2 ==
-        # оракулу emit_b2(mode="H") на ВСЕХ 12 артефактах семейства
-        # + синтетике спуска (шапка SPEC/15, H-строки с примечаниями
-        # _note, данные DZ/DB) + МЕТКИ l/d/iat_ И СЕМАНТИКА DD/DQ +
-        # разрезы (E9.2-3b) + синтетика меток: мутант hint-ins (INT[0]
-        # указывает СТРОГО ВНУТРЬ выжившей инструкции 0x2B+1 — метка
-        # d102c не создаётся, обе таблицы DQ сырыми байтами, b2
-        # ВАЛИДЕН — правило представимости SPEC/15 п. 6) и мутант
-        # imp0 (таблица INT пуста — impn=0: без отказа, DD + DQ «0»);
-        # для мутантов — и круг оракула (enc -> brick -> pegen ==
-        # мутанту — доказательство валидности H-текста)
+        # T-E9-22 (E9.2-3a/b/c): эмиссия — выходной файл t.b2 ==
+        # оракулу КАНОНА emit_b2 (без mode — E9.2-3c: M-строки при
+        # точном воспроизведении enc, иначе H-фолбэк; метки l/d/iat_ +
+        # семантика DD/DQ + разрезы — E9.2-3b; шапка/H-строки/DZ/DB —
+        # E9.2-3a) на ВСЕХ 12 артефактах семейства + синтетике спуска +
+        # синтетике меток: мутант hint-ins (INT[0] указывает СТРОГО
+        # ВНУТРЬ выжившей инструкции 0x2B+1 — метка d102c не создаётся,
+        # обе таблицы DQ сырыми байтами, b2 ВАЛИДЕН — правило
+        # представимости SPEC/15 п. 6) и мутант imp0 (таблица INT пуста
+        # — impn=0: без отказа, DD + DQ «0»); для мутантов — и круг
+        # оракула (enc -> brick -> pegen == мутанту — валидность текста)
         _fam = lab_bridge.parse_family(kfile("L0-SEED/seed.exe"))
         _imp = _fam["pe"]["imports"][0]
         _intf = _imp["oft_rva"] - 0x1000 + _fam["pe"]["sec_raw_ptr"]
@@ -429,7 +466,7 @@ def run(check, kpath, kfile, kernel_host):
         bad = []
         for m in ARTIFACTS:
             data = kfile("%s.exe" % m)
-            want, _st = lab_bridge.emit_b2(data, mode="H")
+            want, _st = lab_bridge.emit_b2(data)
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             if r.exit_code != 0 or \
@@ -440,7 +477,7 @@ def run(check, kpath, kfile, kernel_host):
         synth_cases = [(synth, "synthm"), (mut_hint, "hint-ins"),
                        (mut_imp0, "imp0")]
         for data, mname in synth_cases:
-            want, _st = lab_bridge.emit_b2(data, mode="H")
+            want, _st = lab_bridge.emit_b2(data)
             r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                                {"in.exe": data})
             ok = (r.exit_code == 0
@@ -455,14 +492,17 @@ def run(check, kpath, kfile, kernel_host):
                     ok = False
             if not ok:
                 bad.append("%s (код %s)" % (mname, r.exit_code))
-        check("T-E9-22 эмиссия .b2 (H: метки l/d/iat_ + DD/DQ + разрезы)"
-              " == оракулу (12 артефактов + синтетика)", not bad,
-              "; ".join(bad[:2]) if bad else "шапка; H/DZ/DB/DD/DQ; метки")
+        check("T-E9-22 эмиссия .b2 (КАНОН: M-строки при точном"
+              " воспроизведении enc + метки + семантика) == оракулу"
+              " (12 артефактов + синтетика)", not bad,
+              "; ".join(bad[:2]) if bad else "шапка; M/H/DZ/DB/DD/DQ;"
+              " метки")
 
-        # T-E9-23 (E9.2-3a/b): сквозной круг H-текста РЕАЛЬНЫМИ
-        # ИНСТРУМЕНТАМИ (метки + семантика + разрезы байто-точны,
-        # SPEC/15 п. 5/6/8): bridge.exe -> t.b2 (H) -> enc -> brick ->
-        # pegen(+peg оракула) == исходный EXE (seed и hxdump)
+        # T-E9-23 (E9.2-3a/b/c): сквозной круг КАНОННОГО текста
+        # РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ (M-строки + метки + семантика +
+        # разрезы байто-точны, SPEC/15 п. 5/6/8): bridge.exe -> t.b2
+        # (канон) -> enc -> brick -> pegen(+peg оракула) == исходный EXE
+        # (seed и hxdump) — интеграция enc: M-строки парсятся кодировщиком
         bad = []
         for m in ("L0-SEED/seed", "L0-HXDUMP/hxdump"):
             data = kfile("%s.exe" % m)
@@ -485,7 +525,7 @@ def run(check, kpath, kfile, kernel_host):
                 bad.append("%s (enc=%s brick=%s pegen=%s)"
                            % (m.split("/")[-1], r1.exit_code,
                               r2.exit_code, r3.exit_code))
-        check("T-E9-23 круг raw-текста инструментами: seed/hxdump =="
+        check("T-E9-23 круг канонного текста инструментами: seed/hxdump =="
               " оригиналу", not bad, "; ".join(bad) if bad
               else "enc -> brick -> pegen")
     finally:
@@ -493,3 +533,24 @@ def run(check, kpath, kfile, kernel_host):
 
     # T-E9-20: оракульный круг моста над bridge.exe — 12-й артефакт
     _oracle_circle(check, kfile, "L5-BRIDGE/bridge", "T-E9-20")
+
+
+def run_fixpoint(check, kpath, kfile, kernel_host):
+    """Группа 5 песочницы (с E9.2-3c): ТОЛЬКО T-E9-17 — фикс-пункт
+    сборки моста (bridge.wall -> wall/enc/brick/pegen -> артефакты
+    байт-в-байт + b2 == оракулу WALL); вызывается отдельно, т.к. сборка
+    (~595 млн шагов wall) + прогоны инструмента не вмещаются в один
+    10-минутный вызов песочницы (группа 4 — остальные 22 проверки
+    секции 18 на артефакте репозитория; полный прогон — CI/lab_verify).
+    """
+    ok, a, note = build(kpath, kfile, kernel_host)
+    if ok:
+        oracle = lab_l2.compile_wall(
+            lab_splice.splice("L5-BRIDGE/bridge.wall", kernel_host())
+            .decode("latin1")).encode()
+        ok = (a["b2"] == oracle == kfile("L5-BRIDGE/bridge.b2")
+              and a["brick"] == kfile("L5-BRIDGE/bridge.brick")
+              and a["exe"] == kfile("L5-BRIDGE/bridge.exe"))
+    check("T-E9-17 фикс-пункт: bridge.wall -> артефакты (байт-в-байт)",
+          ok, note)
+    return ok

@@ -27,14 +27,27 @@
 ; инструкции — сырые байты; зонд probe_e92_3b2), семантика DD/DQ
 ; импортов с $ссылками (приёмка строк без пересечений с инструкциями /
 ; друг другом / метками внутри), разрезы «:имя ; @смещ» и ДРАЙВЕР
-; эмиссии emit_body (линейный проход по событиям, запись <выход>.b2);
-; M-строки — срез E9.2-3c, PEG — E9.2-4.
+; эмиссии emit_body (линейный проход по событиям, запись <выход>.b2).
+; Срез E9.2-3c (M-СТРОКИ — КАНОН mode=None): ветвь M
+; (bridge_self_m.wall + m2 + m3 + m4 — 28 кирпичей K5-M001..M028):
+; инструмент решает «M или H» теми же правилами, что _template
+; оракула (ПОВТОРНОЕ КОДИРОВАНИЕ: mbuf + сверка m_cmp с байтами тела и
+; значением слота — байто-точность ВСЕГДА; M-строка — вопрос
+; читаемости, SPEC/15 п. 5): рендер операндов (m_opr/m_opmem:
+; рег-имена, знаковый hex imm, память [base+idx±disp]/[rip+$имя] c
+; kw byte/word/dword/qword, $base/-4096, слот :1 rel8) + кодировщики
+; всех семейств канона enc (SIMPLE/jmp/jcc/call/movzx/push/pop/test/
+; lea/imul/сдвиги/neg/idiv/inc/dec/ALU/mov — m2/m3); факт-строка
+; расширена ВЫХОДОМ моста: M=<число M-строк> H=<число H-строк>
+; (T-E9-18); PEG — срез E9.2-4.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
 ; bridge_self_d2.wall; спуск W — bridge_self_w.wall; примитивы эмиссии
 ; E — bridge_self_e.wall; метки/семантика/драйвер L —
-; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500).
+; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500;
+; примитивы M — bridge_self_m.wall, семейства — m2/m3, драйвер — m4,
+; разрез по лимиту 500).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
 ; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8),
@@ -149,6 +162,14 @@ var semrows
 var labmap
 var sstate
 var semstate
+var mblen
+var mslot
+var mslotz
+var mslof
+var mopc
+var mis8
+var mcount
+var hcount
 var arg1[16]
 var arg2[16]
 var arg3[16]
@@ -159,7 +180,9 @@ var o_r64[17]
 var o_r8[17]
 var o_r16[17]
 var o_r32[17]
+var o_kw[5]
 var tplb[25]
+var mbuf[24]
 var w1[64]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
@@ -178,12 +201,19 @@ str s_f5 = ' IMP='
 str s_f6 = ' INS='
 str s_f7 = ' TARGET='
 str s_f8 = ' BSS='
+str s_f9 = ' M='
+str s_fa = ' H='
 str s_crlf = '\r\n'
 str s_pref = 'Universal L0 '
 str s_needle = '. No DOS support.'
 str s_dll = 'kernel32.dll'
 str s_h = 'H '
 str s_at = ' ; @'
+str s_ml = 'M '
+str s_ripl = '[rip+$'
+str s_base = 'base'
+str s_s1 = ':1'
+str s_kw = 'byte \0word \0dword \0qword \0'
 str s_dz = 'DZ '
 str s_db = 'DB '
 str s_iat = 'iat_'
@@ -210,6 +240,10 @@ str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D1822
 !include bridge_self_e.wall
 !include bridge_self_l.wall
 !include bridge_self_l2.wall
+!include bridge_self_m.wall
+!include bridge_self_m2.wall
+!include bridge_self_m3.wall
+!include bridge_self_m4.wall
 
 func main
   var i

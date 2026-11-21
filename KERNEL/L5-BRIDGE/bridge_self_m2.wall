@@ -1,0 +1,409 @@
+; bridge_self_m2.wall — кодировщики простых семейств ветви M, часть 2 (E9.2-3c)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_m2.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь M моста, ЧАСТЬ 2 — КОДИРОВЩИКИ ПРОСТЫХ СЕМЕЙСТВ
+; (== таблице ENCODERS оракула lab_enc по SPEC/09; рендер операндов —
+; m_opr/m_dollar части 1; примитивы — m/m3): K5-M010 m_bsimple —
+; cdqe/cqo/ret/int3 (SIMPLE: 48 98 / 48 99 / C3 / CC; cdq — вне
+; SIMPLE enc -> H), K5-M011 m_bjmp — jmp ($base/-4096 | метка labmap;
+; EB слот 1 Б при dlen 2, иначе E9 слот 4 Б — == _enc_jmp), K5-M012
+; m_bjcc — jcc (70|cc слот 1 / 0F 80|cc слот 4 — == _enc_jcc), K5-M013
+; m_bcall — call (E8 $метка слот 4 — $base НЕВОЗМОЖЕН (оракула нет);
+; FF 15 [rip+$имя] слот 4 — == _enc_call), K5-M014 m_bmovzx — movzx
+; (r32/r64, r8: 0F B6 /r; r32/r64, mem 8/16: 0F B6/B7 + память c kw —
+; == _enc_movzx), K5-M015 m_bstack — push/pop r64 (5x + REX.B — ==
+; _enc_stack), K5-M016 m_btest — test r,r (84/85 — == _enc_test),
+; K5-M017 m_blea — lea r32/r64, mem (8D — == _enc_lea; память БЕЗ
+; kw — размер не в тексте), K5-M018 m_bimul — imul r64,r64 (REX.WRB
+; 0F AF /r — lab_enc_isa), K5-M019 m_bshift — rol/shl/shr/sar (C0/C1
+; imm8 | D2/D3 cl — == _enc_shift), K5-M020 m_bf7 — neg/idiv (F7 /3
+; /7 — == _enc_f7), K5-M021 m_bff — inc/dec (FF /0 /1 — == _enc_ff).
+; ALU/mov — часть 3 (bridge_self_m3.wall); драйвер — часть 4.
+; Транслитерация-свидетель: LAB/ai/trace_m.py (46470/46470).
+
+; K5-M010: простые без операндов — cdqe (48 98) / cqo (48 99) / ret
+; (C3) / int3 (CC); прочее (cdq 14 — нет в SIMPLE оракула) -> 1 = H
+func m_bsimple
+  if dname == 12
+    m_put(72)
+    m_put(152)
+    return 0
+  end
+  if dname == 13
+    m_put(72)
+    m_put(153)
+    return 0
+  end
+  if dname == 15
+    m_put(195)
+    return 0
+  end
+  if dname == 16
+    m_put(204)
+    return 0
+  end
+  return 1
+end
+
+; K5-M011: jmp — цель da1v ($base = -4096 | метка labmap; нет — H);
+; короткая форма (dlen 2): EB + слот 1 Б, длинная: E9 + слот 4 Б;
+; «$имя(:1)» — m_dollar
+func m_bjmp
+  var rsh8
+  if da1v != -4096
+    if getb(labmap, da1v) == 0
+      return 1
+    end
+  end
+  rsh8 = 0
+  if dlen == 2
+    rsh8 = 1
+  end
+  app_ch(32)
+  m_dollar(da1v, rsh8)
+  if rsh8 != 0
+    m_put(235)
+    mslot = mblen
+    mslotz = 1
+    mslof = da1v
+    return 0
+  end
+  m_put(233)
+  mslot = mblen
+  mslotz = 4
+  mslof = da1v
+  return 0
+end
+
+; K5-M012: jcc — цель da1v как у jmp; короткая (dlen 2): 70|cc + слот
+; 1 Б, длинная: 0F 80|cc + слот 4 Б (cc = dcc)
+func m_bjcc
+  var rsh8
+  if da1v != -4096
+    if getb(labmap, da1v) == 0
+      return 1
+    end
+  end
+  rsh8 = 0
+  if dlen == 2
+    rsh8 = 1
+  end
+  app_ch(32)
+  m_dollar(da1v, rsh8)
+  if rsh8 != 0
+    m_put(112 + dcc)
+    mslot = mblen
+    mslotz = 1
+    mslof = da1v
+    return 0
+  end
+  m_put(15)
+  m_put(128 + dcc)
+  mslot = mblen
+  mslotz = 4
+  mslof = da1v
+  return 0
+end
+
+; K5-M013: call — E8 $метка (слот 4; $base НЕВОЗМОЖЕН — оракул не
+; отображает) | FF 15 [rip+$имя] (слот 4; $base допустим); прочее -> H
+func m_bcall
+  if da1k == 4
+    if da1v == -4096
+      return 1
+    end
+    if getb(labmap, da1v) == 0
+      return 1
+    end
+    app_ch(32)
+    m_dollar(da1v, 0)
+    m_put(232)
+    mslot = mblen
+    mslotz = 4
+    mslof = da1v
+    return 0
+  end
+  if da1k == 2
+    if mripon != 1
+      return 1
+    end
+    app_ch(32)
+    if m_opmem(1, 0) != 0
+      return 1
+    end
+    m_put(255)
+    m_put(21)
+    mslot = mblen
+    mslotz = 4
+    mslof = omrip
+    return 0
+  end
+  return 1
+end
+
+; K5-M014: movzx — r32/r64 <- r8 (REX.RB 0F B6 /r mod 3) | mem 8/16
+; (0F B6/B7 + память c kw «byte/word»; REX.RXB, БЕЗ W — == _enc_movzx)
+func m_bmovzx
+  if da1k != 1
+    return 1
+  end
+  if da1s != 32 && da1s != 64
+    return 1
+  end
+  if da2k == 1
+    if da2s != 8
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    m_rex(0, da1r, 0, da2r)
+    m_put(15)
+    m_put(182)
+    m_put(192 + (da1r & 7) * 8 + (da2r & 7))
+    return 0
+  end
+  if da2k == 2
+    if da2s != 8 && da2s != 16
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 1) != 0
+      return 1
+    end
+    m_rex(0, da1r, omidx, ombase)
+    m_put(15)
+    if da2s == 8
+      m_put(182)
+    else
+      m_put(183)
+    end
+    m_enc_mem(da1r & 7)
+    return 0
+  end
+  return 1
+end
+
+; K5-M015: push/pop r64 (50/58 + REX.B; БЕЗ W — == _enc_stack)
+func m_bstack
+  if da1k != 1
+    return 1
+  end
+  if da1s != 64
+    return 1
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  m_rex(0, 0, 0, da1r)
+  if dname == 10
+    m_put(80 + (da1r & 7))
+  else
+    m_put(88 + (da1r & 7))
+  end
+  return 0
+end
+
+; K5-M016: test r,r — размеры равны, не 16 (84/85 + REX.WRB — ==
+; _enc_test; modrm: src в поле reg)
+func m_btest
+  var op
+  if da1k != 1
+    return 1
+  end
+  if da2k != 1
+    return 1
+  end
+  if da1s != da2s || da1s == 16
+    return 1
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+  if m_opr(2, 0) != 0
+    return 1
+  end
+  m_rex(da1s, da2r, 0, da1r)
+  op = 133
+  if da1s == 8
+    op = 132
+  end
+  m_put(op)
+  m_put(192 + (da2r & 7) * 8 + (da1r & 7))
+  return 0
+end
+
+; K5-M017: lea r32/r64, mem (8D + REX.RXB + память БЕЗ kw — размер
+; не в тексте оракула — == _enc_lea)
+func m_blea
+  if da1k != 1
+    return 1
+  end
+  if da1s != 32 && da1s != 64
+    return 1
+  end
+  if da2k != 2
+    return 1
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+  if m_opr(2, 0) != 0
+    return 1
+  end
+  m_rex(da1s, da1r, omidx, ombase)
+  m_put(141)
+  m_enc_mem(da1r & 7)
+  return 0
+end
+
+; K5-M018: imul r64, r64 (REX.WRB 0F AF /r mod 3 — lab_enc_isa)
+func m_bimul
+  if da1k != 1
+    return 1
+  end
+  if da2k != 1
+    return 1
+  end
+  if da1s != 64 || da2s != 64
+    return 1
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+  if m_opr(2, 0) != 0
+    return 1
+  end
+  m_rex(64, da1r, 0, da2r)
+  m_put(15)
+  m_put(175)
+  m_put(192 + (da1r & 7) * 8 + (da2r & 7))
+  return 0
+end
+
+; K5-M019: сдвиги rol/shl/shr/sar (ext 0/4/5/7): r, счётчик (C0/C1 +
+; imm8; REX.WB) | r, cl (D2/D3; REX.WB) — == _enc_shift; память/16 — H
+func m_bshift
+  var ext
+  var op
+  ext = 4
+  if dname == 21
+    ext = 0
+  else
+    if dname == 23
+      ext = 5
+    else
+      if dname == 24
+        ext = 7
+      end
+    end
+  end
+  if da1k != 1
+    return 1
+  end
+  if da1s == 16
+    return 1
+  end
+  if da2k == 6
+    if da2v < 0 || da2v > 255
+      return 1
+    end
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = 193
+    if da1s == 8
+      op = 192
+    end
+    m_rex(da1s, 0, 0, da1r)
+    m_put(op)
+    m_put(192 + ext * 8 + (da1r & 7))
+    m_put(da2v & 255)
+    return 0
+  end
+  if da2k == 5
+    app_ch(32)
+    if m_opr(1, 0) != 0
+      return 1
+    end
+    outcur = copy_str(outbuf, outcur, s_comma, len(s_comma))
+    if m_opr(2, 0) != 0
+      return 1
+    end
+    op = 211
+    if da1s == 8
+      op = 210
+    end
+    m_rex(da1s, 0, 0, da1r)
+    m_put(op)
+    m_put(192 + ext * 8 + (da1r & 7))
+    return 0
+  end
+  return 1
+end
+
+; K5-M020: neg (F7 /3) / idiv (F7 /7) — r32/r64 (REX.WB — == _enc_f7)
+func m_bf7
+  var ext
+  if da1k != 1
+    return 1
+  end
+  if da1s != 32 && da1s != 64
+    return 1
+  end
+  ext = 3
+  if dname == 26
+    ext = 7
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  m_rex(da1s, 0, 0, da1r)
+  m_put(247)
+  m_put(192 + ext * 8 + (da1r & 7))
+  return 0
+end
+
+; K5-M021: inc (FF /0) / dec (FF /1) — r32/r64 (REX.WB — == _enc_ff)
+func m_bff
+  var ext
+  if da1k != 1
+    return 1
+  end
+  if da1s != 32 && da1s != 64
+    return 1
+  end
+  ext = 0
+  if dname == 28
+    ext = 1
+  end
+  app_ch(32)
+  if m_opr(1, 0) != 0
+    return 1
+  end
+  m_rex(da1s, 0, 0, da1r)
+  m_put(255)
+  m_put(192 + ext * 8 + (da1r & 7))
+  return 0
+end

@@ -1,8 +1,9 @@
 """dev_t22.py — (частное) прогон Т-E9-22/23 в отрыве от сборки: мост
-bridge.exe УЖЕ пересобран в репозитории (bridge_test.py фаза 1); здесь
-только диффтест эмиссии (mode="H") на 12 артефактах + синтетике
-(synthm/hint-ins/imp0) и круг H-текста инструментами (seed/hxdump).
-Хронометраж — для решения о разбиении группы 3 батареи.
+bridge.exe УЖЕ пересобран в репозитории (build_bridge_only.py /
+bridge_test.py фаза 1); здесь только диффтест эмиссии (с E9.2-3c —
+КАНОН mode=None: M-строки при точном воспроизведении enc, иначе
+H-фолбэк; до 3c был mode="H") на 12 артефактах + синтетике
+(synthm/hint-ins/imp0). Хронометраж — решение о группах батареи.
 """
 import os
 import sys
@@ -60,14 +61,15 @@ def main():
     t0 = time.time()
     for name, data in cases:
         t1 = time.time()
-        want, st = lab_bridge.emit_b2(data, mode="H")
+        want, st = lab_bridge.emit_b2(data)
         r = lab_run.run_kv(tmp, ["in.exe", "t.b2", "t.peg"],
                            {"in.exe": data})
         got = r.files.get("t.b2")
         ok = r.exit_code == 0 and got == want.encode("utf-8")
-        print("%-8s %s  (%.1f c; %d строк; lab=%d sem=%d)"
+        print("%-8s %s  (%.1f c; %d строк; M=%d H=%d lab=%d sem=%d)"
               % (name, "OK" if ok else "FAIL", time.time() - t1,
-                 want.count("\n"), st["lab"], st["sem"]))
+                 want.count("\n"), st["m"], st["h"], st["lab"],
+                 st["sem"]))
         if not ok:
             print("   код %s; размер %s (нужно %s)"
                   % (r.exit_code, len(got or b""), len(want)))

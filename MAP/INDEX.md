@@ -17,7 +17,8 @@
 | `DOCS/03a-HISTORY.md` | детальная история выполненных этапов E0..E6.4 (раздел 03a/03b при превышении 500 строк — сессия 51) | 320 |
 | `DOCS/03b-HISTORY-E7.md` | детальная история этапа 7 — UNIVM/ассемблер (E7.1..E7.4 ЗАКРЫТЫ; E7.4-1 — оракул; E7.4-2a/b/c — ядро (записи сжаты в указатели на VERIFY ядра — сессия 58); E7.4-3a — мнемоники v1, сессия 58; E7.4-3b — .data/.UP v2, сессия 59; E7.4-4 — ПРИЁМКА DoD — ЭТАП 7.4 ЗАКРЫТ, сессия 60) | 492 |
 | `DOCS/03c-HISTORY-E8.md` | детальная история этапа 8 — Библиотека L4 (E8.1 — SPEC/14 + оракул + секция 16, сессия 61; E8.2a — ветвь C, сессия 62; E8.2b — ветвь N: стек-конвенция + зависимость N→C, сессия 63; E8.2c — ветвь S, сессия 64; E8.2d — ветвь M: LIB-1 целиком, сессия 65; E8.3 — демо-программы DoD, ЭТАП 8 ЗАКРЫТ, сессия 66) | 500 |
-| `DOCS/03d-HISTORY-E9.md` | детальная история этапа 9 — Мост EXE -> ATOM (E9.1 — SPEC/15 + оракул + секция 18, сессия 67; E9.2-1 — КАРКАС, сессия 68; E9.2-2 — СПУСК: декодер + тени + target/bss, 16 кирпичей K5-D*/W*, синтетика теней T-E9-21, 2 дефекта + уроки, сессия 69) | 433 |
+| `DOCS/03d-HISTORY-E9.md` | детальная история этапа 9, ЧАСТЬ 1 (E9.1 — SPEC/15 + оракул + секция 18, сессия 67; E9.2-1 — КАРКАС, сессия 68; E9.2-2 — СПУСК: декодер + тени + target/bss, 16 кирпичей K5-D*/W*, синтетика теней T-E9-21, 2 дефекта + уроки, сессия 69) | 331 |
+| `DOCS/03e-HISTORY-E9.md` | детальная история этапа 9, ЧАСТЬ 2 — срезы эмиссии (E9.2-3a raw-эмиссия — сессия 70; E9.2-3b метки/семантика — сессия 71; E9.2-3c M-строки канона + выход M=/H= — сессия 72; раздел 03d по лимиту 500 строк) | 300 |
 | `DOCS/04-RULES-OF-CHANGE.md` | регламент изменений и коммитов | 59 |
 
 ## SPEC/ — формальные спецификации
@@ -62,11 +63,12 @@
 | `MAP/M3-UNIVM-V.md` | карточки кирпичей M3-UNIVM — ветвь V (интерпретатор, 21: +ALU v1 K3-V112..V116 — E7.4-2b; +стек вызовов K3-V117/V118 — E7.4-2c, часть call) | 335 |
 | `MAP/M3-UVA.md` | карточки кирпичей M3-UVA — ассемблер .uva -> .UP (30: ветви C/T/B/L/E/W/X; срезы E7.3-1..4 + мнемоники v1 E7.4-3a + .data/.UP v2 E7.4-3b — НОВЫЙ K3-T009 data_next) | 489 |
 | `MAP/M4-LIB.md` | карточки кирпичей M4-LIB — библиотека L4 (11: ветви C/N/S/M — слой LIB-1; C — готов E8.2a, N — E8.2b, S — E8.2c, M — план) | 197 |
-| `MAP/METHODS-2.md` | указатель реестра, часть 2: слои L4/L5 (K4 — 11 библиотека; K5 — 87 мост M5-BRIDGE — E9.2-1/2/3a/3b; карточки C/P/X — M5-BRIDGE.md, D/W — M5-BRIDGE-D.md, E — M5-BRIDGE-E.md, L — M5-BRIDGE-L.md) | 115 |
+| `MAP/METHODS-2.md` | указатель реестра, часть 2: слои L4/L5 (K4 — 11 библиотека; K5 — 115 мост M5-BRIDGE — E9.2-1/2/3a/3b/3c; карточки C/P/X — M5-BRIDGE.md, D/W — M5-BRIDGE-D.md, E — M5-BRIDGE-E.md, L — M5-BRIDGE-L.md, M — M5-BRIDGE-M.md) | 143 |
 | `MAP/M5-BRIDGE.md` | карточки кирпичей M5-BRIDGE — мост BRIDGE v1, часть 1 (26: ветвь C — сервис 8, ветвь P — разбор PE/семейство 17 + X — вход; каркас E9.2-1; спуск — M5-BRIDGE-D.md) | 396 |
 | `MAP/M5-BRIDGE-D.md` | карточки кирпичей M5-BRIDGE, часть 2 — СПУСК+ОПЕРАНДЫ (26: ветвь D — декодер SPEC/05, 23 — E9.2-2 длины/классы/цели + E9.2-3a полные операнды: modrm_read/setters/u32/u64; ветвь W — walk/sweep(+sdump)/target, 3) | 424 |
 | `MAP/M5-BRIDGE-E.md` | карточки кирпичей M5-BRIDGE, часть 3 — ПРИМИТИВЫ ЭМИССИИ E9.2-3a (17+1 снят: ветвь E — таблицы имён/шапка-HEX/форматтеры/примечания == _note/H-строки/DZ/DB; K5-E018 emit_raw снят в E9.2-3b — драйвер переехал в ветвь L) | 292 |
-| `MAP/M5-BRIDGE-L.md` | карточки кирпичей M5-BRIDGE, часть 4 — МЕТКИ И СЕМАНТИКА E9.2-3b (17: ветвь L в двух частях l/l2 — записи импортов/san-блоб/метки iat_/d* с правилом представимости, DD/DQ с приёмкой, метки операндов l*/d*, разрезы, драйвер emit_body — режим "H" оракула) | 250 |
+| `MAP/M5-BRIDGE-L.md` | карточки кирпичей M5-BRIDGE, часть 4 — МЕТКИ И СЕМАНТИКА E9.2-3b (17: ветвь L в двух частях l/l2 — записи импортов/san-блоб/метки iat_/d* с правилом представимости, DD/DQ с приёмкой, метки операндов l*/d*, разрезы, драйвер emit_body — канон: m_line ПЕРЕД emit_h с E9.2-3c) | 250 |
+| `MAP/M5-BRIDGE-M.md` | карточки кирпичей M5-BRIDGE, часть 5 — M-СТРОКИ КАНОНА E9.2-3c (28: ветвь M в четырёх частях m/m2/m3/m4 — примитивы кодировки mbuf/сверка m_cmp со слотом, рендер операндов m_opr/m_opmem/$имя/kw, кодировщики всех семейств enc (SIMPLE/jmp/jcc/call/movzx/push/pop/test/lea/imul/сдвиги/neg/idiv/inc/dec/ALU/mov), драйверы m_body/m_line) | 461 |
 | `MAP/LAYERS.md` | реестр слоёв L0..L6 и их статусы (L3/L4 — готовы: ЭТАПЫ 7-8 ЗАКРЫТЫ; L5 — в работе: E9.2-2 спуск; L6 — старт) | 72 |
 
 ## KERNEL/ — ядро
@@ -222,24 +224,30 @@
 | `KERNEL/L4-LIB/lib_s.uva` | ветвь S — строки: K4-S001 str_len (цикл ldb до NUL, len = p−addr) / K4-S002 str_out (ldb → stb-консоль до NUL); АВТОНОМНАЯ ветвь — без зависимостей (одно !include) и без стека (r13 не нужен, r14 — только str_out; E8.2c) | 45 |
 | `KERNEL/L4-LIB/lib_m.uva` | ветвь M — память: K4-M001 mem_copy (цикл ldb → stb ПО ВОЗРАСТАНИЮ адресов — формула SPEC/14 п. 4 задаёт перекрытия) / K4-M002 mem_fill (цикл stb, r2 AND 255); АВТОНОМНАЯ ветвь как S — без зависимостей, БЕЗ стека (r13 не нужен) и БЕЗ консоли (r14 не нужен — эффект в RAM; E8.2d) | 40 |
 
-### KERNEL/L5-BRIDGE — мост BRIDGE v1 (E9.2-1 каркас + E9.2-2 спуск: декодер + тени + target/bss)
+### KERNEL/L5-BRIDGE — мост BRIDGE v1 (E9.2-1 каркас + E9.2-2 спуск + E9.2-3a/b/c эмиссия: H -> метки -> M-строки канона)
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `KERNEL/L5-BRIDGE/CARD.md` | карточка модуля M5-BRIDGE (мост BRIDGE v1: E9.2-1 каркас — CLI/чтение/разбор PE/семейство/импорты; E9.2-2 спуск — декодер SPEC/05 + тени + target/bss; E9.2-3a — полные операнды декодера + примитивы вывода; E9.2-3b — метки l/d/iat_ + семантика DD/DQ + разрезы + драйвер emit_body (режим "H"); успех — факт-строка + файл == оракулу H; отказы — коды 2..9; M-строки — E9.2-3c, PEG — E9.2-4) | 170 |
-| `KERNEL/L5-BRIDGE/bridge.wall` | корень с разрезом (SPEC/10): 8 ext, 59 var — СКАЛЯРЫ ПЕРВЫМИ, массивы в конце (arg1/arg2/arg3[16]; factbuf[24]; o_mn/o_cc/o_r64/o_r8/o_r16/o_r32; tplb[25]; w1[32] ПОСЛЕДНИМ — хвост !bss падает внутрь него, 0 H-строк — урок E9.2-2, подтверждён E9.2-3a), 36 str (вкл. NUL-блобы имён и HEX-шапка s_tpl), main (CLI → чтение → проверки → спуск → таблицы → raw-эмиссия .b2 → факты) | 229 |
+| `KERNEL/L5-BRIDGE/CARD.md` | карточка модуля M5-BRIDGE (мост BRIDGE v1: E9.2-1 каркас — CLI/чтение/разбор PE/семейство/импорты; E9.2-2 спуск — декодер SPEC/05 + тени + target/bss; E9.2-3a — полные операнды декодера + примитивы вывода; E9.2-3b — метки l/d/iat_ + семантика DD/DQ + разрезы + драйвер emit_body; E9.2-3c — M-строки канона (ветвь M: точное воспроизведение enc — m_cmp со слотом, иначе H-фолбэк) + факт-строка с выходом M=/H=; отказы — коды 2..9; PEG — E9.2-4) | 185 |
+| `KERNEL/L5-BRIDGE/bridge.wall` | корень с разрезом (SPEC/10): 8 ext, 67 var (СКАЛЯРЫ ПЕРВЫМИ; массивы в конце: arg1/arg2/arg3[16], factbuf[24], o_mn/o_cc/o_r64/o_r8/o_r16/o_r32/o_kw[5], tplb[25], mbuf[24], w1[64] ПОСЛЕДНИМ — хвост !bss падает внутрь него, 0 H-строк — урок E9.2-2, ОБЩЁН E9.2-3b), 46 str (вкл. NUL-блобы имён, kw-слова и HEX-шапка s_tpl), main (CLI → чтение → проверки → спуск → таблицы → карты (L) → эмиссия .b2 КАНОН (M/H) → факты M=/H=) | 299 |
 | `KERNEL/L5-BRIDGE/bridge_self_c.wall` | ветвь C — сервис: print_error, skip0, read_arg, check_end (ровно 3 аргумента), widen (ANSI → UTF-16LE), copy_str, out_dec, out_hex (8 ЗАГЛАВНЫХ hex-цифр) — реинкарнации K3-C* | 235 |
-| `KERNEL/L5-BRIDGE/bridge_self_pe.wall` | ветвь P — разбор PE и семейство: rd16/rd32, fail_family, guard, check_head/opt/base/sect/size/body (инварианты SPEC/04), stub_name (префикс «Universal L0 » + игла «. No DOS support.» + имя 1..31 без пробельных байтов — как .isspace оракула), rva_off, walk_descs (IDT: один дескриптор + терминатор), cstr_len (quirk оракула len-1), check_dll (kernel32.dll без регистра), walk_funcs (счёт INT/IAT + чётность hint), print_facts (с INS/TARGET/BSS — E9.2-2) | 407 |
+| `KERNEL/L5-BRIDGE/bridge_self_pe.wall` | ветвь P — разбор PE и семейство: rd16/rd32, fail_family, guard, check_head/opt/base/sect/size/body (инварианты SPEC/04), stub_name (префикс «Universal L0 » + игла «. No DOS support.» + имя 1..31 без пробельных байтов — как .isspace оракула), rva_off, walk_descs (IDT: один дескриптор + терминатор), cstr_len (quirk оракула len-1), check_dll (kernel32.dll без регистра), walk_funcs (счёт INT/IAT + чётность hint), print_facts (INS/TARGET/BSS + ВЫХОД M=/H= — E9.2-3c) | 415 |
 | `KERNEL/L5-BRIDGE/bridge_self_d.wall` | ветвь D — декодер, часть 1 (E9.2-2/3a): fb, rel8/rel32, u32/u64 (беззнаковые чтения), modrm_read (ПОЛНЫЙ modrm+SIB+disp: reg/память/rip — E9.2-3a), setters операндов set_reg/set_rm/set_imm/set_immu/set_tgt/set_cl/set_cnt, alu_id, dec0f (jcc/movzx/imul — с операндами), decalu, decmod — K5-D001..D007, D014..D023 | 449 |
 | `KERNEL/L5-BRIDGE/bridge_self_d2.wall` | ветвь D — декодер, часть 2 (E9.2-2/3a): decimm (push/pop/cdqe/cqo/mov r,imm — imm64 вид 7/ret/int3), decshift (C0/C1/D3 — счётчик-маска 63/31), decgrp (80/81/83), decgrp2 (C6/C7/F6/F7/FF; урок 0xC6=198), decbr (E8/E9/EB/70..7F — dtgt/dcc), decode_ins (диспетчер == lab_x86.decode; операнды da1*/da2*/om*; omrip = конец+disp32) — K5-D008..D013 | 498 |
 | `KERNEL/L5-BRIDGE/bridge_self_w.wall` | ветвь W — спуск от входа (E9.2-2/3a): walk_code (стек целей 1048584 в куче + карты insmap/lenmap 262145; rawlim = min(vsize, raw); терминалы/нули), sweep_ins (тени — младший адрес; inscount/maxend + СДАМП выживших sdump — E9.2-3a), calc_target (target/bss — SPEC/15 п. 7) — K5-W001..W003 | 155 |
-| `KERNEL/L5-BRIDGE/bridge_self_e.wall` | ветвь E — raw-эмиссия b2 (E9.2-3a): таблицы имён (fill_offs/init_tables), шапка HEX (tpl_dec/app_tpl), форматтеры (out_hexv/hxs/hxu64/hex2/hex4m/sdec), примечания == _note (note_op/emit_note), H-строки (emit_h), данные (emit_data), запись файла (emit_raw — коды 8/9) — K5-E001..E018 | 444 |
+| `KERNEL/L5-BRIDGE/bridge_self_e.wall` | ветвь E — примитивы эмиссии (E9.2-3a/b/c): таблицы имён (fill_offs/init_tables + kw-слова — E9.2-3c), шапка HEX (tpl_dec/app_tpl), форматтеры (out_hexv/hxs/hxu64/hex2/hex4m/sdec), примечания == _note (note_op/emit_note), H-строки (emit_h), данные (emit_data) — K5-E001..E017 (E018 снят E9.2-3b) | 396 |
+| `KERNEL/L5-BRIDGE/bridge_self_l.wall` | ветвь L, часть 1 — КАРТЫ И СЕМАНТИКА (E9.2-3b): imp_hints/san_put/imp_offs/imp_labels (метки iat_/d* + known; правило представимости), build_sstate, sem_add/dq_base/dd_idt/sem_filter, ins_labels (метки операндов l*/d*) — K5-L001..L010 | 425 |
+| `KERNEL/L5-BRIDGE/bridge_self_l2.wall` | ветвь L, часть 2 — РЕНДЕР И ДРАЙВЕР (E9.2-3b/c): out_hexl, emit_labname/emit_cut/emit_dollar/emit_sem, build_maps, emit_body — ДРАЙВЕР (канон: m_line ПЕРЕД emit_h, счёты mcount/hcount — E9.2-3c) — K5-L011..L017 | 264 |
+| `KERNEL/L5-BRIDGE/bridge_self_m.wall` | ветвь M, часть 1 — ПРИМИТИВЫ (E9.2-3c): m_put/m_put4 (mbuf), m_rex (REX по значениям), m_enc_mem (modrm/SIB/disp + слот rip — == _enc_mem), m_cmp (СВЕРКА с телом + слот — == _template), m_kw/m_dollar/m_opmem/m_opr (рендер операндов) — K5-M001..M009 | 325 |
+| `KERNEL/L5-BRIDGE/bridge_self_m2.wall` | ветвь M, часть 2 — КОДИРОВЩИКИ ПРОСТЫХ СЕМЕЙСТВ (E9.2-3c): m_bsimple (SIMPLE), m_bjmp/m_bjcc/m_bcall (слоты rel8/rel32/rip), m_bmovzx, m_bstack, m_btest, m_blea, m_bimul, m_bshift, m_bf7, m_bff — K5-M010..M021 | 409 |
+| `KERNEL/L5-BRIDGE/bridge_self_m3.wall` | ветвь M, часть 3 — ALU И MOV (E9.2-3c): m_alu_base/m_alu_ext/m_alu_imm (форма 80/83/81), m_balu (5 пар операндов), m_bmov (6 пар; imm64 → H) — K5-M022..M026 | 389 |
+| `KERNEL/L5-BRIDGE/bridge_self_m4.wall` | ветвь M, часть 4 — ДРАЙВЕР (E9.2-3c): m_body (диспетчер по dname: имя + кодировщик), m_line («M » + тело + m_cmp + хвост; провал — откат и H-фолбэк) — K5-M027/M028 | 115 |
 | `KERNEL/L5-BRIDGE/bridge.peg` | обёртка — константа SPEC/11 п.6 (!module bridge; вход 1200, idata 1000 28, iat 1028 48) | 9 |
-| `KERNEL/L5-BRIDGE/bridge.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a): wall.exe(bridge.wall), плоский, 490622 Б — T-E9-17 | — |
-| `KERNEL/L5-BRIDGE/bridge.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(bridge.b2), 464406 Б — T-E9-17 | — |
-| `KERNEL/L5-BRIDGE/bridge.exe` | ГЕНЕРИРУЕМЫЙ артефакт: brick+pegen+bridge.peg — 48128 Б (тело 0xB8AE, target 0xB801, bss 0xAD), вход 0x1200, импорты-восьмёрка; SHA-256 B5536607… — T-E9-17; 12-й член семейства (круг T-E9-20: M=9696 H=0); пишет <выход>.b2 raw (E9.2-3a) | — |
-| `KERNEL/L5-BRIDGE/BYTECODE.md` | карта образа: сводка, 70 функций (RVA), данные (строки 36/глобали 59+7 массивов — w1 последним, канон 0 H), воспроизведение | 177 |
-| `KERNEL/L5-BRIDGE/VERIFY.md` | подлинность + уровни проверки (231/231) + журнал срезов E9.2-1/2 (дефекты 0xC6=198 и хвост !bss — w1 последним; уроки) | 180 |
+| `KERNEL/L5-BRIDGE/bridge.b2` | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a/3b/3c): wall.exe(splice(bridge.wall)), плоский, 888111 Б — T-E9-17 | — |
+| `KERNEL/L5-BRIDGE/bridge.brick` | ГЕНЕРИРУЕМЫЙ артефакт: enc(bridge.b2), 838312 Б — T-E9-17 | — |
+| `KERNEL/L5-BRIDGE/bridge.exe` | ГЕНЕРИРУЕМЫЙ артефакт: brick+pegen+bridge.peg — 88576 Б (тело 0x15787, target 0x15601, bss 0x186), вход 0x1200, импорты-восьмёрка; SHA-256 B3598A11… — T-E9-17; 12-й член семейства (круг T-E9-20: M=18701 H=0); пишет <выход>.b2 КАНОН (M/H — E9.2-3c) | — |
+| `KERNEL/L5-BRIDGE/BYTECODE.md` | карта образа: сводка, 114 функций (RVA), данные (строки 46/глобали 86+9 массивов — w1 последним, канон 0 H), воспроизведение | 226 |
+| `KERNEL/L5-BRIDGE/VERIFY.md` | подлинность + уровни проверки (233/233) + журнал срезов E9.2-1/2/3a/3b/3c (дефекты 0xC6=198, хвост !bss, 2^63 со знаком, булевы скобки; уроки: транслитерация до WALL, слот-последний) | 300 |
 
 ## PROJECTS/ — внешние программы (ядро их не знает)
 
@@ -268,14 +276,14 @@
 | `TESTS/T-L3-UNIVM.md` | тест-план UNIVM: оракул T-E7-01..08 (E7.1) + T-E7-26..31 (E7.4-1: ISA v1 + .UP v2) + ядро kernel.exe T-E7-09..18 (E7.2-1..4) + T-E7-32 (E7.4-2a) + T-E7-33 (E7.4-2b) + T-E7-34 (E7.4-2c: call/ret + стек вызовов/ловушка 5) | 372 |
 | `TESTS/T-L3-UVA.md` | тест-план ассемблера uva.exe T-E7-19..25, 35 (E7.3-1..4 + E7.4-3a + E7.4-3b + E7.4-4 — ПРИЁМКА DoD ЭТАПА 7.4: фикс-пункт/CLI/диффтест 124+127+3 DATA/отвержение/CODE0/15 кругов (вкл. ловушечные — ловушки 5/7 путём ЦЕЛИКОМ uva → kernel.exe)/приёмка T-E7-25 — якоря 24 + программы 10; T-E7-35 — контракт DATA) | 296 |
 | `TESTS/T-L4-LIB.md` | тест-план библиотеки L4: оракул против якорей T-E8-01..07 (E8.1) + диффтесты ветвей C T-E8-08..11 (E8.2a), N T-E8-12..16 (E8.2b: ABI + баланс sp, круг с 2 частями), S T-E8-17..21 (E8.2c: STR, композиция 3 ветвей, r13-сентинел, круг с 1 частью) и M T-E8-22..26 (E8.2d: CPY/FILL по ВСЕЙ RAM, композиция 4 ветвей, ABI, круг с 1 частью) | 358 |
-| `TESTS/T-L5-BRIDGE.md` | тест-план моста BRIDGE v1 + каркас/спуск/raw-эмиссия bridge.exe: T-E9-01..23 (якоря seed, круги 11 артефактов + фикс-пункт/факты с INS/TARGET/BSS/CLI-мутанты вкл. vsize/синтетика теней T-E9-21/круг над bridge.exe/raw == оракулу на 12 + синтетике T-E9-22/круг raw инструментами T-E9-23) | 87 |
+| `TESTS/T-L5-BRIDGE.md` | тест-план моста BRIDGE v1 + каркас/спуск/эмиссия bridge.exe: T-E9-01..23 (якоря seed, круги 11 артефактов + фикс-пункт/факты с INS/TARGET/BSS/выходом M=/H= (E9.2-3c)/CLI-мутанты вкл. vsize/синтетика теней T-E9-21/круг над bridge.exe/КАНОН == оракулу на 12 + синтетике T-E9-22/круг канонного текста инструментами T-E9-23) | 87 |
 | `TESTS/T-PROJECTS.md` | тест-план проектов L6 (E8.3): T-P-01 banner / T-P-02 fib — полный круг инструментами; якоря вывода (полные литералы) | 49 |
 
 ## LAB/ — внешняя лаборатория ИИ (не часть системы)
 
 | Файл | Роль | Строк |
 |---|---|---|
-| `LAB/README.md` | статус и правила лаборатории (батарея 231; ЭТАП 9 — E9.2-2 спуск + E9.2-1 каркас bridge.exe + E9.1 мост BRIDGE v1) | 328 |
+| `LAB/README.md` | статус и правила лаборатории (батарея 233; ЭТАП 9 — E9.2-3c M-строки канона + E9.2-3a/b + E9.2-1/2 + E9.1 мост BRIDGE v1; группы песочницы 1|2|3|4|5) | 328 |
 | `LAB/py/lab_pe.py` | разбор PE32+ + инварианты SPEC/04 | 178 |
 | `LAB/py/lab_atom.py` | оракул ATOM v1 (SPEC/03) | 68 |
 | `LAB/py/lab_brick.py` | оракул BRICK v1 (SPEC/08; метки 2048 — E6.4f-2, imagebuf 0x40010) | 318 |
@@ -332,7 +340,7 @@
 | `LAB/py/lab_t_wallself_emit_cases.py` | источники тестов эмитции T-E6-55/56/57 (срезы C-2/1..2/3; только данные — прогонщик lab_t_wallself.py; выделен по лимиту 500 строк) | 179 |
 | `LAB/py/lab_t_wallself_corpus.py` | корпус секции 12: пул источников T-E6-49d (v1/v2/E1/E2 + микроканарейки E6.4d-2/3..3/2 + big 1/2; только ASCII) | 228 |
 | `LAB/py/lab_t_wallself_model.py` | модель класса эквивалентности каркаса (E6.4d-3/2..3/3): _expect_line по строкам _lex — perr/cerr, стек блоков bstk (func/if/else/while), kw-патологии str/ext (_kw_falls) | 225 |
-| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона; последняя — сессия 69, E9.2-2 — СПУСК: декодер/тени/target/bss == оракулу, батарея 231) | 7034 |
+| `LAB/ai/JOURNAL.md` | журнал сессий ИИ-разработчика (частная зона; последняя — сессия 72, E9.2-3c — M-строки канона: ветвь M + факт-строка M=/H=, батарея 233) | 7319 |
 | `LAB/ai/kernel_test.py` | (частное) построитель M3-UNIVM: kernel.wall -> артефакты (конвейер — эмуляция) + корпус секции 14 с отчётом | 101 |
 | `LAB/ai/wall_ppc_probe.py` | (частное) матрица-зонд дефекта №23 wall.exe (pp_pcount, 17 сниппетов: оракул vs wall.exe; ЗАКРЫТ E7.2-2F — 0 расхождений; регресс-зонд) | 84 |
 | `LAB/ai/kernel_labelmap.py` | (частное) карта меток kernel.brick (RVA) — обновление BYTECODE.md (E7.2-1) | 33 |
@@ -443,7 +451,7 @@ LAB — измерительный прибор (Python только здесь)
   входа, эмиссия b2/peg и запись выходов — срезы E9.2-2+ (план —
   ROADMAP). До этого — E9.1 (сессия 67): SPEC/15 + оракул +
   секция 18 — истина семантики; круг ВСЕХ 11 артефактов
-  байт-в-байт. Подробно — 03d-HISTORY-E9 (сессии 67-68).
+  байт-в-байт. Подробно — 03d/03e-HISTORY-E9 (сессии 67-72).
 - Предыдущие этапы (детали — DOCS/03a/b/c/d-HISTORY*.md и JOURNAL):
   **E8** — Библиотека L4 (сессии 61-66, ЗАКРЫТ: LIB-1 целиком, 11
   кирпичей C/N/S/M; DoD — используется двумя программами banner/fib;
