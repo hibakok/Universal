@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: bridge.exe
+!module bridge
+!entry 1200
+!idata 1000 28
+!iat 1028 48
+!bss 63
+!stackcom 4000
+!heapcom 4000

@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: splice.exe
+!module splice
+!entry 1000
+!idata 19B9 28
+!iat 19E1 40
+!bss 240631
+!stackcom 4000
+!heapcom 4000

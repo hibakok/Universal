@@ -1,0 +1,291 @@
+; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)
+; Исходник: seed2.exe (тело секции RVA 1000, 481 Б; !bss 1)
+; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE
+M sub rsp, 28 ; @0000
+M lea rbx, [rip+$base] ; @0004
+M mov rcx, -B ; @000B
+M call [rip+$iat_getstdhandle] ; @0012
+M mov [rip+$d1348], rax ; @0018
+M call [rip+$iat_getcommandlinea] ; @001F
+M mov rdi, rax ; @0025
+:l1028 ; @0028
+M movzx eax, byte [rdi] ; @0028
+H 3C 22 ; @002B cmp al, 22
+M jnz $l1042:1 ; @002D
+M inc rdi ; @002F
+:l1032 ; @0032
+M movzx eax, byte [rdi] ; @0032
+M test al, al ; @0035
+M jz $l1069:1 ; @0037
+H 3C 22 ; @0039 cmp al, 22
+M jz $l1064:1 ; @003B
+M inc rdi ; @003D
+M jmp $l1032:1 ; @0040
+:l1042 ; @0042
+M test al, al ; @0042
+M jz $l1069:1 ; @0044
+H 3C 20 ; @0046 cmp al, 20
+M jz $l1053:1 ; @0048
+H 3C 09 ; @004A cmp al, 9
+M jz $l1053:1 ; @004C
+M inc rdi ; @004E
+M jmp $l1028:1 ; @0051
+:l1053 ; @0053
+M movzx eax, byte [rdi] ; @0053
+M test al, al ; @0056
+M jz $l1069:1 ; @0058
+H 3C 20 ; @005A cmp al, 20
+M jz $l1064:1 ; @005C
+H 3C 09 ; @005E cmp al, 9
+M jz $l1064:1 ; @0060
+M jmp $l1075:1 ; @0062
+:l1064 ; @0064
+M inc rdi ; @0064
+M jmp $l1053:1 ; @0067
+:l1069 ; @0069
+M call $l1228 ; @0069
+M xor ecx, ecx ; @006E
+M jmp $l11ae ; @0070
+:l1075 ; @0075
+M mov rsi, rdi ; @0075
+:l1078 ; @0078
+M movzx eax, byte [rdi] ; @0078
+M test al, al ; @007B
+M jz $l108c:1 ; @007D
+H 3C 20 ; @007F cmp al, 20
+M jz $l108c:1 ; @0081
+H 3C 09 ; @0083 cmp al, 9
+M jz $l108c:1 ; @0085
+M inc rdi ; @0087
+M jmp $l1078:1 ; @008A
+:l108c ; @008C
+M call $l11b5 ; @008C
+M test rax, rax ; @0091
+M jz $l11a2 ; @0094
+M mov r12, rax ; @009A
+M movzx eax, byte [r12+8] ; @009D
+H 3C 01 ; @00A3 cmp al, 1
+M jz $l10b4:1 ; @00A5
+H 3C 02 ; @00A7 cmp al, 2
+M jz $l1107:1 ; @00A9
+H 3C 03 ; @00AB cmp al, 3
+M jz $l10c7:1 ; @00AD
+M jmp $l11a2 ; @00AF
+:l10b4 ; @00B4
+M mov eax, [rbx+3C] ; @00B4
+M cdqe ; @00B7
+M add rax, rbx ; @00B9
+M movzx edx, byte [r12+9] ; @00BC
+M mov eax, [rax+rdx] ; @00C2
+M jmp $l10d9:1 ; @00C5
+:l10c7 ; @00C7
+M mov eax, [rbx+3C] ; @00C7
+M cdqe ; @00CA
+M add rax, rbx ; @00CC
+M movzx edx, byte [r12+9] ; @00CF
+M movzx eax, word [rax+rdx] ; @00D5
+:l10d9 ; @00D9
+M mov r11d, [r12+C] ; @00D9
+M movzx edx, byte [r12+A] ; @00DE
+M add rdx, r11 ; @00E4
+M add rdx, rbx ; @00E7
+M call $l1201 ; @00EA
+M mov rdx, r11 ; @00EF
+M add rdx, rbx ; @00F2
+M movzx r8d, byte [r12+B] ; @00F5
+M call $l1243 ; @00FB
+M xor ecx, ecx ; @0100
+M jmp $l11ae ; @0102
+:l1107 ; @0107
+M movzx eax, byte [rdi] ; @0107
+M test al, al ; @010A
+M jz $l111d:1 ; @010C
+H 3C 20 ; @010E cmp al, 20
+M jz $l1118:1 ; @0110
+H 3C 09 ; @0112 cmp al, 9
+M jz $l1118:1 ; @0114
+M jmp $l1146:1 ; @0116
+:l1118 ; @0118
+M inc rdi ; @0118
+M jmp $l1107:1 ; @011B
+:l111d ; @011D
+M mov edx, [r12+C] ; @011D
+M add rdx, rbx ; @0122
+M movzx r8d, byte [r12+B] ; @0125
+M call $l1243 ; @012B
+M lea rdx, [rip+$d1342] ; @0130
+M mov r8d, 2 ; @0137
+M call $l1243 ; @013D
+M xor ecx, ecx ; @0142
+M jmp $l11ae:1 ; @0144
+:l1146 ; @0146
+M mov r13, rdi ; @0146
+M mov edx, [r12+C] ; @0149
+M add rdx, rbx ; @014E
+M movzx r8d, byte [r12+B] ; @0151
+M call $l1243 ; @0157
+M xor ecx, ecx ; @015C
+:l115e ; @015E
+M movzx eax, byte [rdi] ; @015E
+M test al, al ; @0161
+M jz $l116c:1 ; @0163
+M inc rdi ; @0165
+M inc ecx ; @0168
+M jmp $l115e:1 ; @016A
+:l116c ; @016C
+M mov r14, rcx ; @016C
+M lea rdx, [rip+$d1340] ; @016F
+M mov r8d, 1 ; @0176
+M call $l1243 ; @017C
+M mov rdx, r13 ; @0181
+M mov r8, r14 ; @0184
+M call $l1243 ; @0187
+M lea rdx, [rip+$d1342] ; @018C
+M mov r8d, 2 ; @0193
+M call $l1243 ; @0199
+M xor ecx, ecx ; @019E
+M jmp $l11ae:1 ; @01A0
+:l11a2 ; @01A2
+M call $l1228 ; @01A2
+M mov ecx, 2 ; @01A7
+M jmp $l11ae:1 ; @01AC
+:l11ae ; @01AE
+M call [rip+$iat_exitprocess] ; @01AE
+M int3 ; @01B4
+:l11b5 ; @01B5
+M lea r8, [rip+$d1360] ; @01B5
+M mov r9d, 5 ; @01BC
+:l11c2 ; @01C2
+M test r9d, r9d ; @01C2
+M jz $l11fa:1 ; @01C5
+M mov r10, r8 ; @01C7
+M mov rcx, rsi ; @01CA
+:l11cd ; @01CD
+M movzx edx, byte [r10] ; @01CD
+M test dl, dl ; @01D1
+M jz $l11e3:1 ; @01D3
+M mov al, [rcx] ; @01D5
+M cmp al, dl ; @01D7
+M jnz $l11f1:1 ; @01D9
+M inc r10 ; @01DB
+M inc rcx ; @01DE
+M jmp $l11cd:1 ; @01E1
+:l11e3 ; @01E3
+M mov al, [rcx] ; @01E3
+M test al, al ; @01E5
+M jz $l11fd:1 ; @01E7
+H 3C 20 ; @01E9 cmp al, 20
+M jz $l11fd:1 ; @01EB
+H 3C 09 ; @01ED cmp al, 9
+M jz $l11fd:1 ; @01EF
+:l11f1 ; @01F1
+M add r8, 10 ; @01F1
+M dec r9d ; @01F5
+M jmp $l11c2:1 ; @01F8
+:l11fa ; @01FA
+M xor eax, eax ; @01FA
+M ret ; @01FC
+:l11fd ; @01FD
+M mov rax, r8 ; @01FD
+M ret ; @0200
+:l1201 ; @0201
+M mov rsi, rdx ; @0201
+M lea r8, [rip+$d1330] ; @0204
+M mov ecx, 8 ; @020B
+:l1210 ; @0210
+M rol eax, 4 ; @0210
+M mov rdx, rax ; @0213
+M and edx, F ; @0216
+M movzx edx, byte [r8+rdx] ; @0219
+M mov [rsi], dl ; @021E
+M inc rsi ; @0220
+M dec ecx ; @0223
+M jnz $l1210:1 ; @0225
+M ret ; @0227
+:l1228 ; @0228
+M sub rsp, 28 ; @0228
+M lea rdx, [rip+$d12f3] ; @022C
+M mov r8d, 2E ; @0233
+M call $l1243 ; @0239
+M add rsp, 28 ; @023E
+M ret ; @0242
+:l1243 ; @0243
+M sub rsp, 28 ; @0243
+M mov rcx, [rip+$d1348] ; @0247
+M lea r9, [rip+$d1350] ; @024E
+M mov qword [rsp+20], 0 ; @0255
+M call [rip+$iat_writefile] ; @025E
+M add rsp, 28 ; @0264
+M ret ; @0268
+DZ 7 ; @0269
+DB 55 2D 4C 30 2D 53 45 45 44 32 20 45 4E 54 52 59 ; @0270
+DB 3D 30 78 ; @0280
+DZ 8 ; @0283
+DB 0D 0A 55 2D 4C 30 2D 53 45 45 44 32 20 49 4D 41 ; @028B
+DB 47 45 3D 30 78 ; @029B
+DZ 8 ; @02A0
+DB 0D 0A 55 2D 4C 30 2D 53 45 45 44 32 20 41 4C 49 ; @02A8
+DB 47 4E 3D 30 78 ; @02B8
+DZ 8 ; @02BD
+DB 0D 0A 55 2D 4C 30 2D 53 45 45 44 32 20 53 45 43 ; @02C5
+DB 54 3D 30 78 ; @02D5
+DZ 8 ; @02D9
+DB 0D 0A 55 2D 4C 30 2D 53 45 45 44 32 20 41 52 47 ; @02E1
+DB 53 3A ; @02F1
+:d12f3 ; @02F3
+DB 55 2D 4C 30 2D 53 45 45 44 32 20 43 4D 44 53 3A ; @02F3
+DB 20 45 4E 54 52 59 20 49 4D 41 47 45 20 41 4C 49 ; @0303
+DB 47 4E 20 53 45 43 54 20 41 52 47 53 0D 0A ; @0313
+DZ F ; @0321
+:d1330 ; @0330
+DB 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 ; @0330
+:d1340 ; @0340
+DB 20 00 ; @0340
+:d1342 ; @0342
+DB 0D 0A ; @0342
+DZ 4 ; @0344
+:d1348 ; @0348
+DZ 8 ; @0348
+:d1350 ; @0350
+DZ 10 ; @0350
+:d1360 ; @0360
+DB 65 6E 74 72 79 ; @0360
+DZ 3 ; @0365
+DB 01 28 13 1D 70 12 00 00 69 6D 61 67 65 ; @0368
+DZ 3 ; @0375
+DB 01 50 13 1D 8D 12 00 00 61 6C 69 67 6E ; @0378
+DZ 3 ; @0385
+DB 01 38 13 1D AA 12 00 00 73 65 63 74 ; @0388
+DZ 4 ; @0394
+DB 03 06 12 1C C7 12 00 00 61 72 67 73 ; @0398
+DZ 4 ; @03A4
+DB 02 00 00 10 E3 12 00 00 ; @03A8
+DD $d1410 0 0 $d1438 $iat_getstdhandle ; @03B0
+DZ 1C ; @03C4
+:iat_getstdhandle ; @03E0
+DQ $d1446 ; @03E0
+:iat_writefile ; @03E8
+DQ $d1456 ; @03E8
+:iat_exitprocess ; @03F0
+DQ $d1462 ; @03F0
+:iat_getcommandlinea ; @03F8
+DQ $d1470 ; @03F8
+DQ 0 ; @0400
+DZ 8 ; @0408
+:d1410 ; @0410
+DQ $d1446 ; @0410
+DQ $d1456 ; @0418
+DQ $d1462 ; @0420
+DQ $d1470 ; @0428
+DQ 0 ; @0430
+:d1438 ; @0438
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 00 ; @0438
+:d1446 ; @0446
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 00 00 ; @0446
+:d1456 ; @0456
+DB 00 00 57 72 69 74 65 46 69 6C 65 00 ; @0456
+:d1462 ; @0462
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 00 ; @0462
+:d1470 ; @0470
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; @0470
+DB 41 ; @0480

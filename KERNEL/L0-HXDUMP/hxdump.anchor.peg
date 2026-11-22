@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: hxdump.exe
+!module hxdump
+!entry 1000
+!idata 18F0 28
+!iat 1918 40
+!bss 1
+!stackcom 4000
+!heapcom 4000

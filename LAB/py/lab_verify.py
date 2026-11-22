@@ -105,6 +105,7 @@ import lab_t_vm
 import lab_t_l4
 import lab_t_prj
 import lab_t_bridge
+import lab_t_anchor
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -488,6 +489,7 @@ def main():
     lab_t_l4.run(check, kpath, kfile, kernel_host)
     lab_t_prj.run(check, kpath, kfile, kernel_host)
     lab_t_bridge.run(check, kpath, kfile, kernel_host)
+    lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

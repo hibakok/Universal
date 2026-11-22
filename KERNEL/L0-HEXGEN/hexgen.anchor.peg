@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: hexgen.exe
+!module hexgen
+!entry 1000
+!idata 1660 28
+!iat 1688 40
+!bss 20107
+!stackcom 4000
+!heapcom 4000

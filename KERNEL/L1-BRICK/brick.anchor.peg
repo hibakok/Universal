@@ -1,0 +1,8 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: brick.exe
+!module brick
+!entry 1000
+!idata 1A7E 28
+!iat 1AA6 40
+!bss 408179
+!stackcom 4000
+!heapcom 4000

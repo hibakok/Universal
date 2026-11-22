@@ -15,7 +15,8 @@ lab_verify).
       uva.exe / оракул библиотеки L4 / проекты PROJECTS — E8.3)
   4 — секция 18 БЕЗ сборки (мост BRIDGE v1 — E9.1/E9.2 на артефакте
       репозитория: диффтесты фактов (M=/H=)/CLI/канона и PEG
-      T-E9-22/24/23)
+      T-E9-22/24/23) + секция 18b — якоря (E9.3-1: T-E9-25, чистый
+      Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -52,6 +53,7 @@ def main():
     elif grp == "4":
         V.lab_t_bridge.run(V.check, V.kpath, V.kfile, V.kernel_host,
                            use_repo=True)
+        V.lab_t_anchor.run(V.check, V.kfile)   # секция 18b — E9.3-1
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)

@@ -1,0 +1,6 @@
+; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: seed2.exe
+!module seed2
+!entry 1000
+!idata 13B0 28
+!iat 13E0 28
+!bss 1

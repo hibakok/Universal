@@ -1,0 +1,6002 @@
+; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)
+; Исходник: kernel.exe (тело секции RVA 1000, 8A01 Б; !bss 91)
+; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE
+DD $d1070 0 0 $d10b8 $iat_getstdhandle ; @0000
+DZ 14 ; @0014
+:iat_getstdhandle ; @0028
+DQ $d10c6 ; @0028
+:iat_writefile ; @0030
+DQ $d10e8 ; @0030
+:iat_exitprocess ; @0038
+DQ $d110a ; @0038
+:iat_getcommandlinea ; @0040
+DQ $d112c ; @0040
+:iat_createfile2 ; @0048
+DQ $d114e ; @0048
+:iat_readfile ; @0050
+DQ $d1170 ; @0050
+:iat_closehandle ; @0058
+DQ $d1192 ; @0058
+:iat_globalalloc ; @0060
+DQ $d11b4 ; @0060
+DQ 0 ; @0068
+:d1070 ; @0070
+DQ $d10c6 ; @0070
+DQ $d10e8 ; @0078
+DQ $d110a ; @0080
+DQ $d112c ; @0088
+DQ $d114e ; @0090
+DQ $d1170 ; @0098
+DQ $d1192 ; @00A0
+DQ $d11b4 ; @00A8
+DQ 0 ; @00B0
+:d10b8 ; @00B8
+DB 6B 65 72 6E 65 6C 33 32 2E 64 6C 6C 00 00 ; @00B8
+:d10c6 ; @00C6
+DB 00 00 47 65 74 53 74 64 48 61 6E 64 6C 65 ; @00C6
+DZ 14 ; @00D4
+:d10e8 ; @00E8
+DB 00 00 57 72 69 74 65 46 69 6C 65 ; @00E8
+DZ 17 ; @00F3
+:d110a ; @010A
+DB 00 00 45 78 69 74 50 72 6F 63 65 73 73 ; @010A
+DZ 15 ; @0117
+:d112c ; @012C
+DB 00 00 47 65 74 43 6F 6D 6D 61 6E 64 4C 69 6E 65 ; @012C
+DB 41 ; @013C
+DZ 11 ; @013D
+:d114e ; @014E
+DB 00 00 43 72 65 61 74 65 46 69 6C 65 32 ; @014E
+DZ 15 ; @015B
+:d1170 ; @0170
+DB 00 00 52 65 61 64 46 69 6C 65 ; @0170
+DZ 18 ; @017A
+:d1192 ; @0192
+DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 ; @0192
+DZ 15 ; @019F
+:d11b4 ; @01B4
+DB 00 00 47 6C 6F 62 61 6C 41 6C 6C 6F 63 ; @01B4
+DZ 3F ; @01C1
+M sub rsp, 8 ; @0200
+M call $l70ff ; @0204
+M int3 ; @0209
+:l120a ; @020A
+M push rbp ; @020A
+M mov rbp, rsp ; @020B
+M sub rsp, 70 ; @020E
+M mov [rbp-8], rcx ; @0212
+M mov [rbp-10], rdx ; @0216
+M mov [rbp-18], r8 ; @021A
+M mov r10, [rip+$d73da] ; @021E
+M mov [rbp-20], r10 ; @0225
+M mov r10, [rbp-8] ; @0229
+M mov [rbp-28], r10 ; @022D
+M mov r10, [rbp-10] ; @0231
+M mov [rbp-30], r10 ; @0235
+M lea r10, [rip+$d73ea] ; @0239
+M mov [rbp-38], r10 ; @0240
+M mov r10, 0 ; @0244
+M mov [rbp-58], r10 ; @024B
+M mov rcx, [rbp-20] ; @024F
+M mov rdx, [rbp-28] ; @0253
+M mov r8, [rbp-30] ; @0257
+M mov r9, [rbp-38] ; @025B
+M mov r10, [rbp-58] ; @025F
+M mov [rsp+20], r10 ; @0263
+M call [rip+$iat_writefile] ; @0268
+M mov r10, [rbp-18] ; @026E
+M mov [rbp-20], r10 ; @0272
+M mov rcx, [rbp-20] ; @0276
+M call [rip+$iat_exitprocess] ; @027A
+M mov rsp, rbp ; @0280
+M pop rbp ; @0283
+M ret ; @0284
+:l1285 ; @0285
+M push rbp ; @0285
+M mov rbp, rsp ; @0286
+M sub rsp, 80 ; @0289
+M mov r10, 0 ; @0290
+M mov [rbp-8], r10 ; @0297
+M mov r10, [rip+$d73e2] ; @029B
+M mov [rbp-30], r10 ; @02A2
+M mov r10, 0 ; @02A6
+M mov r11, r10 ; @02AD
+M mov r10, [rbp-30] ; @02B0
+M movzx r10d, byte [r10+r11] ; @02B4
+M mov [rbp-10], r10 ; @02B9
+M mov r10, [rbp-10] ; @02BD
+M mov [rbp-30], r10 ; @02C1
+M mov r10, 22 ; @02C5
+M mov r11, r10 ; @02CC
+M mov r10, [rbp-30] ; @02CF
+M cmp r10, r11 ; @02D3
+M jnz $l1406 ; @02D6
+M mov r10, [rbp-8] ; @02DC
+M mov [rbp-30], r10 ; @02E0
+M mov r10, 1 ; @02E4
+M mov r11, r10 ; @02EB
+M mov r10, [rbp-30] ; @02EE
+M add r10, r11 ; @02F2
+M mov [rbp-8], r10 ; @02F5
+M mov r10, 1 ; @02F9
+M mov [rbp-18], r10 ; @0300
+:l1304 ; @0304
+M mov r10, [rbp-18] ; @0304
+M mov [rbp-30], r10 ; @0308
+M mov r10, 1 ; @030C
+M mov r11, r10 ; @0313
+M mov r10, [rbp-30] ; @0316
+M cmp r10, r11 ; @031A
+M jnz $l1401 ; @031D
+M mov r10, [rip+$d73e2] ; @0323
+M mov [rbp-30], r10 ; @032A
+M mov r10, [rbp-8] ; @032E
+M mov r11, r10 ; @0332
+M mov r10, [rbp-30] ; @0335
+M movzx r10d, byte [r10+r11] ; @0339
+M mov [rbp-10], r10 ; @033E
+M mov r10, [rbp-10] ; @0342
+M mov [rbp-30], r10 ; @0346
+M mov r10, 0 ; @034A
+M mov r11, r10 ; @0351
+M mov r10, [rbp-30] ; @0354
+M cmp r10, r11 ; @0358
+M jnz $l1393 ; @035B
+M lea r10, [rip+$d72bd] ; @0361
+M mov [rbp-38], r10 ; @0368
+M mov r10, 2B ; @036C
+M mov [rbp-40], r10 ; @0373
+M mov r10, 2 ; @0377
+M mov [rbp-48], r10 ; @037E
+M mov rcx, [rbp-38] ; @0382
+M mov rdx, [rbp-40] ; @0386
+M mov r8, [rbp-48] ; @038A
+M call $l120a ; @038E
+:l1393 ; @0393
+M mov r10, [rbp-10] ; @0393
+M mov [rbp-30], r10 ; @0397
+M mov r10, 22 ; @039B
+M mov r11, r10 ; @03A2
+M mov r10, [rbp-30] ; @03A5
+M cmp r10, r11 ; @03A9
+M jnz $l13df ; @03AC
+M mov r10, 0 ; @03B2
+M mov [rbp-18], r10 ; @03B9
+M mov r10, [rbp-8] ; @03BD
+M mov [rbp-30], r10 ; @03C1
+M mov r10, 1 ; @03C5
+M mov r11, r10 ; @03CC
+M mov r10, [rbp-30] ; @03CF
+M add r10, r11 ; @03D3
+M mov [rbp-8], r10 ; @03D6
+M jmp $l13fc ; @03DA
+:l13df ; @03DF
+M mov r10, [rbp-8] ; @03DF
+M mov [rbp-30], r10 ; @03E3
+M mov r10, 1 ; @03E7
+M mov r11, r10 ; @03EE
+M mov r10, [rbp-30] ; @03F1
+M add r10, r11 ; @03F5
+M mov [rbp-8], r10 ; @03F8
+:l13fc ; @03FC
+M jmp $l1304 ; @03FC
+:l1401 ; @0401
+M jmp $l1520 ; @0401
+:l1406 ; @0406
+M mov r10, 1 ; @0406
+M mov [rbp-20], r10 ; @040D
+:l1411 ; @0411
+M mov r10, [rbp-20] ; @0411
+M mov [rbp-30], r10 ; @0415
+M mov r10, 1 ; @0419
+M mov r11, r10 ; @0420
+M mov r10, [rbp-30] ; @0423
+M cmp r10, r11 ; @0427
+M jnz $l1520 ; @042A
+M mov r10, [rip+$d73e2] ; @0430
+M mov [rbp-30], r10 ; @0437
+M mov r10, [rbp-8] ; @043B
+M mov r11, r10 ; @043F
+M mov r10, [rbp-30] ; @0442
+M movzx r10d, byte [r10+r11] ; @0446
+M mov [rbp-10], r10 ; @044B
+M mov r10, [rbp-10] ; @044F
+M mov [rbp-30], r10 ; @0453
+M mov r10, 0 ; @0457
+M mov r11, r10 ; @045E
+M mov r10, [rbp-30] ; @0461
+M cmp r10, r11 ; @0465
+M jnz $l14a0 ; @0468
+M lea r10, [rip+$d72bd] ; @046E
+M mov [rbp-38], r10 ; @0475
+M mov r10, 2B ; @0479
+M mov [rbp-40], r10 ; @0480
+M mov r10, 2 ; @0484
+M mov [rbp-48], r10 ; @048B
+M mov rcx, [rbp-38] ; @048F
+M mov rdx, [rbp-40] ; @0493
+M mov r8, [rbp-48] ; @0497
+M call $l120a ; @049B
+:l14a0 ; @04A0
+M mov r10, [rbp-10] ; @04A0
+M mov [rbp-30], r10 ; @04A4
+M mov r10, 20 ; @04A8
+M mov r11, r10 ; @04AF
+M mov r10, [rbp-30] ; @04B2
+M cmp r10, r11 ; @04B6
+M jnz $l14cf ; @04B9
+M mov r10, 0 ; @04BF
+M mov [rbp-20], r10 ; @04C6
+M jmp $l151b ; @04CA
+:l14cf ; @04CF
+M mov r10, [rbp-10] ; @04CF
+M mov [rbp-30], r10 ; @04D3
+M mov r10, 9 ; @04D7
+M mov r11, r10 ; @04DE
+M mov r10, [rbp-30] ; @04E1
+M cmp r10, r11 ; @04E5
+M jnz $l14fe ; @04E8
+M mov r10, 0 ; @04EE
+M mov [rbp-20], r10 ; @04F5
+M jmp $l151b ; @04F9
+:l14fe ; @04FE
+M mov r10, [rbp-8] ; @04FE
+M mov [rbp-30], r10 ; @0502
+M mov r10, 1 ; @0506
+M mov r11, r10 ; @050D
+M mov r10, [rbp-30] ; @0510
+M add r10, r11 ; @0514
+M mov [rbp-8], r10 ; @0517
+:l151b ; @051B
+M jmp $l1411 ; @051B
+:l1520 ; @0520
+M mov r10, 1 ; @0520
+M mov [rbp-28], r10 ; @0527
+:l152b ; @052B
+M mov r10, [rbp-28] ; @052B
+M mov [rbp-30], r10 ; @052F
+M mov r10, 1 ; @0533
+M mov r11, r10 ; @053A
+M mov r10, [rbp-30] ; @053D
+M cmp r10, r11 ; @0541
+M jnz $l164c ; @0544
+M mov r10, [rip+$d73e2] ; @054A
+M mov [rbp-30], r10 ; @0551
+M mov r10, [rbp-8] ; @0555
+M mov r11, r10 ; @0559
+M mov r10, [rbp-30] ; @055C
+M movzx r10d, byte [r10+r11] ; @0560
+M mov [rbp-10], r10 ; @0565
+M mov r10, [rbp-10] ; @0569
+M mov [rbp-30], r10 ; @056D
+M mov r10, 0 ; @0571
+M mov r11, r10 ; @0578
+M mov r10, [rbp-30] ; @057B
+M cmp r10, r11 ; @057F
+M jnz $l15ba ; @0582
+M lea r10, [rip+$d72bd] ; @0588
+M mov [rbp-38], r10 ; @058F
+M mov r10, 2B ; @0593
+M mov [rbp-40], r10 ; @059A
+M mov r10, 2 ; @059E
+M mov [rbp-48], r10 ; @05A5
+M mov rcx, [rbp-38] ; @05A9
+M mov rdx, [rbp-40] ; @05AD
+M mov r8, [rbp-48] ; @05B1
+M call $l120a ; @05B5
+:l15ba ; @05BA
+M mov r10, [rbp-10] ; @05BA
+M mov [rbp-30], r10 ; @05BE
+M mov r10, 20 ; @05C2
+M mov r11, r10 ; @05C9
+M mov r10, [rbp-30] ; @05CC
+M cmp r10, r11 ; @05D0
+M jnz $l15fb ; @05D3
+M mov r10, [rbp-8] ; @05D9
+M mov [rbp-30], r10 ; @05DD
+M mov r10, 1 ; @05E1
+M mov r11, r10 ; @05E8
+M mov r10, [rbp-30] ; @05EB
+M add r10, r11 ; @05EF
+M mov [rbp-8], r10 ; @05F2
+M jmp $l1647 ; @05F6
+:l15fb ; @05FB
+M mov r10, [rbp-10] ; @05FB
+M mov [rbp-30], r10 ; @05FF
+M mov r10, 9 ; @0603
+M mov r11, r10 ; @060A
+M mov r10, [rbp-30] ; @060D
+M cmp r10, r11 ; @0611
+M jnz $l163c ; @0614
+M mov r10, [rbp-8] ; @061A
+M mov [rbp-30], r10 ; @061E
+M mov r10, 1 ; @0622
+M mov r11, r10 ; @0629
+M mov r10, [rbp-30] ; @062C
+M add r10, r11 ; @0630
+M mov [rbp-8], r10 ; @0633
+M jmp $l1647 ; @0637
+:l163c ; @063C
+M mov r10, 0 ; @063C
+M mov [rbp-28], r10 ; @0643
+:l1647 ; @0647
+M jmp $l152b ; @0647
+:l164c ; @064C
+M mov r10, [rbp-8] ; @064C
+M mov rax, r10 ; @0650
+M mov rsp, rbp ; @0653
+M pop rbp ; @0656
+M ret ; @0657
+:l1658 ; @0658
+M push rbp ; @0658
+M mov rbp, rsp ; @0659
+M sub rsp, A0 ; @065C
+M mov [rbp-8], rcx ; @0663
+M mov [rbp-10], rdx ; @0667
+M mov r10, 1 ; @066B
+M mov [rbp-28], r10 ; @0672
+:l1676 ; @0676
+M mov r10, [rbp-28] ; @0676
+M mov [rbp-38], r10 ; @067A
+M mov r10, 1 ; @067E
+M mov r11, r10 ; @0685
+M mov r10, [rbp-38] ; @0688
+M cmp r10, r11 ; @068C
+M jnz $l1746 ; @068F
+M mov r10, [rip+$d73e2] ; @0695
+M mov [rbp-38], r10 ; @069C
+M mov r10, [rbp-10] ; @06A0
+M mov r11, r10 ; @06A4
+M mov r10, [rbp-38] ; @06A7
+M movzx r10d, byte [r10+r11] ; @06AB
+M mov [rbp-18], r10 ; @06B0
+M mov r10, [rbp-18] ; @06B4
+M mov [rbp-38], r10 ; @06B8
+M mov r10, 20 ; @06BC
+M mov r11, r10 ; @06C3
+M mov r10, [rbp-38] ; @06C6
+M cmp r10, r11 ; @06CA
+M jnz $l16f5 ; @06CD
+M mov r10, [rbp-10] ; @06D3
+M mov [rbp-38], r10 ; @06D7
+M mov r10, 1 ; @06DB
+M mov r11, r10 ; @06E2
+M mov r10, [rbp-38] ; @06E5
+M add r10, r11 ; @06E9
+M mov [rbp-10], r10 ; @06EC
+M jmp $l1741 ; @06F0
+:l16f5 ; @06F5
+M mov r10, [rbp-18] ; @06F5
+M mov [rbp-38], r10 ; @06F9
+M mov r10, 9 ; @06FD
+M mov r11, r10 ; @0704
+M mov r10, [rbp-38] ; @0707
+M cmp r10, r11 ; @070B
+M jnz $l1736 ; @070E
+M mov r10, [rbp-10] ; @0714
+M mov [rbp-38], r10 ; @0718
+M mov r10, 1 ; @071C
+M mov r11, r10 ; @0723
+M mov r10, [rbp-38] ; @0726
+M add r10, r11 ; @072A
+M mov [rbp-10], r10 ; @072D
+M jmp $l1741 ; @0731
+:l1736 ; @0736
+M mov r10, 0 ; @0736
+M mov [rbp-28], r10 ; @073D
+:l1741 ; @0741
+M jmp $l1676 ; @0741
+:l1746 ; @0746
+M mov r10, [rip+$d73e2] ; @0746
+M mov [rbp-38], r10 ; @074D
+M mov r10, [rbp-10] ; @0751
+M mov r11, r10 ; @0755
+M mov r10, [rbp-38] ; @0758
+M movzx r10d, byte [r10+r11] ; @075C
+M mov [rbp-18], r10 ; @0761
+M mov r10, [rbp-18] ; @0765
+M mov [rbp-38], r10 ; @0769
+M mov r10, 0 ; @076D
+M mov r11, r10 ; @0774
+M mov r10, [rbp-38] ; @0777
+M cmp r10, r11 ; @077B
+M jnz $l17b6 ; @077E
+M lea r10, [rip+$d72bd] ; @0784
+M mov [rbp-40], r10 ; @078B
+M mov r10, 2B ; @078F
+M mov [rbp-48], r10 ; @0796
+M mov r10, 2 ; @079A
+M mov [rbp-50], r10 ; @07A1
+M mov rcx, [rbp-40] ; @07A5
+M mov rdx, [rbp-48] ; @07A9
+M mov r8, [rbp-50] ; @07AD
+M call $l120a ; @07B1
+:l17b6 ; @07B6
+M mov r10, 0 ; @07B6
+M mov [rbp-20], r10 ; @07BD
+M mov r10, 1 ; @07C1
+M mov [rbp-30], r10 ; @07C8
+:l17cc ; @07CC
+M mov r10, [rbp-30] ; @07CC
+M mov [rbp-38], r10 ; @07D0
+M mov r10, 1 ; @07D4
+M mov r11, r10 ; @07DB
+M mov r10, [rbp-38] ; @07DE
+M cmp r10, r11 ; @07E2
+M jnz $l194e ; @07E5
+M mov r10, [rip+$d73e2] ; @07EB
+M mov [rbp-38], r10 ; @07F2
+M mov r10, [rbp-10] ; @07F6
+M mov r11, r10 ; @07FA
+M mov r10, [rbp-38] ; @07FD
+M movzx r10d, byte [r10+r11] ; @0801
+M mov [rbp-18], r10 ; @0806
+M mov r10, [rbp-18] ; @080A
+M mov [rbp-38], r10 ; @080E
+M mov r10, 0 ; @0812
+M mov r11, r10 ; @0819
+M mov r10, [rbp-38] ; @081C
+M cmp r10, r11 ; @0820
+M jnz $l1839 ; @0823
+M mov r10, 0 ; @0829
+M mov [rbp-30], r10 ; @0830
+M jmp $l1949 ; @0834
+:l1839 ; @0839
+M mov r10, [rbp-18] ; @0839
+M mov [rbp-38], r10 ; @083D
+M mov r10, 20 ; @0841
+M mov r11, r10 ; @0848
+M mov r10, [rbp-38] ; @084B
+M cmp r10, r11 ; @084F
+M jnz $l1868 ; @0852
+M mov r10, 0 ; @0858
+M mov [rbp-30], r10 ; @085F
+M jmp $l1949 ; @0863
+:l1868 ; @0868
+M mov r10, [rbp-18] ; @0868
+M mov [rbp-38], r10 ; @086C
+M mov r10, 9 ; @0870
+M mov r11, r10 ; @0877
+M mov r10, [rbp-38] ; @087A
+M cmp r10, r11 ; @087E
+M jnz $l1897 ; @0881
+M mov r10, 0 ; @0887
+M mov [rbp-30], r10 ; @088E
+M jmp $l1949 ; @0892
+:l1897 ; @0897
+M mov r10, [rbp-20] ; @0897
+M mov [rbp-38], r10 ; @089B
+M mov r10, 7F ; @089F
+M mov r11, r10 ; @08A6
+M mov r10, [rbp-38] ; @08A9
+M cmp r10, r11 ; @08AD
+M jl $l18e8 ; @08B0
+M lea r10, [rip+$d72e8] ; @08B6
+M mov [rbp-40], r10 ; @08BD
+M mov r10, 1A ; @08C1
+M mov [rbp-48], r10 ; @08C8
+M mov r10, 3 ; @08CC
+M mov [rbp-50], r10 ; @08D3
+M mov rcx, [rbp-40] ; @08D7
+M mov rdx, [rbp-48] ; @08DB
+M mov r8, [rbp-50] ; @08DF
+M call $l120a ; @08E3
+:l18e8 ; @08E8
+M mov r10, [rbp-8] ; @08E8
+M mov [rbp-58], r10 ; @08EC
+M mov r10, [rbp-20] ; @08F0
+M mov [rbp-60], r10 ; @08F4
+M mov r10, [rbp-18] ; @08F8
+M mov [rbp-68], r10 ; @08FC
+M mov r10, [rbp-58] ; @0900
+M mov r11, [rbp-60] ; @0904
+M mov al, [rbp-68] ; @0908
+M mov [r10+r11], al ; @090B
+M mov r10, [rbp-20] ; @090F
+M mov [rbp-38], r10 ; @0913
+M mov r10, 1 ; @0917
+M mov r11, r10 ; @091E
+M mov r10, [rbp-38] ; @0921
+M add r10, r11 ; @0925
+M mov [rbp-20], r10 ; @0928
+M mov r10, [rbp-10] ; @092C
+M mov [rbp-38], r10 ; @0930
+M mov r10, 1 ; @0934
+M mov r11, r10 ; @093B
+M mov r10, [rbp-38] ; @093E
+M add r10, r11 ; @0942
+M mov [rbp-10], r10 ; @0945
+:l1949 ; @0949
+M jmp $l17cc ; @0949
+:l194e ; @094E
+M mov r10, [rbp-20] ; @094E
+M mov [rip+$d73f2], r10 ; @0952
+M mov r10, [rbp-8] ; @0959
+M mov [rbp-58], r10 ; @095D
+M mov r10, [rbp-20] ; @0961
+M mov [rbp-60], r10 ; @0965
+M mov r10, 0 ; @0969
+M mov [rbp-68], r10 ; @0970
+M mov r10, [rbp-58] ; @0974
+M mov r11, [rbp-60] ; @0978
+M mov al, [rbp-68] ; @097C
+M mov [r10+r11], al ; @097F
+M mov r10, [rbp-10] ; @0983
+M mov rax, r10 ; @0987
+M mov rsp, rbp ; @098A
+M pop rbp ; @098D
+M ret ; @098E
+:l198f ; @098F
+M push rbp ; @098F
+M mov rbp, rsp ; @0990
+M sub rsp, 70 ; @0993
+M mov [rbp-8], rcx ; @0997
+M mov r10, 1 ; @099B
+M mov [rbp-18], r10 ; @09A2
+:l19a6 ; @09A6
+M mov r10, [rbp-18] ; @09A6
+M mov [rbp-20], r10 ; @09AA
+M mov r10, 1 ; @09AE
+M mov r11, r10 ; @09B5
+M mov r10, [rbp-20] ; @09B8
+M cmp r10, r11 ; @09BC
+M jnz $l1acc ; @09BF
+M mov r10, [rip+$d73e2] ; @09C5
+M mov [rbp-20], r10 ; @09CC
+M mov r10, [rbp-8] ; @09D0
+M mov r11, r10 ; @09D4
+M mov r10, [rbp-20] ; @09D7
+M movzx r10d, byte [r10+r11] ; @09DB
+M mov [rbp-10], r10 ; @09E0
+M mov r10, [rbp-10] ; @09E4
+M mov [rbp-20], r10 ; @09E8
+M mov r10, 0 ; @09EC
+M mov r11, r10 ; @09F3
+M mov r10, [rbp-20] ; @09F6
+M cmp r10, r11 ; @09FA
+M jnz $l1a13 ; @09FD
+M mov r10, 0 ; @0A03
+M mov [rbp-18], r10 ; @0A0A
+M jmp $l1ac7 ; @0A0E
+:l1a13 ; @0A13
+M mov r10, [rbp-10] ; @0A13
+M mov [rbp-20], r10 ; @0A17
+M mov r10, 20 ; @0A1B
+M mov r11, r10 ; @0A22
+M mov r10, [rbp-20] ; @0A25
+M cmp r10, r11 ; @0A29
+M jnz $l1a54 ; @0A2C
+M mov r10, [rbp-8] ; @0A32
+M mov [rbp-20], r10 ; @0A36
+M mov r10, 1 ; @0A3A
+M mov r11, r10 ; @0A41
+M mov r10, [rbp-20] ; @0A44
+M add r10, r11 ; @0A48
+M mov [rbp-8], r10 ; @0A4B
+M jmp $l1ac7 ; @0A4F
+:l1a54 ; @0A54
+M mov r10, [rbp-10] ; @0A54
+M mov [rbp-20], r10 ; @0A58
+M mov r10, 9 ; @0A5C
+M mov r11, r10 ; @0A63
+M mov r10, [rbp-20] ; @0A66
+M cmp r10, r11 ; @0A6A
+M jnz $l1a95 ; @0A6D
+M mov r10, [rbp-8] ; @0A73
+M mov [rbp-20], r10 ; @0A77
+M mov r10, 1 ; @0A7B
+M mov r11, r10 ; @0A82
+M mov r10, [rbp-20] ; @0A85
+M add r10, r11 ; @0A89
+M mov [rbp-8], r10 ; @0A8C
+M jmp $l1ac7 ; @0A90
+:l1a95 ; @0A95
+M lea r10, [rip+$d72bd] ; @0A95
+M mov [rbp-28], r10 ; @0A9C
+M mov r10, 2B ; @0AA0
+M mov [rbp-30], r10 ; @0AA7
+M mov r10, 2 ; @0AAB
+M mov [rbp-38], r10 ; @0AB2
+M mov rcx, [rbp-28] ; @0AB6
+M mov rdx, [rbp-30] ; @0ABA
+M mov r8, [rbp-38] ; @0ABE
+M call $l120a ; @0AC2
+:l1ac7 ; @0AC7
+M jmp $l19a6 ; @0AC7
+:l1acc ; @0ACC
+M mov r10, [rbp-8] ; @0ACC
+M mov rax, r10 ; @0AD0
+M mov rsp, rbp ; @0AD3
+M pop rbp ; @0AD6
+M ret ; @0AD7
+:l1ad8 ; @0AD8
+M push rbp ; @0AD8
+M mov rbp, rsp ; @0AD9
+M sub rsp, 80 ; @0ADC
+M mov [rbp-8], rcx ; @0AE3
+M mov [rbp-10], rdx ; @0AE7
+M mov [rbp-18], r8 ; @0AEB
+M mov r10, 0 ; @0AEF
+M mov [rbp-20], r10 ; @0AF6
+:l1afa ; @0AFA
+M mov r10, [rbp-20] ; @0AFA
+M mov [rbp-30], r10 ; @0AFE
+M mov r10, [rbp-18] ; @0B02
+M mov r11, r10 ; @0B06
+M mov r10, [rbp-30] ; @0B09
+M cmp r10, r11 ; @0B0D
+M jge $l1be6 ; @0B10
+M mov r10, [rbp-10] ; @0B16
+M mov [rbp-30], r10 ; @0B1A
+M mov r10, [rbp-20] ; @0B1E
+M mov r11, r10 ; @0B22
+M mov r10, [rbp-30] ; @0B25
+M movzx r10d, byte [r10+r11] ; @0B29
+M mov [rbp-28], r10 ; @0B2E
+M mov r10, [rbp-8] ; @0B32
+M mov [rbp-40], r10 ; @0B36
+M mov r10, 2 ; @0B3A
+M mov [rbp-30], r10 ; @0B41
+M mov r10, [rbp-20] ; @0B45
+M mov r11, r10 ; @0B49
+M mov r10, [rbp-30] ; @0B4C
+M imul r10, r11 ; @0B50
+M mov [rbp-48], r10 ; @0B54
+M mov r10, [rbp-28] ; @0B58
+M mov [rbp-50], r10 ; @0B5C
+M mov r10, [rbp-40] ; @0B60
+M mov r11, [rbp-48] ; @0B64
+M mov al, [rbp-50] ; @0B68
+M mov [r10+r11], al ; @0B6B
+M mov r10, [rbp-8] ; @0B6F
+M mov [rbp-40], r10 ; @0B73
+M mov r10, 2 ; @0B77
+M mov [rbp-38], r10 ; @0B7E
+M mov r10, [rbp-20] ; @0B82
+M mov r11, r10 ; @0B86
+M mov r10, [rbp-38] ; @0B89
+M imul r10, r11 ; @0B8D
+M mov [rbp-30], r10 ; @0B91
+M mov r10, 1 ; @0B95
+M mov r11, r10 ; @0B9C
+M mov r10, [rbp-30] ; @0B9F
+M add r10, r11 ; @0BA3
+M mov [rbp-48], r10 ; @0BA6
+M mov r10, 0 ; @0BAA
+M mov [rbp-50], r10 ; @0BB1
+M mov r10, [rbp-40] ; @0BB5
+M mov r11, [rbp-48] ; @0BB9
+M mov al, [rbp-50] ; @0BBD
+M mov [r10+r11], al ; @0BC0
+M mov r10, [rbp-20] ; @0BC4
+M mov [rbp-30], r10 ; @0BC8
+M mov r10, 1 ; @0BCC
+M mov r11, r10 ; @0BD3
+M mov r10, [rbp-30] ; @0BD6
+M add r10, r11 ; @0BDA
+M mov [rbp-20], r10 ; @0BDD
+M jmp $l1afa ; @0BE1
+:l1be6 ; @0BE6
+M mov r10, [rbp-8] ; @0BE6
+M mov [rbp-40], r10 ; @0BEA
+M mov r10, 2 ; @0BEE
+M mov [rbp-30], r10 ; @0BF5
+M mov r10, [rbp-18] ; @0BF9
+M mov r11, r10 ; @0BFD
+M mov r10, [rbp-30] ; @0C00
+M imul r10, r11 ; @0C04
+M mov [rbp-48], r10 ; @0C08
+M mov r10, 0 ; @0C0C
+M mov [rbp-50], r10 ; @0C13
+M mov r10, [rbp-40] ; @0C17
+M mov r11, [rbp-48] ; @0C1B
+M mov al, [rbp-50] ; @0C1F
+M mov [r10+r11], al ; @0C22
+M mov r10, [rbp-8] ; @0C26
+M mov [rbp-40], r10 ; @0C2A
+M mov r10, 2 ; @0C2E
+M mov [rbp-38], r10 ; @0C35
+M mov r10, [rbp-18] ; @0C39
+M mov r11, r10 ; @0C3D
+M mov r10, [rbp-38] ; @0C40
+M imul r10, r11 ; @0C44
+M mov [rbp-30], r10 ; @0C48
+M mov r10, 1 ; @0C4C
+M mov r11, r10 ; @0C53
+M mov r10, [rbp-30] ; @0C56
+M add r10, r11 ; @0C5A
+M mov [rbp-48], r10 ; @0C5D
+M mov r10, 0 ; @0C61
+M mov [rbp-50], r10 ; @0C68
+M mov r10, [rbp-40] ; @0C6C
+M mov r11, [rbp-48] ; @0C70
+M mov al, [rbp-50] ; @0C74
+M mov [r10+r11], al ; @0C77
+M mov r10, 0 ; @0C7B
+M mov rax, r10 ; @0C82
+M mov rsp, rbp ; @0C85
+M pop rbp ; @0C88
+M ret ; @0C89
+:l1c8a ; @0C8A
+M push rbp ; @0C8A
+M mov rbp, rsp ; @0C8B
+M sub rsp, 90 ; @0C8E
+M mov [rbp-8], rcx ; @0C95
+M mov r10, 1 ; @0C99
+M mov [rbp-20], r10 ; @0CA0
+:l1ca4 ; @0CA4
+M mov r10, [rbp-20] ; @0CA4
+M mov [rbp-30], r10 ; @0CA8
+M mov r10, 1 ; @0CAC
+M mov r11, r10 ; @0CB3
+M mov r10, [rbp-30] ; @0CB6
+M cmp r10, r11 ; @0CBA
+M jnz $l1d86 ; @0CBD
+M mov r10, [rip+$d73e2] ; @0CC3
+M mov [rbp-30], r10 ; @0CCA
+M mov r10, [rbp-8] ; @0CCE
+M mov r11, r10 ; @0CD2
+M mov r10, [rbp-30] ; @0CD5
+M movzx r10d, byte [r10+r11] ; @0CD9
+M mov [rbp-10], r10 ; @0CDE
+M mov r10, [rbp-10] ; @0CE2
+M mov [rbp-30], r10 ; @0CE6
+M mov r10, 0 ; @0CEA
+M mov r11, r10 ; @0CF1
+M mov r10, [rbp-30] ; @0CF4
+M cmp r10, r11 ; @0CF8
+M jnz $l1d11 ; @0CFB
+M mov r10, 0 ; @0D01
+M mov [rbp-20], r10 ; @0D08
+M jmp $l1d81 ; @0D0C
+:l1d11 ; @0D11
+M mov r10, [rbp-10] ; @0D11
+M mov [rbp-30], r10 ; @0D15
+M mov r10, 20 ; @0D19
+M mov r11, r10 ; @0D20
+M mov r10, [rbp-30] ; @0D23
+M cmp r10, r11 ; @0D27
+M jnz $l1d35 ; @0D2A
+M jmp $l1d54 ; @0D30
+:l1d35 ; @0D35
+M mov r10, [rbp-10] ; @0D35
+M mov [rbp-30], r10 ; @0D39
+M mov r10, 9 ; @0D3D
+M mov r11, r10 ; @0D44
+M mov r10, [rbp-30] ; @0D47
+M cmp r10, r11 ; @0D4B
+M jnz $l1d76 ; @0D4E
+:l1d54 ; @0D54
+M mov r10, [rbp-8] ; @0D54
+M mov [rbp-30], r10 ; @0D58
+M mov r10, 1 ; @0D5C
+M mov r11, r10 ; @0D63
+M mov r10, [rbp-30] ; @0D66
+M add r10, r11 ; @0D6A
+M mov [rbp-8], r10 ; @0D6D
+M jmp $l1d81 ; @0D71
+:l1d76 ; @0D76
+M mov r10, 0 ; @0D76
+M mov [rbp-20], r10 ; @0D7D
+:l1d81 ; @0D81
+M jmp $l1ca4 ; @0D81
+:l1d86 ; @0D86
+M mov r10, [rip+$d73e2] ; @0D86
+M mov [rbp-30], r10 ; @0D8D
+M mov r10, [rbp-8] ; @0D91
+M mov r11, r10 ; @0D95
+M mov r10, [rbp-30] ; @0D98
+M movzx r10d, byte [r10+r11] ; @0D9C
+M mov [rbp-10], r10 ; @0DA1
+M mov r10, [rbp-10] ; @0DA5
+M mov [rbp-30], r10 ; @0DA9
+M mov r10, 0 ; @0DAD
+M mov r11, r10 ; @0DB4
+M mov r10, [rbp-30] ; @0DB7
+M cmp r10, r11 ; @0DBB
+M jnz $l1dde ; @0DBE
+M mov r10, BEBC200 ; @0DC4
+M mov [rip+$d786a], r10 ; @0DCB
+M mov r10, [rbp-8] ; @0DD2
+M mov rax, r10 ; @0DD6
+M mov rsp, rbp ; @0DD9
+M pop rbp ; @0DDC
+M ret ; @0DDD
+:l1dde ; @0DDE
+M mov r10, 0 ; @0DDE
+M mov [rbp-18], r10 ; @0DE5
+M mov r10, 1 ; @0DE9
+M mov [rbp-28], r10 ; @0DF0
+:l1df4 ; @0DF4
+M mov r10, [rbp-28] ; @0DF4
+M mov [rbp-30], r10 ; @0DF8
+M mov r10, 1 ; @0DFC
+M mov r11, r10 ; @0E03
+M mov r10, [rbp-30] ; @0E06
+M cmp r10, r11 ; @0E0A
+M jnz $l1fd6 ; @0E0D
+M mov r10, [rip+$d73e2] ; @0E13
+M mov [rbp-30], r10 ; @0E1A
+M mov r10, [rbp-8] ; @0E1E
+M mov r11, r10 ; @0E22
+M mov r10, [rbp-30] ; @0E25
+M movzx r10d, byte [r10+r11] ; @0E29
+M mov [rbp-10], r10 ; @0E2E
+M mov r10, [rbp-10] ; @0E32
+M mov [rbp-30], r10 ; @0E36
+M mov r10, 0 ; @0E3A
+M mov r11, r10 ; @0E41
+M mov r10, [rbp-30] ; @0E44
+M cmp r10, r11 ; @0E48
+M jnz $l1e56 ; @0E4B
+M jmp $l1e99 ; @0E51
+:l1e56 ; @0E56
+M mov r10, [rbp-10] ; @0E56
+M mov [rbp-30], r10 ; @0E5A
+M mov r10, 20 ; @0E5E
+M mov r11, r10 ; @0E65
+M mov r10, [rbp-30] ; @0E68
+M cmp r10, r11 ; @0E6C
+M jnz $l1e7a ; @0E6F
+M jmp $l1e99 ; @0E75
+:l1e7a ; @0E7A
+M mov r10, [rbp-10] ; @0E7A
+M mov [rbp-30], r10 ; @0E7E
+M mov r10, 9 ; @0E82
+M mov r11, r10 ; @0E89
+M mov r10, [rbp-30] ; @0E8C
+M cmp r10, r11 ; @0E90
+M jnz $l1ea9 ; @0E93
+:l1e99 ; @0E99
+M mov r10, 0 ; @0E99
+M mov [rbp-28], r10 ; @0EA0
+M jmp $l1fd1 ; @0EA4
+:l1ea9 ; @0EA9
+M mov r10, [rbp-10] ; @0EA9
+M mov [rbp-30], r10 ; @0EAD
+M mov r10, 30 ; @0EB1
+M mov r11, r10 ; @0EB8
+M mov r10, [rbp-30] ; @0EBB
+M cmp r10, r11 ; @0EBF
+M jge $l1ecd ; @0EC2
+M jmp $l1eec ; @0EC8
+:l1ecd ; @0ECD
+M mov r10, [rbp-10] ; @0ECD
+M mov [rbp-30], r10 ; @0ED1
+M mov r10, 39 ; @0ED5
+M mov r11, r10 ; @0EDC
+M mov r10, [rbp-30] ; @0EDF
+M cmp r10, r11 ; @0EE3
+M jle $l1f1e ; @0EE6
+:l1eec ; @0EEC
+M lea r10, [rip+$d72bd] ; @0EEC
+M mov [rbp-48], r10 ; @0EF3
+M mov r10, 2B ; @0EF7
+M mov [rbp-50], r10 ; @0EFE
+M mov r10, 2 ; @0F02
+M mov [rbp-58], r10 ; @0F09
+M mov rcx, [rbp-48] ; @0F0D
+M mov rdx, [rbp-50] ; @0F11
+M mov r8, [rbp-58] ; @0F15
+M call $l120a ; @0F19
+:l1f1e ; @0F1E
+M mov r10, [rbp-18] ; @0F1E
+M mov [rbp-30], r10 ; @0F22
+M mov r10, CCCCCCC ; @0F26
+M mov r11, r10 ; @0F2D
+M mov r10, [rbp-30] ; @0F30
+M cmp r10, r11 ; @0F34
+M jle $l1f6f ; @0F37
+M lea r10, [rip+$d72bd] ; @0F3D
+M mov [rbp-48], r10 ; @0F44
+M mov r10, 2B ; @0F48
+M mov [rbp-50], r10 ; @0F4F
+M mov r10, 2 ; @0F53
+M mov [rbp-58], r10 ; @0F5A
+M mov rcx, [rbp-48] ; @0F5E
+M mov rdx, [rbp-50] ; @0F62
+M mov r8, [rbp-58] ; @0F66
+M call $l120a ; @0F6A
+:l1f6f ; @0F6F
+M mov r10, [rbp-18] ; @0F6F
+M mov [rbp-40], r10 ; @0F73
+M mov r10, A ; @0F77
+M mov r11, r10 ; @0F7E
+M mov r10, [rbp-40] ; @0F81
+M imul r10, r11 ; @0F85
+M mov [rbp-38], r10 ; @0F89
+M mov r10, [rbp-10] ; @0F8D
+M mov r11, r10 ; @0F91
+M mov r10, [rbp-38] ; @0F94
+M add r10, r11 ; @0F98
+M mov [rbp-30], r10 ; @0F9B
+M mov r10, 30 ; @0F9F
+M mov r11, r10 ; @0FA6
+M mov r10, [rbp-30] ; @0FA9
+M sub r10, r11 ; @0FAD
+M mov [rbp-18], r10 ; @0FB0
+M mov r10, [rbp-8] ; @0FB4
+M mov [rbp-30], r10 ; @0FB8
+M mov r10, 1 ; @0FBC
+M mov r11, r10 ; @0FC3
+M mov r10, [rbp-30] ; @0FC6
+M add r10, r11 ; @0FCA
+M mov [rbp-8], r10 ; @0FCD
+:l1fd1 ; @0FD1
+M jmp $l1df4 ; @0FD1
+:l1fd6 ; @0FD6
+M mov r10, [rbp-18] ; @0FD6
+M mov [rbp-30], r10 ; @0FDA
+M mov r10, 7FFFFFFF ; @0FDE
+M mov r11, r10 ; @0FE5
+M mov r10, [rbp-30] ; @0FE8
+M cmp r10, r11 ; @0FEC
+M jle $l2027 ; @0FEF
+M lea r10, [rip+$d72bd] ; @0FF5
+M mov [rbp-48], r10 ; @0FFC
+M mov r10, 2B ; @1000
+M mov [rbp-50], r10 ; @1007
+M mov r10, 2 ; @100B
+M mov [rbp-58], r10 ; @1012
+M mov rcx, [rbp-48] ; @1016
+M mov rdx, [rbp-50] ; @101A
+M mov r8, [rbp-58] ; @101E
+M call $l120a ; @1022
+:l2027 ; @1027
+M mov r10, [rbp-18] ; @1027
+M mov [rip+$d786a], r10 ; @102B
+M mov r10, [rbp-8] ; @1032
+M mov rax, r10 ; @1036
+M mov rsp, rbp ; @1039
+M pop rbp ; @103C
+M ret ; @103D
+:l203e ; @103E
+M push rbp ; @103E
+M mov rbp, rsp ; @103F
+M sub rsp, 70 ; @1042
+M mov [rbp-8], rcx ; @1046
+M mov [rbp-10], rdx ; @104A
+M mov r10, [rbp-8] ; @104E
+M mov [rbp-30], r10 ; @1052
+M mov r10, [rbp-10] ; @1056
+M mov r11, r10 ; @105A
+M mov r10, [rbp-30] ; @105D
+M movzx r10d, byte [r10+r11] ; @1061
+M mov [rbp-28], r10 ; @1066
+M mov r10, 100 ; @106A
+M mov [rbp-30], r10 ; @1071
+M mov r10, [rbp-8] ; @1075
+M mov [rbp-38], r10 ; @1079
+M mov r10, [rbp-10] ; @107D
+M mov [rbp-40], r10 ; @1081
+M mov r10, 1 ; @1085
+M mov r11, r10 ; @108C
+M mov r10, [rbp-40] ; @108F
+M add r10, r11 ; @1093
+M mov r11, r10 ; @1096
+M mov r10, [rbp-38] ; @1099
+M movzx r10d, byte [r10+r11] ; @109D
+M mov r11, r10 ; @10A2
+M mov r10, [rbp-30] ; @10A5
+M imul r10, r11 ; @10A9
+M mov r11, r10 ; @10AD
+M mov r10, [rbp-28] ; @10B0
+M add r10, r11 ; @10B4
+M mov [rbp-20], r10 ; @10B7
+M mov r10, 10000 ; @10BB
+M mov [rbp-28], r10 ; @10C2
+M mov r10, [rbp-8] ; @10C6
+M mov [rbp-30], r10 ; @10CA
+M mov r10, [rbp-10] ; @10CE
+M mov [rbp-38], r10 ; @10D2
+M mov r10, 2 ; @10D6
+M mov r11, r10 ; @10DD
+M mov r10, [rbp-38] ; @10E0
+M add r10, r11 ; @10E4
+M mov r11, r10 ; @10E7
+M mov r10, [rbp-30] ; @10EA
+M movzx r10d, byte [r10+r11] ; @10EE
+M mov r11, r10 ; @10F3
+M mov r10, [rbp-28] ; @10F6
+M imul r10, r11 ; @10FA
+M mov r11, r10 ; @10FE
+M mov r10, [rbp-20] ; @1101
+M add r10, r11 ; @1105
+M mov [rbp-18], r10 ; @1108
+M mov r10, 1000000 ; @110C
+M mov [rbp-20], r10 ; @1113
+M mov r10, [rbp-8] ; @1117
+M mov [rbp-28], r10 ; @111B
+M mov r10, [rbp-10] ; @111F
+M mov [rbp-30], r10 ; @1123
+M mov r10, 3 ; @1127
+M mov r11, r10 ; @112E
+M mov r10, [rbp-30] ; @1131
+M add r10, r11 ; @1135
+M mov r11, r10 ; @1138
+M mov r10, [rbp-28] ; @113B
+M movzx r10d, byte [r10+r11] ; @113F
+M mov r11, r10 ; @1144
+M mov r10, [rbp-20] ; @1147
+M imul r10, r11 ; @114B
+M mov r11, r10 ; @114F
+M mov r10, [rbp-18] ; @1152
+M add r10, r11 ; @1156
+M mov rax, r10 ; @1159
+M mov rsp, rbp ; @115C
+M pop rbp ; @115F
+M ret ; @1160
+:l2161 ; @1161
+M push rbp ; @1161
+M mov rbp, rsp ; @1162
+M sub rsp, 90 ; @1165
+M mov [rbp-8], rcx ; @116C
+M mov r10, 0 ; @1170
+M mov [rip+$d790a], r10 ; @1177
+M mov r10, [rbp-8] ; @117E
+M mov [rbp-38], r10 ; @1182
+M lea r10, [rip+$d77fa] ; @1186
+M mov [rbp-40], r10 ; @118D
+M mov r10, 18 ; @1191
+M mov [rbp-48], r10 ; @1198
+M lea r10, [rip+$d790a] ; @119C
+M mov [rbp-50], r10 ; @11A3
+M mov r10, 0 ; @11A7
+M mov [rbp-70], r10 ; @11AE
+M mov rcx, [rbp-38] ; @11B2
+M mov rdx, [rbp-40] ; @11B6
+M mov r8, [rbp-48] ; @11BA
+M mov r9, [rbp-50] ; @11BE
+M mov r10, [rbp-70] ; @11C2
+M mov [rsp+20], r10 ; @11C6
+M call [rip+$iat_readfile] ; @11CB
+M mov r10, rax ; @11D1
+M mov [rbp-10], r10 ; @11D4
+M mov r10, [rbp-10] ; @11D8
+M mov [rbp-28], r10 ; @11DC
+M mov r10, 0 ; @11E0
+M mov r11, r10 ; @11E7
+M mov r10, [rbp-28] ; @11EA
+M cmp r10, r11 ; @11EE
+M jnz $l2229 ; @11F1
+M lea r10, [rip+$d731a] ; @11F7
+M mov [rbp-38], r10 ; @11FE
+M mov r10, 18 ; @1202
+M mov [rbp-40], r10 ; @1209
+M mov r10, 5 ; @120D
+M mov [rbp-48], r10 ; @1214
+M mov rcx, [rbp-38] ; @1218
+M mov rdx, [rbp-40] ; @121C
+M mov r8, [rbp-48] ; @1220
+M call $l120a ; @1224
+:l2229 ; @1229
+M mov r10, [rip+$d790a] ; @1229
+M mov [rbp-28], r10 ; @1230
+M mov r10, 18 ; @1234
+M mov r11, r10 ; @123B
+M mov r10, [rbp-28] ; @123E
+M cmp r10, r11 ; @1242
+M jge $l227d ; @1245
+M lea r10, [rip+$d7332] ; @124B
+M mov [rbp-38], r10 ; @1252
+M mov r10, 14 ; @1256
+M mov [rbp-40], r10 ; @125D
+M mov r10, 6 ; @1261
+M mov [rbp-48], r10 ; @1268
+M mov rcx, [rbp-38] ; @126C
+M mov rdx, [rbp-40] ; @1270
+M mov r8, [rbp-48] ; @1274
+M call $l120a ; @1278
+:l227d ; @127D
+M lea r10, [rip+$d77fa] ; @127D
+M mov [rbp-30], r10 ; @1284
+M mov r10, 0 ; @1288
+M mov r11, r10 ; @128F
+M mov r10, [rbp-30] ; @1292
+M movzx r10d, byte [r10+r11] ; @1296
+M mov [rbp-28], r10 ; @129B
+M mov r10, 55 ; @129F
+M mov r11, r10 ; @12A6
+M mov r10, [rbp-28] ; @12A9
+M cmp r10, r11 ; @12AD
+M jz $l22bb ; @12B0
+M jmp $l2370 ; @12B6
+:l22bb ; @12BB
+M lea r10, [rip+$d77fa] ; @12BB
+M mov [rbp-30], r10 ; @12C2
+M mov r10, 1 ; @12C6
+M mov r11, r10 ; @12CD
+M mov r10, [rbp-30] ; @12D0
+M movzx r10d, byte [r10+r11] ; @12D4
+M mov [rbp-28], r10 ; @12D9
+M mov r10, 50 ; @12DD
+M mov r11, r10 ; @12E4
+M mov r10, [rbp-28] ; @12E7
+M cmp r10, r11 ; @12EB
+M jz $l22f9 ; @12EE
+M jmp $l2370 ; @12F4
+:l22f9 ; @12F9
+M lea r10, [rip+$d77fa] ; @12F9
+M mov [rbp-30], r10 ; @1300
+M mov r10, 2 ; @1304
+M mov r11, r10 ; @130B
+M mov r10, [rbp-30] ; @130E
+M movzx r10d, byte [r10+r11] ; @1312
+M mov [rbp-28], r10 ; @1317
+M mov r10, 30 ; @131B
+M mov r11, r10 ; @1322
+M mov r10, [rbp-28] ; @1325
+M cmp r10, r11 ; @1329
+M jz $l2337 ; @132C
+M jmp $l2370 ; @1332
+:l2337 ; @1337
+M lea r10, [rip+$d77fa] ; @1337
+M mov [rbp-30], r10 ; @133E
+M mov r10, 3 ; @1342
+M mov r11, r10 ; @1349
+M mov r10, [rbp-30] ; @134C
+M movzx r10d, byte [r10+r11] ; @1350
+M mov [rbp-28], r10 ; @1355
+M mov r10, 31 ; @1359
+M mov r11, r10 ; @1360
+M mov r10, [rbp-28] ; @1363
+M cmp r10, r11 ; @1367
+M jz $l23a2 ; @136A
+:l2370 ; @1370
+M lea r10, [rip+$d7332] ; @1370
+M mov [rbp-38], r10 ; @1377
+M mov r10, 14 ; @137B
+M mov [rbp-40], r10 ; @1382
+M mov r10, 6 ; @1386
+M mov [rbp-48], r10 ; @138D
+M mov rcx, [rbp-38] ; @1391
+M mov rdx, [rbp-40] ; @1395
+M mov r8, [rbp-48] ; @1399
+M call $l120a ; @139D
+:l23a2 ; @13A2
+M lea r10, [rip+$d77fa] ; @13A2
+M mov [rbp-38], r10 ; @13A9
+M mov r10, 4 ; @13AD
+M mov [rbp-40], r10 ; @13B4
+M mov rcx, [rbp-38] ; @13B8
+M mov rdx, [rbp-40] ; @13BC
+M call $l203e ; @13C0
+M mov r10, rax ; @13C5
+M mov [rbp-18], r10 ; @13C8
+M mov r10, [rbp-18] ; @13CC
+M mov [rbp-28], r10 ; @13D0
+M mov r10, 1 ; @13D4
+M mov r11, r10 ; @13DB
+M mov r10, [rbp-28] ; @13DE
+M cmp r10, r11 ; @13E2
+M jz $l243c ; @13E5
+M mov r10, [rbp-18] ; @13EB
+M mov [rbp-28], r10 ; @13EF
+M mov r10, 2 ; @13F3
+M mov r11, r10 ; @13FA
+M mov r10, [rbp-28] ; @13FD
+M cmp r10, r11 ; @1401
+M jz $l243c ; @1404
+M lea r10, [rip+$d7346] ; @140A
+M mov [rbp-38], r10 ; @1411
+M mov r10, 14 ; @1415
+M mov [rbp-40], r10 ; @141C
+M mov r10, 6 ; @1420
+M mov [rbp-48], r10 ; @1427
+M mov rcx, [rbp-38] ; @142B
+M mov rdx, [rbp-40] ; @142F
+M mov r8, [rbp-48] ; @1433
+M call $l120a ; @1437
+:l243c ; @143C
+M lea r10, [rip+$d77fa] ; @143C
+M mov [rbp-38], r10 ; @1443
+M mov r10, C ; @1447
+M mov [rbp-40], r10 ; @144E
+M mov rcx, [rbp-38] ; @1452
+M mov rdx, [rbp-40] ; @1456
+M call $l203e ; @145A
+M mov r10, rax ; @145F
+M mov [rbp-28], r10 ; @1462
+M mov r10, 0 ; @1466
+M mov r11, r10 ; @146D
+M mov r10, [rbp-28] ; @1470
+M cmp r10, r11 ; @1474
+M jz $l24af ; @1477
+M lea r10, [rip+$d735a] ; @147D
+M mov [rbp-38], r10 ; @1484
+M mov r10, 14 ; @1488
+M mov [rbp-40], r10 ; @148F
+M mov r10, 6 ; @1493
+M mov [rbp-48], r10 ; @149A
+M mov rcx, [rbp-38] ; @149E
+M mov rdx, [rbp-40] ; @14A2
+M mov r8, [rbp-48] ; @14A6
+M call $l120a ; @14AA
+:l24af ; @14AF
+M lea r10, [rip+$d77fa] ; @14AF
+M mov [rbp-38], r10 ; @14B6
+M mov r10, 8 ; @14BA
+M mov [rbp-40], r10 ; @14C1
+M mov rcx, [rbp-38] ; @14C5
+M mov rdx, [rbp-40] ; @14C9
+M call $l203e ; @14CD
+M mov r10, rax ; @14D2
+M mov [rip+$d784a], r10 ; @14D5
+M mov r10, [rip+$d784a] ; @14DC
+M mov [rbp-28], r10 ; @14E3
+M mov r10, 4000000 ; @14E7
+M mov r11, r10 ; @14EE
+M mov r10, [rbp-28] ; @14F1
+M cmp r10, r11 ; @14F5
+M jle $l2530 ; @14F8
+M lea r10, [rip+$d735a] ; @14FE
+M mov [rbp-38], r10 ; @1505
+M mov r10, 14 ; @1509
+M mov [rbp-40], r10 ; @1510
+M mov r10, 6 ; @1514
+M mov [rbp-48], r10 ; @151B
+M mov rcx, [rbp-38] ; @151F
+M mov rdx, [rbp-40] ; @1523
+M mov r8, [rbp-48] ; @1527
+M call $l120a ; @152B
+:l2530 ; @1530
+M lea r10, [rip+$d77fa] ; @1530
+M mov [rbp-38], r10 ; @1537
+M mov r10, 10 ; @153B
+M mov [rbp-40], r10 ; @1542
+M mov rcx, [rbp-38] ; @1546
+M mov rdx, [rbp-40] ; @154A
+M call $l203e ; @154E
+M mov r10, rax ; @1553
+M mov [rip+$d7842], r10 ; @1556
+M mov r10, [rip+$d7842] ; @155D
+M mov [rbp-28], r10 ; @1564
+M mov r10, 0 ; @1568
+M mov r11, r10 ; @156F
+M mov r10, [rbp-28] ; @1572
+M cmp r10, r11 ; @1576
+M jnz $l25b1 ; @1579
+M lea r10, [rip+$d736e] ; @157F
+M mov [rbp-38], r10 ; @1586
+M mov r10, 16 ; @158A
+M mov [rbp-40], r10 ; @1591
+M mov r10, 6 ; @1595
+M mov [rbp-48], r10 ; @159C
+M mov rcx, [rbp-38] ; @15A0
+M mov rdx, [rbp-40] ; @15A4
+M mov r8, [rbp-48] ; @15A8
+M call $l120a ; @15AC
+:l25b1 ; @15B1
+M mov r10, 0 ; @15B1
+M mov [rbp-38], r10 ; @15B8
+M mov r10, [rip+$d7842] ; @15BC
+M mov [rbp-40], r10 ; @15C3
+M mov rcx, [rbp-38] ; @15C7
+M mov rdx, [rbp-40] ; @15CB
+M call [rip+$iat_globalalloc] ; @15CF
+M mov r10, rax ; @15D5
+M mov [rip+$d783a], r10 ; @15D8
+M mov r10, [rip+$d783a] ; @15DF
+M mov [rbp-28], r10 ; @15E6
+M mov r10, 0 ; @15EA
+M mov r11, r10 ; @15F1
+M mov r10, [rbp-28] ; @15F4
+M cmp r10, r11 ; @15F8
+M jnz $l2633 ; @15FB
+M lea r10, [rip+$d731a] ; @1601
+M mov [rbp-38], r10 ; @1608
+M mov r10, 18 ; @160C
+M mov [rbp-40], r10 ; @1613
+M mov r10, 5 ; @1617
+M mov [rbp-48], r10 ; @161E
+M mov rcx, [rbp-38] ; @1622
+M mov rdx, [rbp-40] ; @1626
+M mov r8, [rbp-48] ; @162A
+M call $l120a ; @162E
+:l2633 ; @1633
+M mov r10, 0 ; @1633
+M mov [rip+$d790a], r10 ; @163A
+M mov r10, [rbp-8] ; @1641
+M mov [rbp-38], r10 ; @1645
+M mov r10, [rip+$d783a] ; @1649
+M mov [rbp-40], r10 ; @1650
+M mov r10, [rip+$d7842] ; @1654
+M mov [rbp-48], r10 ; @165B
+M lea r10, [rip+$d790a] ; @165F
+M mov [rbp-50], r10 ; @1666
+M mov r10, 0 ; @166A
+M mov [rbp-70], r10 ; @1671
+M mov rcx, [rbp-38] ; @1675
+M mov rdx, [rbp-40] ; @1679
+M mov r8, [rbp-48] ; @167D
+M mov r9, [rbp-50] ; @1681
+M mov r10, [rbp-70] ; @1685
+M mov [rsp+20], r10 ; @1689
+M call [rip+$iat_readfile] ; @168E
+M mov r10, rax ; @1694
+M mov [rbp-10], r10 ; @1697
+M mov r10, [rbp-10] ; @169B
+M mov [rbp-28], r10 ; @169F
+M mov r10, 0 ; @16A3
+M mov r11, r10 ; @16AA
+M mov r10, [rbp-28] ; @16AD
+M cmp r10, r11 ; @16B1
+M jnz $l26ec ; @16B4
+M lea r10, [rip+$d731a] ; @16BA
+M mov [rbp-38], r10 ; @16C1
+M mov r10, 18 ; @16C5
+M mov [rbp-40], r10 ; @16CC
+M mov r10, 5 ; @16D0
+M mov [rbp-48], r10 ; @16D7
+M mov rcx, [rbp-38] ; @16DB
+M mov rdx, [rbp-40] ; @16DF
+M mov r8, [rbp-48] ; @16E3
+M call $l120a ; @16E7
+:l26ec ; @16EC
+M mov r10, [rip+$d790a] ; @16EC
+M mov [rbp-28], r10 ; @16F3
+M mov r10, [rip+$d7842] ; @16F7
+M mov r11, r10 ; @16FE
+M mov r10, [rbp-28] ; @1701
+M cmp r10, r11 ; @1705
+M jge $l2740 ; @1708
+M lea r10, [rip+$d7384] ; @170E
+M mov [rbp-38], r10 ; @1715
+M mov r10, 14 ; @1719
+M mov [rbp-40], r10 ; @1720
+M mov r10, 6 ; @1724
+M mov [rbp-48], r10 ; @172B
+M mov rcx, [rbp-38] ; @172F
+M mov rdx, [rbp-40] ; @1733
+M mov r8, [rbp-48] ; @1737
+M call $l120a ; @173B
+:l2740 ; @1740
+M mov r10, 0 ; @1740
+M mov [rip+$d790a], r10 ; @1747
+M mov r10, [rbp-8] ; @174E
+M mov [rbp-38], r10 ; @1752
+M lea r10, [rip+$d77fa] ; @1756
+M mov [rbp-40], r10 ; @175D
+M mov r10, 1 ; @1761
+M mov [rbp-48], r10 ; @1768
+M lea r10, [rip+$d790a] ; @176C
+M mov [rbp-50], r10 ; @1773
+M mov r10, 0 ; @1777
+M mov [rbp-70], r10 ; @177E
+M mov rcx, [rbp-38] ; @1782
+M mov rdx, [rbp-40] ; @1786
+M mov r8, [rbp-48] ; @178A
+M mov r9, [rbp-50] ; @178E
+M mov r10, [rbp-70] ; @1792
+M mov [rsp+20], r10 ; @1796
+M call [rip+$iat_readfile] ; @179B
+M mov r10, rax ; @17A1
+M mov [rbp-10], r10 ; @17A4
+M mov r10, [rbp-10] ; @17A8
+M mov [rbp-28], r10 ; @17AC
+M mov r10, 0 ; @17B0
+M mov r11, r10 ; @17B7
+M mov r10, [rbp-28] ; @17BA
+M cmp r10, r11 ; @17BE
+M jnz $l27f9 ; @17C1
+M lea r10, [rip+$d731a] ; @17C7
+M mov [rbp-38], r10 ; @17CE
+M mov r10, 18 ; @17D2
+M mov [rbp-40], r10 ; @17D9
+M mov r10, 5 ; @17DD
+M mov [rbp-48], r10 ; @17E4
+M mov rcx, [rbp-38] ; @17E8
+M mov rdx, [rbp-40] ; @17EC
+M mov r8, [rbp-48] ; @17F0
+M call $l120a ; @17F4
+:l27f9 ; @17F9
+M lea r10, [rip+$d77fa] ; @17F9
+M mov [rbp-38], r10 ; @1800
+M mov r10, 14 ; @1804
+M mov [rbp-40], r10 ; @180B
+M mov rcx, [rbp-38] ; @180F
+M mov rdx, [rbp-40] ; @1813
+M call $l203e ; @1817
+M mov r10, rax ; @181C
+M mov [rbp-20], r10 ; @181F
+M mov r10, [rbp-18] ; @1823
+M mov [rbp-28], r10 ; @1827
+M mov r10, 1 ; @182B
+M mov r11, r10 ; @1832
+M mov r10, [rbp-28] ; @1835
+M cmp r10, r11 ; @1839
+M jnz $l28f1 ; @183C
+M mov r10, [rip+$d790a] ; @1842
+M mov [rbp-28], r10 ; @1849
+M mov r10, 0 ; @184D
+M mov r11, r10 ; @1854
+M mov r10, [rbp-28] ; @1857
+M cmp r10, r11 ; @185B
+M jz $l2896 ; @185E
+M lea r10, [rip+$d7384] ; @1864
+M mov [rbp-38], r10 ; @186B
+M mov r10, 14 ; @186F
+M mov [rbp-40], r10 ; @1876
+M mov r10, 6 ; @187A
+M mov [rbp-48], r10 ; @1881
+M mov rcx, [rbp-38] ; @1885
+M mov rdx, [rbp-40] ; @1889
+M mov r8, [rbp-48] ; @188D
+M call $l120a ; @1891
+:l2896 ; @1896
+M mov r10, [rbp-20] ; @1896
+M mov [rbp-28], r10 ; @189A
+M mov r10, 0 ; @189E
+M mov r11, r10 ; @18A5
+M mov r10, [rbp-28] ; @18A8
+M cmp r10, r11 ; @18AC
+M jz $l28e7 ; @18AF
+M lea r10, [rip+$d7398] ; @18B5
+M mov [rbp-38], r10 ; @18BC
+M mov r10, 14 ; @18C0
+M mov [rbp-40], r10 ; @18C7
+M mov r10, 6 ; @18CB
+M mov [rbp-48], r10 ; @18D2
+M mov rcx, [rbp-38] ; @18D6
+M mov rdx, [rbp-40] ; @18DA
+M mov r8, [rbp-48] ; @18DE
+M call $l120a ; @18E2
+:l28e7 ; @18E7
+M call $l2dcb ; @18E7
+M jmp $l2a8d ; @18EC
+:l28f1 ; @18F1
+M mov r10, [rbp-20] ; @18F1
+M mov [rbp-28], r10 ; @18F5
+M mov r10, 0 ; @18F9
+M mov r11, r10 ; @1900
+M mov r10, [rbp-28] ; @1903
+M cmp r10, r11 ; @1907
+M jnz $l296e ; @190A
+M mov r10, [rip+$d790a] ; @1910
+M mov [rbp-28], r10 ; @1917
+M mov r10, 0 ; @191B
+M mov r11, r10 ; @1922
+M mov r10, [rbp-28] ; @1925
+M cmp r10, r11 ; @1929
+M jz $l2964 ; @192C
+M lea r10, [rip+$d7384] ; @1932
+M mov [rbp-38], r10 ; @1939
+M mov r10, 14 ; @193D
+M mov [rbp-40], r10 ; @1944
+M mov r10, 6 ; @1948
+M mov [rbp-48], r10 ; @194F
+M mov rcx, [rbp-38] ; @1953
+M mov rdx, [rbp-40] ; @1957
+M mov r8, [rbp-48] ; @195B
+M call $l120a ; @195F
+:l2964 ; @1964
+M call $l2dcb ; @1964
+M jmp $l2a8d ; @1969
+:l296e ; @196E
+M mov r10, [rbp-20] ; @196E
+M mov [rbp-28], r10 ; @1972
+M mov r10, 18 ; @1976
+M mov [rbp-30], r10 ; @197D
+M mov r10, [rip+$d7842] ; @1981
+M mov r11, r10 ; @1988
+M mov r10, [rbp-30] ; @198B
+M add r10, r11 ; @198F
+M mov r11, r10 ; @1992
+M mov r10, [rbp-28] ; @1995
+M cmp r10, r11 ; @1999
+M jz $l29d4 ; @199C
+M lea r10, [rip+$d7398] ; @19A2
+M mov [rbp-38], r10 ; @19A9
+M mov r10, 14 ; @19AD
+M mov [rbp-40], r10 ; @19B4
+M mov r10, 6 ; @19B8
+M mov [rbp-48], r10 ; @19BF
+M mov rcx, [rbp-38] ; @19C3
+M mov rdx, [rbp-40] ; @19C7
+M mov r8, [rbp-48] ; @19CB
+M call $l120a ; @19CF
+:l29d4 ; @19D4
+M mov r10, [rip+$d790a] ; @19D4
+M mov [rbp-28], r10 ; @19DB
+M mov r10, 0 ; @19DF
+M mov r11, r10 ; @19E6
+M mov r10, [rbp-28] ; @19E9
+M cmp r10, r11 ; @19ED
+M jnz $l2a28 ; @19F0
+M lea r10, [rip+$d7398] ; @19F6
+M mov [rbp-38], r10 ; @19FD
+M mov r10, 14 ; @1A01
+M mov [rbp-40], r10 ; @1A08
+M mov r10, 6 ; @1A0C
+M mov [rbp-48], r10 ; @1A13
+M mov rcx, [rbp-38] ; @1A17
+M mov rdx, [rbp-40] ; @1A1B
+M mov r8, [rbp-48] ; @1A1F
+M call $l120a ; @1A23
+:l2a28 ; @1A28
+M mov r10, [rip+$d784a] ; @1A28
+M mov [rbp-28], r10 ; @1A2F
+M mov r10, 0 ; @1A33
+M mov r11, r10 ; @1A3A
+M mov r10, [rbp-28] ; @1A3D
+M cmp r10, r11 ; @1A41
+M jnz $l2a7c ; @1A44
+M lea r10, [rip+$d73ac] ; @1A4A
+M mov [rbp-38], r10 ; @1A51
+M mov r10, 15 ; @1A55
+M mov [rbp-40], r10 ; @1A5C
+M mov r10, 6 ; @1A60
+M mov [rbp-48], r10 ; @1A67
+M mov rcx, [rbp-38] ; @1A6B
+M mov rdx, [rbp-40] ; @1A6F
+M mov r8, [rbp-48] ; @1A73
+M call $l120a ; @1A77
+:l2a7c ; @1A7C
+M mov r10, [rbp-8] ; @1A7C
+M mov [rbp-38], r10 ; @1A80
+M mov rcx, [rbp-38] ; @1A84
+M call $l2a9c ; @1A88
+:l2a8d ; @1A8D
+M mov r10, 0 ; @1A8D
+M mov rax, r10 ; @1A94
+M mov rsp, rbp ; @1A97
+M pop rbp ; @1A9A
+M ret ; @1A9B
+:l2a9c ; @1A9C
+M push rbp ; @1A9C
+M mov rbp, rsp ; @1A9D
+M sub rsp, A0 ; @1AA0
+M mov [rbp-8], rcx ; @1AA7
+M call $l2dcb ; @1AAB
+M mov r10, [rip+$d7852] ; @1AB0
+M mov [rbp-58], r10 ; @1AB7
+M mov r10, 0 ; @1ABB
+M mov [rbp-60], r10 ; @1AC2
+M lea r10, [rip+$d77fa] ; @1AC6
+M mov [rbp-28], r10 ; @1ACD
+M mov r10, 0 ; @1AD1
+M mov r11, r10 ; @1AD8
+M mov r10, [rbp-28] ; @1ADB
+M movzx r10d, byte [r10+r11] ; @1ADF
+M mov [rbp-68], r10 ; @1AE4
+M mov r10, [rbp-58] ; @1AE8
+M mov r11, [rbp-60] ; @1AEC
+M mov al, [rbp-68] ; @1AF0
+M mov [r10+r11], al ; @1AF3
+M mov r10, 1 ; @1AF7
+M mov [rbp-18], r10 ; @1AFE
+:l2b02 ; @1B02
+M mov r10, [rbp-18] ; @1B02
+M mov [rbp-28], r10 ; @1B06
+M mov r10, [rip+$d784a] ; @1B0A
+M mov r11, r10 ; @1B11
+M mov r10, [rbp-28] ; @1B14
+M cmp r10, r11 ; @1B18
+M jge $l2caf ; @1B1B
+M mov r10, 1000 ; @1B21
+M mov [rbp-20], r10 ; @1B28
+M mov r10, [rip+$d784a] ; @1B2C
+M mov [rbp-30], r10 ; @1B33
+M mov r10, [rbp-18] ; @1B37
+M mov r11, r10 ; @1B3B
+M mov r10, [rbp-30] ; @1B3E
+M sub r10, r11 ; @1B42
+M mov [rbp-28], r10 ; @1B45
+M mov r10, [rbp-20] ; @1B49
+M mov r11, r10 ; @1B4D
+M mov r10, [rbp-28] ; @1B50
+M cmp r10, r11 ; @1B54
+M jge $l2b7a ; @1B57
+M mov r10, [rip+$d784a] ; @1B5D
+M mov [rbp-28], r10 ; @1B64
+M mov r10, [rbp-18] ; @1B68
+M mov r11, r10 ; @1B6C
+M mov r10, [rbp-28] ; @1B6F
+M sub r10, r11 ; @1B73
+M mov [rbp-20], r10 ; @1B76
+:l2b7a ; @1B7A
+M mov r10, 0 ; @1B7A
+M mov [rip+$d790a], r10 ; @1B81
+M mov r10, [rbp-8] ; @1B88
+M mov [rbp-38], r10 ; @1B8C
+M mov r10, [rip+$d7852] ; @1B90
+M mov [rbp-28], r10 ; @1B97
+M mov r10, [rbp-18] ; @1B9B
+M mov r11, r10 ; @1B9F
+M mov r10, [rbp-28] ; @1BA2
+M add r10, r11 ; @1BA6
+M mov [rbp-40], r10 ; @1BA9
+M mov r10, [rbp-20] ; @1BAD
+M mov [rbp-48], r10 ; @1BB1
+M lea r10, [rip+$d790a] ; @1BB5
+M mov [rbp-50], r10 ; @1BBC
+M mov r10, 0 ; @1BC0
+M mov [rbp-70], r10 ; @1BC7
+M mov rcx, [rbp-38] ; @1BCB
+M mov rdx, [rbp-40] ; @1BCF
+M mov r8, [rbp-48] ; @1BD3
+M mov r9, [rbp-50] ; @1BD7
+M mov r10, [rbp-70] ; @1BDB
+M mov [rsp+20], r10 ; @1BDF
+M call [rip+$iat_readfile] ; @1BE4
+M mov r10, rax ; @1BEA
+M mov [rbp-10], r10 ; @1BED
+M mov r10, [rbp-10] ; @1BF1
+M mov [rbp-28], r10 ; @1BF5
+M mov r10, 0 ; @1BF9
+M mov r11, r10 ; @1C00
+M mov r10, [rbp-28] ; @1C03
+M cmp r10, r11 ; @1C07
+M jnz $l2c42 ; @1C0A
+M lea r10, [rip+$d731a] ; @1C10
+M mov [rbp-38], r10 ; @1C17
+M mov r10, 18 ; @1C1B
+M mov [rbp-40], r10 ; @1C22
+M mov r10, 5 ; @1C26
+M mov [rbp-48], r10 ; @1C2D
+M mov rcx, [rbp-38] ; @1C31
+M mov rdx, [rbp-40] ; @1C35
+M mov r8, [rbp-48] ; @1C39
+M call $l120a ; @1C3D
+:l2c42 ; @1C42
+M mov r10, [rip+$d790a] ; @1C42
+M mov [rbp-28], r10 ; @1C49
+M mov r10, 0 ; @1C4D
+M mov r11, r10 ; @1C54
+M mov r10, [rbp-28] ; @1C57
+M cmp r10, r11 ; @1C5B
+M jnz $l2c69 ; @1C5E
+M jmp $l2caf ; @1C64
+:l2c69 ; @1C69
+M mov r10, [rbp-18] ; @1C69
+M mov [rbp-28], r10 ; @1C6D
+M mov r10, [rip+$d790a] ; @1C71
+M mov r11, r10 ; @1C78
+M mov r10, [rbp-28] ; @1C7B
+M add r10, r11 ; @1C7F
+M mov [rbp-18], r10 ; @1C82
+M mov r10, [rip+$d790a] ; @1C86
+M mov [rbp-28], r10 ; @1C8D
+M mov r10, [rbp-20] ; @1C91
+M mov r11, r10 ; @1C95
+M mov r10, [rbp-28] ; @1C98
+M cmp r10, r11 ; @1C9C
+M jge $l2caa ; @1C9F
+M jmp $l2caf ; @1CA5
+:l2caa ; @1CAA
+M jmp $l2b02 ; @1CAA
+:l2caf ; @1CAF
+M mov r10, 0 ; @1CAF
+M mov [rip+$d790a], r10 ; @1CB6
+M mov r10, [rbp-8] ; @1CBD
+M mov [rbp-38], r10 ; @1CC1
+M lea r10, [rip+$d77fa] ; @1CC5
+M mov [rbp-40], r10 ; @1CCC
+M mov r10, 1 ; @1CD0
+M mov [rbp-48], r10 ; @1CD7
+M lea r10, [rip+$d790a] ; @1CDB
+M mov [rbp-50], r10 ; @1CE2
+M mov r10, 0 ; @1CE6
+M mov [rbp-70], r10 ; @1CED
+M mov rcx, [rbp-38] ; @1CF1
+M mov rdx, [rbp-40] ; @1CF5
+M mov r8, [rbp-48] ; @1CF9
+M mov r9, [rbp-50] ; @1CFD
+M mov r10, [rbp-70] ; @1D01
+M mov [rsp+20], r10 ; @1D05
+M call [rip+$iat_readfile] ; @1D0A
+M mov r10, rax ; @1D10
+M mov [rbp-10], r10 ; @1D13
+M mov r10, [rbp-10] ; @1D17
+M mov [rbp-28], r10 ; @1D1B
+M mov r10, 0 ; @1D1F
+M mov r11, r10 ; @1D26
+M mov r10, [rbp-28] ; @1D29
+M cmp r10, r11 ; @1D2D
+M jnz $l2d68 ; @1D30
+M lea r10, [rip+$d731a] ; @1D36
+M mov [rbp-38], r10 ; @1D3D
+M mov r10, 18 ; @1D41
+M mov [rbp-40], r10 ; @1D48
+M mov r10, 5 ; @1D4C
+M mov [rbp-48], r10 ; @1D53
+M mov rcx, [rbp-38] ; @1D57
+M mov rdx, [rbp-40] ; @1D5B
+M mov r8, [rbp-48] ; @1D5F
+M call $l120a ; @1D63
+:l2d68 ; @1D68
+M mov r10, [rip+$d790a] ; @1D68
+M mov [rbp-28], r10 ; @1D6F
+M mov r10, 0 ; @1D73
+M mov r11, r10 ; @1D7A
+M mov r10, [rbp-28] ; @1D7D
+M cmp r10, r11 ; @1D81
+M jz $l2dbc ; @1D84
+M lea r10, [rip+$d73ac] ; @1D8A
+M mov [rbp-38], r10 ; @1D91
+M mov r10, 15 ; @1D95
+M mov [rbp-40], r10 ; @1D9C
+M mov r10, 6 ; @1DA0
+M mov [rbp-48], r10 ; @1DA7
+M mov rcx, [rbp-38] ; @1DAB
+M mov rdx, [rbp-40] ; @1DAF
+M mov r8, [rbp-48] ; @1DB3
+M call $l120a ; @1DB7
+:l2dbc ; @1DBC
+M mov r10, 0 ; @1DBC
+M mov rax, r10 ; @1DC3
+M mov rsp, rbp ; @1DC6
+M pop rbp ; @1DC9
+M ret ; @1DCA
+:l2dcb ; @1DCB
+M push rbp ; @1DCB
+M mov rbp, rsp ; @1DCC
+M sub rsp, 80 ; @1DCF
+M mov r10, 0 ; @1DD6
+M mov [rip+$d7852], r10 ; @1DDD
+M mov r10, [rip+$d784a] ; @1DE4
+M mov [rbp-18], r10 ; @1DEB
+M mov r10, 0 ; @1DEF
+M mov r11, r10 ; @1DF6
+M mov r10, [rbp-18] ; @1DF9
+M cmp r10, r11 ; @1DFD
+M jle $l2fb6 ; @1E00
+M mov r10, 0 ; @1E06
+M mov [rbp-20], r10 ; @1E0D
+M mov r10, [rip+$d784a] ; @1E11
+M mov [rbp-28], r10 ; @1E18
+M mov rcx, [rbp-20] ; @1E1C
+M mov rdx, [rbp-28] ; @1E20
+M call [rip+$iat_globalalloc] ; @1E24
+M mov r10, rax ; @1E2A
+M mov [rip+$d7852], r10 ; @1E2D
+M mov r10, [rip+$d7852] ; @1E34
+M mov [rbp-18], r10 ; @1E3B
+M mov r10, 0 ; @1E3F
+M mov r11, r10 ; @1E46
+M mov r10, [rbp-18] ; @1E49
+M cmp r10, r11 ; @1E4D
+M jnz $l2e88 ; @1E50
+M lea r10, [rip+$d731a] ; @1E56
+M mov [rbp-20], r10 ; @1E5D
+M mov r10, 18 ; @1E61
+M mov [rbp-28], r10 ; @1E68
+M mov r10, 5 ; @1E6C
+M mov [rbp-30], r10 ; @1E73
+M mov rcx, [rbp-20] ; @1E77
+M mov rdx, [rbp-28] ; @1E7B
+M mov r8, [rbp-30] ; @1E7F
+M call $l120a ; @1E83
+:l2e88 ; @1E88
+M mov r10, [rip+$d784a] ; @1E88
+M mov [rbp-18], r10 ; @1E8F
+M mov r10, 3 ; @1E93
+M mov r11, r10 ; @1E9A
+M mov r10, [rbp-18] ; @1E9D
+M mov rcx, r11 ; @1EA1
+M shr r10, cl ; @1EA4
+M mov [rbp-10], r10 ; @1EA7
+M mov r10, 0 ; @1EAB
+M mov [rbp-8], r10 ; @1EB2
+:l2eb6 ; @1EB6
+M mov r10, [rbp-8] ; @1EB6
+M mov [rbp-18], r10 ; @1EBA
+M mov r10, [rbp-10] ; @1EBE
+M mov r11, r10 ; @1EC2
+M mov r10, [rbp-18] ; @1EC5
+M cmp r10, r11 ; @1EC9
+M jge $l2f28 ; @1ECC
+M mov r10, [rip+$d7852] ; @1ED2
+M mov [rbp-38], r10 ; @1ED9
+M mov r10, [rbp-8] ; @1EDD
+M mov [rbp-40], r10 ; @1EE1
+M mov r10, 0 ; @1EE5
+M mov [rbp-48], r10 ; @1EEC
+M mov r10, [rbp-38] ; @1EF0
+M mov r11, [rbp-40] ; @1EF4
+M shl r11, 3 ; @1EF8
+M add r10, r11 ; @1EFC
+M mov r11, [rbp-48] ; @1EFF
+M mov [r10], r11 ; @1F03
+M mov r10, [rbp-8] ; @1F06
+M mov [rbp-18], r10 ; @1F0A
+M mov r10, 1 ; @1F0E
+M mov r11, r10 ; @1F15
+M mov r10, [rbp-18] ; @1F18
+M add r10, r11 ; @1F1C
+M mov [rbp-8], r10 ; @1F1F
+M jmp $l2eb6 ; @1F23
+:l2f28 ; @1F28
+M mov r10, [rbp-10] ; @1F28
+M mov [rbp-18], r10 ; @1F2C
+M mov r10, 3 ; @1F30
+M mov r11, r10 ; @1F37
+M mov r10, [rbp-18] ; @1F3A
+M mov rcx, r11 ; @1F3E
+M shl r10, cl ; @1F41
+M mov [rbp-8], r10 ; @1F44
+:l2f48 ; @1F48
+M mov r10, [rbp-8] ; @1F48
+M mov [rbp-18], r10 ; @1F4C
+M mov r10, [rip+$d784a] ; @1F50
+M mov r11, r10 ; @1F57
+M mov r10, [rbp-18] ; @1F5A
+M cmp r10, r11 ; @1F5E
+M jge $l2fb6 ; @1F61
+M mov r10, [rip+$d7852] ; @1F67
+M mov [rbp-38], r10 ; @1F6E
+M mov r10, [rbp-8] ; @1F72
+M mov [rbp-40], r10 ; @1F76
+M mov r10, 0 ; @1F7A
+M mov [rbp-48], r10 ; @1F81
+M mov r10, [rbp-38] ; @1F85
+M mov r11, [rbp-40] ; @1F89
+M mov al, [rbp-48] ; @1F8D
+M mov [r10+r11], al ; @1F90
+M mov r10, [rbp-8] ; @1F94
+M mov [rbp-18], r10 ; @1F98
+M mov r10, 1 ; @1F9C
+M mov r11, r10 ; @1FA3
+M mov r10, [rbp-18] ; @1FA6
+M add r10, r11 ; @1FAA
+M mov [rbp-8], r10 ; @1FAD
+M jmp $l2f48 ; @1FB1
+:l2fb6 ; @1FB6
+M mov r10, 0 ; @1FB6
+M mov rax, r10 ; @1FBD
+M mov rsp, rbp ; @1FC0
+M pop rbp ; @1FC3
+M ret ; @1FC4
+:l2fc5 ; @1FC5
+M push rbp ; @1FC5
+M mov rbp, rsp ; @1FC6
+M sub rsp, A0 ; @1FC9
+M mov r10, [rip+$d783a] ; @1FD0
+M mov [rbp-38], r10 ; @1FD7
+M mov r10, [rip+$d785a] ; @1FDB
+M mov [rbp-40], r10 ; @1FE2
+M mov r10, 1 ; @1FE6
+M mov r11, r10 ; @1FED
+M mov r10, [rbp-40] ; @1FF0
+M add r10, r11 ; @1FF4
+M mov r11, r10 ; @1FF7
+M mov r10, [rbp-38] ; @1FFA
+M movzx r10d, byte [r10+r11] ; @1FFE
+M mov [rbp-8], r10 ; @2003
+M mov r10, [rbp-8] ; @2007
+M mov [rbp-38], r10 ; @200B
+M mov r10, 4 ; @200F
+M mov r11, r10 ; @2016
+M mov r10, [rbp-38] ; @2019
+M mov rcx, r11 ; @201D
+M shr r10, cl ; @2020
+M mov [rbp-10], r10 ; @2023
+M mov r10, [rbp-8] ; @2027
+M mov [rbp-38], r10 ; @202B
+M mov r10, F ; @202F
+M mov r11, r10 ; @2036
+M mov r10, [rbp-38] ; @2039
+M and r10, r11 ; @203D
+M mov [rbp-18], r10 ; @2040
+M mov r10, [rip+$d783a] ; @2044
+M mov [rbp-48], r10 ; @204B
+M mov r10, [rip+$d785a] ; @204F
+M mov [rbp-38], r10 ; @2056
+M mov r10, 2 ; @205A
+M mov r11, r10 ; @2061
+M mov r10, [rbp-38] ; @2064
+M add r10, r11 ; @2068
+M mov [rbp-50], r10 ; @206B
+M mov rcx, [rbp-48] ; @206F
+M mov rdx, [rbp-50] ; @2073
+M call $l203e ; @2077
+M mov r10, rax ; @207C
+M mov [rbp-20], r10 ; @207F
+M mov r10, [rbp-20] ; @2083
+M mov [rbp-40], r10 ; @2087
+M mov r10, 1F ; @208B
+M mov r11, r10 ; @2092
+M mov r10, [rbp-40] ; @2095
+M mov rcx, r11 ; @2099
+M shr r10, cl ; @209C
+M mov [rbp-38], r10 ; @209F
+M mov r10, 1 ; @20A3
+M mov r11, r10 ; @20AA
+M mov r10, [rbp-38] ; @20AD
+M cmp r10, r11 ; @20B1
+M jnz $l30ef ; @20B4
+M mov r10, [rbp-20] ; @20BA
+M mov [rbp-38], r10 ; @20BE
+M mov r10, 1 ; @20C2
+M mov [rbp-40], r10 ; @20C9
+M mov r10, 20 ; @20CD
+M mov r11, r10 ; @20D4
+M mov r10, [rbp-40] ; @20D7
+M mov rcx, r11 ; @20DB
+M shl r10, cl ; @20DE
+M mov r11, r10 ; @20E1
+M mov r10, [rbp-38] ; @20E4
+M sub r10, r11 ; @20E8
+M mov [rbp-20], r10 ; @20EB
+:l30ef ; @20EF
+M lea r10, [rip+$d788a] ; @20EF
+M mov [rbp-40], r10 ; @20F6
+M mov r10, [rbp-18] ; @20FA
+M shl r10, 3 ; @20FE
+M mov r11, r10 ; @2102
+M mov r10, [rbp-40] ; @2105
+M add r10, r11 ; @2109
+M mov r10, [r10] ; @210C
+M mov [rbp-38], r10 ; @210F
+M mov r10, [rbp-20] ; @2113
+M mov r11, r10 ; @2117
+M mov r10, [rbp-38] ; @211A
+M add r10, r11 ; @211E
+M mov [rbp-28], r10 ; @2121
+M mov r10, [rbp-28] ; @2125
+M mov [rbp-40], r10 ; @2129
+M mov r10, 1F ; @212D
+M mov r11, r10 ; @2134
+M mov r10, [rbp-40] ; @2137
+M mov rcx, r11 ; @213B
+M shr r10, cl ; @213E
+M mov [rbp-38], r10 ; @2141
+M mov r10, 0 ; @2145
+M mov r11, r10 ; @214C
+M mov r10, [rbp-38] ; @214F
+M cmp r10, r11 ; @2153
+M jz $l3170 ; @2156
+M mov r10, 3 ; @215C
+M mov [rbp-48], r10 ; @2163
+M mov rcx, [rbp-48] ; @2167
+M call $l545f ; @216B
+:l3170 ; @2170
+M mov r10, [rbp-28] ; @2170
+M mov [rbp-38], r10 ; @2174
+M mov r10, [rip+$d784a] ; @2178
+M mov [rbp-40], r10 ; @217F
+M mov r10, 1000 ; @2183
+M mov r11, r10 ; @218A
+M mov r10, [rbp-40] ; @218D
+M add r10, r11 ; @2191
+M mov r11, r10 ; @2194
+M mov r10, [rbp-38] ; @2197
+M cmp r10, r11 ; @219B
+M jl $l31b8 ; @219E
+M mov r10, 3 ; @21A4
+M mov [rbp-48], r10 ; @21AB
+M mov rcx, [rbp-48] ; @21AF
+M call $l545f ; @21B3
+:l31b8 ; @21B8
+M mov r10, [rbp-28] ; @21B8
+M mov [rbp-38], r10 ; @21BC
+M mov r10, [rip+$d784a] ; @21C0
+M mov r11, r10 ; @21C7
+M mov r10, [rbp-38] ; @21CA
+M cmp r10, r11 ; @21CE
+M jge $l3268 ; @21D1
+M mov r10, [rip+$d7852] ; @21D7
+M mov [rbp-38], r10 ; @21DE
+M mov r10, [rbp-28] ; @21E2
+M mov r11, r10 ; @21E6
+M mov r10, [rbp-38] ; @21E9
+M movzx r10d, byte [r10+r11] ; @21ED
+M mov [rbp-30], r10 ; @21F2
+M mov r10, [rbp-30] ; @21F6
+M mov [rbp-38], r10 ; @21FA
+M mov r10, 80 ; @21FE
+M mov r11, r10 ; @2205
+M mov r10, [rbp-38] ; @2208
+M cmp r10, r11 ; @220C
+M jl $l3232 ; @220F
+M mov r10, [rbp-30] ; @2215
+M mov [rbp-38], r10 ; @2219
+M mov r10, 100 ; @221D
+M mov r11, r10 ; @2224
+M mov r10, [rbp-38] ; @2227
+M sub r10, r11 ; @222B
+M mov [rbp-30], r10 ; @222E
+:l3232 ; @2232
+M lea r10, [rip+$d788a] ; @2232
+M mov [rbp-58], r10 ; @2239
+M mov r10, [rbp-10] ; @223D
+M mov [rbp-60], r10 ; @2241
+M mov r10, [rbp-30] ; @2245
+M mov [rbp-68], r10 ; @2249
+M mov r10, [rbp-58] ; @224D
+M mov r11, [rbp-60] ; @2251
+M shl r11, 3 ; @2255
+M add r10, r11 ; @2259
+M mov r11, [rbp-68] ; @225C
+M mov [r10], r11 ; @2260
+M jmp $l329c ; @2263
+:l3268 ; @2268
+M lea r10, [rip+$d788a] ; @2268
+M mov [rbp-58], r10 ; @226F
+M mov r10, [rbp-10] ; @2273
+M mov [rbp-60], r10 ; @2277
+M mov r10, 0 ; @227B
+M mov [rbp-68], r10 ; @2282
+M mov r10, [rbp-58] ; @2286
+M mov r11, [rbp-60] ; @228A
+M shl r11, 3 ; @228E
+M add r10, r11 ; @2292
+M mov r11, [rbp-68] ; @2295
+M mov [r10], r11 ; @2299
+:l329c ; @229C
+M mov r10, [rip+$d785a] ; @229C
+M mov [rbp-38], r10 ; @22A3
+M mov r10, 6 ; @22A7
+M mov r11, r10 ; @22AE
+M mov r10, [rbp-38] ; @22B1
+M add r10, r11 ; @22B5
+M mov [rip+$d785a], r10 ; @22B8
+M mov r10, [rip+$d7862] ; @22BF
+M mov [rbp-38], r10 ; @22C6
+M mov r10, 1 ; @22CA
+M mov r11, r10 ; @22D1
+M mov r10, [rbp-38] ; @22D4
+M add r10, r11 ; @22D8
+M mov [rip+$d7862], r10 ; @22DB
+M mov r10, 0 ; @22E2
+M mov rax, r10 ; @22E9
+M mov rsp, rbp ; @22EC
+M pop rbp ; @22EF
+M ret ; @22F0
+:l32f1 ; @22F1
+M push rbp ; @22F1
+M mov rbp, rsp ; @22F2
+M sub rsp, B0 ; @22F5
+M mov r10, [rip+$d783a] ; @22FC
+M mov [rbp-38], r10 ; @2303
+M mov r10, [rip+$d785a] ; @2307
+M mov [rbp-40], r10 ; @230E
+M mov r10, 1 ; @2312
+M mov r11, r10 ; @2319
+M mov r10, [rbp-40] ; @231C
+M add r10, r11 ; @2320
+M mov r11, r10 ; @2323
+M mov r10, [rbp-38] ; @2326
+M movzx r10d, byte [r10+r11] ; @232A
+M mov [rbp-8], r10 ; @232F
+M mov r10, [rbp-8] ; @2333
+M mov [rbp-38], r10 ; @2337
+M mov r10, 4 ; @233B
+M mov r11, r10 ; @2342
+M mov r10, [rbp-38] ; @2345
+M mov rcx, r11 ; @2349
+M shr r10, cl ; @234C
+M mov [rbp-10], r10 ; @234F
+M mov r10, [rbp-8] ; @2353
+M mov [rbp-38], r10 ; @2357
+M mov r10, F ; @235B
+M mov r11, r10 ; @2362
+M mov r10, [rbp-38] ; @2365
+M and r10, r11 ; @2369
+M mov [rbp-18], r10 ; @236C
+M mov r10, [rip+$d783a] ; @2370
+M mov [rbp-48], r10 ; @2377
+M mov r10, [rip+$d785a] ; @237B
+M mov [rbp-38], r10 ; @2382
+M mov r10, 2 ; @2386
+M mov r11, r10 ; @238D
+M mov r10, [rbp-38] ; @2390
+M add r10, r11 ; @2394
+M mov [rbp-50], r10 ; @2397
+M mov rcx, [rbp-48] ; @239B
+M mov rdx, [rbp-50] ; @239F
+M call $l203e ; @23A3
+M mov r10, rax ; @23A8
+M mov [rbp-20], r10 ; @23AB
+M mov r10, [rbp-20] ; @23AF
+M mov [rbp-40], r10 ; @23B3
+M mov r10, 1F ; @23B7
+M mov r11, r10 ; @23BE
+M mov r10, [rbp-40] ; @23C1
+M mov rcx, r11 ; @23C5
+M shr r10, cl ; @23C8
+M mov [rbp-38], r10 ; @23CB
+M mov r10, 1 ; @23CF
+M mov r11, r10 ; @23D6
+M mov r10, [rbp-38] ; @23D9
+M cmp r10, r11 ; @23DD
+M jnz $l341b ; @23E0
+M mov r10, [rbp-20] ; @23E6
+M mov [rbp-38], r10 ; @23EA
+M mov r10, 1 ; @23EE
+M mov [rbp-40], r10 ; @23F5
+M mov r10, 20 ; @23F9
+M mov r11, r10 ; @2400
+M mov r10, [rbp-40] ; @2403
+M mov rcx, r11 ; @2407
+M shl r10, cl ; @240A
+M mov r11, r10 ; @240D
+M mov r10, [rbp-38] ; @2410
+M sub r10, r11 ; @2414
+M mov [rbp-20], r10 ; @2417
+:l341b ; @241B
+M lea r10, [rip+$d788a] ; @241B
+M mov [rbp-40], r10 ; @2422
+M mov r10, [rbp-10] ; @2426
+M shl r10, 3 ; @242A
+M mov r11, r10 ; @242E
+M mov r10, [rbp-40] ; @2431
+M add r10, r11 ; @2435
+M mov r10, [r10] ; @2438
+M mov [rbp-38], r10 ; @243B
+M mov r10, [rbp-20] ; @243F
+M mov r11, r10 ; @2443
+M mov r10, [rbp-38] ; @2446
+M add r10, r11 ; @244A
+M mov [rbp-28], r10 ; @244D
+M mov r10, [rbp-28] ; @2451
+M mov [rbp-40], r10 ; @2455
+M mov r10, 1F ; @2459
+M mov r11, r10 ; @2460
+M mov r10, [rbp-40] ; @2463
+M mov rcx, r11 ; @2467
+M shr r10, cl ; @246A
+M mov [rbp-38], r10 ; @246D
+M mov r10, 0 ; @2471
+M mov r11, r10 ; @2478
+M mov r10, [rbp-38] ; @247B
+M cmp r10, r11 ; @247F
+M jz $l349c ; @2482
+M mov r10, 4 ; @2488
+M mov [rbp-48], r10 ; @248F
+M mov rcx, [rbp-48] ; @2493
+M call $l545f ; @2497
+:l349c ; @249C
+M mov r10, [rbp-28] ; @249C
+M mov [rbp-38], r10 ; @24A0
+M mov r10, [rip+$d784a] ; @24A4
+M mov [rbp-40], r10 ; @24AB
+M mov r10, 1000 ; @24AF
+M mov r11, r10 ; @24B6
+M mov r10, [rbp-40] ; @24B9
+M add r10, r11 ; @24BD
+M mov r11, r10 ; @24C0
+M mov r10, [rbp-38] ; @24C3
+M cmp r10, r11 ; @24C7
+M jl $l34e4 ; @24CA
+M mov r10, 4 ; @24D0
+M mov [rbp-48], r10 ; @24D7
+M mov rcx, [rbp-48] ; @24DB
+M call $l545f ; @24DF
+:l34e4 ; @24E4
+M mov r10, [rbp-28] ; @24E4
+M mov [rbp-38], r10 ; @24E8
+M mov r10, [rip+$d784a] ; @24EC
+M mov r11, r10 ; @24F3
+M mov r10, [rbp-38] ; @24F6
+M cmp r10, r11 ; @24FA
+M jge $l3563 ; @24FD
+M mov r10, [rip+$d7852] ; @2503
+M mov [rbp-68], r10 ; @250A
+M mov r10, [rbp-28] ; @250E
+M mov [rbp-70], r10 ; @2512
+M lea r10, [rip+$d788a] ; @2516
+M mov [rbp-40], r10 ; @251D
+M mov r10, [rbp-18] ; @2521
+M shl r10, 3 ; @2525
+M mov r11, r10 ; @2529
+M mov r10, [rbp-40] ; @252C
+M add r10, r11 ; @2530
+M mov r10, [r10] ; @2533
+M mov [rbp-38], r10 ; @2536
+M mov r10, FF ; @253A
+M mov r11, r10 ; @2541
+M mov r10, [rbp-38] ; @2544
+M and r10, r11 ; @2548
+M mov [rbp-78], r10 ; @254B
+M mov r10, [rbp-68] ; @254F
+M mov r11, [rbp-70] ; @2553
+M mov al, [rbp-78] ; @2557
+M mov [r10+r11], al ; @255A
+M jmp $l363e ; @255E
+:l3563 ; @2563
+M mov r10, [rbp-28] ; @2563
+M mov [rbp-38], r10 ; @2567
+M mov r10, [rip+$d784a] ; @256B
+M mov r11, r10 ; @2572
+M mov r10, [rbp-38] ; @2575
+M cmp r10, r11 ; @2579
+M jnz $l363e ; @257C
+M lea r10, [rbp-30] ; @2582
+M mov [rbp-68], r10 ; @2586
+M mov r10, 0 ; @258A
+M mov [rbp-70], r10 ; @2591
+M lea r10, [rip+$d788a] ; @2595
+M mov [rbp-40], r10 ; @259C
+M mov r10, [rbp-18] ; @25A0
+M shl r10, 3 ; @25A4
+M mov r11, r10 ; @25A8
+M mov r10, [rbp-40] ; @25AB
+M add r10, r11 ; @25AF
+M mov r10, [r10] ; @25B2
+M mov [rbp-38], r10 ; @25B5
+M mov r10, FF ; @25B9
+M mov r11, r10 ; @25C0
+M mov r10, [rbp-38] ; @25C3
+M and r10, r11 ; @25C7
+M mov [rbp-78], r10 ; @25CA
+M mov r10, [rbp-68] ; @25CE
+M mov r11, [rbp-70] ; @25D2
+M mov al, [rbp-78] ; @25D6
+M mov [r10+r11], al ; @25D9
+M mov r10, 0 ; @25DD
+M mov [rip+$d73ea], r10 ; @25E4
+M mov r10, [rip+$d73da] ; @25EB
+M mov [rbp-48], r10 ; @25F2
+M lea r10, [rbp-30] ; @25F6
+M mov [rbp-50], r10 ; @25FA
+M mov r10, 1 ; @25FE
+M mov [rbp-58], r10 ; @2605
+M lea r10, [rip+$d73ea] ; @2609
+M mov [rbp-60], r10 ; @2610
+M mov r10, 0 ; @2614
+M mov [rbp-80], r10 ; @261B
+M mov rcx, [rbp-48] ; @261F
+M mov rdx, [rbp-50] ; @2623
+M mov r8, [rbp-58] ; @2627
+M mov r9, [rbp-60] ; @262B
+M mov r10, [rbp-80] ; @262F
+M mov [rsp+20], r10 ; @2633
+M call [rip+$iat_writefile] ; @2638
+:l363e ; @263E
+M mov r10, [rip+$d785a] ; @263E
+M mov [rbp-38], r10 ; @2645
+M mov r10, 6 ; @2649
+M mov r11, r10 ; @2650
+M mov r10, [rbp-38] ; @2653
+M add r10, r11 ; @2657
+M mov [rip+$d785a], r10 ; @265A
+M mov r10, [rip+$d7862] ; @2661
+M mov [rbp-38], r10 ; @2668
+M mov r10, 1 ; @266C
+M mov r11, r10 ; @2673
+M mov r10, [rbp-38] ; @2676
+M add r10, r11 ; @267A
+M mov [rip+$d7862], r10 ; @267D
+M mov r10, 0 ; @2684
+M mov rax, r10 ; @268B
+M mov rsp, rbp ; @268E
+M pop rbp ; @2691
+M ret ; @2692
+:l3693 ; @2693
+M push rbp ; @2693
+M mov rbp, rsp ; @2694
+M sub rsp, B0 ; @2697
+M mov r10, [rip+$d783a] ; @269E
+M mov [rbp-38], r10 ; @26A5
+M mov r10, [rip+$d785a] ; @26A9
+M mov [rbp-40], r10 ; @26B0
+M mov r10, 1 ; @26B4
+M mov r11, r10 ; @26BB
+M mov r10, [rbp-40] ; @26BE
+M add r10, r11 ; @26C2
+M mov r11, r10 ; @26C5
+M mov r10, [rbp-38] ; @26C8
+M movzx r10d, byte [r10+r11] ; @26CC
+M mov [rbp-8], r10 ; @26D1
+M mov r10, [rbp-8] ; @26D5
+M mov [rbp-38], r10 ; @26D9
+M mov r10, 4 ; @26DD
+M mov r11, r10 ; @26E4
+M mov r10, [rbp-38] ; @26E7
+M mov rcx, r11 ; @26EB
+M shr r10, cl ; @26EE
+M mov [rbp-10], r10 ; @26F1
+M mov r10, [rbp-8] ; @26F5
+M mov [rbp-38], r10 ; @26F9
+M mov r10, F ; @26FD
+M mov r11, r10 ; @2704
+M mov r10, [rbp-38] ; @2707
+M and r10, r11 ; @270B
+M mov [rbp-18], r10 ; @270E
+M mov r10, [rip+$d783a] ; @2712
+M mov [rbp-58], r10 ; @2719
+M mov r10, [rip+$d785a] ; @271D
+M mov [rbp-38], r10 ; @2724
+M mov r10, 2 ; @2728
+M mov r11, r10 ; @272F
+M mov r10, [rbp-38] ; @2732
+M add r10, r11 ; @2736
+M mov [rbp-60], r10 ; @2739
+M mov rcx, [rbp-58] ; @273D
+M mov rdx, [rbp-60] ; @2741
+M call $l203e ; @2745
+M mov r10, rax ; @274A
+M mov [rbp-20], r10 ; @274D
+M mov r10, [rbp-20] ; @2751
+M mov [rbp-40], r10 ; @2755
+M mov r10, 1F ; @2759
+M mov r11, r10 ; @2760
+M mov r10, [rbp-40] ; @2763
+M mov rcx, r11 ; @2767
+M shr r10, cl ; @276A
+M mov [rbp-38], r10 ; @276D
+M mov r10, 1 ; @2771
+M mov r11, r10 ; @2778
+M mov r10, [rbp-38] ; @277B
+M cmp r10, r11 ; @277F
+M jnz $l37bd ; @2782
+M mov r10, [rbp-20] ; @2788
+M mov [rbp-38], r10 ; @278C
+M mov r10, 1 ; @2790
+M mov [rbp-40], r10 ; @2797
+M mov r10, 20 ; @279B
+M mov r11, r10 ; @27A2
+M mov r10, [rbp-40] ; @27A5
+M mov rcx, r11 ; @27A9
+M shl r10, cl ; @27AC
+M mov r11, r10 ; @27AF
+M mov r10, [rbp-38] ; @27B2
+M sub r10, r11 ; @27B6
+M mov [rbp-20], r10 ; @27B9
+:l37bd ; @27BD
+M lea r10, [rip+$d788a] ; @27BD
+M mov [rbp-40], r10 ; @27C4
+M mov r10, [rbp-18] ; @27C8
+M shl r10, 3 ; @27CC
+M mov r11, r10 ; @27D0
+M mov r10, [rbp-40] ; @27D3
+M add r10, r11 ; @27D7
+M mov r10, [r10] ; @27DA
+M mov [rbp-38], r10 ; @27DD
+M mov r10, [rbp-20] ; @27E1
+M mov r11, r10 ; @27E5
+M mov r10, [rbp-38] ; @27E8
+M add r10, r11 ; @27EC
+M mov [rbp-28], r10 ; @27EF
+M mov r10, [rbp-28] ; @27F3
+M mov [rbp-40], r10 ; @27F7
+M mov r10, 1F ; @27FB
+M mov r11, r10 ; @2802
+M mov r10, [rbp-40] ; @2805
+M mov rcx, r11 ; @2809
+M shr r10, cl ; @280C
+M mov [rbp-38], r10 ; @280F
+M mov r10, 0 ; @2813
+M mov r11, r10 ; @281A
+M mov r10, [rbp-38] ; @281D
+M cmp r10, r11 ; @2821
+M jz $l383e ; @2824
+M mov r10, 3 ; @282A
+M mov [rbp-58], r10 ; @2831
+M mov rcx, [rbp-58] ; @2835
+M call $l545f ; @2839
+:l383e ; @283E
+M mov r10, [rbp-28] ; @283E
+M mov [rbp-40], r10 ; @2842
+M mov r10, 8 ; @2846
+M mov r11, r10 ; @284D
+M mov r10, [rbp-40] ; @2850
+M add r10, r11 ; @2854
+M mov [rbp-38], r10 ; @2857
+M mov r10, [rip+$d784a] ; @285B
+M mov r11, r10 ; @2862
+M mov r10, [rbp-38] ; @2865
+M cmp r10, r11 ; @2869
+M jle $l3886 ; @286C
+M mov r10, 3 ; @2872
+M mov [rbp-58], r10 ; @2879
+M mov rcx, [rbp-58] ; @287D
+M call $l545f ; @2881
+:l3886 ; @2886
+M mov r10, [rip+$d7852] ; @2886
+M mov [rbp-38], r10 ; @288D
+M mov r10, [rbp-28] ; @2891
+M mov r11, r10 ; @2895
+M mov r10, [rbp-38] ; @2898
+M movzx r10d, byte [r10+r11] ; @289C
+M mov [rbp-30], r10 ; @28A1
+M mov r10, [rbp-30] ; @28A5
+M mov [rbp-38], r10 ; @28A9
+M mov r10, [rip+$d7852] ; @28AD
+M mov [rbp-48], r10 ; @28B4
+M mov r10, [rbp-28] ; @28B8
+M mov [rbp-50], r10 ; @28BC
+M mov r10, 1 ; @28C0
+M mov r11, r10 ; @28C7
+M mov r10, [rbp-50] ; @28CA
+M add r10, r11 ; @28CE
+M mov r11, r10 ; @28D1
+M mov r10, [rbp-48] ; @28D4
+M movzx r10d, byte [r10+r11] ; @28D8
+M mov [rbp-40], r10 ; @28DD
+M mov r10, 8 ; @28E1
+M mov r11, r10 ; @28E8
+M mov r10, [rbp-40] ; @28EB
+M mov rcx, r11 ; @28EF
+M shl r10, cl ; @28F2
+M mov r11, r10 ; @28F5
+M mov r10, [rbp-38] ; @28F8
+M or r10, r11 ; @28FC
+M mov [rbp-30], r10 ; @28FF
+M mov r10, [rbp-30] ; @2903
+M mov [rbp-38], r10 ; @2907
+M mov r10, [rip+$d7852] ; @290B
+M mov [rbp-48], r10 ; @2912
+M mov r10, [rbp-28] ; @2916
+M mov [rbp-50], r10 ; @291A
+M mov r10, 2 ; @291E
+M mov r11, r10 ; @2925
+M mov r10, [rbp-50] ; @2928
+M add r10, r11 ; @292C
+M mov r11, r10 ; @292F
+M mov r10, [rbp-48] ; @2932
+M movzx r10d, byte [r10+r11] ; @2936
+M mov [rbp-40], r10 ; @293B
+M mov r10, 10 ; @293F
+M mov r11, r10 ; @2946
+M mov r10, [rbp-40] ; @2949
+M mov rcx, r11 ; @294D
+M shl r10, cl ; @2950
+M mov r11, r10 ; @2953
+M mov r10, [rbp-38] ; @2956
+M or r10, r11 ; @295A
+M mov [rbp-30], r10 ; @295D
+M mov r10, [rbp-30] ; @2961
+M mov [rbp-38], r10 ; @2965
+M mov r10, [rip+$d7852] ; @2969
+M mov [rbp-48], r10 ; @2970
+M mov r10, [rbp-28] ; @2974
+M mov [rbp-50], r10 ; @2978
+M mov r10, 3 ; @297C
+M mov r11, r10 ; @2983
+M mov r10, [rbp-50] ; @2986
+M add r10, r11 ; @298A
+M mov r11, r10 ; @298D
+M mov r10, [rbp-48] ; @2990
+M movzx r10d, byte [r10+r11] ; @2994
+M mov [rbp-40], r10 ; @2999
+M mov r10, 18 ; @299D
+M mov r11, r10 ; @29A4
+M mov r10, [rbp-40] ; @29A7
+M mov rcx, r11 ; @29AB
+M shl r10, cl ; @29AE
+M mov r11, r10 ; @29B1
+M mov r10, [rbp-38] ; @29B4
+M or r10, r11 ; @29B8
+M mov [rbp-30], r10 ; @29BB
+M mov r10, [rbp-30] ; @29BF
+M mov [rbp-38], r10 ; @29C3
+M mov r10, [rip+$d7852] ; @29C7
+M mov [rbp-48], r10 ; @29CE
+M mov r10, [rbp-28] ; @29D2
+M mov [rbp-50], r10 ; @29D6
+M mov r10, 4 ; @29DA
+M mov r11, r10 ; @29E1
+M mov r10, [rbp-50] ; @29E4
+M add r10, r11 ; @29E8
+M mov r11, r10 ; @29EB
+M mov r10, [rbp-48] ; @29EE
+M movzx r10d, byte [r10+r11] ; @29F2
+M mov [rbp-40], r10 ; @29F7
+M mov r10, 20 ; @29FB
+M mov r11, r10 ; @2A02
+M mov r10, [rbp-40] ; @2A05
+M mov rcx, r11 ; @2A09
+M shl r10, cl ; @2A0C
+M mov r11, r10 ; @2A0F
+M mov r10, [rbp-38] ; @2A12
+M or r10, r11 ; @2A16
+M mov [rbp-30], r10 ; @2A19
+M mov r10, [rbp-30] ; @2A1D
+M mov [rbp-38], r10 ; @2A21
+M mov r10, [rip+$d7852] ; @2A25
+M mov [rbp-48], r10 ; @2A2C
+M mov r10, [rbp-28] ; @2A30
+M mov [rbp-50], r10 ; @2A34
+M mov r10, 5 ; @2A38
+M mov r11, r10 ; @2A3F
+M mov r10, [rbp-50] ; @2A42
+M add r10, r11 ; @2A46
+M mov r11, r10 ; @2A49
+M mov r10, [rbp-48] ; @2A4C
+M movzx r10d, byte [r10+r11] ; @2A50
+M mov [rbp-40], r10 ; @2A55
+M mov r10, 28 ; @2A59
+M mov r11, r10 ; @2A60
+M mov r10, [rbp-40] ; @2A63
+M mov rcx, r11 ; @2A67
+M shl r10, cl ; @2A6A
+M mov r11, r10 ; @2A6D
+M mov r10, [rbp-38] ; @2A70
+M or r10, r11 ; @2A74
+M mov [rbp-30], r10 ; @2A77
+M mov r10, [rbp-30] ; @2A7B
+M mov [rbp-38], r10 ; @2A7F
+M mov r10, [rip+$d7852] ; @2A83
+M mov [rbp-48], r10 ; @2A8A
+M mov r10, [rbp-28] ; @2A8E
+M mov [rbp-50], r10 ; @2A92
+M mov r10, 6 ; @2A96
+M mov r11, r10 ; @2A9D
+M mov r10, [rbp-50] ; @2AA0
+M add r10, r11 ; @2AA4
+M mov r11, r10 ; @2AA7
+M mov r10, [rbp-48] ; @2AAA
+M movzx r10d, byte [r10+r11] ; @2AAE
+M mov [rbp-40], r10 ; @2AB3
+M mov r10, 30 ; @2AB7
+M mov r11, r10 ; @2ABE
+M mov r10, [rbp-40] ; @2AC1
+M mov rcx, r11 ; @2AC5
+M shl r10, cl ; @2AC8
+M mov r11, r10 ; @2ACB
+M mov r10, [rbp-38] ; @2ACE
+M or r10, r11 ; @2AD2
+M mov [rbp-30], r10 ; @2AD5
+M mov r10, [rbp-30] ; @2AD9
+M mov [rbp-38], r10 ; @2ADD
+M mov r10, [rip+$d7852] ; @2AE1
+M mov [rbp-48], r10 ; @2AE8
+M mov r10, [rbp-28] ; @2AEC
+M mov [rbp-50], r10 ; @2AF0
+M mov r10, 7 ; @2AF4
+M mov r11, r10 ; @2AFB
+M mov r10, [rbp-50] ; @2AFE
+M add r10, r11 ; @2B02
+M mov r11, r10 ; @2B05
+M mov r10, [rbp-48] ; @2B08
+M movzx r10d, byte [r10+r11] ; @2B0C
+M mov [rbp-40], r10 ; @2B11
+M mov r10, 38 ; @2B15
+M mov r11, r10 ; @2B1C
+M mov r10, [rbp-40] ; @2B1F
+M mov rcx, r11 ; @2B23
+M shl r10, cl ; @2B26
+M mov r11, r10 ; @2B29
+M mov r10, [rbp-38] ; @2B2C
+M or r10, r11 ; @2B30
+M mov [rbp-30], r10 ; @2B33
+M lea r10, [rip+$d788a] ; @2B37
+M mov [rbp-68], r10 ; @2B3E
+M mov r10, [rbp-10] ; @2B42
+M mov [rbp-70], r10 ; @2B46
+M mov r10, [rbp-30] ; @2B4A
+M mov [rbp-78], r10 ; @2B4E
+M mov r10, [rbp-68] ; @2B52
+M mov r11, [rbp-70] ; @2B56
+M shl r11, 3 ; @2B5A
+M add r10, r11 ; @2B5E
+M mov r11, [rbp-78] ; @2B61
+M mov [r10], r11 ; @2B65
+M mov r10, [rip+$d785a] ; @2B68
+M mov [rbp-38], r10 ; @2B6F
+M mov r10, 6 ; @2B73
+M mov r11, r10 ; @2B7A
+M mov r10, [rbp-38] ; @2B7D
+M add r10, r11 ; @2B81
+M mov [rip+$d785a], r10 ; @2B84
+M mov r10, [rip+$d7862] ; @2B8B
+M mov [rbp-38], r10 ; @2B92
+M mov r10, 1 ; @2B96
+M mov r11, r10 ; @2B9D
+M mov r10, [rbp-38] ; @2BA0
+M add r10, r11 ; @2BA4
+M mov [rip+$d7862], r10 ; @2BA7
+M mov r10, 0 ; @2BAE
+M mov rax, r10 ; @2BB5
+M mov rsp, rbp ; @2BB8
+M pop rbp ; @2BBB
+M ret ; @2BBC
+:l3bbd ; @2BBD
+M push rbp ; @2BBD
+M mov rbp, rsp ; @2BBE
+M sub rsp, A0 ; @2BC1
+M mov r10, [rip+$d783a] ; @2BC8
+M mov [rbp-38], r10 ; @2BCF
+M mov r10, [rip+$d785a] ; @2BD3
+M mov [rbp-40], r10 ; @2BDA
+M mov r10, 1 ; @2BDE
+M mov r11, r10 ; @2BE5
+M mov r10, [rbp-40] ; @2BE8
+M add r10, r11 ; @2BEC
+M mov r11, r10 ; @2BEF
+M mov r10, [rbp-38] ; @2BF2
+M movzx r10d, byte [r10+r11] ; @2BF6
+M mov [rbp-8], r10 ; @2BFB
+M mov r10, [rbp-8] ; @2BFF
+M mov [rbp-38], r10 ; @2C03
+M mov r10, 4 ; @2C07
+M mov r11, r10 ; @2C0E
+M mov r10, [rbp-38] ; @2C11
+M mov rcx, r11 ; @2C15
+M shr r10, cl ; @2C18
+M mov [rbp-10], r10 ; @2C1B
+M mov r10, [rbp-8] ; @2C1F
+M mov [rbp-38], r10 ; @2C23
+M mov r10, F ; @2C27
+M mov r11, r10 ; @2C2E
+M mov r10, [rbp-38] ; @2C31
+M and r10, r11 ; @2C35
+M mov [rbp-18], r10 ; @2C38
+M mov r10, [rip+$d783a] ; @2C3C
+M mov [rbp-48], r10 ; @2C43
+M mov r10, [rip+$d785a] ; @2C47
+M mov [rbp-38], r10 ; @2C4E
+M mov r10, 2 ; @2C52
+M mov r11, r10 ; @2C59
+M mov r10, [rbp-38] ; @2C5C
+M add r10, r11 ; @2C60
+M mov [rbp-50], r10 ; @2C63
+M mov rcx, [rbp-48] ; @2C67
+M mov rdx, [rbp-50] ; @2C6B
+M call $l203e ; @2C6F
+M mov r10, rax ; @2C74
+M mov [rbp-20], r10 ; @2C77
+M mov r10, [rbp-20] ; @2C7B
+M mov [rbp-40], r10 ; @2C7F
+M mov r10, 1F ; @2C83
+M mov r11, r10 ; @2C8A
+M mov r10, [rbp-40] ; @2C8D
+M mov rcx, r11 ; @2C91
+M shr r10, cl ; @2C94
+M mov [rbp-38], r10 ; @2C97
+M mov r10, 1 ; @2C9B
+M mov r11, r10 ; @2CA2
+M mov r10, [rbp-38] ; @2CA5
+M cmp r10, r11 ; @2CA9
+M jnz $l3ce7 ; @2CAC
+M mov r10, [rbp-20] ; @2CB2
+M mov [rbp-38], r10 ; @2CB6
+M mov r10, 1 ; @2CBA
+M mov [rbp-40], r10 ; @2CC1
+M mov r10, 20 ; @2CC5
+M mov r11, r10 ; @2CCC
+M mov r10, [rbp-40] ; @2CCF
+M mov rcx, r11 ; @2CD3
+M shl r10, cl ; @2CD6
+M mov r11, r10 ; @2CD9
+M mov r10, [rbp-38] ; @2CDC
+M sub r10, r11 ; @2CE0
+M mov [rbp-20], r10 ; @2CE3
+:l3ce7 ; @2CE7
+M lea r10, [rip+$d788a] ; @2CE7
+M mov [rbp-40], r10 ; @2CEE
+M mov r10, [rbp-10] ; @2CF2
+M shl r10, 3 ; @2CF6
+M mov r11, r10 ; @2CFA
+M mov r10, [rbp-40] ; @2CFD
+M add r10, r11 ; @2D01
+M mov r10, [r10] ; @2D04
+M mov [rbp-38], r10 ; @2D07
+M mov r10, [rbp-20] ; @2D0B
+M mov r11, r10 ; @2D0F
+M mov r10, [rbp-38] ; @2D12
+M add r10, r11 ; @2D16
+M mov [rbp-28], r10 ; @2D19
+M mov r10, [rbp-28] ; @2D1D
+M mov [rbp-40], r10 ; @2D21
+M mov r10, 1F ; @2D25
+M mov r11, r10 ; @2D2C
+M mov r10, [rbp-40] ; @2D2F
+M mov rcx, r11 ; @2D33
+M shr r10, cl ; @2D36
+M mov [rbp-38], r10 ; @2D39
+M mov r10, 0 ; @2D3D
+M mov r11, r10 ; @2D44
+M mov r10, [rbp-38] ; @2D47
+M cmp r10, r11 ; @2D4B
+M jz $l3d68 ; @2D4E
+M mov r10, 4 ; @2D54
+M mov [rbp-48], r10 ; @2D5B
+M mov rcx, [rbp-48] ; @2D5F
+M call $l545f ; @2D63
+:l3d68 ; @2D68
+M mov r10, [rbp-28] ; @2D68
+M mov [rbp-40], r10 ; @2D6C
+M mov r10, 8 ; @2D70
+M mov r11, r10 ; @2D77
+M mov r10, [rbp-40] ; @2D7A
+M add r10, r11 ; @2D7E
+M mov [rbp-38], r10 ; @2D81
+M mov r10, [rip+$d784a] ; @2D85
+M mov r11, r10 ; @2D8C
+M mov r10, [rbp-38] ; @2D8F
+M cmp r10, r11 ; @2D93
+M jle $l3db0 ; @2D96
+M mov r10, 4 ; @2D9C
+M mov [rbp-48], r10 ; @2DA3
+M mov rcx, [rbp-48] ; @2DA7
+M call $l545f ; @2DAB
+:l3db0 ; @2DB0
+M lea r10, [rip+$d788a] ; @2DB0
+M mov [rbp-38], r10 ; @2DB7
+M mov r10, [rbp-18] ; @2DBB
+M shl r10, 3 ; @2DBF
+M mov r11, r10 ; @2DC3
+M mov r10, [rbp-38] ; @2DC6
+M add r10, r11 ; @2DCA
+M mov r10, [r10] ; @2DCD
+M mov [rbp-30], r10 ; @2DD0
+M mov r10, [rip+$d7852] ; @2DD4
+M mov [rbp-58], r10 ; @2DDB
+M mov r10, [rbp-28] ; @2DDF
+M mov [rbp-60], r10 ; @2DE3
+M mov r10, [rbp-30] ; @2DE7
+M mov [rbp-38], r10 ; @2DEB
+M mov r10, FF ; @2DEF
+M mov r11, r10 ; @2DF6
+M mov r10, [rbp-38] ; @2DF9
+M and r10, r11 ; @2DFD
+M mov [rbp-68], r10 ; @2E00
+M mov r10, [rbp-58] ; @2E04
+M mov r11, [rbp-60] ; @2E08
+M mov al, [rbp-68] ; @2E0C
+M mov [r10+r11], al ; @2E0F
+M mov r10, [rip+$d7852] ; @2E13
+M mov [rbp-58], r10 ; @2E1A
+M mov r10, [rbp-28] ; @2E1E
+M mov [rbp-38], r10 ; @2E22
+M mov r10, 1 ; @2E26
+M mov r11, r10 ; @2E2D
+M mov r10, [rbp-38] ; @2E30
+M add r10, r11 ; @2E34
+M mov [rbp-60], r10 ; @2E37
+M mov r10, [rbp-30] ; @2E3B
+M mov [rbp-40], r10 ; @2E3F
+M mov r10, 8 ; @2E43
+M mov r11, r10 ; @2E4A
+M mov r10, [rbp-40] ; @2E4D
+M mov rcx, r11 ; @2E51
+M shr r10, cl ; @2E54
+M mov [rbp-38], r10 ; @2E57
+M mov r10, FF ; @2E5B
+M mov r11, r10 ; @2E62
+M mov r10, [rbp-38] ; @2E65
+M and r10, r11 ; @2E69
+M mov [rbp-68], r10 ; @2E6C
+M mov r10, [rbp-58] ; @2E70
+M mov r11, [rbp-60] ; @2E74
+M mov al, [rbp-68] ; @2E78
+M mov [r10+r11], al ; @2E7B
+M mov r10, [rip+$d7852] ; @2E7F
+M mov [rbp-58], r10 ; @2E86
+M mov r10, [rbp-28] ; @2E8A
+M mov [rbp-38], r10 ; @2E8E
+M mov r10, 2 ; @2E92
+M mov r11, r10 ; @2E99
+M mov r10, [rbp-38] ; @2E9C
+M add r10, r11 ; @2EA0
+M mov [rbp-60], r10 ; @2EA3
+M mov r10, [rbp-30] ; @2EA7
+M mov [rbp-40], r10 ; @2EAB
+M mov r10, 10 ; @2EAF
+M mov r11, r10 ; @2EB6
+M mov r10, [rbp-40] ; @2EB9
+M mov rcx, r11 ; @2EBD
+M shr r10, cl ; @2EC0
+M mov [rbp-38], r10 ; @2EC3
+M mov r10, FF ; @2EC7
+M mov r11, r10 ; @2ECE
+M mov r10, [rbp-38] ; @2ED1
+M and r10, r11 ; @2ED5
+M mov [rbp-68], r10 ; @2ED8
+M mov r10, [rbp-58] ; @2EDC
+M mov r11, [rbp-60] ; @2EE0
+M mov al, [rbp-68] ; @2EE4
+M mov [r10+r11], al ; @2EE7
+M mov r10, [rip+$d7852] ; @2EEB
+M mov [rbp-58], r10 ; @2EF2
+M mov r10, [rbp-28] ; @2EF6
+M mov [rbp-38], r10 ; @2EFA
+M mov r10, 3 ; @2EFE
+M mov r11, r10 ; @2F05
+M mov r10, [rbp-38] ; @2F08
+M add r10, r11 ; @2F0C
+M mov [rbp-60], r10 ; @2F0F
+M mov r10, [rbp-30] ; @2F13
+M mov [rbp-40], r10 ; @2F17
+M mov r10, 18 ; @2F1B
+M mov r11, r10 ; @2F22
+M mov r10, [rbp-40] ; @2F25
+M mov rcx, r11 ; @2F29
+M shr r10, cl ; @2F2C
+M mov [rbp-38], r10 ; @2F2F
+M mov r10, FF ; @2F33
+M mov r11, r10 ; @2F3A
+M mov r10, [rbp-38] ; @2F3D
+M and r10, r11 ; @2F41
+M mov [rbp-68], r10 ; @2F44
+M mov r10, [rbp-58] ; @2F48
+M mov r11, [rbp-60] ; @2F4C
+M mov al, [rbp-68] ; @2F50
+M mov [r10+r11], al ; @2F53
+M mov r10, [rip+$d7852] ; @2F57
+M mov [rbp-58], r10 ; @2F5E
+M mov r10, [rbp-28] ; @2F62
+M mov [rbp-38], r10 ; @2F66
+M mov r10, 4 ; @2F6A
+M mov r11, r10 ; @2F71
+M mov r10, [rbp-38] ; @2F74
+M add r10, r11 ; @2F78
+M mov [rbp-60], r10 ; @2F7B
+M mov r10, [rbp-30] ; @2F7F
+M mov [rbp-40], r10 ; @2F83
+M mov r10, 20 ; @2F87
+M mov r11, r10 ; @2F8E
+M mov r10, [rbp-40] ; @2F91
+M mov rcx, r11 ; @2F95
+M shr r10, cl ; @2F98
+M mov [rbp-38], r10 ; @2F9B
+M mov r10, FF ; @2F9F
+M mov r11, r10 ; @2FA6
+M mov r10, [rbp-38] ; @2FA9
+M and r10, r11 ; @2FAD
+M mov [rbp-68], r10 ; @2FB0
+M mov r10, [rbp-58] ; @2FB4
+M mov r11, [rbp-60] ; @2FB8
+M mov al, [rbp-68] ; @2FBC
+M mov [r10+r11], al ; @2FBF
+M mov r10, [rip+$d7852] ; @2FC3
+M mov [rbp-58], r10 ; @2FCA
+M mov r10, [rbp-28] ; @2FCE
+M mov [rbp-38], r10 ; @2FD2
+M mov r10, 5 ; @2FD6
+M mov r11, r10 ; @2FDD
+M mov r10, [rbp-38] ; @2FE0
+M add r10, r11 ; @2FE4
+M mov [rbp-60], r10 ; @2FE7
+M mov r10, [rbp-30] ; @2FEB
+M mov [rbp-40], r10 ; @2FEF
+M mov r10, 28 ; @2FF3
+M mov r11, r10 ; @2FFA
+M mov r10, [rbp-40] ; @2FFD
+M mov rcx, r11 ; @3001
+M shr r10, cl ; @3004
+M mov [rbp-38], r10 ; @3007
+M mov r10, FF ; @300B
+M mov r11, r10 ; @3012
+M mov r10, [rbp-38] ; @3015
+M and r10, r11 ; @3019
+M mov [rbp-68], r10 ; @301C
+M mov r10, [rbp-58] ; @3020
+M mov r11, [rbp-60] ; @3024
+M mov al, [rbp-68] ; @3028
+M mov [r10+r11], al ; @302B
+M mov r10, [rip+$d7852] ; @302F
+M mov [rbp-58], r10 ; @3036
+M mov r10, [rbp-28] ; @303A
+M mov [rbp-38], r10 ; @303E
+M mov r10, 6 ; @3042
+M mov r11, r10 ; @3049
+M mov r10, [rbp-38] ; @304C
+M add r10, r11 ; @3050
+M mov [rbp-60], r10 ; @3053
+M mov r10, [rbp-30] ; @3057
+M mov [rbp-40], r10 ; @305B
+M mov r10, 30 ; @305F
+M mov r11, r10 ; @3066
+M mov r10, [rbp-40] ; @3069
+M mov rcx, r11 ; @306D
+M shr r10, cl ; @3070
+M mov [rbp-38], r10 ; @3073
+M mov r10, FF ; @3077
+M mov r11, r10 ; @307E
+M mov r10, [rbp-38] ; @3081
+M and r10, r11 ; @3085
+M mov [rbp-68], r10 ; @3088
+M mov r10, [rbp-58] ; @308C
+M mov r11, [rbp-60] ; @3090
+M mov al, [rbp-68] ; @3094
+M mov [r10+r11], al ; @3097
+M mov r10, [rip+$d7852] ; @309B
+M mov [rbp-58], r10 ; @30A2
+M mov r10, [rbp-28] ; @30A6
+M mov [rbp-38], r10 ; @30AA
+M mov r10, 7 ; @30AE
+M mov r11, r10 ; @30B5
+M mov r10, [rbp-38] ; @30B8
+M add r10, r11 ; @30BC
+M mov [rbp-60], r10 ; @30BF
+M mov r10, [rbp-30] ; @30C3
+M mov [rbp-40], r10 ; @30C7
+M mov r10, 38 ; @30CB
+M mov r11, r10 ; @30D2
+M mov r10, [rbp-40] ; @30D5
+M mov rcx, r11 ; @30D9
+M shr r10, cl ; @30DC
+M mov [rbp-38], r10 ; @30DF
+M mov r10, FF ; @30E3
+M mov r11, r10 ; @30EA
+M mov r10, [rbp-38] ; @30ED
+M and r10, r11 ; @30F1
+M mov [rbp-68], r10 ; @30F4
+M mov r10, [rbp-58] ; @30F8
+M mov r11, [rbp-60] ; @30FC
+M mov al, [rbp-68] ; @3100
+M mov [r10+r11], al ; @3103
+M mov r10, [rip+$d785a] ; @3107
+M mov [rbp-38], r10 ; @310E
+M mov r10, 6 ; @3112
+M mov r11, r10 ; @3119
+M mov r10, [rbp-38] ; @311C
+M add r10, r11 ; @3120
+M mov [rip+$d785a], r10 ; @3123
+M mov r10, [rip+$d7862] ; @312A
+M mov [rbp-38], r10 ; @3131
+M mov r10, 1 ; @3135
+M mov r11, r10 ; @313C
+M mov r10, [rbp-38] ; @313F
+M add r10, r11 ; @3143
+M mov [rip+$d7862], r10 ; @3146
+M mov r10, 0 ; @314D
+M mov rax, r10 ; @3154
+M mov rsp, rbp ; @3157
+M pop rbp ; @315A
+M ret ; @315B
+:l415c ; @315C
+M push rbp ; @315C
+M mov rbp, rsp ; @315D
+M sub rsp, 60 ; @3160
+M mov r10, [rip+$d783a] ; @3164
+M mov [rbp-18], r10 ; @316B
+M mov r10, [rip+$d785a] ; @316F
+M mov [rbp-20], r10 ; @3176
+M mov r10, 1 ; @317A
+M mov r11, r10 ; @3181
+M mov r10, [rbp-20] ; @3184
+M add r10, r11 ; @3188
+M mov r11, r10 ; @318B
+M mov r10, [rbp-18] ; @318E
+M movzx r10d, byte [r10+r11] ; @3192
+M mov [rbp-8], r10 ; @3197
+M mov r10, [rbp-8] ; @319B
+M mov [rbp-18], r10 ; @319F
+M mov r10, 0 ; @31A3
+M mov r11, r10 ; @31AA
+M mov r10, [rbp-18] ; @31AD
+M cmp r10, r11 ; @31B1
+M jz $l41ce ; @31B4
+M mov r10, 1 ; @31BA
+M mov [rbp-28], r10 ; @31C1
+M mov rcx, [rbp-28] ; @31C5
+M call $l545f ; @31C9
+:l41ce ; @31CE
+M mov r10, [rip+$d783a] ; @31CE
+M mov [rbp-28], r10 ; @31D5
+M mov r10, [rip+$d785a] ; @31D9
+M mov [rbp-18], r10 ; @31E0
+M mov r10, 2 ; @31E4
+M mov r11, r10 ; @31EB
+M mov r10, [rbp-18] ; @31EE
+M add r10, r11 ; @31F2
+M mov [rbp-30], r10 ; @31F5
+M mov rcx, [rbp-28] ; @31F9
+M mov rdx, [rbp-30] ; @31FD
+M call $l203e ; @3201
+M mov r10, rax ; @3206
+M mov [rbp-10], r10 ; @3209
+M mov r10, [rbp-10] ; @320D
+M mov [rip+$d785a], r10 ; @3211
+M mov r10, [rip+$d7862] ; @3218
+M mov [rbp-18], r10 ; @321F
+M mov r10, 1 ; @3223
+M mov r11, r10 ; @322A
+M mov r10, [rbp-18] ; @322D
+M add r10, r11 ; @3231
+M mov [rip+$d7862], r10 ; @3234
+M mov r10, 0 ; @323B
+M mov rax, r10 ; @3242
+M mov rsp, rbp ; @3245
+M pop rbp ; @3248
+M ret ; @3249
+:l424a ; @324A
+M push rbp ; @324A
+M mov rbp, rsp ; @324B
+M sub rsp, 60 ; @324E
+M mov r10, [rip+$d783a] ; @3252
+M mov [rbp-18], r10 ; @3259
+M mov r10, [rip+$d785a] ; @325D
+M mov [rbp-20], r10 ; @3264
+M mov r10, 1 ; @3268
+M mov r11, r10 ; @326F
+M mov r10, [rbp-20] ; @3272
+M add r10, r11 ; @3276
+M mov r11, r10 ; @3279
+M mov r10, [rbp-18] ; @327C
+M movzx r10d, byte [r10+r11] ; @3280
+M mov [rbp-8], r10 ; @3285
+M mov r10, [rbp-8] ; @3289
+M mov [rbp-18], r10 ; @328D
+M mov r10, F ; @3291
+M mov r11, r10 ; @3298
+M mov r10, [rbp-18] ; @329B
+M cmp r10, r11 ; @329F
+M jle $l42bc ; @32A2
+M mov r10, 1 ; @32A8
+M mov [rbp-28], r10 ; @32AF
+M mov rcx, [rbp-28] ; @32B3
+M call $l545f ; @32B7
+:l42bc ; @32BC
+M mov r10, [rip+$d783a] ; @32BC
+M mov [rbp-28], r10 ; @32C3
+M mov r10, [rip+$d785a] ; @32C7
+M mov [rbp-18], r10 ; @32CE
+M mov r10, 2 ; @32D2
+M mov r11, r10 ; @32D9
+M mov r10, [rbp-18] ; @32DC
+M add r10, r11 ; @32E0
+M mov [rbp-30], r10 ; @32E3
+M mov rcx, [rbp-28] ; @32E7
+M mov rdx, [rbp-30] ; @32EB
+M call $l203e ; @32EF
+M mov r10, rax ; @32F4
+M mov [rbp-10], r10 ; @32F7
+M lea r10, [rip+$d788a] ; @32FB
+M mov [rbp-20], r10 ; @3302
+M mov r10, [rbp-8] ; @3306
+M shl r10, 3 ; @330A
+M mov r11, r10 ; @330E
+M mov r10, [rbp-20] ; @3311
+M add r10, r11 ; @3315
+M mov r10, [r10] ; @3318
+M mov [rbp-18], r10 ; @331B
+M mov r10, 0 ; @331F
+M mov r11, r10 ; @3326
+M mov r10, [rbp-18] ; @3329
+M cmp r10, r11 ; @332D
+M jz $l4346 ; @3330
+M mov r10, [rbp-10] ; @3336
+M mov [rip+$d785a], r10 ; @333A
+M jmp $l4369 ; @3341
+:l4346 ; @3346
+M mov r10, [rip+$d785a] ; @3346
+M mov [rbp-18], r10 ; @334D
+M mov r10, 6 ; @3351
+M mov r11, r10 ; @3358
+M mov r10, [rbp-18] ; @335B
+M add r10, r11 ; @335F
+M mov [rip+$d785a], r10 ; @3362
+:l4369 ; @3369
+M mov r10, [rip+$d7862] ; @3369
+M mov [rbp-18], r10 ; @3370
+M mov r10, 1 ; @3374
+M mov r11, r10 ; @337B
+M mov r10, [rbp-18] ; @337E
+M add r10, r11 ; @3382
+M mov [rip+$d7862], r10 ; @3385
+M mov r10, 0 ; @338C
+M mov rax, r10 ; @3393
+M mov rsp, rbp ; @3396
+M pop rbp ; @3399
+M ret ; @339A
+:l439b ; @339B
+M push rbp ; @339B
+M mov rbp, rsp ; @339C
+M sub rsp, 70 ; @339F
+M mov [rbp-8], rcx ; @33A3
+M mov [rbp-10], rdx ; @33A7
+M mov r10, 1 ; @33AB
+M mov [rbp-30], r10 ; @33B2
+M mov r10, 3F ; @33B6
+M mov r11, r10 ; @33BD
+M mov r10, [rbp-30] ; @33C0
+M mov rcx, r11 ; @33C4
+M shl r10, cl ; @33C7
+M mov [rbp-28], r10 ; @33CA
+M mov r10, [rbp-10] ; @33CE
+M mov [rbp-38], r10 ; @33D2
+M mov r10, [rbp-28] ; @33D6
+M mov r11, r10 ; @33DA
+M mov r10, [rbp-38] ; @33DD
+M xor r10, r11 ; @33E1
+M mov [rbp-30], r10 ; @33E4
+M mov r10, 0 ; @33E8
+M mov r11, r10 ; @33EF
+M mov r10, [rbp-30] ; @33F2
+M cmp r10, r11 ; @33F6
+M jle $l4492 ; @33F9
+M mov r10, 0 ; @33FF
+M mov [rip+$d7872], r10 ; @3406
+M mov r10, [rbp-8] ; @340D
+M mov [rip+$d787a], r10 ; @3411
+M mov r10, [rbp-8] ; @3418
+M mov [rbp-38], r10 ; @341C
+M mov r10, [rbp-28] ; @3420
+M mov r11, r10 ; @3424
+M mov r10, [rbp-38] ; @3427
+M xor r10, r11 ; @342B
+M mov [rbp-30], r10 ; @342E
+M mov r10, [rbp-10] ; @3432
+M mov [rbp-38], r10 ; @3436
+M mov r10, [rbp-28] ; @343A
+M mov r11, r10 ; @343E
+M mov r10, [rbp-38] ; @3441
+M xor r10, r11 ; @3445
+M mov r11, r10 ; @3448
+M mov r10, [rbp-30] ; @344B
+M cmp r10, r11 ; @344F
+M jl $l4483 ; @3452
+M mov r10, 1 ; @3458
+M mov [rip+$d7872], r10 ; @345F
+M mov r10, [rbp-8] ; @3466
+M mov [rbp-30], r10 ; @346A
+M mov r10, [rbp-10] ; @346E
+M mov r11, r10 ; @3472
+M mov r10, [rbp-30] ; @3475
+M sub r10, r11 ; @3479
+M mov [rip+$d787a], r10 ; @347C
+:l4483 ; @3483
+M mov r10, 0 ; @3483
+M mov rax, r10 ; @348A
+M mov rsp, rbp ; @348D
+M pop rbp ; @3490
+M ret ; @3491
+:l4492 ; @3492
+M mov r10, 0 ; @3492
+M mov [rip+$d7872], r10 ; @3499
+M mov r10, 0 ; @34A0
+M mov [rbp-20], r10 ; @34A7
+M mov r10, 3F ; @34AB
+M mov [rbp-18], r10 ; @34B2
+:l44b6 ; @34B6
+M mov r10, [rbp-18] ; @34B6
+M mov [rbp-30], r10 ; @34BA
+M mov r10, 0 ; @34BE
+M mov r11, r10 ; @34C5
+M mov r10, [rbp-30] ; @34C8
+M cmp r10, r11 ; @34CC
+M jl $l45e5 ; @34CF
+M mov r10, [rbp-20] ; @34D5
+M mov [rbp-38], r10 ; @34D9
+M mov r10, 1 ; @34DD
+M mov r11, r10 ; @34E4
+M mov r10, [rbp-38] ; @34E7
+M mov rcx, r11 ; @34EB
+M shl r10, cl ; @34EE
+M mov [rbp-30], r10 ; @34F1
+M mov r10, [rbp-8] ; @34F5
+M mov [rbp-40], r10 ; @34F9
+M mov r10, [rbp-18] ; @34FD
+M mov r11, r10 ; @3501
+M mov r10, [rbp-40] ; @3504
+M mov rcx, r11 ; @3508
+M shr r10, cl ; @350B
+M mov [rbp-38], r10 ; @350E
+M mov r10, 1 ; @3512
+M mov r11, r10 ; @3519
+M mov r10, [rbp-38] ; @351C
+M and r10, r11 ; @3520
+M mov r11, r10 ; @3523
+M mov r10, [rbp-30] ; @3526
+M or r10, r11 ; @352A
+M mov [rbp-20], r10 ; @352D
+M mov r10, [rbp-20] ; @3531
+M mov [rbp-38], r10 ; @3535
+M mov r10, [rbp-28] ; @3539
+M mov r11, r10 ; @353D
+M mov r10, [rbp-38] ; @3540
+M xor r10, r11 ; @3544
+M mov [rbp-30], r10 ; @3547
+M mov r10, [rbp-10] ; @354B
+M mov [rbp-38], r10 ; @354F
+M mov r10, [rbp-28] ; @3553
+M mov r11, r10 ; @3557
+M mov r10, [rbp-38] ; @355A
+M xor r10, r11 ; @355E
+M mov r11, r10 ; @3561
+M mov r10, [rbp-30] ; @3564
+M cmp r10, r11 ; @3568
+M jl $l45c3 ; @356B
+M mov r10, [rbp-20] ; @3571
+M mov [rbp-30], r10 ; @3575
+M mov r10, [rbp-10] ; @3579
+M mov r11, r10 ; @357D
+M mov r10, [rbp-30] ; @3580
+M sub r10, r11 ; @3584
+M mov [rbp-20], r10 ; @3587
+M mov r10, [rip+$d7872] ; @358B
+M mov [rbp-30], r10 ; @3592
+M mov r10, 1 ; @3596
+M mov [rbp-38], r10 ; @359D
+M mov r10, [rbp-18] ; @35A1
+M mov r11, r10 ; @35A5
+M mov r10, [rbp-38] ; @35A8
+M mov rcx, r11 ; @35AC
+M shl r10, cl ; @35AF
+M mov r11, r10 ; @35B2
+M mov r10, [rbp-30] ; @35B5
+M or r10, r11 ; @35B9
+M mov [rip+$d7872], r10 ; @35BC
+:l45c3 ; @35C3
+M mov r10, [rbp-18] ; @35C3
+M mov [rbp-30], r10 ; @35C7
+M mov r10, 1 ; @35CB
+M mov r11, r10 ; @35D2
+M mov r10, [rbp-30] ; @35D5
+M sub r10, r11 ; @35D9
+M mov [rbp-18], r10 ; @35DC
+M jmp $l44b6 ; @35E0
+:l45e5 ; @35E5
+M mov r10, [rbp-20] ; @35E5
+M mov [rip+$d787a], r10 ; @35E9
+M mov r10, 0 ; @35F0
+M mov rax, r10 ; @35F7
+M mov rsp, rbp ; @35FA
+M pop rbp ; @35FD
+M ret ; @35FE
+:l45ff ; @35FF
+M push rbp ; @35FF
+M mov rbp, rsp ; @3600
+M sub rsp, 80 ; @3603
+M mov r10, [rip+$d783a] ; @360A
+M mov [rbp-28], r10 ; @3611
+M mov r10, [rip+$d785a] ; @3615
+M mov [rbp-30], r10 ; @361C
+M mov r10, 1 ; @3620
+M mov r11, r10 ; @3627
+M mov r10, [rbp-30] ; @362A
+M add r10, r11 ; @362E
+M mov r11, r10 ; @3631
+M mov r10, [rbp-28] ; @3634
+M movzx r10d, byte [r10+r11] ; @3638
+M mov [rbp-8], r10 ; @363D
+M mov r10, [rip+$d783a] ; @3641
+M mov [rbp-28], r10 ; @3648
+M mov r10, [rip+$d785a] ; @364C
+M mov [rbp-30], r10 ; @3653
+M mov r10, 2 ; @3657
+M mov r11, r10 ; @365E
+M mov r10, [rbp-30] ; @3661
+M add r10, r11 ; @3665
+M mov r11, r10 ; @3668
+M mov r10, [rbp-28] ; @366B
+M movzx r10d, byte [r10+r11] ; @366F
+M mov [rbp-10], r10 ; @3674
+M mov r10, [rbp-8] ; @3678
+M mov [rbp-28], r10 ; @367C
+M mov r10, F ; @3680
+M mov r11, r10 ; @3687
+M mov r10, [rbp-28] ; @368A
+M and r10, r11 ; @368E
+M mov [rbp-20], r10 ; @3691
+M mov r10, [rbp-8] ; @3695
+M mov [rbp-28], r10 ; @3699
+M mov r10, 4 ; @369D
+M mov r11, r10 ; @36A4
+M mov r10, [rbp-28] ; @36A7
+M mov rcx, r11 ; @36AB
+M shr r10, cl ; @36AE
+M mov [rbp-18], r10 ; @36B1
+M mov r10, [rbp-10] ; @36B5
+M mov [rbp-28], r10 ; @36B9
+M mov r10, F ; @36BD
+M mov r11, r10 ; @36C4
+M mov r10, [rbp-28] ; @36C7
+M cmp r10, r11 ; @36CB
+M jle $l46e8 ; @36CE
+M mov r10, 1 ; @36D4
+M mov [rbp-38], r10 ; @36DB
+M mov rcx, [rbp-38] ; @36DF
+M call $l545f ; @36E3
+:l46e8 ; @36E8
+M lea r10, [rip+$d788a] ; @36E8
+M mov [rbp-40], r10 ; @36EF
+M mov r10, [rbp-18] ; @36F3
+M mov [rbp-48], r10 ; @36F7
+M lea r10, [rip+$d788a] ; @36FB
+M mov [rbp-30], r10 ; @3702
+M mov r10, [rbp-20] ; @3706
+M shl r10, 3 ; @370A
+M mov r11, r10 ; @370E
+M mov r10, [rbp-30] ; @3711
+M add r10, r11 ; @3715
+M mov r10, [r10] ; @3718
+M mov [rbp-28], r10 ; @371B
+M lea r10, [rip+$d788a] ; @371F
+M mov [rbp-30], r10 ; @3726
+M mov r10, [rbp-10] ; @372A
+M shl r10, 3 ; @372E
+M mov r11, r10 ; @3732
+M mov r10, [rbp-30] ; @3735
+M add r10, r11 ; @3739
+M mov r10, [r10] ; @373C
+M mov r11, r10 ; @373F
+M mov r10, [rbp-28] ; @3742
+M imul r10, r11 ; @3746
+M mov [rbp-50], r10 ; @374A
+M mov r10, [rbp-40] ; @374E
+M mov r11, [rbp-48] ; @3752
+M shl r11, 3 ; @3756
+M add r10, r11 ; @375A
+M mov r11, [rbp-50] ; @375D
+M mov [r10], r11 ; @3761
+M mov r10, [rip+$d785a] ; @3764
+M mov [rbp-28], r10 ; @376B
+M mov r10, 3 ; @376F
+M mov r11, r10 ; @3776
+M mov r10, [rbp-28] ; @3779
+M add r10, r11 ; @377D
+M mov [rip+$d785a], r10 ; @3780
+M mov r10, [rip+$d7862] ; @3787
+M mov [rbp-28], r10 ; @378E
+M mov r10, 1 ; @3792
+M mov r11, r10 ; @3799
+M mov r10, [rbp-28] ; @379C
+M add r10, r11 ; @37A0
+M mov [rip+$d7862], r10 ; @37A3
+M mov r10, 0 ; @37AA
+M mov rax, r10 ; @37B1
+M mov rsp, rbp ; @37B4
+M pop rbp ; @37B7
+M ret ; @37B8
+:l47b9 ; @37B9
+M push rbp ; @37B9
+M mov rbp, rsp ; @37BA
+M sub rsp, A0 ; @37BD
+M mov r10, [rip+$d783a] ; @37C4
+M mov [rbp-38], r10 ; @37CB
+M mov r10, [rip+$d785a] ; @37CF
+M mov [rbp-40], r10 ; @37D6
+M mov r10, 1 ; @37DA
+M mov r11, r10 ; @37E1
+M mov r10, [rbp-40] ; @37E4
+M add r10, r11 ; @37E8
+M mov r11, r10 ; @37EB
+M mov r10, [rbp-38] ; @37EE
+M movzx r10d, byte [r10+r11] ; @37F2
+M mov [rbp-8], r10 ; @37F7
+M mov r10, [rip+$d783a] ; @37FB
+M mov [rbp-38], r10 ; @3802
+M mov r10, [rip+$d785a] ; @3806
+M mov [rbp-40], r10 ; @380D
+M mov r10, 2 ; @3811
+M mov r11, r10 ; @3818
+M mov r10, [rbp-40] ; @381B
+M add r10, r11 ; @381F
+M mov r11, r10 ; @3822
+M mov r10, [rbp-38] ; @3825
+M movzx r10d, byte [r10+r11] ; @3829
+M mov [rbp-10], r10 ; @382E
+M mov r10, [rbp-8] ; @3832
+M mov [rbp-38], r10 ; @3836
+M mov r10, F ; @383A
+M mov r11, r10 ; @3841
+M mov r10, [rbp-38] ; @3844
+M and r10, r11 ; @3848
+M mov [rbp-20], r10 ; @384B
+M mov r10, [rbp-8] ; @384F
+M mov [rbp-38], r10 ; @3853
+M mov r10, 4 ; @3857
+M mov r11, r10 ; @385E
+M mov r10, [rbp-38] ; @3861
+M mov rcx, r11 ; @3865
+M shr r10, cl ; @3868
+M mov [rbp-18], r10 ; @386B
+M mov r10, [rbp-10] ; @386F
+M mov [rbp-38], r10 ; @3873
+M mov r10, F ; @3877
+M mov r11, r10 ; @387E
+M mov r10, [rbp-38] ; @3881
+M cmp r10, r11 ; @3885
+M jle $l48a2 ; @3888
+M mov r10, 1 ; @388E
+M mov [rbp-48], r10 ; @3895
+M mov rcx, [rbp-48] ; @3899
+M call $l545f ; @389D
+:l48a2 ; @38A2
+M lea r10, [rip+$d788a] ; @38A2
+M mov [rbp-38], r10 ; @38A9
+M mov r10, [rbp-10] ; @38AD
+M shl r10, 3 ; @38B1
+M mov r11, r10 ; @38B5
+M mov r10, [rbp-38] ; @38B8
+M add r10, r11 ; @38BC
+M mov r10, [r10] ; @38BF
+M mov [rbp-30], r10 ; @38C2
+M mov r10, [rbp-30] ; @38C6
+M mov [rbp-38], r10 ; @38CA
+M mov r10, 0 ; @38CE
+M mov r11, r10 ; @38D5
+M mov r10, [rbp-38] ; @38D8
+M cmp r10, r11 ; @38DC
+M jnz $l48f9 ; @38DF
+M mov r10, 7 ; @38E5
+M mov [rbp-48], r10 ; @38EC
+M mov rcx, [rbp-48] ; @38F0
+M call $l545f ; @38F4
+:l48f9 ; @38F9
+M lea r10, [rip+$d788a] ; @38F9
+M mov [rbp-38], r10 ; @3900
+M mov r10, [rbp-20] ; @3904
+M shl r10, 3 ; @3908
+M mov r11, r10 ; @390C
+M mov r10, [rbp-38] ; @390F
+M add r10, r11 ; @3913
+M mov r10, [r10] ; @3916
+M mov [rbp-28], r10 ; @3919
+M mov r10, [rbp-28] ; @391D
+M mov [rbp-48], r10 ; @3921
+M mov r10, [rbp-30] ; @3925
+M mov [rbp-50], r10 ; @3929
+M mov rcx, [rbp-48] ; @392D
+M mov rdx, [rbp-50] ; @3931
+M call $l439b ; @3935
+M lea r10, [rip+$d788a] ; @393A
+M mov [rbp-58], r10 ; @3941
+M mov r10, [rbp-18] ; @3945
+M mov [rbp-60], r10 ; @3949
+M mov r10, [rip+$d7872] ; @394D
+M mov [rbp-68], r10 ; @3954
+M mov r10, [rbp-58] ; @3958
+M mov r11, [rbp-60] ; @395C
+M shl r11, 3 ; @3960
+M add r10, r11 ; @3964
+M mov r11, [rbp-68] ; @3967
+M mov [r10], r11 ; @396B
+M mov r10, [rip+$d785a] ; @396E
+M mov [rbp-38], r10 ; @3975
+M mov r10, 3 ; @3979
+M mov r11, r10 ; @3980
+M mov r10, [rbp-38] ; @3983
+M add r10, r11 ; @3987
+M mov [rip+$d785a], r10 ; @398A
+M mov r10, [rip+$d7862] ; @3991
+M mov [rbp-38], r10 ; @3998
+M mov r10, 1 ; @399C
+M mov r11, r10 ; @39A3
+M mov r10, [rbp-38] ; @39A6
+M add r10, r11 ; @39AA
+M mov [rip+$d7862], r10 ; @39AD
+M mov r10, 0 ; @39B4
+M mov rax, r10 ; @39BB
+M mov rsp, rbp ; @39BE
+M pop rbp ; @39C1
+M ret ; @39C2
+:l49c3 ; @39C3
+M push rbp ; @39C3
+M mov rbp, rsp ; @39C4
+M sub rsp, A0 ; @39C7
+M mov r10, [rip+$d783a] ; @39CE
+M mov [rbp-38], r10 ; @39D5
+M mov r10, [rip+$d785a] ; @39D9
+M mov [rbp-40], r10 ; @39E0
+M mov r10, 1 ; @39E4
+M mov r11, r10 ; @39EB
+M mov r10, [rbp-40] ; @39EE
+M add r10, r11 ; @39F2
+M mov r11, r10 ; @39F5
+M mov r10, [rbp-38] ; @39F8
+M movzx r10d, byte [r10+r11] ; @39FC
+M mov [rbp-8], r10 ; @3A01
+M mov r10, [rip+$d783a] ; @3A05
+M mov [rbp-38], r10 ; @3A0C
+M mov r10, [rip+$d785a] ; @3A10
+M mov [rbp-40], r10 ; @3A17
+M mov r10, 2 ; @3A1B
+M mov r11, r10 ; @3A22
+M mov r10, [rbp-40] ; @3A25
+M add r10, r11 ; @3A29
+M mov r11, r10 ; @3A2C
+M mov r10, [rbp-38] ; @3A2F
+M movzx r10d, byte [r10+r11] ; @3A33
+M mov [rbp-10], r10 ; @3A38
+M mov r10, [rbp-8] ; @3A3C
+M mov [rbp-38], r10 ; @3A40
+M mov r10, F ; @3A44
+M mov r11, r10 ; @3A4B
+M mov r10, [rbp-38] ; @3A4E
+M and r10, r11 ; @3A52
+M mov [rbp-20], r10 ; @3A55
+M mov r10, [rbp-8] ; @3A59
+M mov [rbp-38], r10 ; @3A5D
+M mov r10, 4 ; @3A61
+M mov r11, r10 ; @3A68
+M mov r10, [rbp-38] ; @3A6B
+M mov rcx, r11 ; @3A6F
+M shr r10, cl ; @3A72
+M mov [rbp-18], r10 ; @3A75
+M mov r10, [rbp-10] ; @3A79
+M mov [rbp-38], r10 ; @3A7D
+M mov r10, F ; @3A81
+M mov r11, r10 ; @3A88
+M mov r10, [rbp-38] ; @3A8B
+M cmp r10, r11 ; @3A8F
+M jle $l4aac ; @3A92
+M mov r10, 1 ; @3A98
+M mov [rbp-48], r10 ; @3A9F
+M mov rcx, [rbp-48] ; @3AA3
+M call $l545f ; @3AA7
+:l4aac ; @3AAC
+M lea r10, [rip+$d788a] ; @3AAC
+M mov [rbp-38], r10 ; @3AB3
+M mov r10, [rbp-10] ; @3AB7
+M shl r10, 3 ; @3ABB
+M mov r11, r10 ; @3ABF
+M mov r10, [rbp-38] ; @3AC2
+M add r10, r11 ; @3AC6
+M mov r10, [r10] ; @3AC9
+M mov [rbp-30], r10 ; @3ACC
+M mov r10, [rbp-30] ; @3AD0
+M mov [rbp-38], r10 ; @3AD4
+M mov r10, 0 ; @3AD8
+M mov r11, r10 ; @3ADF
+M mov r10, [rbp-38] ; @3AE2
+M cmp r10, r11 ; @3AE6
+M jnz $l4b03 ; @3AE9
+M mov r10, 7 ; @3AEF
+M mov [rbp-48], r10 ; @3AF6
+M mov rcx, [rbp-48] ; @3AFA
+M call $l545f ; @3AFE
+:l4b03 ; @3B03
+M lea r10, [rip+$d788a] ; @3B03
+M mov [rbp-38], r10 ; @3B0A
+M mov r10, [rbp-20] ; @3B0E
+M shl r10, 3 ; @3B12
+M mov r11, r10 ; @3B16
+M mov r10, [rbp-38] ; @3B19
+M add r10, r11 ; @3B1D
+M mov r10, [r10] ; @3B20
+M mov [rbp-28], r10 ; @3B23
+M mov r10, [rbp-28] ; @3B27
+M mov [rbp-48], r10 ; @3B2B
+M mov r10, [rbp-30] ; @3B2F
+M mov [rbp-50], r10 ; @3B33
+M mov rcx, [rbp-48] ; @3B37
+M mov rdx, [rbp-50] ; @3B3B
+M call $l439b ; @3B3F
+M lea r10, [rip+$d788a] ; @3B44
+M mov [rbp-58], r10 ; @3B4B
+M mov r10, [rbp-18] ; @3B4F
+M mov [rbp-60], r10 ; @3B53
+M mov r10, [rip+$d787a] ; @3B57
+M mov [rbp-68], r10 ; @3B5E
+M mov r10, [rbp-58] ; @3B62
+M mov r11, [rbp-60] ; @3B66
+M shl r11, 3 ; @3B6A
+M add r10, r11 ; @3B6E
+M mov r11, [rbp-68] ; @3B71
+M mov [r10], r11 ; @3B75
+M mov r10, [rip+$d785a] ; @3B78
+M mov [rbp-38], r10 ; @3B7F
+M mov r10, 3 ; @3B83
+M mov r11, r10 ; @3B8A
+M mov r10, [rbp-38] ; @3B8D
+M add r10, r11 ; @3B91
+M mov [rip+$d785a], r10 ; @3B94
+M mov r10, [rip+$d7862] ; @3B9B
+M mov [rbp-38], r10 ; @3BA2
+M mov r10, 1 ; @3BA6
+M mov r11, r10 ; @3BAD
+M mov r10, [rbp-38] ; @3BB0
+M add r10, r11 ; @3BB4
+M mov [rip+$d7862], r10 ; @3BB7
+M mov r10, 0 ; @3BBE
+M mov rax, r10 ; @3BC5
+M mov rsp, rbp ; @3BC8
+M pop rbp ; @3BCB
+M ret ; @3BCC
+:l4bcd ; @3BCD
+M push rbp ; @3BCD
+M mov rbp, rsp ; @3BCE
+M sub rsp, A0 ; @3BD1
+M mov r10, [rip+$d783a] ; @3BD8
+M mov [rbp-38], r10 ; @3BDF
+M mov r10, [rip+$d785a] ; @3BE3
+M mov [rbp-40], r10 ; @3BEA
+M mov r10, 1 ; @3BEE
+M mov r11, r10 ; @3BF5
+M mov r10, [rbp-40] ; @3BF8
+M add r10, r11 ; @3BFC
+M mov r11, r10 ; @3BFF
+M mov r10, [rbp-38] ; @3C02
+M movzx r10d, byte [r10+r11] ; @3C06
+M mov [rbp-8], r10 ; @3C0B
+M mov r10, [rip+$d783a] ; @3C0F
+M mov [rbp-38], r10 ; @3C16
+M mov r10, [rip+$d785a] ; @3C1A
+M mov [rbp-40], r10 ; @3C21
+M mov r10, 2 ; @3C25
+M mov r11, r10 ; @3C2C
+M mov r10, [rbp-40] ; @3C2F
+M add r10, r11 ; @3C33
+M mov r11, r10 ; @3C36
+M mov r10, [rbp-38] ; @3C39
+M movzx r10d, byte [r10+r11] ; @3C3D
+M mov [rbp-10], r10 ; @3C42
+M mov r10, [rbp-8] ; @3C46
+M mov [rbp-38], r10 ; @3C4A
+M mov r10, F ; @3C4E
+M mov r11, r10 ; @3C55
+M mov r10, [rbp-38] ; @3C58
+M and r10, r11 ; @3C5C
+M mov [rbp-20], r10 ; @3C5F
+M mov r10, [rbp-8] ; @3C63
+M mov [rbp-38], r10 ; @3C67
+M mov r10, 4 ; @3C6B
+M mov r11, r10 ; @3C72
+M mov r10, [rbp-38] ; @3C75
+M mov rcx, r11 ; @3C79
+M shr r10, cl ; @3C7C
+M mov [rbp-18], r10 ; @3C7F
+M mov r10, [rbp-10] ; @3C83
+M mov [rbp-38], r10 ; @3C87
+M mov r10, F ; @3C8B
+M mov r11, r10 ; @3C92
+M mov r10, [rbp-38] ; @3C95
+M cmp r10, r11 ; @3C99
+M jle $l4cb6 ; @3C9C
+M mov r10, 1 ; @3CA2
+M mov [rbp-50], r10 ; @3CA9
+M mov rcx, [rbp-50] ; @3CAD
+M call $l545f ; @3CB1
+:l4cb6 ; @3CB6
+M lea r10, [rip+$d788a] ; @3CB6
+M mov [rbp-38], r10 ; @3CBD
+M mov r10, [rbp-20] ; @3CC1
+M shl r10, 3 ; @3CC5
+M mov r11, r10 ; @3CC9
+M mov r10, [rbp-38] ; @3CCC
+M add r10, r11 ; @3CD0
+M mov r10, [r10] ; @3CD3
+M mov [rbp-28], r10 ; @3CD6
+M lea r10, [rip+$d788a] ; @3CDA
+M mov [rbp-40], r10 ; @3CE1
+M mov r10, [rbp-10] ; @3CE5
+M shl r10, 3 ; @3CE9
+M mov r11, r10 ; @3CED
+M mov r10, [rbp-40] ; @3CF0
+M add r10, r11 ; @3CF4
+M mov r10, [r10] ; @3CF7
+M mov [rbp-38], r10 ; @3CFA
+M mov r10, 3F ; @3CFE
+M mov r11, r10 ; @3D05
+M mov r10, [rbp-38] ; @3D08
+M and r10, r11 ; @3D0C
+M mov [rbp-30], r10 ; @3D0F
+M mov r10, [rbp-28] ; @3D13
+M mov [rbp-38], r10 ; @3D17
+M mov r10, 0 ; @3D1B
+M mov r11, r10 ; @3D22
+M mov r10, [rbp-38] ; @3D25
+M cmp r10, r11 ; @3D29
+M jge $l4db5 ; @3D2C
+M mov r10, [rbp-30] ; @3D32
+M mov [rbp-38], r10 ; @3D36
+M mov r10, 0 ; @3D3A
+M mov r11, r10 ; @3D41
+M mov r10, [rbp-38] ; @3D44
+M cmp r10, r11 ; @3D48
+M jle $l4db0 ; @3D4B
+M mov r10, [rbp-28] ; @3D51
+M mov [rbp-40], r10 ; @3D55
+M mov r10, [rbp-30] ; @3D59
+M mov r11, r10 ; @3D5D
+M mov r10, [rbp-40] ; @3D60
+M mov rcx, r11 ; @3D64
+M shr r10, cl ; @3D67
+M mov [rbp-38], r10 ; @3D6A
+M mov r10, 1 ; @3D6E
+M mov [rbp-40], r10 ; @3D75
+M mov r10, 40 ; @3D79
+M mov [rbp-48], r10 ; @3D80
+M mov r10, [rbp-30] ; @3D84
+M mov r11, r10 ; @3D88
+M mov r10, [rbp-48] ; @3D8B
+M sub r10, r11 ; @3D8F
+M mov r11, r10 ; @3D92
+M mov r10, [rbp-40] ; @3D95
+M mov rcx, r11 ; @3D99
+M shl r10, cl ; @3D9C
+M neg r10 ; @3D9F
+M mov r11, r10 ; @3DA2
+M mov r10, [rbp-38] ; @3DA5
+M or r10, r11 ; @3DA9
+M mov [rbp-28], r10 ; @3DAC
+:l4db0 ; @3DB0
+M jmp $l4dd2 ; @3DB0
+:l4db5 ; @3DB5
+M mov r10, [rbp-28] ; @3DB5
+M mov [rbp-38], r10 ; @3DB9
+M mov r10, [rbp-30] ; @3DBD
+M mov r11, r10 ; @3DC1
+M mov r10, [rbp-38] ; @3DC4
+M mov rcx, r11 ; @3DC8
+M shr r10, cl ; @3DCB
+M mov [rbp-28], r10 ; @3DCE
+:l4dd2 ; @3DD2
+M lea r10, [rip+$d788a] ; @3DD2
+M mov [rbp-58], r10 ; @3DD9
+M mov r10, [rbp-18] ; @3DDD
+M mov [rbp-60], r10 ; @3DE1
+M mov r10, [rbp-28] ; @3DE5
+M mov [rbp-68], r10 ; @3DE9
+M mov r10, [rbp-58] ; @3DED
+M mov r11, [rbp-60] ; @3DF1
+M shl r11, 3 ; @3DF5
+M add r10, r11 ; @3DF9
+M mov r11, [rbp-68] ; @3DFC
+M mov [r10], r11 ; @3E00
+M mov r10, [rip+$d785a] ; @3E03
+M mov [rbp-38], r10 ; @3E0A
+M mov r10, 3 ; @3E0E
+M mov r11, r10 ; @3E15
+M mov r10, [rbp-38] ; @3E18
+M add r10, r11 ; @3E1C
+M mov [rip+$d785a], r10 ; @3E1F
+M mov r10, [rip+$d7862] ; @3E26
+M mov [rbp-38], r10 ; @3E2D
+M mov r10, 1 ; @3E31
+M mov r11, r10 ; @3E38
+M mov r10, [rbp-38] ; @3E3B
+M add r10, r11 ; @3E3F
+M mov [rip+$d7862], r10 ; @3E42
+M mov r10, 0 ; @3E49
+M mov rax, r10 ; @3E50
+M mov rsp, rbp ; @3E53
+M pop rbp ; @3E56
+M ret ; @3E57
+:l4e58 ; @3E58
+M push rbp ; @3E58
+M mov rbp, rsp ; @3E59
+M sub rsp, 80 ; @3E5C
+M mov r10, [rip+$d783a] ; @3E63
+M mov [rbp-18], r10 ; @3E6A
+M mov r10, [rip+$d785a] ; @3E6E
+M mov [rbp-20], r10 ; @3E75
+M mov r10, 1 ; @3E79
+M mov r11, r10 ; @3E80
+M mov r10, [rbp-20] ; @3E83
+M add r10, r11 ; @3E87
+M mov r11, r10 ; @3E8A
+M mov r10, [rbp-18] ; @3E8D
+M movzx r10d, byte [r10+r11] ; @3E91
+M mov [rbp-8], r10 ; @3E96
+M mov r10, [rbp-8] ; @3E9A
+M mov [rbp-18], r10 ; @3E9E
+M mov r10, 0 ; @3EA2
+M mov r11, r10 ; @3EA9
+M mov r10, [rbp-18] ; @3EAC
+M cmp r10, r11 ; @3EB0
+M jz $l4ecd ; @3EB3
+M mov r10, 1 ; @3EB9
+M mov [rbp-28], r10 ; @3EC0
+M mov rcx, [rbp-28] ; @3EC4
+M call $l545f ; @3EC8
+:l4ecd ; @3ECD
+M mov r10, [rip+$d7882] ; @3ECD
+M mov [rbp-18], r10 ; @3ED4
+M mov r10, 400 ; @3ED8
+M mov r11, r10 ; @3EDF
+M mov r10, [rbp-18] ; @3EE2
+M cmp r10, r11 ; @3EE6
+M jl $l4f03 ; @3EE9
+M mov r10, 5 ; @3EEF
+M mov [rbp-28], r10 ; @3EF6
+M mov rcx, [rbp-28] ; @3EFA
+M call $l545f ; @3EFE
+:l4f03 ; @3F03
+M lea r10, [rip+$d7a92] ; @3F03
+M mov [rbp-38], r10 ; @3F0A
+M mov r10, [rip+$d7882] ; @3F0E
+M mov [rbp-40], r10 ; @3F15
+M mov r10, [rip+$d785a] ; @3F19
+M mov [rbp-18], r10 ; @3F20
+M mov r10, 6 ; @3F24
+M mov r11, r10 ; @3F2B
+M mov r10, [rbp-18] ; @3F2E
+M add r10, r11 ; @3F32
+M mov [rbp-48], r10 ; @3F35
+M mov r10, [rbp-38] ; @3F39
+M mov r11, [rbp-40] ; @3F3D
+M shl r11, 3 ; @3F41
+M add r10, r11 ; @3F45
+M mov r11, [rbp-48] ; @3F48
+M mov [r10], r11 ; @3F4C
+M mov r10, [rip+$d7882] ; @3F4F
+M mov [rbp-18], r10 ; @3F56
+M mov r10, 1 ; @3F5A
+M mov r11, r10 ; @3F61
+M mov r10, [rbp-18] ; @3F64
+M add r10, r11 ; @3F68
+M mov [rip+$d7882], r10 ; @3F6B
+M mov r10, [rip+$d783a] ; @3F72
+M mov [rbp-28], r10 ; @3F79
+M mov r10, [rip+$d785a] ; @3F7D
+M mov [rbp-18], r10 ; @3F84
+M mov r10, 2 ; @3F88
+M mov r11, r10 ; @3F8F
+M mov r10, [rbp-18] ; @3F92
+M add r10, r11 ; @3F96
+M mov [rbp-30], r10 ; @3F99
+M mov rcx, [rbp-28] ; @3F9D
+M mov rdx, [rbp-30] ; @3FA1
+M call $l203e ; @3FA5
+M mov r10, rax ; @3FAA
+M mov [rbp-10], r10 ; @3FAD
+M mov r10, [rbp-10] ; @3FB1
+M mov [rip+$d785a], r10 ; @3FB5
+M mov r10, [rip+$d7862] ; @3FBC
+M mov [rbp-18], r10 ; @3FC3
+M mov r10, 1 ; @3FC7
+M mov r11, r10 ; @3FCE
+M mov r10, [rbp-18] ; @3FD1
+M add r10, r11 ; @3FD5
+M mov [rip+$d7862], r10 ; @3FD8
+M mov r10, 0 ; @3FDF
+M mov rax, r10 ; @3FE6
+M mov rsp, rbp ; @3FE9
+M pop rbp ; @3FEC
+M ret ; @3FED
+:l4fee ; @3FEE
+M push rbp ; @3FEE
+M mov rbp, rsp ; @3FEF
+M sub rsp, 40 ; @3FF2
+M mov r10, [rip+$d7882] ; @3FF6
+M mov [rbp-8], r10 ; @3FFD
+M mov r10, 0 ; @4001
+M mov r11, r10 ; @4008
+M mov r10, [rbp-8] ; @400B
+M cmp r10, r11 ; @400F
+M jnz $l502c ; @4012
+M mov r10, 5 ; @4018
+M mov [rbp-10], r10 ; @401F
+M mov rcx, [rbp-10] ; @4023
+M call $l545f ; @4027
+:l502c ; @402C
+M mov r10, [rip+$d7882] ; @402C
+M mov [rbp-8], r10 ; @4033
+M mov r10, 1 ; @4037
+M mov r11, r10 ; @403E
+M mov r10, [rbp-8] ; @4041
+M sub r10, r11 ; @4045
+M mov [rip+$d7882], r10 ; @4048
+M lea r10, [rip+$d7a92] ; @404F
+M mov [rbp-8], r10 ; @4056
+M mov r10, [rip+$d7882] ; @405A
+M shl r10, 3 ; @4061
+M mov r11, r10 ; @4065
+M mov r10, [rbp-8] ; @4068
+M add r10, r11 ; @406C
+M mov r10, [r10] ; @406F
+M mov [rip+$d785a], r10 ; @4072
+M mov r10, [rip+$d7862] ; @4079
+M mov [rbp-8], r10 ; @4080
+M mov r10, 1 ; @4084
+M mov r11, r10 ; @408B
+M mov r10, [rbp-8] ; @408E
+M add r10, r11 ; @4092
+M mov [rip+$d7862], r10 ; @4095
+M mov r10, 0 ; @409C
+M mov rax, r10 ; @40A3
+M mov rsp, rbp ; @40A6
+M pop rbp ; @40A9
+M ret ; @40AA
+:l50ab ; @40AB
+M push rbp ; @40AB
+M mov rbp, rsp ; @40AC
+M sub rsp, 80 ; @40AF
+M mov [rbp-8], rcx ; @40B6
+M mov [rbp-10], rdx ; @40BA
+M mov [rbp-18], r8 ; @40BE
+M mov [rbp-20], r9 ; @40C2
+M mov r10, 0 ; @40C6
+M mov [rbp-28], r10 ; @40CD
+:l50d1 ; @40D1
+M mov r10, [rbp-28] ; @40D1
+M mov [rbp-38], r10 ; @40D5
+M mov r10, [rbp-20] ; @40D9
+M mov r11, r10 ; @40DD
+M mov r10, [rbp-38] ; @40E0
+M cmp r10, r11 ; @40E4
+M jge $l5164 ; @40E7
+M mov r10, [rbp-18] ; @40ED
+M mov [rbp-38], r10 ; @40F1
+M mov r10, [rbp-28] ; @40F5
+M mov r11, r10 ; @40F9
+M mov r10, [rbp-38] ; @40FC
+M movzx r10d, byte [r10+r11] ; @4100
+M mov [rbp-30], r10 ; @4105
+M mov r10, [rbp-8] ; @4109
+M mov [rbp-40], r10 ; @410D
+M mov r10, [rbp-10] ; @4111
+M mov [rbp-38], r10 ; @4115
+M mov r10, [rbp-28] ; @4119
+M mov r11, r10 ; @411D
+M mov r10, [rbp-38] ; @4120
+M add r10, r11 ; @4124
+M mov [rbp-48], r10 ; @4127
+M mov r10, [rbp-30] ; @412B
+M mov [rbp-50], r10 ; @412F
+M mov r10, [rbp-40] ; @4133
+M mov r11, [rbp-48] ; @4137
+M mov al, [rbp-50] ; @413B
+M mov [r10+r11], al ; @413E
+M mov r10, [rbp-28] ; @4142
+M mov [rbp-38], r10 ; @4146
+M mov r10, 1 ; @414A
+M mov r11, r10 ; @4151
+M mov r10, [rbp-38] ; @4154
+M add r10, r11 ; @4158
+M mov [rbp-28], r10 ; @415B
+M jmp $l50d1 ; @415F
+:l5164 ; @4164
+M mov r10, [rbp-10] ; @4164
+M mov [rbp-38], r10 ; @4168
+M mov r10, [rbp-20] ; @416C
+M mov r11, r10 ; @4170
+M mov r10, [rbp-38] ; @4173
+M add r10, r11 ; @4177
+M mov rax, r10 ; @417A
+M mov rsp, rbp ; @417D
+M pop rbp ; @4180
+M ret ; @4181
+:l5182 ; @4182
+M push rbp ; @4182
+M mov rbp, rsp ; @4183
+M sub rsp, 130 ; @4186
+M mov [rbp-8], rcx ; @418D
+M mov [rbp-10], rdx ; @4191
+M mov [rbp-18], r8 ; @4195
+M mov r10, 0 ; @4199
+M mov [rbp-C8], r10 ; @41A0
+M mov r10, [rbp-18] ; @41A7
+M mov [rbp-D0], r10 ; @41AB
+M mov r10, 0 ; @41B2
+M mov r11, r10 ; @41B9
+M mov r10, [rbp-D0] ; @41BC
+M cmp r10, r11 ; @41C3
+M jnz $l522f ; @41C6
+M mov r10, [rbp-8] ; @41CC
+M mov [rbp-E8], r10 ; @41D0
+M mov r10, [rbp-10] ; @41D7
+M mov [rbp-F0], r10 ; @41DB
+M mov r10, 30 ; @41E2
+M mov [rbp-F8], r10 ; @41E9
+M mov r10, [rbp-E8] ; @41F0
+M mov r11, [rbp-F0] ; @41F7
+M mov al, [rbp-F8] ; @41FE
+M mov [r10+r11], al ; @4204
+M mov r10, [rbp-10] ; @4208
+M mov [rbp-D0], r10 ; @420C
+M mov r10, 1 ; @4213
+M mov r11, r10 ; @421A
+M mov r10, [rbp-D0] ; @421D
+M add r10, r11 ; @4224
+M mov rax, r10 ; @4227
+M mov rsp, rbp ; @422A
+M pop rbp ; @422D
+M ret ; @422E
+:l522f ; @422F
+M mov r10, [rbp-18] ; @422F
+M mov [rbp-D0], r10 ; @4233
+M mov r10, 0 ; @423A
+M mov r11, r10 ; @4241
+M mov r10, [rbp-D0] ; @4244
+M cmp r10, r11 ; @424B
+M jle $l532a ; @424E
+M lea r10, [rbp-B8] ; @4254
+M mov [rbp-E8], r10 ; @425B
+M mov r10, [rbp-C8] ; @4262
+M mov [rbp-F0], r10 ; @4269
+M mov r10, 30 ; @4270
+M mov [rbp-D0], r10 ; @4277
+M mov r10, [rbp-18] ; @427E
+M mov [rbp-D8], r10 ; @4282
+M mov r10, A ; @4289
+M mov r11, r10 ; @4290
+M mov r10, [rbp-D8] ; @4293
+M mov rax, r10 ; @429A
+M cqo ; @429D
+M idiv r11 ; @429F
+M mov r10, rdx ; @42A2
+M mov r11, r10 ; @42A5
+M mov r10, [rbp-D0] ; @42A8
+M add r10, r11 ; @42AF
+M mov [rbp-F8], r10 ; @42B2
+M mov r10, [rbp-E8] ; @42B9
+M mov r11, [rbp-F0] ; @42C0
+M mov al, [rbp-F8] ; @42C7
+M mov [r10+r11], al ; @42CD
+M mov r10, [rbp-18] ; @42D1
+M mov [rbp-D0], r10 ; @42D5
+M mov r10, A ; @42DC
+M mov r11, r10 ; @42E3
+M mov r10, [rbp-D0] ; @42E6
+M mov rax, r10 ; @42ED
+M cqo ; @42F0
+M idiv r11 ; @42F2
+M mov r10, rax ; @42F5
+M mov [rbp-18], r10 ; @42F8
+M mov r10, [rbp-C8] ; @42FC
+M mov [rbp-D0], r10 ; @4303
+M mov r10, 1 ; @430A
+M mov r11, r10 ; @4311
+M mov r10, [rbp-D0] ; @4314
+M add r10, r11 ; @431B
+M mov [rbp-C8], r10 ; @431E
+M jmp $l522f ; @4325
+:l532a ; @432A
+M mov r10, 0 ; @432A
+M mov [rbp-C0], r10 ; @4331
+:l5338 ; @4338
+M mov r10, [rbp-C0] ; @4338
+M mov [rbp-D0], r10 ; @433F
+M mov r10, [rbp-C8] ; @4346
+M mov r11, r10 ; @434D
+M mov r10, [rbp-D0] ; @4350
+M cmp r10, r11 ; @4357
+M jge $l5438 ; @435A
+M mov r10, [rbp-8] ; @4360
+M mov [rbp-E8], r10 ; @4364
+M mov r10, [rbp-10] ; @436B
+M mov [rbp-D0], r10 ; @436F
+M mov r10, [rbp-C0] ; @4376
+M mov r11, r10 ; @437D
+M mov r10, [rbp-D0] ; @4380
+M add r10, r11 ; @4387
+M mov [rbp-F0], r10 ; @438A
+M lea r10, [rbp-B8] ; @4391
+M mov [rbp-D0], r10 ; @4398
+M mov r10, [rbp-C8] ; @439F
+M mov [rbp-E0], r10 ; @43A6
+M mov r10, 1 ; @43AD
+M mov r11, r10 ; @43B4
+M mov r10, [rbp-E0] ; @43B7
+M sub r10, r11 ; @43BE
+M mov [rbp-D8], r10 ; @43C1
+M mov r10, [rbp-C0] ; @43C8
+M mov r11, r10 ; @43CF
+M mov r10, [rbp-D8] ; @43D2
+M sub r10, r11 ; @43D9
+M mov r11, r10 ; @43DC
+M mov r10, [rbp-D0] ; @43DF
+M movzx r10d, byte [r10+r11] ; @43E6
+M mov [rbp-F8], r10 ; @43EB
+M mov r10, [rbp-E8] ; @43F2
+M mov r11, [rbp-F0] ; @43F9
+M mov al, [rbp-F8] ; @4400
+M mov [r10+r11], al ; @4406
+M mov r10, [rbp-C0] ; @440A
+M mov [rbp-D0], r10 ; @4411
+M mov r10, 1 ; @4418
+M mov r11, r10 ; @441F
+M mov r10, [rbp-D0] ; @4422
+M add r10, r11 ; @4429
+M mov [rbp-C0], r10 ; @442C
+M jmp $l5338 ; @4433
+:l5438 ; @4438
+M mov r10, [rbp-10] ; @4438
+M mov [rbp-D0], r10 ; @443C
+M mov r10, [rbp-C8] ; @4443
+M mov r11, r10 ; @444A
+M mov r10, [rbp-D0] ; @444D
+M add r10, r11 ; @4454
+M mov rax, r10 ; @4457
+M mov rsp, rbp ; @445A
+M pop rbp ; @445D
+M ret ; @445E
+:l545f ; @445F
+M push rbp ; @445F
+M mov rbp, rsp ; @4460
+M sub rsp, 70 ; @4463
+M mov [rbp-8], rcx ; @4467
+M mov r10, 0 ; @446B
+M mov [rbp-10], r10 ; @4472
+M lea r10, [rip+$d7912] ; @4476
+M mov [rbp-18], r10 ; @447D
+M mov r10, [rbp-10] ; @4481
+M mov [rbp-20], r10 ; @4485
+M lea r10, [rip+$d73c1] ; @4489
+M mov [rbp-28], r10 ; @4490
+M mov r10, 10 ; @4494
+M mov [rbp-30], r10 ; @449B
+M mov rcx, [rbp-18] ; @449F
+M mov rdx, [rbp-20] ; @44A3
+M mov r8, [rbp-28] ; @44A7
+M mov r9, [rbp-30] ; @44AB
+M call $l50ab ; @44AF
+M mov r10, rax ; @44B4
+M mov [rbp-10], r10 ; @44B7
+M lea r10, [rip+$d7912] ; @44BB
+M mov [rbp-18], r10 ; @44C2
+M mov r10, [rbp-10] ; @44C6
+M mov [rbp-20], r10 ; @44CA
+M mov r10, [rbp-8] ; @44CE
+M mov [rbp-28], r10 ; @44D2
+M mov rcx, [rbp-18] ; @44D6
+M mov rdx, [rbp-20] ; @44DA
+M mov r8, [rbp-28] ; @44DE
+M call $l5182 ; @44E2
+M mov r10, rax ; @44E7
+M mov [rbp-10], r10 ; @44EA
+M lea r10, [rip+$d7912] ; @44EE
+M mov [rbp-18], r10 ; @44F5
+M mov r10, [rbp-10] ; @44F9
+M mov [rbp-20], r10 ; @44FD
+M lea r10, [rip+$d73d1] ; @4501
+M mov [rbp-28], r10 ; @4508
+M mov r10, 7 ; @450C
+M mov [rbp-30], r10 ; @4513
+M mov rcx, [rbp-18] ; @4517
+M mov rdx, [rbp-20] ; @451B
+M mov r8, [rbp-28] ; @451F
+M mov r9, [rbp-30] ; @4523
+M call $l50ab ; @4527
+M mov r10, rax ; @452C
+M mov [rbp-10], r10 ; @452F
+M lea r10, [rip+$d7912] ; @4533
+M mov [rbp-18], r10 ; @453A
+M mov r10, [rbp-10] ; @453E
+M mov [rbp-20], r10 ; @4542
+M mov r10, [rip+$d7862] ; @4546
+M mov [rbp-28], r10 ; @454D
+M mov rcx, [rbp-18] ; @4551
+M mov rdx, [rbp-20] ; @4555
+M mov r8, [rbp-28] ; @4559
+M call $l5182 ; @455D
+M mov r10, rax ; @4562
+M mov [rbp-10], r10 ; @4565
+M lea r10, [rip+$d7912] ; @4569
+M mov [rbp-18], r10 ; @4570
+M mov r10, [rbp-10] ; @4574
+M mov [rbp-20], r10 ; @4578
+M lea r10, [rip+$d73d8] ; @457C
+M mov [rbp-28], r10 ; @4583
+M mov r10, 2 ; @4587
+M mov [rbp-30], r10 ; @458E
+M mov rcx, [rbp-18] ; @4592
+M mov rdx, [rbp-20] ; @4596
+M mov r8, [rbp-28] ; @459A
+M mov r9, [rbp-30] ; @459E
+M call $l50ab ; @45A2
+M mov r10, rax ; @45A7
+M mov [rbp-10], r10 ; @45AA
+M mov r10, 0 ; @45AE
+M mov [rip+$d73ea], r10 ; @45B5
+M mov r10, [rip+$d73da] ; @45BC
+M mov [rbp-18], r10 ; @45C3
+M lea r10, [rip+$d7912] ; @45C7
+M mov [rbp-20], r10 ; @45CE
+M mov r10, [rbp-10] ; @45D2
+M mov [rbp-28], r10 ; @45D6
+M lea r10, [rip+$d73ea] ; @45DA
+M mov [rbp-30], r10 ; @45E1
+M mov r10, 0 ; @45E5
+M mov [rbp-50], r10 ; @45EC
+M mov rcx, [rbp-18] ; @45F0
+M mov rdx, [rbp-20] ; @45F4
+M mov r8, [rbp-28] ; @45F8
+M mov r9, [rbp-30] ; @45FC
+M mov r10, [rbp-50] ; @4600
+M mov [rsp+20], r10 ; @4604
+M call [rip+$iat_writefile] ; @4609
+M mov r10, 1 ; @460F
+M mov [rbp-18], r10 ; @4616
+M mov rcx, [rbp-18] ; @461A
+M call [rip+$iat_exitprocess] ; @461E
+M mov r10, 0 ; @4624
+M mov rax, r10 ; @462B
+M mov rsp, rbp ; @462E
+M pop rbp ; @4631
+M ret ; @4632
+:l5633 ; @4633
+M push rbp ; @4633
+M mov rbp, rsp ; @4634
+M sub rsp, 80 ; @4637
+M mov r10, [rip+$d783a] ; @463E
+M mov [rbp-20], r10 ; @4645
+M mov r10, [rip+$d785a] ; @4649
+M mov [rbp-28], r10 ; @4650
+M mov r10, 1 ; @4654
+M mov r11, r10 ; @465B
+M mov r10, [rbp-28] ; @465E
+M add r10, r11 ; @4662
+M mov r11, r10 ; @4665
+M mov r10, [rbp-20] ; @4668
+M movzx r10d, byte [r10+r11] ; @466C
+M mov [rbp-8], r10 ; @4671
+M mov r10, [rbp-8] ; @4675
+M mov [rbp-20], r10 ; @4679
+M mov r10, 4 ; @467D
+M mov r11, r10 ; @4684
+M mov r10, [rbp-20] ; @4687
+M mov rcx, r11 ; @468B
+M shr r10, cl ; @468E
+M mov [rbp-10], r10 ; @4691
+M mov r10, [rbp-8] ; @4695
+M mov [rbp-28], r10 ; @4699
+M mov r10, F ; @469D
+M mov r11, r10 ; @46A4
+M mov r10, [rbp-28] ; @46A7
+M and r10, r11 ; @46AB
+M mov [rbp-20], r10 ; @46AE
+M mov r10, 0 ; @46B2
+M mov r11, r10 ; @46B9
+M mov r10, [rbp-20] ; @46BC
+M cmp r10, r11 ; @46C0
+M jz $l56dd ; @46C3
+M mov r10, 1 ; @46C9
+M mov [rbp-30], r10 ; @46D0
+M mov rcx, [rbp-30] ; @46D4
+M call $l545f ; @46D8
+:l56dd ; @46DD
+M mov r10, [rip+$d783a] ; @46DD
+M mov [rbp-30], r10 ; @46E4
+M mov r10, [rip+$d785a] ; @46E8
+M mov [rbp-20], r10 ; @46EF
+M mov r10, 2 ; @46F3
+M mov r11, r10 ; @46FA
+M mov r10, [rbp-20] ; @46FD
+M add r10, r11 ; @4701
+M mov [rbp-38], r10 ; @4704
+M mov rcx, [rbp-30] ; @4708
+M mov rdx, [rbp-38] ; @470C
+M call $l203e ; @4710
+M mov r10, rax ; @4715
+M mov [rbp-18], r10 ; @4718
+M mov r10, [rbp-18] ; @471C
+M mov [rbp-28], r10 ; @4720
+M mov r10, 1F ; @4724
+M mov r11, r10 ; @472B
+M mov r10, [rbp-28] ; @472E
+M mov rcx, r11 ; @4732
+M shr r10, cl ; @4735
+M mov [rbp-20], r10 ; @4738
+M mov r10, 1 ; @473C
+M mov r11, r10 ; @4743
+M mov r10, [rbp-20] ; @4746
+M cmp r10, r11 ; @474A
+M jnz $l5788 ; @474D
+M mov r10, [rbp-18] ; @4753
+M mov [rbp-20], r10 ; @4757
+M mov r10, 1 ; @475B
+M mov [rbp-28], r10 ; @4762
+M mov r10, 20 ; @4766
+M mov r11, r10 ; @476D
+M mov r10, [rbp-28] ; @4770
+M mov rcx, r11 ; @4774
+M shl r10, cl ; @4777
+M mov r11, r10 ; @477A
+M mov r10, [rbp-20] ; @477D
+M sub r10, r11 ; @4781
+M mov [rbp-18], r10 ; @4784
+:l5788 ; @4788
+M lea r10, [rip+$d788a] ; @4788
+M mov [rbp-40], r10 ; @478F
+M mov r10, [rbp-10] ; @4793
+M mov [rbp-48], r10 ; @4797
+M mov r10, [rbp-18] ; @479B
+M mov [rbp-50], r10 ; @479F
+M mov r10, [rbp-40] ; @47A3
+M mov r11, [rbp-48] ; @47A7
+M shl r11, 3 ; @47AB
+M add r10, r11 ; @47AF
+M mov r11, [rbp-50] ; @47B2
+M mov [r10], r11 ; @47B6
+M mov r10, [rip+$d785a] ; @47B9
+M mov [rbp-20], r10 ; @47C0
+M mov r10, 6 ; @47C4
+M mov r11, r10 ; @47CB
+M mov r10, [rbp-20] ; @47CE
+M add r10, r11 ; @47D2
+M mov [rip+$d785a], r10 ; @47D5
+M mov r10, [rip+$d7862] ; @47DC
+M mov [rbp-20], r10 ; @47E3
+M mov r10, 1 ; @47E7
+M mov r11, r10 ; @47EE
+M mov r10, [rbp-20] ; @47F1
+M add r10, r11 ; @47F5
+M mov [rip+$d7862], r10 ; @47F8
+M mov r10, 0 ; @47FF
+M mov rax, r10 ; @4806
+M mov rsp, rbp ; @4809
+M pop rbp ; @480C
+M ret ; @480D
+:l580e ; @480E
+M push rbp ; @480E
+M mov rbp, rsp ; @480F
+M sub rsp, 80 ; @4812
+M mov r10, [rip+$d783a] ; @4819
+M mov [rbp-28], r10 ; @4820
+M mov r10, [rip+$d785a] ; @4824
+M mov [rbp-30], r10 ; @482B
+M mov r10, 1 ; @482F
+M mov r11, r10 ; @4836
+M mov r10, [rbp-30] ; @4839
+M add r10, r11 ; @483D
+M mov r11, r10 ; @4840
+M mov r10, [rbp-28] ; @4843
+M movzx r10d, byte [r10+r11] ; @4847
+M mov [rbp-8], r10 ; @484C
+M mov r10, [rip+$d783a] ; @4850
+M mov [rbp-28], r10 ; @4857
+M mov r10, [rip+$d785a] ; @485B
+M mov [rbp-30], r10 ; @4862
+M mov r10, 2 ; @4866
+M mov r11, r10 ; @486D
+M mov r10, [rbp-30] ; @4870
+M add r10, r11 ; @4874
+M mov r11, r10 ; @4877
+M mov r10, [rbp-28] ; @487A
+M movzx r10d, byte [r10+r11] ; @487E
+M mov [rbp-10], r10 ; @4883
+M mov r10, [rbp-8] ; @4887
+M mov [rbp-28], r10 ; @488B
+M mov r10, F ; @488F
+M mov r11, r10 ; @4896
+M mov r10, [rbp-28] ; @4899
+M and r10, r11 ; @489D
+M mov [rbp-20], r10 ; @48A0
+M mov r10, [rbp-8] ; @48A4
+M mov [rbp-28], r10 ; @48A8
+M mov r10, 4 ; @48AC
+M mov r11, r10 ; @48B3
+M mov r10, [rbp-28] ; @48B6
+M mov rcx, r11 ; @48BA
+M shr r10, cl ; @48BD
+M mov [rbp-18], r10 ; @48C0
+M mov r10, [rbp-10] ; @48C4
+M mov [rbp-28], r10 ; @48C8
+M mov r10, 0 ; @48CC
+M mov r11, r10 ; @48D3
+M mov r10, [rbp-28] ; @48D6
+M cmp r10, r11 ; @48DA
+M jz $l58f7 ; @48DD
+M mov r10, 1 ; @48E3
+M mov [rbp-38], r10 ; @48EA
+M mov rcx, [rbp-38] ; @48EE
+M call $l545f ; @48F2
+:l58f7 ; @48F7
+M lea r10, [rip+$d788a] ; @48F7
+M mov [rbp-40], r10 ; @48FE
+M mov r10, [rbp-18] ; @4902
+M mov [rbp-48], r10 ; @4906
+M lea r10, [rip+$d788a] ; @490A
+M mov [rbp-28], r10 ; @4911
+M mov r10, [rbp-20] ; @4915
+M shl r10, 3 ; @4919
+M mov r11, r10 ; @491D
+M mov r10, [rbp-28] ; @4920
+M add r10, r11 ; @4924
+M mov r10, [r10] ; @4927
+M mov [rbp-50], r10 ; @492A
+M mov r10, [rbp-40] ; @492E
+M mov r11, [rbp-48] ; @4932
+M shl r11, 3 ; @4936
+M add r10, r11 ; @493A
+M mov r11, [rbp-50] ; @493D
+M mov [r10], r11 ; @4941
+M mov r10, [rip+$d785a] ; @4944
+M mov [rbp-28], r10 ; @494B
+M mov r10, 3 ; @494F
+M mov r11, r10 ; @4956
+M mov r10, [rbp-28] ; @4959
+M add r10, r11 ; @495D
+M mov [rip+$d785a], r10 ; @4960
+M mov r10, [rip+$d7862] ; @4967
+M mov [rbp-28], r10 ; @496E
+M mov r10, 1 ; @4972
+M mov r11, r10 ; @4979
+M mov r10, [rbp-28] ; @497C
+M add r10, r11 ; @4980
+M mov [rip+$d7862], r10 ; @4983
+M mov r10, 0 ; @498A
+M mov rax, r10 ; @4991
+M mov rsp, rbp ; @4994
+M pop rbp ; @4997
+M ret ; @4998
+:l5999 ; @4999
+M push rbp ; @4999
+M mov rbp, rsp ; @499A
+M sub rsp, 80 ; @499D
+M mov r10, [rip+$d783a] ; @49A4
+M mov [rbp-28], r10 ; @49AB
+M mov r10, [rip+$d785a] ; @49AF
+M mov [rbp-30], r10 ; @49B6
+M mov r10, 1 ; @49BA
+M mov r11, r10 ; @49C1
+M mov r10, [rbp-30] ; @49C4
+M add r10, r11 ; @49C8
+M mov r11, r10 ; @49CB
+M mov r10, [rbp-28] ; @49CE
+M movzx r10d, byte [r10+r11] ; @49D2
+M mov [rbp-8], r10 ; @49D7
+M mov r10, [rip+$d783a] ; @49DB
+M mov [rbp-28], r10 ; @49E2
+M mov r10, [rip+$d785a] ; @49E6
+M mov [rbp-30], r10 ; @49ED
+M mov r10, 2 ; @49F1
+M mov r11, r10 ; @49F8
+M mov r10, [rbp-30] ; @49FB
+M add r10, r11 ; @49FF
+M mov r11, r10 ; @4A02
+M mov r10, [rbp-28] ; @4A05
+M movzx r10d, byte [r10+r11] ; @4A09
+M mov [rbp-10], r10 ; @4A0E
+M mov r10, [rbp-8] ; @4A12
+M mov [rbp-28], r10 ; @4A16
+M mov r10, F ; @4A1A
+M mov r11, r10 ; @4A21
+M mov r10, [rbp-28] ; @4A24
+M and r10, r11 ; @4A28
+M mov [rbp-20], r10 ; @4A2B
+M mov r10, [rbp-8] ; @4A2F
+M mov [rbp-28], r10 ; @4A33
+M mov r10, 4 ; @4A37
+M mov r11, r10 ; @4A3E
+M mov r10, [rbp-28] ; @4A41
+M mov rcx, r11 ; @4A45
+M shr r10, cl ; @4A48
+M mov [rbp-18], r10 ; @4A4B
+M mov r10, [rbp-10] ; @4A4F
+M mov [rbp-28], r10 ; @4A53
+M mov r10, F ; @4A57
+M mov r11, r10 ; @4A5E
+M mov r10, [rbp-28] ; @4A61
+M cmp r10, r11 ; @4A65
+M jle $l5a82 ; @4A68
+M mov r10, 1 ; @4A6E
+M mov [rbp-38], r10 ; @4A75
+M mov rcx, [rbp-38] ; @4A79
+M call $l545f ; @4A7D
+:l5a82 ; @4A82
+M lea r10, [rip+$d788a] ; @4A82
+M mov [rbp-40], r10 ; @4A89
+M mov r10, [rbp-18] ; @4A8D
+M mov [rbp-48], r10 ; @4A91
+M lea r10, [rip+$d788a] ; @4A95
+M mov [rbp-30], r10 ; @4A9C
+M mov r10, [rbp-20] ; @4AA0
+M shl r10, 3 ; @4AA4
+M mov r11, r10 ; @4AA8
+M mov r10, [rbp-30] ; @4AAB
+M add r10, r11 ; @4AAF
+M mov r10, [r10] ; @4AB2
+M mov [rbp-28], r10 ; @4AB5
+M lea r10, [rip+$d788a] ; @4AB9
+M mov [rbp-30], r10 ; @4AC0
+M mov r10, [rbp-10] ; @4AC4
+M shl r10, 3 ; @4AC8
+M mov r11, r10 ; @4ACC
+M mov r10, [rbp-30] ; @4ACF
+M add r10, r11 ; @4AD3
+M mov r10, [r10] ; @4AD6
+M mov r11, r10 ; @4AD9
+M mov r10, [rbp-28] ; @4ADC
+M add r10, r11 ; @4AE0
+M mov [rbp-50], r10 ; @4AE3
+M mov r10, [rbp-40] ; @4AE7
+M mov r11, [rbp-48] ; @4AEB
+M shl r11, 3 ; @4AEF
+M add r10, r11 ; @4AF3
+M mov r11, [rbp-50] ; @4AF6
+M mov [r10], r11 ; @4AFA
+M mov r10, [rip+$d785a] ; @4AFD
+M mov [rbp-28], r10 ; @4B04
+M mov r10, 3 ; @4B08
+M mov r11, r10 ; @4B0F
+M mov r10, [rbp-28] ; @4B12
+M add r10, r11 ; @4B16
+M mov [rip+$d785a], r10 ; @4B19
+M mov r10, [rip+$d7862] ; @4B20
+M mov [rbp-28], r10 ; @4B27
+M mov r10, 1 ; @4B2B
+M mov r11, r10 ; @4B32
+M mov r10, [rbp-28] ; @4B35
+M add r10, r11 ; @4B39
+M mov [rip+$d7862], r10 ; @4B3C
+M mov r10, 0 ; @4B43
+M mov rax, r10 ; @4B4A
+M mov rsp, rbp ; @4B4D
+M pop rbp ; @4B50
+M ret ; @4B51
+:l5b52 ; @4B52
+M push rbp ; @4B52
+M mov rbp, rsp ; @4B53
+M sub rsp, 80 ; @4B56
+M mov r10, [rip+$d783a] ; @4B5D
+M mov [rbp-28], r10 ; @4B64
+M mov r10, [rip+$d785a] ; @4B68
+M mov [rbp-30], r10 ; @4B6F
+M mov r10, 1 ; @4B73
+M mov r11, r10 ; @4B7A
+M mov r10, [rbp-30] ; @4B7D
+M add r10, r11 ; @4B81
+M mov r11, r10 ; @4B84
+M mov r10, [rbp-28] ; @4B87
+M movzx r10d, byte [r10+r11] ; @4B8B
+M mov [rbp-8], r10 ; @4B90
+M mov r10, [rip+$d783a] ; @4B94
+M mov [rbp-28], r10 ; @4B9B
+M mov r10, [rip+$d785a] ; @4B9F
+M mov [rbp-30], r10 ; @4BA6
+M mov r10, 2 ; @4BAA
+M mov r11, r10 ; @4BB1
+M mov r10, [rbp-30] ; @4BB4
+M add r10, r11 ; @4BB8
+M mov r11, r10 ; @4BBB
+M mov r10, [rbp-28] ; @4BBE
+M movzx r10d, byte [r10+r11] ; @4BC2
+M mov [rbp-10], r10 ; @4BC7
+M mov r10, [rbp-8] ; @4BCB
+M mov [rbp-28], r10 ; @4BCF
+M mov r10, F ; @4BD3
+M mov r11, r10 ; @4BDA
+M mov r10, [rbp-28] ; @4BDD
+M and r10, r11 ; @4BE1
+M mov [rbp-20], r10 ; @4BE4
+M mov r10, [rbp-8] ; @4BE8
+M mov [rbp-28], r10 ; @4BEC
+M mov r10, 4 ; @4BF0
+M mov r11, r10 ; @4BF7
+M mov r10, [rbp-28] ; @4BFA
+M mov rcx, r11 ; @4BFE
+M shr r10, cl ; @4C01
+M mov [rbp-18], r10 ; @4C04
+M mov r10, [rbp-10] ; @4C08
+M mov [rbp-28], r10 ; @4C0C
+M mov r10, F ; @4C10
+M mov r11, r10 ; @4C17
+M mov r10, [rbp-28] ; @4C1A
+M cmp r10, r11 ; @4C1E
+M jle $l5c3b ; @4C21
+M mov r10, 1 ; @4C27
+M mov [rbp-38], r10 ; @4C2E
+M mov rcx, [rbp-38] ; @4C32
+M call $l545f ; @4C36
+:l5c3b ; @4C3B
+M lea r10, [rip+$d788a] ; @4C3B
+M mov [rbp-40], r10 ; @4C42
+M mov r10, [rbp-18] ; @4C46
+M mov [rbp-48], r10 ; @4C4A
+M lea r10, [rip+$d788a] ; @4C4E
+M mov [rbp-30], r10 ; @4C55
+M mov r10, [rbp-20] ; @4C59
+M shl r10, 3 ; @4C5D
+M mov r11, r10 ; @4C61
+M mov r10, [rbp-30] ; @4C64
+M add r10, r11 ; @4C68
+M mov r10, [r10] ; @4C6B
+M mov [rbp-28], r10 ; @4C6E
+M lea r10, [rip+$d788a] ; @4C72
+M mov [rbp-30], r10 ; @4C79
+M mov r10, [rbp-10] ; @4C7D
+M shl r10, 3 ; @4C81
+M mov r11, r10 ; @4C85
+M mov r10, [rbp-30] ; @4C88
+M add r10, r11 ; @4C8C
+M mov r10, [r10] ; @4C8F
+M mov r11, r10 ; @4C92
+M mov r10, [rbp-28] ; @4C95
+M sub r10, r11 ; @4C99
+M mov [rbp-50], r10 ; @4C9C
+M mov r10, [rbp-40] ; @4CA0
+M mov r11, [rbp-48] ; @4CA4
+M shl r11, 3 ; @4CA8
+M add r10, r11 ; @4CAC
+M mov r11, [rbp-50] ; @4CAF
+M mov [r10], r11 ; @4CB3
+M mov r10, [rip+$d785a] ; @4CB6
+M mov [rbp-28], r10 ; @4CBD
+M mov r10, 3 ; @4CC1
+M mov r11, r10 ; @4CC8
+M mov r10, [rbp-28] ; @4CCB
+M add r10, r11 ; @4CCF
+M mov [rip+$d785a], r10 ; @4CD2
+M mov r10, [rip+$d7862] ; @4CD9
+M mov [rbp-28], r10 ; @4CE0
+M mov r10, 1 ; @4CE4
+M mov r11, r10 ; @4CEB
+M mov r10, [rbp-28] ; @4CEE
+M add r10, r11 ; @4CF2
+M mov [rip+$d7862], r10 ; @4CF5
+M mov r10, 0 ; @4CFC
+M mov rax, r10 ; @4D03
+M mov rsp, rbp ; @4D06
+M pop rbp ; @4D09
+M ret ; @4D0A
+:l5d0b ; @4D0B
+M push rbp ; @4D0B
+M mov rbp, rsp ; @4D0C
+M sub rsp, 80 ; @4D0F
+M mov r10, [rip+$d783a] ; @4D16
+M mov [rbp-28], r10 ; @4D1D
+M mov r10, [rip+$d785a] ; @4D21
+M mov [rbp-30], r10 ; @4D28
+M mov r10, 1 ; @4D2C
+M mov r11, r10 ; @4D33
+M mov r10, [rbp-30] ; @4D36
+M add r10, r11 ; @4D3A
+M mov r11, r10 ; @4D3D
+M mov r10, [rbp-28] ; @4D40
+M movzx r10d, byte [r10+r11] ; @4D44
+M mov [rbp-8], r10 ; @4D49
+M mov r10, [rip+$d783a] ; @4D4D
+M mov [rbp-28], r10 ; @4D54
+M mov r10, [rip+$d785a] ; @4D58
+M mov [rbp-30], r10 ; @4D5F
+M mov r10, 2 ; @4D63
+M mov r11, r10 ; @4D6A
+M mov r10, [rbp-30] ; @4D6D
+M add r10, r11 ; @4D71
+M mov r11, r10 ; @4D74
+M mov r10, [rbp-28] ; @4D77
+M movzx r10d, byte [r10+r11] ; @4D7B
+M mov [rbp-10], r10 ; @4D80
+M mov r10, [rbp-8] ; @4D84
+M mov [rbp-28], r10 ; @4D88
+M mov r10, F ; @4D8C
+M mov r11, r10 ; @4D93
+M mov r10, [rbp-28] ; @4D96
+M and r10, r11 ; @4D9A
+M mov [rbp-20], r10 ; @4D9D
+M mov r10, [rbp-8] ; @4DA1
+M mov [rbp-28], r10 ; @4DA5
+M mov r10, 4 ; @4DA9
+M mov r11, r10 ; @4DB0
+M mov r10, [rbp-28] ; @4DB3
+M mov rcx, r11 ; @4DB7
+M shr r10, cl ; @4DBA
+M mov [rbp-18], r10 ; @4DBD
+M mov r10, [rbp-10] ; @4DC1
+M mov [rbp-28], r10 ; @4DC5
+M mov r10, F ; @4DC9
+M mov r11, r10 ; @4DD0
+M mov r10, [rbp-28] ; @4DD3
+M cmp r10, r11 ; @4DD7
+M jle $l5df4 ; @4DDA
+M mov r10, 1 ; @4DE0
+M mov [rbp-38], r10 ; @4DE7
+M mov rcx, [rbp-38] ; @4DEB
+M call $l545f ; @4DEF
+:l5df4 ; @4DF4
+M lea r10, [rip+$d788a] ; @4DF4
+M mov [rbp-40], r10 ; @4DFB
+M mov r10, [rbp-18] ; @4DFF
+M mov [rbp-48], r10 ; @4E03
+M lea r10, [rip+$d788a] ; @4E07
+M mov [rbp-30], r10 ; @4E0E
+M mov r10, [rbp-20] ; @4E12
+M shl r10, 3 ; @4E16
+M mov r11, r10 ; @4E1A
+M mov r10, [rbp-30] ; @4E1D
+M add r10, r11 ; @4E21
+M mov r10, [r10] ; @4E24
+M mov [rbp-28], r10 ; @4E27
+M lea r10, [rip+$d788a] ; @4E2B
+M mov [rbp-30], r10 ; @4E32
+M mov r10, [rbp-10] ; @4E36
+M shl r10, 3 ; @4E3A
+M mov r11, r10 ; @4E3E
+M mov r10, [rbp-30] ; @4E41
+M add r10, r11 ; @4E45
+M mov r10, [r10] ; @4E48
+M mov r11, r10 ; @4E4B
+M mov r10, [rbp-28] ; @4E4E
+M and r10, r11 ; @4E52
+M mov [rbp-50], r10 ; @4E55
+M mov r10, [rbp-40] ; @4E59
+M mov r11, [rbp-48] ; @4E5D
+M shl r11, 3 ; @4E61
+M add r10, r11 ; @4E65
+M mov r11, [rbp-50] ; @4E68
+M mov [r10], r11 ; @4E6C
+M mov r10, [rip+$d785a] ; @4E6F
+M mov [rbp-28], r10 ; @4E76
+M mov r10, 3 ; @4E7A
+M mov r11, r10 ; @4E81
+M mov r10, [rbp-28] ; @4E84
+M add r10, r11 ; @4E88
+M mov [rip+$d785a], r10 ; @4E8B
+M mov r10, [rip+$d7862] ; @4E92
+M mov [rbp-28], r10 ; @4E99
+M mov r10, 1 ; @4E9D
+M mov r11, r10 ; @4EA4
+M mov r10, [rbp-28] ; @4EA7
+M add r10, r11 ; @4EAB
+M mov [rip+$d7862], r10 ; @4EAE
+M mov r10, 0 ; @4EB5
+M mov rax, r10 ; @4EBC
+M mov rsp, rbp ; @4EBF
+M pop rbp ; @4EC2
+M ret ; @4EC3
+:l5ec4 ; @4EC4
+M push rbp ; @4EC4
+M mov rbp, rsp ; @4EC5
+M sub rsp, 80 ; @4EC8
+M mov r10, [rip+$d783a] ; @4ECF
+M mov [rbp-28], r10 ; @4ED6
+M mov r10, [rip+$d785a] ; @4EDA
+M mov [rbp-30], r10 ; @4EE1
+M mov r10, 1 ; @4EE5
+M mov r11, r10 ; @4EEC
+M mov r10, [rbp-30] ; @4EEF
+M add r10, r11 ; @4EF3
+M mov r11, r10 ; @4EF6
+M mov r10, [rbp-28] ; @4EF9
+M movzx r10d, byte [r10+r11] ; @4EFD
+M mov [rbp-8], r10 ; @4F02
+M mov r10, [rip+$d783a] ; @4F06
+M mov [rbp-28], r10 ; @4F0D
+M mov r10, [rip+$d785a] ; @4F11
+M mov [rbp-30], r10 ; @4F18
+M mov r10, 2 ; @4F1C
+M mov r11, r10 ; @4F23
+M mov r10, [rbp-30] ; @4F26
+M add r10, r11 ; @4F2A
+M mov r11, r10 ; @4F2D
+M mov r10, [rbp-28] ; @4F30
+M movzx r10d, byte [r10+r11] ; @4F34
+M mov [rbp-10], r10 ; @4F39
+M mov r10, [rbp-8] ; @4F3D
+M mov [rbp-28], r10 ; @4F41
+M mov r10, F ; @4F45
+M mov r11, r10 ; @4F4C
+M mov r10, [rbp-28] ; @4F4F
+M and r10, r11 ; @4F53
+M mov [rbp-20], r10 ; @4F56
+M mov r10, [rbp-8] ; @4F5A
+M mov [rbp-28], r10 ; @4F5E
+M mov r10, 4 ; @4F62
+M mov r11, r10 ; @4F69
+M mov r10, [rbp-28] ; @4F6C
+M mov rcx, r11 ; @4F70
+M shr r10, cl ; @4F73
+M mov [rbp-18], r10 ; @4F76
+M mov r10, [rbp-10] ; @4F7A
+M mov [rbp-28], r10 ; @4F7E
+M mov r10, F ; @4F82
+M mov r11, r10 ; @4F89
+M mov r10, [rbp-28] ; @4F8C
+M cmp r10, r11 ; @4F90
+M jle $l5fad ; @4F93
+M mov r10, 1 ; @4F99
+M mov [rbp-38], r10 ; @4FA0
+M mov rcx, [rbp-38] ; @4FA4
+M call $l545f ; @4FA8
+:l5fad ; @4FAD
+M lea r10, [rip+$d788a] ; @4FAD
+M mov [rbp-40], r10 ; @4FB4
+M mov r10, [rbp-18] ; @4FB8
+M mov [rbp-48], r10 ; @4FBC
+M lea r10, [rip+$d788a] ; @4FC0
+M mov [rbp-30], r10 ; @4FC7
+M mov r10, [rbp-20] ; @4FCB
+M shl r10, 3 ; @4FCF
+M mov r11, r10 ; @4FD3
+M mov r10, [rbp-30] ; @4FD6
+M add r10, r11 ; @4FDA
+M mov r10, [r10] ; @4FDD
+M mov [rbp-28], r10 ; @4FE0
+M lea r10, [rip+$d788a] ; @4FE4
+M mov [rbp-30], r10 ; @4FEB
+M mov r10, [rbp-10] ; @4FEF
+M shl r10, 3 ; @4FF3
+M mov r11, r10 ; @4FF7
+M mov r10, [rbp-30] ; @4FFA
+M add r10, r11 ; @4FFE
+M mov r10, [r10] ; @5001
+M mov r11, r10 ; @5004
+M mov r10, [rbp-28] ; @5007
+M or r10, r11 ; @500B
+M mov [rbp-50], r10 ; @500E
+M mov r10, [rbp-40] ; @5012
+M mov r11, [rbp-48] ; @5016
+M shl r11, 3 ; @501A
+M add r10, r11 ; @501E
+M mov r11, [rbp-50] ; @5021
+M mov [r10], r11 ; @5025
+M mov r10, [rip+$d785a] ; @5028
+M mov [rbp-28], r10 ; @502F
+M mov r10, 3 ; @5033
+M mov r11, r10 ; @503A
+M mov r10, [rbp-28] ; @503D
+M add r10, r11 ; @5041
+M mov [rip+$d785a], r10 ; @5044
+M mov r10, [rip+$d7862] ; @504B
+M mov [rbp-28], r10 ; @5052
+M mov r10, 1 ; @5056
+M mov r11, r10 ; @505D
+M mov r10, [rbp-28] ; @5060
+M add r10, r11 ; @5064
+M mov [rip+$d7862], r10 ; @5067
+M mov r10, 0 ; @506E
+M mov rax, r10 ; @5075
+M mov rsp, rbp ; @5078
+M pop rbp ; @507B
+M ret ; @507C
+:l607d ; @507D
+M push rbp ; @507D
+M mov rbp, rsp ; @507E
+M sub rsp, 80 ; @5081
+M mov r10, [rip+$d783a] ; @5088
+M mov [rbp-28], r10 ; @508F
+M mov r10, [rip+$d785a] ; @5093
+M mov [rbp-30], r10 ; @509A
+M mov r10, 1 ; @509E
+M mov r11, r10 ; @50A5
+M mov r10, [rbp-30] ; @50A8
+M add r10, r11 ; @50AC
+M mov r11, r10 ; @50AF
+M mov r10, [rbp-28] ; @50B2
+M movzx r10d, byte [r10+r11] ; @50B6
+M mov [rbp-8], r10 ; @50BB
+M mov r10, [rip+$d783a] ; @50BF
+M mov [rbp-28], r10 ; @50C6
+M mov r10, [rip+$d785a] ; @50CA
+M mov [rbp-30], r10 ; @50D1
+M mov r10, 2 ; @50D5
+M mov r11, r10 ; @50DC
+M mov r10, [rbp-30] ; @50DF
+M add r10, r11 ; @50E3
+M mov r11, r10 ; @50E6
+M mov r10, [rbp-28] ; @50E9
+M movzx r10d, byte [r10+r11] ; @50ED
+M mov [rbp-10], r10 ; @50F2
+M mov r10, [rbp-8] ; @50F6
+M mov [rbp-28], r10 ; @50FA
+M mov r10, F ; @50FE
+M mov r11, r10 ; @5105
+M mov r10, [rbp-28] ; @5108
+M and r10, r11 ; @510C
+M mov [rbp-20], r10 ; @510F
+M mov r10, [rbp-8] ; @5113
+M mov [rbp-28], r10 ; @5117
+M mov r10, 4 ; @511B
+M mov r11, r10 ; @5122
+M mov r10, [rbp-28] ; @5125
+M mov rcx, r11 ; @5129
+M shr r10, cl ; @512C
+M mov [rbp-18], r10 ; @512F
+M mov r10, [rbp-10] ; @5133
+M mov [rbp-28], r10 ; @5137
+M mov r10, F ; @513B
+M mov r11, r10 ; @5142
+M mov r10, [rbp-28] ; @5145
+M cmp r10, r11 ; @5149
+M jle $l6166 ; @514C
+M mov r10, 1 ; @5152
+M mov [rbp-38], r10 ; @5159
+M mov rcx, [rbp-38] ; @515D
+M call $l545f ; @5161
+:l6166 ; @5166
+M lea r10, [rip+$d788a] ; @5166
+M mov [rbp-40], r10 ; @516D
+M mov r10, [rbp-18] ; @5171
+M mov [rbp-48], r10 ; @5175
+M lea r10, [rip+$d788a] ; @5179
+M mov [rbp-30], r10 ; @5180
+M mov r10, [rbp-20] ; @5184
+M shl r10, 3 ; @5188
+M mov r11, r10 ; @518C
+M mov r10, [rbp-30] ; @518F
+M add r10, r11 ; @5193
+M mov r10, [r10] ; @5196
+M mov [rbp-28], r10 ; @5199
+M lea r10, [rip+$d788a] ; @519D
+M mov [rbp-30], r10 ; @51A4
+M mov r10, [rbp-10] ; @51A8
+M shl r10, 3 ; @51AC
+M mov r11, r10 ; @51B0
+M mov r10, [rbp-30] ; @51B3
+M add r10, r11 ; @51B7
+M mov r10, [r10] ; @51BA
+M mov r11, r10 ; @51BD
+M mov r10, [rbp-28] ; @51C0
+M xor r10, r11 ; @51C4
+M mov [rbp-50], r10 ; @51C7
+M mov r10, [rbp-40] ; @51CB
+M mov r11, [rbp-48] ; @51CF
+M shl r11, 3 ; @51D3
+M add r10, r11 ; @51D7
+M mov r11, [rbp-50] ; @51DA
+M mov [r10], r11 ; @51DE
+M mov r10, [rip+$d785a] ; @51E1
+M mov [rbp-28], r10 ; @51E8
+M mov r10, 3 ; @51EC
+M mov r11, r10 ; @51F3
+M mov r10, [rbp-28] ; @51F6
+M add r10, r11 ; @51FA
+M mov [rip+$d785a], r10 ; @51FD
+M mov r10, [rip+$d7862] ; @5204
+M mov [rbp-28], r10 ; @520B
+M mov r10, 1 ; @520F
+M mov r11, r10 ; @5216
+M mov r10, [rbp-28] ; @5219
+M add r10, r11 ; @521D
+M mov [rip+$d7862], r10 ; @5220
+M mov r10, 0 ; @5227
+M mov rax, r10 ; @522E
+M mov rsp, rbp ; @5231
+M pop rbp ; @5234
+M ret ; @5235
+:l6236 ; @5236
+M push rbp ; @5236
+M mov rbp, rsp ; @5237
+M sub rsp, 90 ; @523A
+M mov r10, [rip+$d783a] ; @5241
+M mov [rbp-28], r10 ; @5248
+M mov r10, [rip+$d785a] ; @524C
+M mov [rbp-30], r10 ; @5253
+M mov r10, 1 ; @5257
+M mov r11, r10 ; @525E
+M mov r10, [rbp-30] ; @5261
+M add r10, r11 ; @5265
+M mov r11, r10 ; @5268
+M mov r10, [rbp-28] ; @526B
+M movzx r10d, byte [r10+r11] ; @526F
+M mov [rbp-8], r10 ; @5274
+M mov r10, [rip+$d783a] ; @5278
+M mov [rbp-28], r10 ; @527F
+M mov r10, [rip+$d785a] ; @5283
+M mov [rbp-30], r10 ; @528A
+M mov r10, 2 ; @528E
+M mov r11, r10 ; @5295
+M mov r10, [rbp-30] ; @5298
+M add r10, r11 ; @529C
+M mov r11, r10 ; @529F
+M mov r10, [rbp-28] ; @52A2
+M movzx r10d, byte [r10+r11] ; @52A6
+M mov [rbp-10], r10 ; @52AB
+M mov r10, [rbp-8] ; @52AF
+M mov [rbp-28], r10 ; @52B3
+M mov r10, F ; @52B7
+M mov r11, r10 ; @52BE
+M mov r10, [rbp-28] ; @52C1
+M and r10, r11 ; @52C5
+M mov [rbp-20], r10 ; @52C8
+M mov r10, [rbp-8] ; @52CC
+M mov [rbp-28], r10 ; @52D0
+M mov r10, 4 ; @52D4
+M mov r11, r10 ; @52DB
+M mov r10, [rbp-28] ; @52DE
+M mov rcx, r11 ; @52E2
+M shr r10, cl ; @52E5
+M mov [rbp-18], r10 ; @52E8
+M mov r10, [rbp-10] ; @52EC
+M mov [rbp-28], r10 ; @52F0
+M mov r10, F ; @52F4
+M mov r11, r10 ; @52FB
+M mov r10, [rbp-28] ; @52FE
+M cmp r10, r11 ; @5302
+M jle $l631f ; @5305
+M mov r10, 1 ; @530B
+M mov [rbp-40], r10 ; @5312
+M mov rcx, [rbp-40] ; @5316
+M call $l545f ; @531A
+:l631f ; @531F
+M lea r10, [rip+$d788a] ; @531F
+M mov [rbp-48], r10 ; @5326
+M mov r10, [rbp-18] ; @532A
+M mov [rbp-50], r10 ; @532E
+M lea r10, [rip+$d788a] ; @5332
+M mov [rbp-30], r10 ; @5339
+M mov r10, [rbp-20] ; @533D
+M shl r10, 3 ; @5341
+M mov r11, r10 ; @5345
+M mov r10, [rbp-30] ; @5348
+M add r10, r11 ; @534C
+M mov r10, [r10] ; @534F
+M mov [rbp-28], r10 ; @5352
+M lea r10, [rip+$d788a] ; @5356
+M mov [rbp-38], r10 ; @535D
+M mov r10, [rbp-10] ; @5361
+M shl r10, 3 ; @5365
+M mov r11, r10 ; @5369
+M mov r10, [rbp-38] ; @536C
+M add r10, r11 ; @5370
+M mov r10, [r10] ; @5373
+M mov [rbp-30], r10 ; @5376
+M mov r10, 3F ; @537A
+M mov r11, r10 ; @5381
+M mov r10, [rbp-30] ; @5384
+M and r10, r11 ; @5388
+M mov r11, r10 ; @538B
+M mov r10, [rbp-28] ; @538E
+M mov rcx, r11 ; @5392
+M shl r10, cl ; @5395
+M mov [rbp-58], r10 ; @5398
+M mov r10, [rbp-48] ; @539C
+M mov r11, [rbp-50] ; @53A0
+M shl r11, 3 ; @53A4
+M add r10, r11 ; @53A8
+M mov r11, [rbp-58] ; @53AB
+M mov [r10], r11 ; @53AF
+M mov r10, [rip+$d785a] ; @53B2
+M mov [rbp-28], r10 ; @53B9
+M mov r10, 3 ; @53BD
+M mov r11, r10 ; @53C4
+M mov r10, [rbp-28] ; @53C7
+M add r10, r11 ; @53CB
+M mov [rip+$d785a], r10 ; @53CE
+M mov r10, [rip+$d7862] ; @53D5
+M mov [rbp-28], r10 ; @53DC
+M mov r10, 1 ; @53E0
+M mov r11, r10 ; @53E7
+M mov r10, [rbp-28] ; @53EA
+M add r10, r11 ; @53EE
+M mov [rip+$d7862], r10 ; @53F1
+M mov r10, 0 ; @53F8
+M mov rax, r10 ; @53FF
+M mov rsp, rbp ; @5402
+M pop rbp ; @5405
+M ret ; @5406
+:l6407 ; @5407
+M push rbp ; @5407
+M mov rbp, rsp ; @5408
+M sub rsp, 90 ; @540B
+M mov r10, [rip+$d783a] ; @5412
+M mov [rbp-28], r10 ; @5419
+M mov r10, [rip+$d785a] ; @541D
+M mov [rbp-30], r10 ; @5424
+M mov r10, 1 ; @5428
+M mov r11, r10 ; @542F
+M mov r10, [rbp-30] ; @5432
+M add r10, r11 ; @5436
+M mov r11, r10 ; @5439
+M mov r10, [rbp-28] ; @543C
+M movzx r10d, byte [r10+r11] ; @5440
+M mov [rbp-8], r10 ; @5445
+M mov r10, [rip+$d783a] ; @5449
+M mov [rbp-28], r10 ; @5450
+M mov r10, [rip+$d785a] ; @5454
+M mov [rbp-30], r10 ; @545B
+M mov r10, 2 ; @545F
+M mov r11, r10 ; @5466
+M mov r10, [rbp-30] ; @5469
+M add r10, r11 ; @546D
+M mov r11, r10 ; @5470
+M mov r10, [rbp-28] ; @5473
+M movzx r10d, byte [r10+r11] ; @5477
+M mov [rbp-10], r10 ; @547C
+M mov r10, [rbp-8] ; @5480
+M mov [rbp-28], r10 ; @5484
+M mov r10, F ; @5488
+M mov r11, r10 ; @548F
+M mov r10, [rbp-28] ; @5492
+M and r10, r11 ; @5496
+M mov [rbp-20], r10 ; @5499
+M mov r10, [rbp-8] ; @549D
+M mov [rbp-28], r10 ; @54A1
+M mov r10, 4 ; @54A5
+M mov r11, r10 ; @54AC
+M mov r10, [rbp-28] ; @54AF
+M mov rcx, r11 ; @54B3
+M shr r10, cl ; @54B6
+M mov [rbp-18], r10 ; @54B9
+M mov r10, [rbp-10] ; @54BD
+M mov [rbp-28], r10 ; @54C1
+M mov r10, F ; @54C5
+M mov r11, r10 ; @54CC
+M mov r10, [rbp-28] ; @54CF
+M cmp r10, r11 ; @54D3
+M jle $l64f0 ; @54D6
+M mov r10, 1 ; @54DC
+M mov [rbp-40], r10 ; @54E3
+M mov rcx, [rbp-40] ; @54E7
+M call $l545f ; @54EB
+:l64f0 ; @54F0
+M lea r10, [rip+$d788a] ; @54F0
+M mov [rbp-48], r10 ; @54F7
+M mov r10, [rbp-18] ; @54FB
+M mov [rbp-50], r10 ; @54FF
+M lea r10, [rip+$d788a] ; @5503
+M mov [rbp-30], r10 ; @550A
+M mov r10, [rbp-20] ; @550E
+M shl r10, 3 ; @5512
+M mov r11, r10 ; @5516
+M mov r10, [rbp-30] ; @5519
+M add r10, r11 ; @551D
+M mov r10, [r10] ; @5520
+M mov [rbp-28], r10 ; @5523
+M lea r10, [rip+$d788a] ; @5527
+M mov [rbp-38], r10 ; @552E
+M mov r10, [rbp-10] ; @5532
+M shl r10, 3 ; @5536
+M mov r11, r10 ; @553A
+M mov r10, [rbp-38] ; @553D
+M add r10, r11 ; @5541
+M mov r10, [r10] ; @5544
+M mov [rbp-30], r10 ; @5547
+M mov r10, 3F ; @554B
+M mov r11, r10 ; @5552
+M mov r10, [rbp-30] ; @5555
+M and r10, r11 ; @5559
+M mov r11, r10 ; @555C
+M mov r10, [rbp-28] ; @555F
+M mov rcx, r11 ; @5563
+M shr r10, cl ; @5566
+M mov [rbp-58], r10 ; @5569
+M mov r10, [rbp-48] ; @556D
+M mov r11, [rbp-50] ; @5571
+M shl r11, 3 ; @5575
+M add r10, r11 ; @5579
+M mov r11, [rbp-58] ; @557C
+M mov [r10], r11 ; @5580
+M mov r10, [rip+$d785a] ; @5583
+M mov [rbp-28], r10 ; @558A
+M mov r10, 3 ; @558E
+M mov r11, r10 ; @5595
+M mov r10, [rbp-28] ; @5598
+M add r10, r11 ; @559C
+M mov [rip+$d785a], r10 ; @559F
+M mov r10, [rip+$d7862] ; @55A6
+M mov [rbp-28], r10 ; @55AD
+M mov r10, 1 ; @55B1
+M mov r11, r10 ; @55B8
+M mov r10, [rbp-28] ; @55BB
+M add r10, r11 ; @55BF
+M mov [rip+$d7862], r10 ; @55C2
+M mov r10, 0 ; @55C9
+M mov rax, r10 ; @55D0
+M mov rsp, rbp ; @55D3
+M pop rbp ; @55D6
+M ret ; @55D7
+:l65d8 ; @55D8
+M push rbp ; @55D8
+M mov rbp, rsp ; @55D9
+M sub rsp, 80 ; @55DC
+M mov r10, [rip+$d783a] ; @55E3
+M mov [rbp-28], r10 ; @55EA
+M mov r10, [rip+$d785a] ; @55EE
+M mov [rbp-30], r10 ; @55F5
+M mov r10, 1 ; @55F9
+M mov r11, r10 ; @5600
+M mov r10, [rbp-30] ; @5603
+M add r10, r11 ; @5607
+M mov r11, r10 ; @560A
+M mov r10, [rbp-28] ; @560D
+M movzx r10d, byte [r10+r11] ; @5611
+M mov [rbp-8], r10 ; @5616
+M mov r10, [rip+$d783a] ; @561A
+M mov [rbp-28], r10 ; @5621
+M mov r10, [rip+$d785a] ; @5625
+M mov [rbp-30], r10 ; @562C
+M mov r10, 2 ; @5630
+M mov r11, r10 ; @5637
+M mov r10, [rbp-30] ; @563A
+M add r10, r11 ; @563E
+M mov r11, r10 ; @5641
+M mov r10, [rbp-28] ; @5644
+M movzx r10d, byte [r10+r11] ; @5648
+M mov [rbp-10], r10 ; @564D
+M mov r10, [rbp-8] ; @5651
+M mov [rbp-28], r10 ; @5655
+M mov r10, F ; @5659
+M mov r11, r10 ; @5660
+M mov r10, [rbp-28] ; @5663
+M and r10, r11 ; @5667
+M mov [rbp-20], r10 ; @566A
+M mov r10, [rbp-8] ; @566E
+M mov [rbp-28], r10 ; @5672
+M mov r10, 4 ; @5676
+M mov r11, r10 ; @567D
+M mov r10, [rbp-28] ; @5680
+M mov rcx, r11 ; @5684
+M shr r10, cl ; @5687
+M mov [rbp-18], r10 ; @568A
+M mov r10, [rbp-10] ; @568E
+M mov [rbp-28], r10 ; @5692
+M mov r10, F ; @5696
+M mov r11, r10 ; @569D
+M mov r10, [rbp-28] ; @56A0
+M cmp r10, r11 ; @56A4
+M jle $l66c1 ; @56A7
+M mov r10, 1 ; @56AD
+M mov [rbp-38], r10 ; @56B4
+M mov rcx, [rbp-38] ; @56B8
+M call $l545f ; @56BC
+:l66c1 ; @56C1
+M lea r10, [rip+$d788a] ; @56C1
+M mov [rbp-30], r10 ; @56C8
+M mov r10, [rbp-20] ; @56CC
+M shl r10, 3 ; @56D0
+M mov r11, r10 ; @56D4
+M mov r10, [rbp-30] ; @56D7
+M add r10, r11 ; @56DB
+M mov r10, [r10] ; @56DE
+M mov [rbp-28], r10 ; @56E1
+M lea r10, [rip+$d788a] ; @56E5
+M mov [rbp-30], r10 ; @56EC
+M mov r10, [rbp-10] ; @56F0
+M shl r10, 3 ; @56F4
+M mov r11, r10 ; @56F8
+M mov r10, [rbp-30] ; @56FB
+M add r10, r11 ; @56FF
+M mov r10, [r10] ; @5702
+M mov r11, r10 ; @5705
+M mov r10, [rbp-28] ; @5708
+M cmp r10, r11 ; @570C
+M jge $l674e ; @570F
+M lea r10, [rip+$d788a] ; @5715
+M mov [rbp-40], r10 ; @571C
+M mov r10, [rbp-18] ; @5720
+M mov [rbp-48], r10 ; @5724
+M mov r10, 1 ; @5728
+M mov [rbp-50], r10 ; @572F
+M mov r10, [rbp-40] ; @5733
+M mov r11, [rbp-48] ; @5737
+M shl r11, 3 ; @573B
+M add r10, r11 ; @573F
+M mov r11, [rbp-50] ; @5742
+M mov [r10], r11 ; @5746
+M jmp $l6782 ; @5749
+:l674e ; @574E
+M lea r10, [rip+$d788a] ; @574E
+M mov [rbp-40], r10 ; @5755
+M mov r10, [rbp-18] ; @5759
+M mov [rbp-48], r10 ; @575D
+M mov r10, 0 ; @5761
+M mov [rbp-50], r10 ; @5768
+M mov r10, [rbp-40] ; @576C
+M mov r11, [rbp-48] ; @5770
+M shl r11, 3 ; @5774
+M add r10, r11 ; @5778
+M mov r11, [rbp-50] ; @577B
+M mov [r10], r11 ; @577F
+:l6782 ; @5782
+M mov r10, [rip+$d785a] ; @5782
+M mov [rbp-28], r10 ; @5789
+M mov r10, 3 ; @578D
+M mov r11, r10 ; @5794
+M mov r10, [rbp-28] ; @5797
+M add r10, r11 ; @579B
+M mov [rip+$d785a], r10 ; @579E
+M mov r10, [rip+$d7862] ; @57A5
+M mov [rbp-28], r10 ; @57AC
+M mov r10, 1 ; @57B0
+M mov r11, r10 ; @57B7
+M mov r10, [rbp-28] ; @57BA
+M add r10, r11 ; @57BE
+M mov [rip+$d7862], r10 ; @57C1
+M mov r10, 0 ; @57C8
+M mov rax, r10 ; @57CF
+M mov rsp, rbp ; @57D2
+M pop rbp ; @57D5
+M ret ; @57D6
+:l67d7 ; @57D7
+M push rbp ; @57D7
+M mov rbp, rsp ; @57D8
+M sub rsp, 80 ; @57DB
+M mov r10, [rip+$d783a] ; @57E2
+M mov [rbp-28], r10 ; @57E9
+M mov r10, [rip+$d785a] ; @57ED
+M mov [rbp-30], r10 ; @57F4
+M mov r10, 1 ; @57F8
+M mov r11, r10 ; @57FF
+M mov r10, [rbp-30] ; @5802
+M add r10, r11 ; @5806
+M mov r11, r10 ; @5809
+M mov r10, [rbp-28] ; @580C
+M movzx r10d, byte [r10+r11] ; @5810
+M mov [rbp-8], r10 ; @5815
+M mov r10, [rip+$d783a] ; @5819
+M mov [rbp-28], r10 ; @5820
+M mov r10, [rip+$d785a] ; @5824
+M mov [rbp-30], r10 ; @582B
+M mov r10, 2 ; @582F
+M mov r11, r10 ; @5836
+M mov r10, [rbp-30] ; @5839
+M add r10, r11 ; @583D
+M mov r11, r10 ; @5840
+M mov r10, [rbp-28] ; @5843
+M movzx r10d, byte [r10+r11] ; @5847
+M mov [rbp-10], r10 ; @584C
+M mov r10, [rbp-8] ; @5850
+M mov [rbp-28], r10 ; @5854
+M mov r10, F ; @5858
+M mov r11, r10 ; @585F
+M mov r10, [rbp-28] ; @5862
+M and r10, r11 ; @5866
+M mov [rbp-20], r10 ; @5869
+M mov r10, [rbp-8] ; @586D
+M mov [rbp-28], r10 ; @5871
+M mov r10, 4 ; @5875
+M mov r11, r10 ; @587C
+M mov r10, [rbp-28] ; @587F
+M mov rcx, r11 ; @5883
+M shr r10, cl ; @5886
+M mov [rbp-18], r10 ; @5889
+M mov r10, [rbp-10] ; @588D
+M mov [rbp-28], r10 ; @5891
+M mov r10, F ; @5895
+M mov r11, r10 ; @589C
+M mov r10, [rbp-28] ; @589F
+M cmp r10, r11 ; @58A3
+M jle $l68c0 ; @58A6
+M mov r10, 1 ; @58AC
+M mov [rbp-38], r10 ; @58B3
+M mov rcx, [rbp-38] ; @58B7
+M call $l545f ; @58BB
+:l68c0 ; @58C0
+M lea r10, [rip+$d788a] ; @58C0
+M mov [rbp-30], r10 ; @58C7
+M mov r10, [rbp-20] ; @58CB
+M shl r10, 3 ; @58CF
+M mov r11, r10 ; @58D3
+M mov r10, [rbp-30] ; @58D6
+M add r10, r11 ; @58DA
+M mov r10, [r10] ; @58DD
+M mov [rbp-28], r10 ; @58E0
+M lea r10, [rip+$d788a] ; @58E4
+M mov [rbp-30], r10 ; @58EB
+M mov r10, [rbp-10] ; @58EF
+M shl r10, 3 ; @58F3
+M mov r11, r10 ; @58F7
+M mov r10, [rbp-30] ; @58FA
+M add r10, r11 ; @58FE
+M mov r10, [r10] ; @5901
+M mov r11, r10 ; @5904
+M mov r10, [rbp-28] ; @5907
+M cmp r10, r11 ; @590B
+M jnz $l694d ; @590E
+M lea r10, [rip+$d788a] ; @5914
+M mov [rbp-40], r10 ; @591B
+M mov r10, [rbp-18] ; @591F
+M mov [rbp-48], r10 ; @5923
+M mov r10, 1 ; @5927
+M mov [rbp-50], r10 ; @592E
+M mov r10, [rbp-40] ; @5932
+M mov r11, [rbp-48] ; @5936
+M shl r11, 3 ; @593A
+M add r10, r11 ; @593E
+M mov r11, [rbp-50] ; @5941
+M mov [r10], r11 ; @5945
+M jmp $l6981 ; @5948
+:l694d ; @594D
+M lea r10, [rip+$d788a] ; @594D
+M mov [rbp-40], r10 ; @5954
+M mov r10, [rbp-18] ; @5958
+M mov [rbp-48], r10 ; @595C
+M mov r10, 0 ; @5960
+M mov [rbp-50], r10 ; @5967
+M mov r10, [rbp-40] ; @596B
+M mov r11, [rbp-48] ; @596F
+M shl r11, 3 ; @5973
+M add r10, r11 ; @5977
+M mov r11, [rbp-50] ; @597A
+M mov [r10], r11 ; @597E
+:l6981 ; @5981
+M mov r10, [rip+$d785a] ; @5981
+M mov [rbp-28], r10 ; @5988
+M mov r10, 3 ; @598C
+M mov r11, r10 ; @5993
+M mov r10, [rbp-28] ; @5996
+M add r10, r11 ; @599A
+M mov [rip+$d785a], r10 ; @599D
+M mov r10, [rip+$d7862] ; @59A4
+M mov [rbp-28], r10 ; @59AB
+M mov r10, 1 ; @59AF
+M mov r11, r10 ; @59B6
+M mov r10, [rbp-28] ; @59B9
+M add r10, r11 ; @59BD
+M mov [rip+$d7862], r10 ; @59C0
+M mov r10, 0 ; @59C7
+M mov rax, r10 ; @59CE
+M mov rsp, rbp ; @59D1
+M pop rbp ; @59D4
+M ret ; @59D5
+:l69d6 ; @59D6
+M push rbp ; @59D6
+M mov rbp, rsp ; @59D7
+M sub rsp, 60 ; @59DA
+M mov r10, [rip+$d783a] ; @59DE
+M mov [rbp-18], r10 ; @59E5
+M mov r10, [rip+$d785a] ; @59E9
+M mov [rbp-20], r10 ; @59F0
+M mov r10, 1 ; @59F4
+M mov r11, r10 ; @59FB
+M mov r10, [rbp-20] ; @59FE
+M add r10, r11 ; @5A02
+M mov r11, r10 ; @5A05
+M mov r10, [rbp-18] ; @5A08
+M movzx r10d, byte [r10+r11] ; @5A0C
+M mov [rbp-8], r10 ; @5A11
+M mov r10, [rbp-8] ; @5A15
+M mov [rbp-18], r10 ; @5A19
+M mov r10, 0 ; @5A1D
+M mov r11, r10 ; @5A24
+M mov r10, [rbp-18] ; @5A27
+M cmp r10, r11 ; @5A2B
+M jz $l6a48 ; @5A2E
+M mov r10, 1 ; @5A34
+M mov [rbp-28], r10 ; @5A3B
+M mov rcx, [rbp-28] ; @5A3F
+M call $l545f ; @5A43
+:l6a48 ; @5A48
+M mov r10, [rip+$d783a] ; @5A48
+M mov [rbp-28], r10 ; @5A4F
+M mov r10, [rip+$d785a] ; @5A53
+M mov [rbp-18], r10 ; @5A5A
+M mov r10, 2 ; @5A5E
+M mov r11, r10 ; @5A65
+M mov r10, [rbp-18] ; @5A68
+M add r10, r11 ; @5A6C
+M mov [rbp-30], r10 ; @5A6F
+M mov rcx, [rbp-28] ; @5A73
+M mov rdx, [rbp-30] ; @5A77
+M call $l203e ; @5A7B
+M mov r10, rax ; @5A80
+M mov [rbp-10], r10 ; @5A83
+M mov r10, [rip+$d7862] ; @5A87
+M mov [rbp-18], r10 ; @5A8E
+M mov r10, 1 ; @5A92
+M mov r11, r10 ; @5A99
+M mov r10, [rbp-18] ; @5A9C
+M add r10, r11 ; @5AA0
+M mov [rip+$d7862], r10 ; @5AA3
+M mov r10, [rbp-10] ; @5AAA
+M mov [rbp-28], r10 ; @5AAE
+M mov rcx, [rbp-28] ; @5AB2
+M call [rip+$iat_exitprocess] ; @5AB6
+M mov r10, 0 ; @5ABC
+M mov rax, r10 ; @5AC3
+M mov rsp, rbp ; @5AC6
+M pop rbp ; @5AC9
+M ret ; @5ACA
+:l6acb ; @5ACB
+M push rbp ; @5ACB
+M mov rbp, rsp ; @5ACC
+M sub rsp, 60 ; @5ACF
+M mov r10, 1 ; @5AD3
+M mov [rbp-10], r10 ; @5ADA
+:l6ade ; @5ADE
+M mov r10, [rbp-10] ; @5ADE
+M mov [rbp-18], r10 ; @5AE2
+M mov r10, 1 ; @5AE6
+M mov r11, r10 ; @5AED
+M mov r10, [rbp-18] ; @5AF0
+M cmp r10, r11 ; @5AF4
+M jnz $l70f0 ; @5AF7
+M mov r10, [rip+$d7862] ; @5AFD
+M mov [rbp-18], r10 ; @5B04
+M mov r10, [rip+$d786a] ; @5B08
+M mov r11, r10 ; @5B0F
+M mov r10, [rbp-18] ; @5B12
+M cmp r10, r11 ; @5B16
+M jl $l6b33 ; @5B19
+M mov r10, 6 ; @5B1F
+M mov [rbp-28], r10 ; @5B26
+M mov rcx, [rbp-28] ; @5B2A
+M call $l545f ; @5B2E
+:l6b33 ; @5B33
+M mov r10, [rip+$d785a] ; @5B33
+M mov [rbp-18], r10 ; @5B3A
+M mov r10, [rip+$d7842] ; @5B3E
+M mov r11, r10 ; @5B45
+M mov r10, [rbp-18] ; @5B48
+M cmp r10, r11 ; @5B4C
+M jl $l6b69 ; @5B4F
+M mov r10, 2 ; @5B55
+M mov [rbp-28], r10 ; @5B5C
+M mov rcx, [rbp-28] ; @5B60
+M call $l545f ; @5B64
+:l6b69 ; @5B69
+M mov r10, [rip+$d783a] ; @5B69
+M mov [rbp-18], r10 ; @5B70
+M mov r10, [rip+$d785a] ; @5B74
+M mov r11, r10 ; @5B7B
+M mov r10, [rbp-18] ; @5B7E
+M movzx r10d, byte [r10+r11] ; @5B82
+M mov [rbp-8], r10 ; @5B87
+M mov r10, [rbp-8] ; @5B8B
+M mov [rbp-18], r10 ; @5B8F
+M mov r10, 1 ; @5B93
+M mov r11, r10 ; @5B9A
+M mov r10, [rbp-18] ; @5B9D
+M cmp r10, r11 ; @5BA1
+M jge $l6baf ; @5BA4
+M jmp $l6bce ; @5BAA
+:l6baf ; @5BAF
+M mov r10, [rbp-8] ; @5BAF
+M mov [rbp-18], r10 ; @5BB3
+M mov r10, 18 ; @5BB7
+M mov r11, r10 ; @5BBE
+M mov r10, [rbp-18] ; @5BC1
+M cmp r10, r11 ; @5BC5
+M jle $l6be2 ; @5BC8
+:l6bce ; @5BCE
+M mov r10, 1 ; @5BCE
+M mov [rbp-28], r10 ; @5BD5
+M mov rcx, [rbp-28] ; @5BD9
+M call $l545f ; @5BDD
+:l6be2 ; @5BE2
+M mov r10, [rbp-8] ; @5BE2
+M mov [rbp-18], r10 ; @5BE6
+M mov r10, 18 ; @5BEA
+M mov r11, r10 ; @5BF1
+M mov r10, [rbp-18] ; @5BF4
+M cmp r10, r11 ; @5BF8
+M jz $l6d1d ; @5BFB
+M mov r10, [rbp-8] ; @5C01
+M mov [rbp-18], r10 ; @5C05
+M mov r10, 2 ; @5C09
+M mov r11, r10 ; @5C10
+M mov r10, [rbp-18] ; @5C13
+M cmp r10, r11 ; @5C17
+M jl $l6c44 ; @5C1A
+M mov r10, [rbp-8] ; @5C20
+M mov [rbp-18], r10 ; @5C24
+M mov r10, B ; @5C28
+M mov r11, r10 ; @5C2F
+M mov r10, [rbp-18] ; @5C32
+M cmp r10, r11 ; @5C36
+M jg $l6c44 ; @5C39
+M jmp $l6c82 ; @5C3F
+:l6c44 ; @5C44
+M mov r10, [rbp-8] ; @5C44
+M mov [rbp-18], r10 ; @5C48
+M mov r10, 13 ; @5C4C
+M mov r11, r10 ; @5C53
+M mov r10, [rbp-18] ; @5C56
+M cmp r10, r11 ; @5C5A
+M jl $l6cd2 ; @5C5D
+M mov r10, [rbp-8] ; @5C63
+M mov [rbp-18], r10 ; @5C67
+M mov r10, 16 ; @5C6B
+M mov r11, r10 ; @5C72
+M mov r10, [rbp-18] ; @5C75
+M cmp r10, r11 ; @5C79
+M jg $l6cd2 ; @5C7C
+:l6c82 ; @5C82
+M mov r10, [rip+$d785a] ; @5C82
+M mov [rbp-20], r10 ; @5C89
+M mov r10, 3 ; @5C8D
+M mov r11, r10 ; @5C94
+M mov r10, [rbp-20] ; @5C97
+M add r10, r11 ; @5C9B
+M mov [rbp-18], r10 ; @5C9E
+M mov r10, [rip+$d7842] ; @5CA2
+M mov r11, r10 ; @5CA9
+M mov r10, [rbp-18] ; @5CAC
+M cmp r10, r11 ; @5CB0
+M jle $l6ccd ; @5CB3
+M mov r10, 2 ; @5CB9
+M mov [rbp-28], r10 ; @5CC0
+M mov rcx, [rbp-28] ; @5CC4
+M call $l545f ; @5CC8
+:l6ccd ; @5CCD
+M jmp $l6d1d ; @5CCD
+:l6cd2 ; @5CD2
+M mov r10, [rip+$d785a] ; @5CD2
+M mov [rbp-20], r10 ; @5CD9
+M mov r10, 6 ; @5CDD
+M mov r11, r10 ; @5CE4
+M mov r10, [rbp-20] ; @5CE7
+M add r10, r11 ; @5CEB
+M mov [rbp-18], r10 ; @5CEE
+M mov r10, [rip+$d7842] ; @5CF2
+M mov r11, r10 ; @5CF9
+M mov r10, [rbp-18] ; @5CFC
+M cmp r10, r11 ; @5D00
+M jle $l6d1d ; @5D03
+M mov r10, 2 ; @5D09
+M mov [rbp-28], r10 ; @5D10
+M mov rcx, [rbp-28] ; @5D14
+M call $l545f ; @5D18
+:l6d1d ; @5D1D
+M mov r10, [rbp-8] ; @5D1D
+M mov [rbp-18], r10 ; @5D21
+M mov r10, 1 ; @5D25
+M mov r11, r10 ; @5D2C
+M mov r10, [rbp-18] ; @5D2F
+M cmp r10, r11 ; @5D33
+M jnz $l6d46 ; @5D36
+M call $l5633 ; @5D3C
+M jmp $l6ade ; @5D41
+:l6d46 ; @5D46
+M mov r10, [rbp-8] ; @5D46
+M mov [rbp-18], r10 ; @5D4A
+M mov r10, 2 ; @5D4E
+M mov r11, r10 ; @5D55
+M mov r10, [rbp-18] ; @5D58
+M cmp r10, r11 ; @5D5C
+M jnz $l6d6f ; @5D5F
+M call $l580e ; @5D65
+M jmp $l6ade ; @5D6A
+:l6d6f ; @5D6F
+M mov r10, [rbp-8] ; @5D6F
+M mov [rbp-18], r10 ; @5D73
+M mov r10, 3 ; @5D77
+M mov r11, r10 ; @5D7E
+M mov r10, [rbp-18] ; @5D81
+M cmp r10, r11 ; @5D85
+M jnz $l6d98 ; @5D88
+M call $l5999 ; @5D8E
+M jmp $l6ade ; @5D93
+:l6d98 ; @5D98
+M mov r10, [rbp-8] ; @5D98
+M mov [rbp-18], r10 ; @5D9C
+M mov r10, 4 ; @5DA0
+M mov r11, r10 ; @5DA7
+M mov r10, [rbp-18] ; @5DAA
+M cmp r10, r11 ; @5DAE
+M jnz $l6dc1 ; @5DB1
+M call $l5b52 ; @5DB7
+M jmp $l6ade ; @5DBC
+:l6dc1 ; @5DC1
+M mov r10, [rbp-8] ; @5DC1
+M mov [rbp-18], r10 ; @5DC5
+M mov r10, 5 ; @5DC9
+M mov r11, r10 ; @5DD0
+M mov r10, [rbp-18] ; @5DD3
+M cmp r10, r11 ; @5DD7
+M jnz $l6dea ; @5DDA
+M call $l5d0b ; @5DE0
+M jmp $l6ade ; @5DE5
+:l6dea ; @5DEA
+M mov r10, [rbp-8] ; @5DEA
+M mov [rbp-18], r10 ; @5DEE
+M mov r10, 6 ; @5DF2
+M mov r11, r10 ; @5DF9
+M mov r10, [rbp-18] ; @5DFC
+M cmp r10, r11 ; @5E00
+M jnz $l6e13 ; @5E03
+M call $l5ec4 ; @5E09
+M jmp $l6ade ; @5E0E
+:l6e13 ; @5E13
+M mov r10, [rbp-8] ; @5E13
+M mov [rbp-18], r10 ; @5E17
+M mov r10, 7 ; @5E1B
+M mov r11, r10 ; @5E22
+M mov r10, [rbp-18] ; @5E25
+M cmp r10, r11 ; @5E29
+M jnz $l6e3c ; @5E2C
+M call $l607d ; @5E32
+M jmp $l6ade ; @5E37
+:l6e3c ; @5E3C
+M mov r10, [rbp-8] ; @5E3C
+M mov [rbp-18], r10 ; @5E40
+M mov r10, 8 ; @5E44
+M mov r11, r10 ; @5E4B
+M mov r10, [rbp-18] ; @5E4E
+M cmp r10, r11 ; @5E52
+M jnz $l6e65 ; @5E55
+M call $l6236 ; @5E5B
+M jmp $l6ade ; @5E60
+:l6e65 ; @5E65
+M mov r10, [rbp-8] ; @5E65
+M mov [rbp-18], r10 ; @5E69
+M mov r10, 9 ; @5E6D
+M mov r11, r10 ; @5E74
+M mov r10, [rbp-18] ; @5E77
+M cmp r10, r11 ; @5E7B
+M jnz $l6e8e ; @5E7E
+M call $l6407 ; @5E84
+M jmp $l6ade ; @5E89
+:l6e8e ; @5E8E
+M mov r10, [rbp-8] ; @5E8E
+M mov [rbp-18], r10 ; @5E92
+M mov r10, A ; @5E96
+M mov r11, r10 ; @5E9D
+M mov r10, [rbp-18] ; @5EA0
+M cmp r10, r11 ; @5EA4
+M jnz $l6eb7 ; @5EA7
+M call $l65d8 ; @5EAD
+M jmp $l6ade ; @5EB2
+:l6eb7 ; @5EB7
+M mov r10, [rbp-8] ; @5EB7
+M mov [rbp-18], r10 ; @5EBB
+M mov r10, B ; @5EBF
+M mov r11, r10 ; @5EC6
+M mov r10, [rbp-18] ; @5EC9
+M cmp r10, r11 ; @5ECD
+M jnz $l6ee0 ; @5ED0
+M call $l67d7 ; @5ED6
+M jmp $l6ade ; @5EDB
+:l6ee0 ; @5EE0
+M mov r10, [rbp-8] ; @5EE0
+M mov [rbp-18], r10 ; @5EE4
+M mov r10, C ; @5EE8
+M mov r11, r10 ; @5EEF
+M mov r10, [rbp-18] ; @5EF2
+M cmp r10, r11 ; @5EF6
+M jnz $l6f09 ; @5EF9
+M call $l2fc5 ; @5EFF
+M jmp $l6ade ; @5F04
+:l6f09 ; @5F09
+M mov r10, [rbp-8] ; @5F09
+M mov [rbp-18], r10 ; @5F0D
+M mov r10, D ; @5F11
+M mov r11, r10 ; @5F18
+M mov r10, [rbp-18] ; @5F1B
+M cmp r10, r11 ; @5F1F
+M jnz $l6f32 ; @5F22
+M call $l32f1 ; @5F28
+M jmp $l6ade ; @5F2D
+:l6f32 ; @5F32
+M mov r10, [rbp-8] ; @5F32
+M mov [rbp-18], r10 ; @5F36
+M mov r10, E ; @5F3A
+M mov r11, r10 ; @5F41
+M mov r10, [rbp-18] ; @5F44
+M cmp r10, r11 ; @5F48
+M jnz $l6f5b ; @5F4B
+M call $l3693 ; @5F51
+M jmp $l6ade ; @5F56
+:l6f5b ; @5F5B
+M mov r10, [rbp-8] ; @5F5B
+M mov [rbp-18], r10 ; @5F5F
+M mov r10, F ; @5F63
+M mov r11, r10 ; @5F6A
+M mov r10, [rbp-18] ; @5F6D
+M cmp r10, r11 ; @5F71
+M jnz $l6f84 ; @5F74
+M call $l3bbd ; @5F7A
+M jmp $l6ade ; @5F7F
+:l6f84 ; @5F84
+M mov r10, [rbp-8] ; @5F84
+M mov [rbp-18], r10 ; @5F88
+M mov r10, 10 ; @5F8C
+M mov r11, r10 ; @5F93
+M mov r10, [rbp-18] ; @5F96
+M cmp r10, r11 ; @5F9A
+M jnz $l6fad ; @5F9D
+M call $l415c ; @5FA3
+M jmp $l6ade ; @5FA8
+:l6fad ; @5FAD
+M mov r10, [rbp-8] ; @5FAD
+M mov [rbp-18], r10 ; @5FB1
+M mov r10, 11 ; @5FB5
+M mov r11, r10 ; @5FBC
+M mov r10, [rbp-18] ; @5FBF
+M cmp r10, r11 ; @5FC3
+M jnz $l6fd6 ; @5FC6
+M call $l424a ; @5FCC
+M jmp $l6ade ; @5FD1
+:l6fd6 ; @5FD6
+M mov r10, [rbp-8] ; @5FD6
+M mov [rbp-18], r10 ; @5FDA
+M mov r10, 12 ; @5FDE
+M mov r11, r10 ; @5FE5
+M mov r10, [rbp-18] ; @5FE8
+M cmp r10, r11 ; @5FEC
+M jnz $l6ffa ; @5FEF
+M call $l69d6 ; @5FF5
+:l6ffa ; @5FFA
+M mov r10, [rbp-8] ; @5FFA
+M mov [rbp-18], r10 ; @5FFE
+M mov r10, 13 ; @6002
+M mov r11, r10 ; @6009
+M mov r10, [rbp-18] ; @600C
+M cmp r10, r11 ; @6010
+M jnz $l7023 ; @6013
+M call $l45ff ; @6019
+M jmp $l6ade ; @601E
+:l7023 ; @6023
+M mov r10, [rbp-8] ; @6023
+M mov [rbp-18], r10 ; @6027
+M mov r10, 14 ; @602B
+M mov r11, r10 ; @6032
+M mov r10, [rbp-18] ; @6035
+M cmp r10, r11 ; @6039
+M jnz $l704c ; @603C
+M call $l47b9 ; @6042
+M jmp $l6ade ; @6047
+:l704c ; @604C
+M mov r10, [rbp-8] ; @604C
+M mov [rbp-18], r10 ; @6050
+M mov r10, 15 ; @6054
+M mov r11, r10 ; @605B
+M mov r10, [rbp-18] ; @605E
+M cmp r10, r11 ; @6062
+M jnz $l7075 ; @6065
+M call $l49c3 ; @606B
+M jmp $l6ade ; @6070
+:l7075 ; @6075
+M mov r10, [rbp-8] ; @6075
+M mov [rbp-18], r10 ; @6079
+M mov r10, 16 ; @607D
+M mov r11, r10 ; @6084
+M mov r10, [rbp-18] ; @6087
+M cmp r10, r11 ; @608B
+M jnz $l7099 ; @608E
+M call $l4bcd ; @6094
+:l7099 ; @6099
+M mov r10, [rbp-8] ; @6099
+M mov [rbp-18], r10 ; @609D
+M mov r10, 17 ; @60A1
+M mov r11, r10 ; @60A8
+M mov r10, [rbp-18] ; @60AB
+M cmp r10, r11 ; @60AF
+M jnz $l70c2 ; @60B2
+M call $l4e58 ; @60B8
+M jmp $l6ade ; @60BD
+:l70c2 ; @60C2
+M mov r10, [rbp-8] ; @60C2
+M mov [rbp-18], r10 ; @60C6
+M mov r10, 18 ; @60CA
+M mov r11, r10 ; @60D1
+M mov r10, [rbp-18] ; @60D4
+M cmp r10, r11 ; @60D8
+M jnz $l70eb ; @60DB
+M call $l4fee ; @60E1
+M jmp $l6ade ; @60E6
+:l70eb ; @60EB
+M jmp $l6ade ; @60EB
+:l70f0 ; @60F0
+M mov r10, 0 ; @60F0
+M mov rax, r10 ; @60F7
+M mov rsp, rbp ; @60FA
+M pop rbp ; @60FD
+M ret ; @60FE
+:l70ff ; @60FF
+M push rbp ; @60FF
+M mov rbp, rsp ; @6100
+M sub rsp, 70 ; @6103
+M mov r10, B ; @6107
+M neg r10 ; @610E
+M mov [rbp-20], r10 ; @6111
+M mov rcx, [rbp-20] ; @6115
+M call [rip+$iat_getstdhandle] ; @6119
+M mov r10, rax ; @611F
+M mov [rip+$d73da], r10 ; @6122
+M call [rip+$iat_getcommandlinea] ; @6129
+M mov r10, rax ; @612F
+M mov [rip+$d73e2], r10 ; @6132
+M call $l1285 ; @6139
+M mov r10, rax ; @613E
+M mov [rbp-8], r10 ; @6141
+M lea r10, [rip+$d73fa] ; @6145
+M mov [rbp-20], r10 ; @614C
+M mov r10, [rbp-8] ; @6150
+M mov [rbp-28], r10 ; @6154
+M mov rcx, [rbp-20] ; @6158
+M mov rdx, [rbp-28] ; @615C
+M call $l1658 ; @6160
+M mov r10, rax ; @6165
+M mov [rbp-8], r10 ; @6168
+M mov r10, [rbp-8] ; @616C
+M mov [rbp-20], r10 ; @6170
+M mov rcx, [rbp-20] ; @6174
+M call $l1c8a ; @6178
+M mov r10, rax ; @617D
+M mov [rbp-8], r10 ; @6180
+M mov r10, [rbp-8] ; @6184
+M mov [rbp-20], r10 ; @6188
+M mov rcx, [rbp-20] ; @618C
+M call $l198f ; @6190
+M lea r10, [rip+$d75fa] ; @6195
+M mov [rbp-20], r10 ; @619C
+M lea r10, [rip+$d73fa] ; @61A0
+M mov [rbp-28], r10 ; @61A7
+M mov r10, [rip+$d73f2] ; @61AB
+M mov [rbp-30], r10 ; @61B2
+M mov rcx, [rbp-20] ; @61B6
+M mov rdx, [rbp-28] ; @61BA
+M mov r8, [rbp-30] ; @61BE
+M call $l1ad8 ; @61C2
+M lea r10, [rip+$d75fa] ; @61C7
+M mov [rbp-20], r10 ; @61CE
+M mov r10, 1 ; @61D2
+M mov [rbp-18], r10 ; @61D9
+M mov r10, 1F ; @61DD
+M mov r11, r10 ; @61E4
+M mov r10, [rbp-18] ; @61E7
+M mov rcx, r11 ; @61EB
+M shl r10, cl ; @61EE
+M mov [rbp-28], r10 ; @61F1
+M mov r10, 0 ; @61F5
+M mov [rbp-30], r10 ; @61FC
+M mov r10, 3 ; @6200
+M mov [rbp-38], r10 ; @6207
+M mov r10, 0 ; @620B
+M mov [rbp-58], r10 ; @6212
+M mov rcx, [rbp-20] ; @6216
+M mov rdx, [rbp-28] ; @621A
+M mov r8, [rbp-30] ; @621E
+M mov r9, [rbp-38] ; @6222
+M mov r10, [rbp-58] ; @6226
+M mov [rsp+20], r10 ; @622A
+M call [rip+$iat_createfile2] ; @622F
+M mov r10, rax ; @6235
+M mov [rbp-10], r10 ; @6238
+M mov r10, [rbp-10] ; @623C
+M mov [rbp-18], r10 ; @6240
+M mov r10, 1 ; @6244
+M neg r10 ; @624B
+M mov r11, r10 ; @624E
+M mov r10, [rbp-18] ; @6251
+M cmp r10, r11 ; @6255
+M jnz $l7290 ; @6258
+M lea r10, [rip+$d7302] ; @625E
+M mov [rbp-20], r10 ; @6265
+M mov r10, 18 ; @6269
+M mov [rbp-28], r10 ; @6270
+M mov r10, 4 ; @6274
+M mov [rbp-30], r10 ; @627B
+M mov rcx, [rbp-20] ; @627F
+M mov rdx, [rbp-28] ; @6283
+M mov r8, [rbp-30] ; @6287
+M call $l120a ; @628B
+:l7290 ; @6290
+M mov r10, [rbp-10] ; @6290
+M mov [rbp-20], r10 ; @6294
+M mov rcx, [rbp-20] ; @6298
+M call $l2161 ; @629C
+M mov r10, [rbp-10] ; @62A1
+M mov [rbp-20], r10 ; @62A5
+M mov rcx, [rbp-20] ; @62A9
+M call [rip+$iat_closehandle] ; @62AD
+M call $l6acb ; @62B3
+M mov rsp, rbp ; @62B8
+M pop rbp ; @62BB
+M ret ; @62BC
+:d72bd ; @62BD
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 43 4D 44 53 3A ; @62BD
+DB 20 4B 45 52 4E 45 4C 20 3C 46 49 4C 45 2E 55 50 ; @62CD
+DB 3E 20 5B 53 54 45 50 53 5D 0D 0A ; @62DD
+:d72e8 ; @62E8
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 4C ; @62E8
+DB 4F 4E 47 20 4E 41 4D 45 0D 0A ; @62F8
+:d7302 ; @6302
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 4F ; @6302
+DB 50 45 4E 20 55 50 0D 0A ; @6312
+:d731a ; @631A
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 52 ; @631A
+DB 45 41 44 20 55 50 0D 0A ; @632A
+:d7332 ; @6332
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 53 ; @6332
+DB 49 47 0D 0A ; @6342
+:d7346 ; @6346
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 56 ; @6346
+DB 45 52 0D 0A ; @6356
+:d735a ; @635A
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 4D ; @635A
+DB 45 4D 0D 0A ; @636A
+:d736e ; @636E
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 43 ; @636E
+DB 4F 44 45 30 0D 0A ; @637E
+:d7384 ; @6384
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 4C ; @6384
+DB 45 4E 0D 0A ; @6394
+:d7398 ; @6398
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 52 ; @6398
+DB 45 53 0D 0A ; @63A8
+:d73ac ; @63AC
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 45 52 52 3D 44 ; @63AC
+DB 41 54 41 0D 0A ; @63BC
+:d73c1 ; @63C1
+DB 55 2D 4C 33 2D 55 4E 49 56 4D 20 54 52 41 50 3D ; @63C1
+:d73d1 ; @63D1
+DB 20 53 54 45 50 53 3D ; @63D1
+:d73d8 ; @63D8
+DB 0D 0A ; @63D8
+:d73da ; @63DA
+DZ 8 ; @63DA
+:d73e2 ; @63E2
+DZ 8 ; @63E2
+:d73ea ; @63EA
+DZ 8 ; @63EA
+:d73f2 ; @63F2
+DZ 8 ; @63F2
+:d73fa ; @63FA
+DZ 200 ; @63FA
+:d75fa ; @65FA
+DZ 200 ; @65FA
+:d77fa ; @67FA
+DZ 40 ; @67FA
+:d783a ; @683A
+DZ 8 ; @683A
+:d7842 ; @6842
+DZ 8 ; @6842
+:d784a ; @684A
+DZ 8 ; @684A
+:d7852 ; @6852
+DZ 8 ; @6852
+:d785a ; @685A
+DZ 8 ; @685A
+:d7862 ; @6862
+DZ 8 ; @6862
+:d786a ; @686A
+DZ 8 ; @686A
+:d7872 ; @6872
+DZ 8 ; @6872
+:d787a ; @687A
+DZ 8 ; @687A
+:d7882 ; @6882
+DZ 8 ; @6882
+:d788a ; @688A
+DZ 80 ; @688A
+:d790a ; @690A
+DZ 8 ; @690A
+:d7912 ; @6912
+DZ 180 ; @6912
+:d7a92 ; @6A92
+DZ 1F6F ; @6A92
