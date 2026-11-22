@@ -69,8 +69,8 @@
             на реальных исходниках; вывод == оракулу == якорям;
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
-            18d) таблицы переходов; 18e) произвольный PE32+ в оракуле
-            (E9.4-3a — lab_t_bridge_pe); данные — lab_t_bridge_corpus;
+            18d) таблицы; 18e) произвольный PE32+ (E9.4-3a); 18f) спуск
+            в чужом теле parse_foreign (E9.4-3b); данные — corpus;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -103,6 +103,7 @@ import lab_t_anchor
 import lab_t_bridge_ff
 import lab_t_bridge_jt
 import lab_t_bridge_pe
+import lab_t_bridge_foreign
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -408,8 +409,8 @@ def t_enc():
           % len(lab_enc_cases.ERRORS), not bad,
           "; ".join(bad[:3]) if bad else "")
 
-    # структурный контроль: каждая кодировка декодируется обратно
-    # декодером lab_x86 ровно той же длины (слоты заменяются нулями)
+    # структурный контроль: кодировка декодируется lab_x86 той же длины
+    # (слоты заменяются нулями)
     bad = []
     for m, _h in lab_enc_cases.CASES:
         toks = lab_enc.encode_m(*_enc_parse(m), 1)
@@ -462,9 +463,6 @@ def _enc_rejects(m):
         return True
 
 
-# ---- 7..9: секции 7/8/8b — lab_t_exe.py; 9 — lab_t_wall.py (лимит 500)
-
-
 def main():
     print("=== UNIVERSAL / LAB: батарея верификации ===")
     t_integrity()
@@ -488,6 +486,7 @@ def main():
     lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
     lab_t_bridge_jt.run(check, kfile)   # секция 18d — таблицы (E9.4-2)
     lab_t_bridge_pe.run(check, kfile)   # секция 18e — произвольный PE
+    lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (E9.4-3b)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

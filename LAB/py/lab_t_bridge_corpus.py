@@ -3,7 +3,9 @@
 Паспорт файла: LAB/py/lab_t_bridge_corpus.py | слой: внешний инструмент |
 роль: данные тестов моста — вынесены из lab_t_bridge.py по лимиту 500
 строк (решение №4 сессии 74, прецедент lab_t_*_corpus.py; срез E9.4-1;
-расширен E9.4-2 — таблицы переходов).
+расширен E9.4-2 — таблицы переходов; E9.4-3a — чужой образ foreign_image
++ якоря FOREIGN_*; E9.4-3b — чужой образ foreign2_image со СПУСКОМ +
+якоря FOREIGN2_* + мутанты-отказы).
 
 Вход:  байты seed.exe / префикс тела bridge (передаются тестом).
 Выход:  CLI-кейсы T-E9-19 (мутанты инвариантов SPEC/04 + легальные
@@ -11,7 +13,10 @@
        синтетика спуска T-E9-21 (synthm — E9.2-2) и синтетика FF /4
        E9.4-1 (synth4/synth5 + якоря — lab_t_bridge_ff.py), синтетика
        таблиц переходов E9.4-2 (synth6/synth7 + якоря —
-       lab_t_bridge_jt.py).
+       lab_t_bridge_jt.py), чужой образ E9.4-3a (foreign_image + якоря
+       FOREIGN_* — lab_t_bridge_pe.py) и чужой образ E9.4-3b
+       (foreign2_image + якоря FOREIGN2_* + мутанты —
+       lab_t_bridge_foreign.py).
 Функция: держать данные секции 18 отдельно от логики прогона
        (lab_t_bridge.py), чтобы каждый файл был <= 500 строк.
 """
@@ -353,3 +358,122 @@ FOREIGN_IMPORTS = [
 FOREIGN_LEGACY = {"sec_name": ".text", "sec_vsize": 0x400, "sec_vaddr": 0x1000,
                   "sec_raw_size": 0x400, "sec_raw_ptr": 0x400,
                   "sec_chars": 0x60000020, "body_rva": 0x1000}
+
+
+# --- E9.4-3b: спуск в чужом теле (T-E9-29, секция 18f) ---
+# Чужой образ с ЖИВЫМ кодом (вход 0x1020 -> спуск): .text vsize 0x400
+# при raw 0x200 (НАСТОЯЩАЯ bss-вилка чужого образа), .rdata — импорты
+# двух DLL (RVA-раскладка как у foreign_image). Макет .text (смещения
+# секции): 0x20 mov eax,11; 0x25 call 0x40; 0x2A jz 0x68 (rel32);
+# 0x30 jmp qword [rip+0x12] — терминал + ТАБЛИЦА @0x48 (3 цели + 0);
+# 0x36..0x48 данные; 0x40 add eax,7; 0x43 ret; 0x68 xor eax,eax;
+# 0x6A ret; 0x70..0x73 три ret (цели таблицы); хвост — нули.
+def foreign2_image():
+    """Собрать чужой образ PE32+ для E9.4-3b (спуск в чужом теле).
+    Якоря — FOREIGN2_* ниже; совпадение проверяет T-E9-29
+    (lab_t_bridge_foreign.py)."""
+    b = bytearray(0x800)
+    b[0:2] = b"MZ"
+    _st.pack_into("<I", b, 0x3C, 0x100)             # e_lfanew
+    b[0x40:0x62] = b"Foreign PE32+ image (E9.4-3b).\r\r\n$"
+    b[0x100:0x104] = b"PE\x00\x00"
+    _st.pack_into("<HHIIIHH", b, 0x104, 0x8664, 2, 0, 0, 0, 0xF0, 0x0022)
+    _st.pack_into("<H", b, 0x118, 0x020B)            # Magic PE32+
+    _st.pack_into("<I", b, 0x128, 0x1020)           # вход (в .text)
+    _st.pack_into("<Q", b, 0x130, 0x180000000)      # ImageBase (чужой)
+    _st.pack_into("<I", b, 0x138, 0x1000)            # SectionAlignment
+    _st.pack_into("<I", b, 0x13C, 0x200)            # FileAlignment
+    _st.pack_into("<I", b, 0x150, 0x3000)           # SizeOfImage
+    _st.pack_into("<I", b, 0x154, 0x400)            # SizeOfHeaders
+    _st.pack_into("<H", b, 0x15C, 3)                # Subsystem console
+    _st.pack_into("<II", b, 0x190, 0x2000, 60)      # DD[1] Import
+    _st.pack_into("<II", b, 0x1E8, 0x2068, 40)      # DD[12] IAT
+    b[0x208:0x210] = b".text\x00\x00\x00"           # слот 0 (имя 8 Б)
+    _st.pack_into("<IIII", b, 0x210, 0x400, 0x1000, 0x200, 0x400)
+    _st.pack_into("<I", b, 0x22C, 0x60000020)      # слот 0: CODE+EXEC+READ
+    b[0x230:0x238] = b".rdata\x00\x00"               # слот 1 (имя 8 Б)
+    _st.pack_into("<IIII", b, 0x238, 0x200, 0x2000, 0x200, 0x600)
+    _st.pack_into("<I", b, 0x254, 0x40000040)      # слот 1: DATA+READ
+    t = 0x400                                        # .text: файл 0x400
+    b[t + 0x20:t + 0x25] = bytes([0xB8, 0x11, 0x00, 0x00, 0x00])
+    b[t + 0x25:t + 0x2A] = bytes([0xE8, 0x16, 0x00, 0x00, 0x00])
+    b[t + 0x2A:t + 0x30] = bytes([0x0F, 0x84, 0x38, 0x00, 0x00, 0x00])
+    b[t + 0x30:t + 0x36] = bytes([0xFF, 0x25, 0x12, 0x00, 0x00, 0x00])
+    b[t + 0x36:t + 0x40] = bytes([0xAA, 0xBB, 0xCC, 0xDD, 0xEE,
+                                  0x11, 0x22, 0x33, 0x44, 0x55])
+    b[t + 0x40:t + 0x43] = bytes([0x83, 0xC0, 0x07])
+    b[t + 0x43:t + 0x44] = bytes([0xC3])
+    b[t + 0x44:t + 0x48] = bytes([0x66, 0x77, 0x88, 0x99])
+    for k, v in enumerate((0x70, 0x71, 0x72, 0)):
+        _st.pack_into("<Q", b, t + 0x48 + 8 * k, v)  # таблица @0x48
+    b[t + 0x68:t + 0x6A] = bytes([0x31, 0xC0])
+    b[t + 0x6A:t + 0x6B] = bytes([0xC3])
+    b[t + 0x6B:t + 0x70] = bytes([0x90] * 5)
+    for a in (0x70, 0x71, 0x72):                     # цели таблицы
+        b[t + a:t + a + 1] = bytes([0xC3])
+    r = 0x600                                        # .rdata: файл 0x600
+    _st.pack_into("<IIIII", b, r, 0x2040, 0, 0, 0x2090, 0x2068)
+    _st.pack_into("<IIIII", b, r + 0x14, 0x2058, 0, 0, 0x20A0, 0x2080)
+    _st.pack_into("<QQQ", b, r + 0x40, 0x20B0, 0x20C0, 0)      # INT1
+    _st.pack_into("<QQ", b, r + 0x58, 0x20D0, 0)               # INT2
+    _st.pack_into("<QQQ", b, r + 0x68, 0x20B0, 0x20C0, 0)      # IAT1
+    _st.pack_into("<QQ", b, r + 0x80, 0x20D0, 0)               # IAT2
+    b[r + 0x90:r + 0x9D] = b"kernel32.dll\x00"
+    b[r + 0xA0:r + 0xAB] = b"user32.dll\x00"
+    _st.pack_into("<H", b, r + 0xB0, 0x023A)
+    b[r + 0xB2:r + 0xBE] = b"ExitProcess\x00"
+    _st.pack_into("<H", b, r + 0xC0, 0x0266)
+    b[r + 0xC2:r + 0xCF] = b"GetStdHandle\x00"
+    _st.pack_into("<H", b, r + 0xD0, 0x019A)
+    b[r + 0xD2:r + 0xDE] = b"MessageBoxA\x00"
+    return bytes(b)
+
+
+# якоря (выведены из макета вручную; совпадение с оракулом проверяет
+# сам T-E9-29): секция кода по входу, факты, спуск (11 инструкций),
+# операнды переходов (цели call/jz, rip-таблица)
+FOREIGN2_SECTIONS = [
+    {"name": ".text", "vsize": 0x400, "vaddr": 0x1000, "raw_size": 0x200,
+     "raw_ptr": 0x400, "chars": 0x60000020},
+    {"name": ".rdata", "vsize": 0x200, "vaddr": 0x2000, "raw_size": 0x200,
+     "raw_ptr": 0x600, "chars": 0x40000040}]
+FOREIGN2_CODE = FOREIGN2_SECTIONS[0]
+FOREIGN2_FACTS = {"entry_off": 0x20, "vsize": 0x400, "raw": 0x200,
+                  "target": 0x73, "bss": 0x38D}
+FOREIGN2_INS = [(0x20, "mov", 5), (0x25, "call", 5), (0x2A, "jcc", 6),
+                (0x30, "jmp", 6), (0x40, "add", 3), (0x43, "ret", 1),
+                (0x68, "xor", 2), (0x6A, "ret", 1), (0x70, "ret", 1),
+                (0x71, "ret", 1), (0x72, "ret", 1)]
+FOREIGN2_ARGS = {
+    0x25: (("t", 0x40),),                      # call rel32 — кандидат
+    0x2A: ("z", ("t", 0x68)),                  # jz rel32 — кандидат
+    0x30: (("m", None, None, 1, 0x12, 64, ("abs", 0x48)),),  # таблица
+}
+
+
+def foreign2_rejects():
+    """Мутанты foreign2 для T-E9-29: (имя, байты) — все обязаны дать
+    BridgeError в parse_foreign: вход вне секций, нет EXECUTE у секции
+    входа, вход в bss (вне raw-части), файл короче raw, Machine не
+    x86-64, FileAlignment не степень 2, num_sections 0 (секции
+    пусты — вход вне секций)."""
+    base = bytearray(foreign2_image())
+
+    def mut(off, val):
+        b = bytearray(base)
+        b[off:off + len(val)] = val if isinstance(val, bytes) \
+            else bytes([val])
+        return bytes(b)
+
+    def entry(v):
+        return mut(0x128, v.to_bytes(4, "little"))
+
+    return [
+        ("вход вне секций (0x5000)", entry(0x5000)),
+        ("в секции входа нет EXECUTE", mut(0x22C, b"\x40\x00\x00\x00")),
+        ("вход в bss (0x1300)", entry(0x1300)),
+        ("файл короче raw", bytes(base[:0x5FF])),
+        ("Machine 0x014C", mut(0x104, b"\x4C\x01")),
+        ("FileAlignment 0x201", mut(0x13C, b"\x01\x02")),
+        ("num_sections 0", mut(0x106, b"\x00")),
+    ]

@@ -1,6 +1,7 @@
 """lab_bridge.py — ФРОНТ оракула моста BRIDGE v1 (SPEC/15): EXE -> факты.
 
-Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04, один kernel32.dll).
+Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04, один kernel32.dll)
+       ИЛИ произвольного PE32+ (parse_foreign — E9.4-3b).
        Выход: bridge(data) -> (текст BRICK v2, PEG v1); BridgeError — чужое.
 Функция: эталонная семантика моста L5 (E9.1 «сначала истина семантики»,
        прецедент E7.1/E8.1): чужой машинный код входит в наш мир как
@@ -9,10 +10,12 @@
        [rip+X] даёт цели-кандидаты из таблицы переходов — E9.4-2;
        нули/сбой — данные; тень — младший адрес побеждает); метки
        l/d/iat_ (iat_ > l > d; $base — RVA 0; представимость E9.2-3b);
-       эмиссия — режимы _emit_lines(None/H/RAW). РЕНДЕР текста —
-       lab_bridge_text.py (M/H-строки, шапки b2/PEG; ветвь выделена
-       по лимиту 500 строк — прецедент lab_l2/lab_l2_gen, E9.4-2).
-       Правила — SPEC/15.
+       эмиссия — режимы _emit_lines(None/H/RAW). parse_foreign
+       (E9.4-3b) — чужой путь: исполняемая секция по точке входа +
+       спуск в её теле + факты для PEG v2 (эмиссия чужих — E9.4-4+).
+       РЕНДЕР текста — lab_bridge_text.py (M/H-строки, шапки b2/PEG;
+       ветвь выделена по лимиту 500 строк — прецедент lab_l2/lab_l2_gen,
+       E9.4-2). Правила — SPEC/15.
 """
 import bisect
 
@@ -157,6 +160,65 @@ def parse_family(data):
         "target": target, "bss": vsize - target, "module": module,
         "entry_off": entry, "ins": ins,
         "stackcom": _u32(data, 0xE8), "heapcom": _u32(data, 0xF8),
+    }
+
+# ------------------------------------------------------------ разбор чужих
+def parse_foreign(data):
+    """Чужой EXE PE32+ -> словарь фактов моста (E9.4-3b, SPEC/15
+    п. 10): исполняемая секция — по точке входа (первая секция
+    виртуального диапазона входа; обязана иметь EXECUTE), спуск —
+    в её теле от входа (семантика п. 3 та же: терминалы/тени/нули/
+    таблицы переходов; граница — VirtualSize секции). Факты — для
+    PEG v2: pe (все секции/импорты), code (слот секции кода),
+    body/vsize/raw/entry_off/ins, target/bss (п. 7; вилка
+    обобщена на FileAlignment образа — у семейства 0x200, значения
+    те же). Семейных полей (module/stackcom/heapcom) НЕТ: у чужих
+    образов нет шаблона pegen (заглушка/поля — дело PEG v2).
+    Отказ — BridgeError. Порядок проверок: сигнатуры MZ/PE ->
+    Machine/Magic x86-64 -> FileAlignment (степень 2) -> секция
+    по входу -> EXECUTE -> длина raw в файле -> тело не пусто ->
+    вход в raw-части -> спуск -> за VirtualSize -> target/bss."""
+    try:
+        pe = lab_pe.parse(data)
+    except Exception as e:                     # noqa: BLE001 — любой крах
+        raise BridgeError("не PE32+: не разбирается (%s)" % e)
+    if not pe["mz"] or not pe["pe_sig_ok"]:
+        raise BridgeError("не PE32+: нет сигнатур MZ/PE")
+    if pe["machine"] != 0x8664 or pe["magic"] != 0x020B:
+        raise BridgeError("не PE32+: Machine/Magic не x86-64")
+    fa = pe["file_align"]
+    if fa < 1 or fa & (fa - 1):
+        raise BridgeError("FileAlignment %X не степень 2" % fa)
+    entry = pe["addr_entry_point"]
+    code = next((s for s in pe["sections"]
+                 if s["vaddr"] <= entry < s["vaddr"] + s["vsize"]), None)
+    if code is None:
+        raise BridgeError("вход вне секций")
+    if not (code["chars"] & 0x20000000):
+        raise BridgeError("в секции входа нет EXECUTE")
+    body = data[code["raw_ptr"]:code["raw_ptr"] + code["raw_size"]]
+    if len(body) != code["raw_size"]:
+        raise BridgeError("файл короче raw секции кода")
+    if not any(body):
+        raise BridgeError("пустая/нулевая секция кода")
+    entry_off = entry - code["vaddr"]
+    if entry_off >= len(body):
+        raise BridgeError("вход в bss (вне raw-части)")
+    vsize, raw = code["vsize"], code["raw_size"]
+    ins = _sweep(_walk(body, entry_off, vsize))
+    for a, (_nm, ln, _ar) in ins.items():
+        if a + ln > vsize:
+            raise BridgeError("инструкция @%X за VirtualSize" % a)
+    nz = max(i for i, b in enumerate(body) if b)
+    target = max([nz + 1, 1] + [a + ins[a][1] for a in ins])
+    if (target + fa - 1) & ~(fa - 1) != raw:
+        target = raw - (fa - 1)     # минимальная длина той же вилки (п. 7)
+    if target > vsize:
+        raise BridgeError("длина тела больше VirtualSize")
+    return {
+        "pe": pe, "code": code, "body": body, "vsize": vsize,
+        "raw": raw, "target": target, "bss": vsize - target,
+        "entry_off": entry_off, "ins": ins,
     }
 
 # --------------------------------------------------- метки/импорты
