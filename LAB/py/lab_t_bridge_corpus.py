@@ -2,13 +2,16 @@
 
 Паспорт файла: LAB/py/lab_t_bridge_corpus.py | слой: внешний инструмент |
 роль: данные тестов моста — вынесены из lab_t_bridge.py по лимиту 500
-строк (решение №4 сессии 74, прецедент lab_t_*_corpus.py; срез E9.4-1).
+строк (решение №4 сессии 74, прецедент lab_t_*_corpus.py; срез E9.4-1;
+расширен E9.4-2 — таблицы переходов).
 
 Вход:  байты seed.exe / префикс тела bridge (передаются тестом).
 Выход:  CLI-кейсы T-E9-19 (мутанты инвариантов SPEC/04 + легальные
        отклонения), мутанты меток T-E9-22 (hint-ins / imp0 — E9.2-3b),
        синтетика спуска T-E9-21 (synthm — E9.2-2) и синтетика FF /4
-       E9.4-1 (synth4/synth5 + якоря — используется lab_t_bridge_ff.py).
+       E9.4-1 (synth4/synth5 + якоря — lab_t_bridge_ff.py), синтетика
+       таблиц переходов E9.4-2 (synth6/synth7 + якоря —
+       lab_t_bridge_jt.py).
 Функция: держать данные секции 18 отдельно от логики прогона
        (lab_t_bridge.py), чтобы каждый файл был <= 500 строк.
 """
@@ -197,3 +200,73 @@ FF4_PEG4 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходни
 FF4_PEG5 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник:" \
            " synth5.exe\n!module synth5\n!entry 1200\n!idata 1000 28\n" \
            "!iat 1028 48\n"
+
+# --- E9.4-2: синтетика таблиц переходов (T-E9-27, секция 18d) ---
+# PEG-шаблон синтетики (как FF4_PEG)
+JT_PEG = "; synth\n!module %s\n!entry 1200\n" \
+         "!idata 1000 28\n!iat 1028 48\n"
+
+# synth6 (switch-таблица): 0x200 mov eax,6060606; 0x205 jmp qword
+# [rip+5] -> таблица @0x210: qword 0x20B (ret) + qword 0x20C (ret);
+# терминатор — qword 0 (нуль @0x220). Спуск: 4 инструкции (2 цели
+# из данных — ДО первого non-code qword)
+JT_CRAFT6 = bytes([0xB8, 0x06, 0x06, 0x06, 0x06,
+                    0xFF, 0x25, 0x05, 0x00, 0x00, 0x00,
+                    0xC3, 0xC3,
+                    0x11, 0x22, 0x33,
+                    0x0B, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x0C, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+# synth7 (терминатор — qword ВНЕ тела): таблица @0x218: qword 0x20B
+# (валид) + qword 0x9000 (вне VirtualSize — терминатор); qword 0x20C
+# ПОСЛЕ терминатора — НЕ кандидат (спуск ровно 3 инструкции; 0x20C —
+# данные 44…)
+JT_CRAFT7 = bytes([0xB8, 0x07, 0x07, 0x07, 0x07,
+                    0xFF, 0x25, 0x0D, 0x00, 0x00, 0x00,
+                    0xC3] + [0x44] * 12 +
+                   [0x0B, 0x02] + [0x00] * 6 +
+                   [0x00, 0x90] + [0x00] * 6 +
+                   [0x0C, 0x02] + [0x00] * 6)
+
+# якорные факты/строки/PEG (выведены вручную из SPEC/15 п. 3-8 +
+# «Расширение E9.4» SPEC/05; совпадение с оракулом — проверяет сам
+# T-E9-27)
+JT_FACTS6 = {"module": "synth6", "target": 0x21A, "bss": 0xE,
+              "vsize": 0x228, "raw": 0x400,
+              "ins": [(0x200, "mov", 5), (0x205, "jmp", 6),
+                      (0x20B, "ret", 1), (0x20C, "ret", 1)],
+              "arg": (("m", None, None, 1, 5, 64, ("abs", 0x210)),)}
+JT_FACTS7 = {"module": "synth7", "target": 0x22A, "bss": 6,
+              "vsize": 0x230, "raw": 0x400,
+              "ins": [(0x200, "mov", 5), (0x205, "jmp", 6),
+                      (0x20B, "ret", 1)],
+              "arg": (("m", None, None, 1, 13, 64, ("abs", 0x218)),)}
+JT_LINES6 = [
+    "M mov eax, 6060606 ; @0200",
+    "H FF 25 05 00 00 00 ; @0205 jmp [rip+4624]",
+    "M ret ; @020B",
+    "M ret ; @020C",
+    "DB 11 22 33 ; @020D",
+    ":d1210 ; @0210",
+    "DB 0B 02 ; @0210",
+    "DZ 6 ; @0212",
+    "DB 0C 02 ; @0218",
+]
+JT_LINES7 = [
+    "M mov eax, 7070707 ; @0200",
+    "H FF 25 0D 00 00 00 ; @0205 jmp [rip+4632]",
+    "M ret ; @020B",
+    "DB 44 44 44 44 44 44 44 44 44 44 44 44 ; @020C",
+    ":d1218 ; @0218",
+    "DB 0B 02 ; @0218",
+    "DZ 7 ; @021A",
+    "DB 90 ; @0221",
+    "DZ 6 ; @0222",
+    "DB 0C 02 ; @0228",
+]
+JT_PEG6 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник:" \
+          " synth6.exe\n!module synth6\n!entry 1200\n!idata 1000 28\n" \
+          "!iat 1028 48\n!bss E\n"
+JT_PEG7 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник:" \
+          " synth7.exe\n!module synth7\n!entry 1200\n!idata 1000 28\n" \
+          "!iat 1028 48\n!bss 6\n"

@@ -1,28 +1,28 @@
-"""lab_bridge.py — оракул моста BRIDGE v1 (SPEC/15): EXE -> BRICK v2 + PEG v1.
+"""lab_bridge.py — ФРОНТ оракула моста BRIDGE v1 (SPEC/15): EXE -> факты.
 
 Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04, один kernel32.dll).
        Выход: bridge(data) -> (текст BRICK v2, PEG v1); BridgeError — чужое.
 Функция: эталонная семантика моста L5 (E9.1 «сначала истина семантики»,
        прецедент E7.1/E8.1): чужой машинный код входит в наш мир как
        ИСХОДНИК. Композиция lab_pe + lab_x86; спуск от входа (терминалы:
-       прямой jmp/ret/int3 и косвенный FF /4 — E9.4-1; нули/сбой —
-       данные; тень — младший адрес побеждает); метки l/d/iat_ (iat_ >
-       l > d; $base — RVA 0; представимость E9.2-3b); M-строка при
-       точном воспроизведении enc (иначе H-строка); данные DD/DQ с
-       $ссылками, DB <= 16, DZ >= 3; тело = max(ненулевой хвост, концы
-       команд), вилка SizeOfRawData, хвост -> !bss. Правила — SPEC/15.
+       прямой jmp/ret/int3 и косвенный FF /4 — E9.4-1, НО jmp qword
+       [rip+X] даёт цели-кандидаты из таблицы переходов — E9.4-2;
+       нули/сбой — данные; тень — младший адрес побеждает); метки
+       l/d/iat_ (iat_ > l > d; $base — RVA 0; представимость E9.2-3b);
+       эмиссия — режимы _emit_lines(None/H/RAW). РЕНДЕР текста —
+       lab_bridge_text.py (M/H-строки, шапки b2/PEG; ветвь выделена
+       по лимиту 500 строк — прецедент lab_l2/lab_l2_gen, E9.4-2).
+       Правила — SPEC/15.
 """
 import bisect
 
-import lab_enc
 import lab_pe
 import lab_x86
+from lab_bridge_text import (BASE_OFF, SECT, _b2_text, _hx,
+                             _mtext, _note, _peg_text, _template)
 
-SECT = 0x1000                    # RVA секции .text (SPEC/04)
-BASE_OFF = -SECT                 # «base» — тело-смещение RVA 0
 DB_MAX = 16                      # байт в одной DB-строке
 DZ_MIN = 3                       # минимальный пробег нулей для DZ
-KW = {8: "byte ", 16: "word ", 32: "dword ", 64: "qword "}
 
 class BridgeError(ValueError):
     pass
@@ -32,10 +32,6 @@ def _u32(b, o):
 
 def _u64(b, o):
     return int.from_bytes(b[o:o + 8], "little")
-
-def _hx(v):
-    """Число -> ЗАГЛАВНЫЙ hex, знак «-» при отрицательном."""
-    return ("-%X" % -v) if v < 0 else "%X" % v
 
 def _san(name):
     """Имя импорта -> суффикс [a-z0-9_]{1,59}. E9.2-3b: только ASCII
@@ -47,8 +43,10 @@ def _san(name):
 # ------------------------------------------------------------ проход кода
 def _walk(body, entry, limit):
     """Спуск от entry: offset -> (имя, длина, аргументы). Путь
-    обрывается: терминал (jmp/ret/int3), сбой декодирования, выход
-    за limit, ВСЕ-НУЛЕВЫЕ байты (нули — данные, не код)."""
+    обрывается: терминал (прямой jmp/ret/int3; косвенный FF /4 —
+    терминал, его кандидаты — ТОЛЬКО таблица переходов E9.4-2),
+    сбой декодирования, выход за limit, ВСЕ-НУЛЕВЫЕ байты
+    (нули — данные, не код)."""
     def fetch(a, n):
         if a < 0 or a + n > len(body):
             raise IndexError
@@ -71,9 +69,11 @@ def _walk(body, entry, limit):
             nxt = a + ln
             if name in ("ret", "int3"):
                 break
-            if name == "jmp":   # прямой — кандидат; FF /4 — терминал (E9.4-1)
+            if name == "jmp":   # прямой — кандидат; FF /4 — терминал
                 if args[0][0] == "t":
                     pending.append(args[0][1])
+                else:           # E9.4-2: таблица переходов из данных
+                    pending.extend(_jtab(body, limit, args[0]))
                 break
             if name == "jcc":
                 pending.append(args[1][1])
@@ -81,6 +81,27 @@ def _walk(body, entry, limit):
                 pending.append(args[0][1])
             a = nxt
     return ins
+
+def _jtab(body, limit, op):
+    """Таблица переходов (E9.4-2, SPEC/15 п. 3): косвенный jmp qword
+    [rip+X] (X — в данных) даёт цели-кандидаты из данных. Читаются
+    qword от X ПОДРЯД, пока значение — адрес кода (0 < v < limit);
+    терминатор — первый non-code qword (0 или вне тела) либо конец
+    тела (за target — виртуальные нули: вилка raw/bss). Регистровая/
+    индексная форма (jmp r64, [base+idx]) — БЕЗ кандидатов (E9.4-1):
+    цель = значение операнда, вычислить без исполнения нельзя."""
+    if op[0] != "m" or op[6] is None or op[5] != 64 \
+            or op[1] is not None or op[2] is not None:
+        return []
+    out = []
+    off = op[6][1]
+    while 0 <= off and off + 8 <= limit:
+        v = _u64(body, off)
+        if not 0 < v < limit:
+            break
+        out.append(v)
+        off += 8
+    return out
 
 def _sweep(ins):
     """Пересечения: младший адрес побеждает -> dict выживших."""
@@ -208,142 +229,6 @@ def _dollar(v, known):
     s = known.get(v)
     return "$" + s if s else _hx(v)
 
-# ------------------------------------------------ рендер строк
-def _reg(op):
-    _, idx, size = op
-    if size == 8:
-        return lab_x86.REG8[idx]
-    if size == 16:
-        return lab_x86.REG16[idx]
-    if size == 64:
-        return lab_x86.REG64[idx]
-    return "r%dd" % idx if idx >= 8 else \
-        lab_x86.REG64[idx].replace("r", "e", 1)
-
-def _mem(op, labels):
-    """('m', b, i, scale, disp, size, ripabs) -> текст | None."""
-    _, b, i, scale, disp, _size, ripabs = op
-    if ripabs is not None:
-        off = ripabs[1]
-        if off == BASE_OFF:
-            return "[rip+$base]"
-        name = labels.get(off)
-        return "[rip+$%s]" % name if name else None
-    if scale != 1:
-        return None
-    s = lab_x86.REG64[b]
-    if i is not None:
-        s += "+" + lab_x86.REG64[i]
-    if disp:
-        s += _hx(disp) if disp < 0 else "+" + _hx(disp)
-    return "[%s]" % s
-
-def _plain(op):
-    """Операнд reg/imm/cl -> текст | None (mem — _mem)."""
-    if isinstance(op, str):
-        return op if op == "cl" else None
-    if isinstance(op, int):                 # счётчик сдвига (lab_x86)
-        return _hx(op)
-    if op[0] == "r":
-        return _reg(op)
-    if op[0] == "i":
-        return _hx(op[1])
-    return None
-
-def _mtext(name, args, ln, labels):
-    """Инструкция -> (мнемоника, [операнды]) | None. Слот :1 (rel8) —
-    по длине исходной инструкции (2 байта)."""
-    if name in ("cdqe", "cqo", "cdq", "ret", "int3"):
-        return name, []                     # аргументы декодера — шум
-    rel8 = ln == 2 and name in ("jmp", "jcc")
-    if name in ("jmp", "jcc"):
-        t = args[1] if name == "jcc" else args[0]
-        if t[0] != "t":   # косвенный jmp (FF /4, E9.4-1) — всегда
-            return None   # H-строка: вне канона enc (круг байто-точен)
-        nm = "jmp" if name == "jmp" else "j%s" % args[0]
-        if t[1] == BASE_OFF:
-            return nm, ["$base" + (":1" if rel8 else "")]
-        if t[1] not in labels:
-            return None
-        return nm, ["$" + labels[t[1]] + (":1" if rel8 else "")]
-    if name == "call":
-        a = args[0]
-        if a[0] == "t":
-            return None if a[1] not in labels else \
-                ("call", ["$" + labels[a[1]]])
-        t = _mem(a, labels)
-        return ("call", [t]) if t else None
-    ops = []
-    for a in args:
-        if isinstance(a, tuple) and a[0] == "m":
-            other = [x for x in args if x is not a and
-                     isinstance(x, tuple)]
-            kw = KW[a[5]] if (other and other[0][0] == "i" or
-                              name == "movzx") else ""
-            t = _mem(a, labels)
-            if t is None:
-                return None
-            ops.append(kw + t)
-        else:
-            t = _plain(a)
-            if t is None:
-                return None
-            ops.append(t)
-    return name, ops
-
-def _template(mnem, ops, body, off, ln, rlabels):
-    """Кодировка enc == байты инструкции (слоты включительно)?"""
-    try:
-        toks = lab_enc.encode_m(mnem, list(ops), 1)
-    except lab_enc.EncError:
-        return False
-    pos = 0
-    for t in toks:
-        if isinstance(t, int):
-            if body[off + pos] != t:
-                return False
-            pos += 1
-            continue
-        _, lname, size = t
-        p = pos
-        pos += size
-        if pos != ln:
-            return False                # слот обязан быть последним
-        want = int.from_bytes(body[off + p:off + pos], "little",
-                              signed=True)
-        loff = BASE_OFF if lname == "base" else rlabels.get(lname)
-        if loff is None or want != loff - (off + pos):
-            return False
-    return pos == ln
-
-def _note(name, args):
-    """Комментарий H-строки: мнемоника с «сырыми» адресами."""
-    try:
-        if name == "jcc":
-            return "j%s %X" % (args[0], args[1][1])
-        if name in ("ret", "int3", "cdqe", "cqo", "cdq"):
-            return name
-        parts = []
-        for a in args:
-            if isinstance(a, str):
-                parts.append(a)
-            elif isinstance(a, int):
-                parts.append(_hx(a))
-            elif a[0] == "r":
-                parts.append(_reg(a))
-            elif a[0] == "i":
-                parts.append(_hx(a[1]))
-            elif a[0] == "t":
-                parts.append("%X" % a[1])
-            elif a[0] == "m" and a[6] is not None:
-                d = a[6][1] + SECT
-                parts.append("[rip%+d]" % d if d else "[rip]")
-            elif a[0] == "m":
-                parts.append("[mem]")
-        return "%s %s" % (name, ", ".join(parts))
-    except Exception:
-        return name
-
 # ------------------------------------------------------------ эмиссия b2
 def _emit_lines(fam, mode=None):
     """Факты моста -> (строки BRICK v2, статистика). Чистый рендер.
@@ -457,31 +342,6 @@ def _emit_lines(fam, mode=None):
             out.append("DB %s ; @%04X" % (" ".join(chunk), first))
             stats["db"] += 1
     return out, stats
-
-def _b2_text(fam, lines):
-    head = [
-        "; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)",
-        "; Исходник: %s.exe (тело секции RVA %X, %X Б; !bss %X)"
-        % (fam["module"], SECT, fam["target"], fam["bss"]),
-        "; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE",
-    ]
-    return "\n".join(head + lines) + "\n"
-
-def _peg_text(fam):
-    pe = fam["pe"]
-    out = ["; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник:"
-           " %s.exe" % fam["module"],
-           "!module %s" % fam["module"],
-           "!entry %X" % pe["addr_entry_point"],
-           "!idata %X %X" % (pe["dd1_import_rva"], pe["dd1_import_size"]),
-           "!iat %X %X" % (pe["dd12_iat_rva"], pe["dd12_iat_size"])]
-    if fam["bss"]:
-        out.append("!bss %X" % fam["bss"])
-    if fam["stackcom"] != 0x1000:
-        out.append("!stackcom %X" % fam["stackcom"])
-    if fam["heapcom"] != 0x1000:
-        out.append("!heapcom %X" % fam["heapcom"])
-    return "\n".join(out) + "\n"
 
 def emit_b2(data, mode=None):
     """EXE -> (текст BRICK v2, статистика); mode — срезы E9.2-3."""

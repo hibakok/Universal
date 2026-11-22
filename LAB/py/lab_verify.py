@@ -64,15 +64,13 @@
             ветви C/N/S/M — композиции/ABI/круги инструментами
             (T-E8-08..26; N — стек-слоты и зависимость N→C; S/M —
             автономные; M — эффект в RAM против модели оракула);
-         17) проекты PROJECTS/ (lab_t_prj, E8.3 — DoD этапа 8): круг
-            инструментами splice -> uva -> kernel реальных исходников:
-            T-P-01 banner (C+N+S+M, .UP v2), T-P-02 fib (C+N, ряд,
-            .UP v1) — вывод == оракулу и якорям TESTS/T-PROJECTS.md;
-         18) мост BRIDGE v1 (lab_t_bridge, данные — lab_t_bridge_corpus,
-            E9.1/E9.2): тексты seed == якорям; круги 12 артефактов
-            байт-в-байт (оракул + инструменты); каркас/спуск/эмиссия/
-            PEG — T-E9-17..24; 18b) якоря (lab_t_anchor, E9.3); 18c)
-            FF /4 косвенный jmp оракула (lab_t_bridge_ff, E9.4-1);
+         17) проекты PROJECTS/ (lab_t_prj, E8.3 — DoD этапа 8):
+            T-P-01 banner / T-P-02 fib — круг splice -> uva -> kernel
+            на реальных исходниках; вывод == оракулу == якорям;
+         18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
+            спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
+            18d) таблицы переходов (E9.4-2; оракул — фронт lab_bridge
+            + рендер lab_bridge_text); данные — lab_t_bridge_corpus;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -103,6 +101,7 @@ import lab_t_prj
 import lab_t_bridge
 import lab_t_anchor
 import lab_t_bridge_ff
+import lab_t_bridge_jt
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -488,6 +487,7 @@ def main():
     lab_t_bridge.run(check, kpath, kfile, kernel_host)
     lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
     lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
+    lab_t_bridge_jt.run(check, kfile)   # секция 18d — таблицы (E9.4-2)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
