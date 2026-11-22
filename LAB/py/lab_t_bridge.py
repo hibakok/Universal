@@ -116,7 +116,6 @@ ARTIFACTS = ["L0-SEED/seed", "L0-SEED2/seed2", "L0-HXDUMP/hxdump",
 # вынесены в lab_t_bridge_corpus.py по лимиту 500 строк — решение №4
 # сессии 74, срез E9.4-1; FF /4 — секция 18c lab_t_bridge_ff.py)
 
-
 def _oracle_circle(check, kfile, m, tid):
     """Оракульный круг одного артефакта: compose(enc,brick,pegen)
     на выходе моста == исходный EXE байт-в-байт (SPEC/15 п. 9)."""
