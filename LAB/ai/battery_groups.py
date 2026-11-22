@@ -19,6 +19,9 @@ lab_verify).
       Python без эмуляции) + секция 18c — FF /4 (E9.4-1: T-E9-26,
       оракул, чистый Python без эмуляции) + секция 18d — таблицы
       переходов (E9.4-2: T-E9-27, оракул, чистый Python без эмуляции)
+      + секция 18e — произвольный PE32+ в оракуле (E9.4-3a: T-E9-28,
+      lab_pe.parse — e_lfanew/все секции/импорты многих DLL; чистый
+      Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -58,6 +61,7 @@ def main():
         V.lab_t_anchor.run(V.check, V.kfile)   # секция 18b — E9.3-1
         V.lab_t_bridge_ff.run(V.check, V.kfile)   # 18c — E9.4-1
         V.lab_t_bridge_jt.run(V.check, V.kfile)   # 18d — E9.4-2
+        V.lab_t_bridge_pe.run(V.check, V.kfile)   # 18e — E9.4-3a
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)

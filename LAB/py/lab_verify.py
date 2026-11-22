@@ -69,8 +69,8 @@
             на реальных исходниках; вывод == оракулу == якорям;
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
-            18d) таблицы переходов (E9.4-2; оракул — фронт lab_bridge
-            + рендер lab_bridge_text); данные — lab_t_bridge_corpus;
+            18d) таблицы переходов; 18e) произвольный PE32+ в оракуле
+            (E9.4-3a — lab_t_bridge_pe); данные — lab_t_bridge_corpus;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -102,6 +102,7 @@ import lab_t_bridge
 import lab_t_anchor
 import lab_t_bridge_ff
 import lab_t_bridge_jt
+import lab_t_bridge_pe
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -461,9 +462,7 @@ def _enc_rejects(m):
         return True
 
 
-# ------------------------------------------------------------ 7..9
-# Секции 7/8/8b (enc/splice/brick) — lab_t_exe.py; 9 (оракул WALL) —
-# lab_t_wall.py (лимит 500)
+# ---- 7..9: секции 7/8/8b — lab_t_exe.py; 9 — lab_t_wall.py (лимит 500)
 
 
 def main():
@@ -488,6 +487,7 @@ def main():
     lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
     lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
     lab_t_bridge_jt.run(check, kfile)   # секция 18d — таблицы (E9.4-2)
+    lab_t_bridge_pe.run(check, kfile)   # секция 18e — произвольный PE
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

@@ -270,3 +270,86 @@ JT_PEG6 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходни�
 JT_PEG7 = "; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник:" \
           " synth7.exe\n!module synth7\n!entry 1200\n!idata 1000 28\n" \
           "!iat 1028 48\n!bss 6\n"
+
+# --- E9.4-3a: произвольный PE32+ в оракуле (T-E9-28, секция 18e) ---
+# Чужой образ (НЕ семейство): e_lfanew = 0x100 (длинная DOS-заглушка),
+# ДВЕ секции (.text @0x1000 + .rdata @0x2000), ДВЕ DLL импорта
+# (kernel32.dll: ExitProcess/GetStdHandle; user32.dll: MessageBoxA).
+# Макет (RVA -> файл = rva - vaddr + raw_ptr):
+#   заголовки 0x000..0x400 (таблица секций @0x208, 2 слота);
+#   .text 0x400..0x800 (вход @RVA 0x1020 = файл 0x420);
+#   .rdata 0x800..0xA00: IDT @0x2000 (2 дескриптора + терминатор),
+#   INT1 @0x2040 / INT2 @0x2058, IAT1 @0x2068 / IAT2 @0x2080,
+#   имена DLL @0x2090/@0x20A0, hint-записи @0x20B0/@0x20C0/@0x20D0
+#   (чётные RVA, как у семейства). Файл = 0xA00.
+import struct as _st
+
+
+def foreign_image():
+    """Собрать чужой образ PE32+ (2 секции, 2 DLL; e_lfanew 0x100).
+    Якоря полей — FOREIGN_* ниже; совпадение проверяет T-E9-28
+    (lab_t_bridge_pe.py)."""
+    b = bytearray(0xA00)
+    b[0:2] = b"MZ"
+    _st.pack_into("<I", b, 0x3C, 0x100)             # e_lfanew
+    b[0x40:0x62] = b"Foreign PE32+ image (E9.4-3a).\r\r\n$"
+    b[0x100:0x104] = b"PE\x00\x00"
+    _st.pack_into("<HHIIIHH", b, 0x104, 0x8664, 2, 0, 0, 0, 0xF0, 0x0022)
+    _st.pack_into("<H", b, 0x118, 0x020B)            # Magic PE32+
+    _st.pack_into("<I", b, 0x128, 0x1020)           # вход (в .text)
+    _st.pack_into("<Q", b, 0x130, 0x180000000)      # ImageBase (чужой)
+    _st.pack_into("<I", b, 0x138, 0x1000)            # SectionAlignment
+    _st.pack_into("<I", b, 0x13C, 0x200)            # FileAlignment
+    _st.pack_into("<I", b, 0x150, 0x3000)           # SizeOfImage
+    _st.pack_into("<I", b, 0x154, 0x400)            # SizeOfHeaders
+    _st.pack_into("<H", b, 0x15C, 3)                # Subsystem console
+    _st.pack_into("<II", b, 0x190, 0x2000, 60)      # DD[1] Import
+    _st.pack_into("<II", b, 0x1E8, 0x2068, 40)      # DD[12] IAT
+    b[0x208:0x210] = b".text\x00\x00\x00"           # слот 0 (имя 8 Б)
+    _st.pack_into("<IIII", b, 0x210, 0x400, 0x1000, 0x400, 0x400)
+    _st.pack_into("<I", b, 0x22C, 0x60000020)      # слот 0: CODE+EXEC+READ
+    b[0x230:0x238] = b".rdata\x00\x00"               # слот 1 (имя 8 Б)
+    _st.pack_into("<IIII", b, 0x238, 0x200, 0x2000, 0x200, 0x800)
+    _st.pack_into("<I", b, 0x254, 0x40000040)      # слот 1: DATA+READ
+    b[0x420:0x424] = b"\x48\x31\xC0\xC3"           # код @входе (xor rax,rax; ret)
+    _st.pack_into("<IIIII", b, 0x800, 0x2040, 0, 0, 0x2090, 0x2068)
+    _st.pack_into("<IIIII", b, 0x814, 0x2058, 0, 0, 0x20A0, 0x2080)
+    _st.pack_into("<QQQ", b, 0x840, 0x20B0, 0x20C0, 0)      # INT1
+    _st.pack_into("<QQ", b, 0x858, 0x20D0, 0)               # INT2
+    _st.pack_into("<QQQ", b, 0x868, 0x20B0, 0x20C0, 0)      # IAT1
+    _st.pack_into("<QQ", b, 0x880, 0x20D0, 0)               # IAT2
+    b[0x890:0x89D] = b"kernel32.dll\x00"
+    b[0x8A0:0x8AB] = b"user32.dll\x00"
+    _st.pack_into("<H", b, 0x8B0, 0x023A)
+    b[0x8B2:0x8BE] = b"ExitProcess\x00"
+    _st.pack_into("<H", b, 0x8C0, 0x0266)
+    b[0x8C2:0x8CF] = b"GetStdHandle\x00"
+    _st.pack_into("<H", b, 0x8D0, 0x019A)
+    b[0x8D2:0x8DE] = b"MessageBoxA\x00"
+    return bytes(b)
+
+
+# якоря полей заголовков (выведены из макета foreign_image вручную;
+# совпадение с оракулом проверяет сам T-E9-28)
+FOREIGN_FIELDS = {"e_lfanew": 0x100, "machine": 0x8664, "num_sections": 2,
+                  "size_opt_header": 0xF0, "characteristics": 0x22,
+                  "magic": 0x20B, "addr_entry_point": 0x1020,
+                  "image_base": 0x180000000, "sect_align": 0x1000,
+                  "file_align": 0x200, "size_of_image": 0x3000,
+                  "size_of_headers": 0x400, "subsystem": 3,
+                  "dd1_import_rva": 0x2000, "dd1_import_size": 60,
+                  "dd12_iat_rva": 0x2068, "dd12_iat_size": 40}
+FOREIGN_SECTIONS = [
+    {"name": ".text", "vsize": 0x400, "vaddr": 0x1000, "raw_size": 0x400,
+     "raw_ptr": 0x400, "chars": 0x60000020},
+    {"name": ".rdata", "vsize": 0x200, "vaddr": 0x2000, "raw_size": 0x200,
+     "raw_ptr": 0x800, "chars": 0x40000040}]
+FOREIGN_IMPORTS = [
+    {"dll": "kernel32.dll",
+     "funcs": [("ExitProcess", 0x20B0), ("GetStdHandle", 0x20C0)],
+     "iat_rva": 0x2068, "oft_rva": 0x2040, "name_rva": 0x2090},
+    {"dll": "user32.dll", "funcs": [("MessageBoxA", 0x20D0)],
+     "iat_rva": 0x2080, "oft_rva": 0x2058, "name_rva": 0x20A0}]
+FOREIGN_LEGACY = {"sec_name": ".text", "sec_vsize": 0x400, "sec_vaddr": 0x1000,
+                  "sec_raw_size": 0x400, "sec_raw_ptr": 0x400,
+                  "sec_chars": 0x60000020, "body_rva": 0x1000}

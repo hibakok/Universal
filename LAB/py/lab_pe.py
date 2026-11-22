@@ -4,58 +4,90 @@
 Выход: словарь PE (parse) / список строк-нарушений (check_spec04).
 Функция: независимый от Windows разбор наших EXE: заголовки, секция,
          каталоги импорта, виртуальные нули; проверка инвариантов.
+         С E9.4-3a разбор обобщён на ПРОИЗВОЛЬНЫЕ образы PE32+ (фундамент
+         чужих EXE для PEG v2 — SPEC/15 п. 10): смещения полей вычисляются
+         от e_lfanew (раньше неявно предполагался 0x80), таблица секций
+         разбирается ЦЕЛИКОМ в pe["sections"], RVA отображается в файл
+         по секции, которая его содержит (импорты многих DLL). Поля
+         семейства (sec_*/body_rva/body/imports) сохраняют прежнюю
+         семантику — ЗНАЧЕНИЯ ПЕРВОЙ СЕКЦИИ: для образов семейства
+         результаты идентичны прежним (нейтральность — T-E9-28).
 """
 import struct
 
-PE_FIELDS = [
-    # (имя, смещение, размер, формат-подсказка)
-    ("e_lfanew", 0x3C, 4, "u32"),
-    ("machine", 0x84 + 0, 2, "u16"),
-    ("num_sections", 0x84 + 2, 2, "u16"),
-    ("size_opt_header", 0x84 + 16, 2, "u16"),
-    ("characteristics", 0x84 + 18, 2, "u16"),
-    ("magic", 0x98, 2, "u16"),
-    ("addr_entry_point", 0xA8, 4, "u32"),
-    ("image_base", 0xB0, 8, "u64"),
-    ("sect_align", 0xB8, 4, "u32"),
-    ("file_align", 0xBC, 4, "u32"),
-    ("size_of_image", 0xD0, 4, "u32"),
-    ("size_of_headers", 0xD4, 4, "u32"),
-    ("subsystem", 0xDC, 2, "u16"),
-    ("dd1_import_rva", 0x110, 4, "u32"),
-    ("dd1_import_size", 0x114, 4, "u32"),
-    ("dd12_iat_rva", 0x168, 4, "u32"),
-    ("dd12_iat_size", 0x16C, 4, "u32"),
-    ("sec_name", 0x188, 8, "bytes"),
-    ("sec_vsize", 0x190, 4, "u32"),
-    ("sec_vaddr", 0x194, 4, "u32"),
-    ("sec_raw_size", 0x198, 4, "u32"),
-    ("sec_raw_ptr", 0x19C, 4, "u32"),
-    ("sec_chars", 0x1AC, 4, "u32"),
-]
+
+def _u16(b, o):
+    return struct.unpack("<H", b[o:o + 2])[0]
+
+
+def _u32(b, o):
+    return struct.unpack("<I", b[o:o + 4])[0]
+
+
+def _u64(b, o):
+    return struct.unpack("<Q", b[o:o + 8])[0]
+
+
+def _slot(data, o):
+    """Слот таблицы секций (40 Б) -> словарь (имя/размеры/свойства)."""
+    return {"name": data[o:o + 8].rstrip(b"\x00").decode("latin1"),
+            "vsize": _u32(data, o + 8), "vaddr": _u32(data, o + 12),
+            "raw_size": _u32(data, o + 16), "raw_ptr": _u32(data, o + 20),
+            "chars": _u32(data, o + 36)}
 
 
 def parse(data):
-    """Разобрать образ PE32+. Возвращает словарь полей + импорты."""
+    """Разобрать образ PE32+ (E9.4-3a: произвольный — e_lfanew, ВСЕ
+    секции, импорты многих DLL). Возвращает словарь полей + импорты;
+    поля sec_*/body/body_rva — ПЕРВАЯ секция (семантика семейства).
+    Семья: e_lfanew == 0x80, один .text — значения как раньше."""
     pe = {"size": len(data)}
     pe["mz"] = data[0:2] == b"MZ"
-    for name, off, size, fmt in PE_FIELDS:
-        raw = data[off:off + size]
-        if fmt == "u16":
-            val = struct.unpack("<H", raw)[0]
-        elif fmt == "u32":
-            val = struct.unpack("<I", raw)[0]
-        elif fmt == "u64":
-            val = struct.unpack("<Q", raw)[0]
-        else:
-            val = raw.rstrip(b"\x00").decode("latin1")
-        pe[name] = val
-    pe["pe_sig_ok"] = data[pe["e_lfanew"]:pe["e_lfanew"] + 4] == b"PE\x00\x00"
-    # тело секции
+    pe["e_lfanew"] = _u32(data, 0x3C)
+    coff = pe["e_lfanew"] + 4               # COFF-заголовок (20 Б)
+    opt = coff + 0x14                       # опциональный заголовок
+    pe["pe_sig_ok"] = data[pe["e_lfanew"]:pe["e_lfanew"] + 4] \
+        == b"PE\x00\x00"
+    pe["machine"] = _u16(data, coff + 0x00)
+    pe["num_sections"] = _u16(data, coff + 0x02)
+    pe["size_opt_header"] = _u16(data, coff + 0x10)
+    pe["characteristics"] = _u16(data, coff + 0x12)
+    pe["magic"] = _u16(data, opt + 0x00)
+    pe["addr_entry_point"] = _u32(data, opt + 0x10)
+    pe["image_base"] = _u64(data, opt + 0x18)
+    pe["sect_align"] = _u32(data, opt + 0x20)
+    pe["file_align"] = _u32(data, opt + 0x24)
+    pe["size_of_image"] = _u32(data, opt + 0x38)
+    pe["size_of_headers"] = _u32(data, opt + 0x3C)
+    pe["subsystem"] = _u16(data, opt + 0x44)
+    pe["dd1_import_rva"] = _u32(data, opt + 0x78)   # DD[1] Import
+    pe["dd1_import_size"] = _u32(data, opt + 0x7C)
+    pe["dd12_iat_rva"] = _u32(data, opt + 0xD0)     # DD[12] IAT
+    pe["dd12_iat_size"] = _u32(data, opt + 0xD4)
+    # таблица секций: ВСЕ слоты -> pe["sections"] (E9.4-3a); слот 0
+    # читается всегда и раздаёт легаси-поля семейства (sec_*)
+    tbl = opt + pe["size_opt_header"]
+    if tbl + 40 > len(data):          # как раньше: поле за пределами файла
+        raise struct.error("таблица секций вне файла")
+    s0 = _slot(data, tbl)
+    pe["sec_name"] = s0["name"]
+    pe["sec_vsize"] = s0["vsize"]
+    pe["sec_vaddr"] = s0["vaddr"]
+    pe["sec_raw_size"] = s0["raw_size"]
+    pe["sec_raw_ptr"] = s0["raw_ptr"]
+    pe["sec_chars"] = s0["chars"]
+    secs = [s0]
+    for i in range(1, pe["num_sections"]):
+        o = tbl + 40 * i
+        if o + 40 > len(data):
+            break                    # битый образ: слоты за пределами файла
+        secs.append(_slot(data, o))
+    pe["sections"] = secs[:pe["num_sections"]]
+    # тело первой секции (семантика семейства)
     raw = data[pe["sec_raw_ptr"]:pe["sec_raw_ptr"] + pe["sec_raw_size"]]
     pe["body"] = raw
     pe["body_rva"] = pe["sec_vaddr"]
-    # импорты: обход IDT по DD[1]
+    # импорты: обход IDT по DD[1] (сколько DLL записано — столько и будет)
     imports = []
     rva = pe["dd1_import_rva"]
     while True:
@@ -81,16 +113,31 @@ def parse(data):
     return pe
 
 
+def _sec_of(pe, rva):
+    """Секция, содержащая RVA в файловой части (иначе None). E9.4-3a:
+    отображение по ВСЕМ секциям (раньше — единственная, sec_*)."""
+    for s in pe["sections"]:
+        if s["vaddr"] <= rva < s["vaddr"] + s["raw_size"]:
+            return s
+    return None
+
+
 def _read_rva(data, pe, rva, n):
     """Байты по RVA внутри файловой части секции (иначе None)."""
-    off = rva - pe["sec_vaddr"] + pe["sec_raw_ptr"]
+    s = _sec_of(pe, rva)
+    if s is None:
+        return None
+    off = rva - s["vaddr"] + s["raw_ptr"]
     if off < 0 or off + n > len(data):
         return None
     return data[off:off + n]
 
 
 def _read_cstr_rva(data, pe, rva):
-    off = rva - pe["sec_vaddr"] + pe["sec_raw_ptr"]
+    s = _sec_of(pe, rva)
+    if s is None:
+        return "?"
+    off = rva - s["vaddr"] + s["raw_ptr"]
     if off < 0 or off >= len(data):
         return "?"
     end = data.find(b"\x00", off)
