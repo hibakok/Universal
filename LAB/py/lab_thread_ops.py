@@ -218,9 +218,20 @@ def _b_pop(cpu, args):
 
 
 def _b_jmp(cpu, args):
-    if len(args) != 1 or args[0][0] != "t":
+    """jmp: прямой ('t') или косвенный (FF /4, E9.4-1): r64 — значение
+    регистра; [r/m64] — чтение 8 байт независимо от размера операнда
+    (как _op_jmp/_b_call)."""
+    if len(args) != 1:
         return None
-    return [], ["return %d" % args[0][1]]
+    a = args[0]
+    if a[0] == "t":
+        return [], ["return %d" % a[1]]
+    if a[0] == "r":
+        return [], ["return %s" % _rreg(a)]
+    if a[0] == "m":
+        pre, lr, dest = _read(cpu, a, "dest", force8=True)
+        return pre, lr + ["return %s" % dest]
+    return None
 
 
 def _b_jcc(cpu, args):

@@ -68,15 +68,11 @@
             инструментами splice -> uva -> kernel реальных исходников:
             T-P-01 banner (C+N+S+M, .UP v2), T-P-02 fib (C+N, ряд,
             .UP v1) — вывод == оракулу и якорям TESTS/T-PROJECTS.md;
-         18) мост BRIDGE v1 (lab_t_bridge, E9.1): EXE -> BRICK v2 +
-            PEG — тексты seed == якорям, круг всех 11 артефактов ==
-            EXE байт-в-байт, сквозной круг инструментами (seed,
-            hxdump); с E9.2-1 — и КАРКАС bridge.exe (M5-BRIDGE на
-            WALL): фикс-пункт сборки T-E9-17, факты == оракулу на 12
-            артефактах (T-E9-18), CLI/мутанты (T-E9-19), круг над
-            bridge.exe — 12-й артефакт (T-E9-20); с E9.2-2 — и СПУСК:
-            факты с INS/TARGET/BSS (T-E9-18) + мутанты vsize
-            (T-E9-19) + синтетика теней (T-E9-21, M=5996 H=0);
+         18) мост BRIDGE v1 (lab_t_bridge, данные — lab_t_bridge_corpus,
+            E9.1/E9.2): тексты seed == якорям; круги 12 артефактов
+            байт-в-байт (оракул + инструменты); каркас/спуск/эмиссия/
+            PEG — T-E9-17..24; 18b) якоря (lab_t_anchor, E9.3); 18c)
+            FF /4 косвенный jmp оракула (lab_t_bridge_ff, E9.4-1);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -106,6 +102,7 @@ import lab_t_l4
 import lab_t_prj
 import lab_t_bridge
 import lab_t_anchor
+import lab_t_bridge_ff
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -490,6 +487,7 @@ def main():
     lab_t_prj.run(check, kpath, kfile, kernel_host)
     lab_t_bridge.run(check, kpath, kfile, kernel_host)
     lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
+    lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

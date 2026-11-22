@@ -82,6 +82,11 @@
          метки l/d/iat_ + семантика DD/DQ + разрезы (режим "H");
          E9.2-3c — M-строки канона + выход M=/H=; E9.2-4 — PEG-выход
          + приёмка DoD — ЭТАП E9.2 ЗАКРЫТ.
+         ДАННЫЕ тестов (CLI-кейсы/мутанты/синтетика) — с E9.4-1 в
+         lab_t_bridge_corpus.py (решение №4 сессии 74: этот файл был
+         591 строк > лимита 500). FF /4 (косвенный jmp, E9.4-1) —
+         секция 18c: lab_t_bridge_ff.py (T-E9-26); якоря — секция 18b
+         lab_t_anchor.py (T-E9-25).
          Число проверок: 24.
 """
 import os
@@ -95,10 +100,10 @@ import lab_bridge                         # noqa: E402
 import lab_bridge_cases as C              # noqa: E402
 import lab_enc                            # noqa: E402
 import lab_l2                             # noqa: E402 — сборка (E9.2-1)
-import lab_pe                             # noqa: E402 — мутанты DLL/INT
 import lab_pegen                          # noqa: E402
 import lab_run                            # noqa: E402
 import lab_splice                         # noqa: E402 — сборка (E9.2-1)
+import lab_t_bridge_corpus as K           # noqa: E402 — данные (E9.4-1)
 import lab_win                            # noqa: E402 — лимит шагов (E9.2-3a)
 
 # все артефакты семейства (KERNEL/*/...exe) — по порядку слоёв
@@ -107,11 +112,9 @@ ARTIFACTS = ["L0-SEED/seed", "L0-SEED2/seed2", "L0-HXDUMP/hxdump",
              "L1-ENC/enc", "L1-SPLICE/splice", "L2-WALL/wall",
              "L3-UNIVM/kernel", "L3-UVA/uva"]
 
-S_USE = b"U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n"
-S_LONG = b"U-L5-BRIDGE ERR=LONG NAME\r\n"
-S_OEXE = b"U-L5-BRIDGE ERR=OPEN EXE\r\n"
-S_FAMILY = b"U-L5-BRIDGE ERR=FAMILY\r\n"
-S_BIG = b"U-L5-BRIDGE ERR=BIG EXE\r\n"
+# константы stdout каркаса и кейсы мутантов — K (данные секции 18
+# вынесены в lab_t_bridge_corpus.py по лимиту 500 строк — решение №4
+# сессии 74, срез E9.4-1; FF /4 — секция 18c lab_t_bridge_ff.py)
 
 
 def _oracle_circle(check, kfile, m, tid):
@@ -228,7 +231,7 @@ def _facts(check, bexe, data, label, tid=None):
         want = facts_line(data)
         err = False
     except lab_bridge.BridgeError:
-        want, err = S_FAMILY, True
+        want, err = K.S_FAMILY, True
     r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                        {"in.exe": data})
     ok = r.stdout == want and r.exit_code == (6 if err else 0)
@@ -239,97 +242,17 @@ def _facts(check, bexe, data, label, tid=None):
 
 
 def _tool_cli(check, bexe, kfile):
-    """T-E9-19: контракт CLI + семейные отказы (мутанты seed.exe)."""
-    seed = bytearray(kfile("L0-SEED/seed.exe"))
-    pe = lab_pe.parse(bytes(seed))
-    imp = pe["imports"][0]
-    dll_off = imp["name_rva"] - pe["sec_vaddr"] + pe["sec_raw_ptr"]
-    thunk = imp["oft_rva"] or imp["iat_rva"]
-    thunk_off = thunk - pe["sec_vaddr"] + pe["sec_raw_ptr"]
-
-    def mut(off, val):
-        b = bytearray(seed)
-        b[off] = val
-        return bytes(b)
-
-    def vsz(val):
-        # vsize (dword @ 0x190): мутанты спуска E9.2-2 — инструкция
-        # за VirtualSize (0x3D) / длина тела больше VirtualSize (0x40)
-        b = bytearray(seed)
-        b[400:404] = val.to_bytes(4, "little")
-        return bytes(b)
-
-    zero_body = bytes(seed[:pe["sec_raw_ptr"]]) + \
-        bytes(pe["sec_raw_size"])
-    idt2_off = pe["dd1_import_rva"] - pe["sec_vaddr"] \
-        + pe["sec_raw_ptr"] + 20
-    cases = [
-        # CLI-контракт (каркас, E9.2-1)
-        ("справка", [], {}, S_USE, 2),
-        ("два аргумента", ["in.exe", "t.b2"],
-         {"in.exe": bytes(seed)}, S_USE, 2),
-        ("четвёртый аргумент", ["in.exe", "t.b2", "t.peg", "x"],
-         {"in.exe": bytes(seed)}, S_USE, 2),
-        ("длинное имя", ["a" * 128, "t.b2", "t.peg"], {}, S_LONG, 3),
-        ("нет входа", ["x.exe", "t.b2", "t.peg"], {}, S_OEXE, 4),
-        ("большой вход", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": b"\x00" * 262145}, S_BIG, 7),
-        ("мусор 64 Б", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": b"MZ\x00" * 21 + b"MZ"}, S_FAMILY, 6),
-        ("пустой файл", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": b""}, S_FAMILY, 6),
-        # семейные отказы: инварианты SPEC/04 (мутанты seed.exe)
-        ("MZ", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(0, 78)}, S_FAMILY, 6),
-        ("сигнатура PE", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(128, 81)}, S_FAMILY, 6),
-        ("Machine", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(132, 101)}, S_FAMILY, 6),
-        ("NumberOfSections", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(134, 2)}, S_FAMILY, 6),
-        ("Magic", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(153, 12)}, S_FAMILY, 6),
-        ("ImageBase", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(176, 1)}, S_FAMILY, 6),
-        ("Subsystem", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(221, 4)}, S_FAMILY, 6),
-        ("имя секции", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(392, 120)}, S_FAMILY, 6),
-        ("SizeOfImage", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(208, 1)}, S_FAMILY, 6),
-        ("SizeOfHeaders", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(213, 3)}, S_FAMILY, 6),
-        ("вход вне секции", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(169, 80)}, S_FAMILY, 6),
-        ("файл короче raw", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": bytes(seed[:-1])}, S_FAMILY, 6),
-        ("нулевой код", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": zero_body}, S_FAMILY, 6),
-        ("заглушка", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(64, 117)}, S_FAMILY, 6),
-        ("игла", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(81, 120)}, S_FAMILY, 6),
-        ("пробел в имени", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(77, 32)}, S_FAMILY, 6),
-        ("DLL-имя", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(dll_off, 120)}, S_FAMILY, 6),
-        ("hint нечётный", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(thunk_off, seed[thunk_off] | 1)}, S_FAMILY, 6),
-        ("терминатор IDT", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(idt2_off, 1)}, S_FAMILY, 6),
-        ("инструкция за vsize", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": vsz(61)}, S_FAMILY, 6),
-        ("длина тела > vsize", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": vsz(64)}, S_FAMILY, 6),
-    ]
+    """T-E9-19: контракт CLI + семейные отказы (мутанты seed.exe —
+    кейсы в lab_t_bridge_corpus.py, вынесены по лимиту 500 строк —
+    решение №4 сессии 74, срез E9.4-1)."""
+    cases, legal = K.cli_cases(kfile("L0-SEED/seed.exe"))
     bad = []
     for name, args, host, want, code in cases:
         r = lab_run.run_kv(bexe, args, host)
         if r.stdout != want or r.exit_code != code:
-            bad.append("%s: %r код=%s" % (name, r.stdout[:30], r.exit_code))
+            bad.append("%s: %r код=%s" % (name, r.stdout[:30],
+                                          r.exit_code))
     # легальные отклонения семейства — успех с фактами == оракулу
-    legal = [("вход 0x1100 (внутри секции)", mut(169, 17)),
-             ("регистр DLL-имени", mut(dll_off, 75))]
     for name, data in legal:
         if not _facts(None, bexe, data, name):
             bad.append("легально отклонение %s — расхождение" % name)
@@ -441,13 +364,8 @@ def run(check, kpath, kfile, kernel_host, use_repo=False):
         # артефактах теней нет (probe оракулом) — синтетика закрывает
         # правила теней/нулей спуска (SPEC/15 п. 3): 0x200 jz +2,
         # 0x202 mov eax,imm32, 0x204 (цель jz) — add eax,imm32 — ТЕНЬ,
-        # 0x207 ret, 0x208 нули — данные
-        craft = bytes([0x74, 0x02, 0xB8, 0x05, 0x05, 0x05, 0x05,
-                       0xC3, 0x00, 0x00])
-        synth = lab_pegen.wrap(
-            body[:0x200] + craft,
-            "; synth\n!module synthm\n!entry 1200\n"
-            "!idata 1000 28\n!iat 1028 48\n")
+        # 0x207 ret, 0x208 нули — данные (крафт — корпус K)
+        synth = K.synth_image(body[:0x200])
         _facts(check, bexe, synth, "synthm (тень/нули/ret)",
                tid="T-E9-21")
 
@@ -465,17 +383,9 @@ def run(check, kpath, kfile, kernel_host, use_repo=False):
         # сырыми байтами, b2 ВАЛИДЕН — правило представимости
         # SPEC/15 п. 6) и мутант imp0 (таблица INT пуста — impn=0: без
         # отказа, DD + DQ «0»); для мутантов — и круг оракула
-        # (enc -> brick -> pegen == мутанту — валидность текста)
-        _fam = lab_bridge.parse_family(kfile("L0-SEED/seed.exe"))
-        _imp = _fam["pe"]["imports"][0]
-        _intf = _imp["oft_rva"] - 0x1000 + _fam["pe"]["sec_raw_ptr"]
-        _seed = kfile("L0-SEED/seed.exe")
-        mut_hint = bytearray(_seed)
-        mut_hint[_intf:_intf + 8] = (0x102C).to_bytes(8, "little")
-        mut_hint = bytes(mut_hint)
-        mut_imp0 = bytearray(_seed)
-        mut_imp0[_intf:_intf + 8] = (0).to_bytes(8, "little")
-        mut_imp0 = bytes(mut_imp0)
+        # (enc -> brick -> pegen == мутанту — валидность текста);
+        # сами мутанты — корпус K (lab_t_bridge_corpus.py, E9.4-1)
+        mut_hint, mut_imp0 = K.seed_hints(kfile("L0-SEED/seed.exe"))
         bad_b2 = []
         bad_peg = []
         for m in ARTIFACTS:

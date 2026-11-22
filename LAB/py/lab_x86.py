@@ -225,7 +225,12 @@ def decode(fetch, rip):
             return _finish("idiv", rip, pos, (mem["op"],), riprel, fetch)
         raise UnknownOpcode("F6/F7 /%d @ %X" % (reg, rip))
     if b == 0xFF:  # группа FF
-        mod, reg, mem = _modrm(fetch, pos, rbit, xbit, bbit, size)
+        # /4 (E9.4-1): jmp r/m64 — КОСВЕННЫЙ переход; операнд ВСЕГДА
+        # 64-битный near (Intel: размер не зависит от REX.W; 66 — дальняя
+        # форма, вне подмножества). Порядок расширений — как у /0../2.
+        ext = ((fetch(pos, 1) >> 3) & 7) | rbit
+        opsz = QWORD if ext == 4 else size
+        mod, reg, mem = _modrm(fetch, pos, rbit, xbit, bbit, opsz)
         pos = mem["pos"]
         riprel = mem["riprel"]
         if reg == 0:
@@ -234,6 +239,8 @@ def decode(fetch, rip):
             return _finish("dec", rip, pos, (mem["op"],), riprel, fetch)
         if reg == 2:
             return _finish("call", rip, pos, (mem["op"],), riprel, fetch)
+        if reg == 4:
+            return _finish("jmp", rip, pos, (mem["op"],), riprel, fetch)
         raise UnknownOpcode("FF /%d @ %X" % (reg, rip))
     raise UnknownOpcode("опкод %02X @ %X" % (b, rip))
 

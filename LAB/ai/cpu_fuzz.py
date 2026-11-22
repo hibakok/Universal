@@ -40,6 +40,7 @@ STACK_BASE = 0x7FF700000000
 STACK_SIZE = 0x10000
 CODE0 = 0x100              # смещение первой инструкции в образе
 PTR_SLOT = 0x80            # слот образа с адресом EXIT (косвенный call)
+PTR2_SLOT = 0x88           # слот с rip финального call EXIT (jmp FF /4)
 EXIT_ADDR = 0x7FF900000000
 
 BOUND = [0, 1, 2, 7, 0x7F, 0x80, 0xFF, 0x100, 0x7FFF, 0x8000, 0xFFFF,
@@ -160,6 +161,11 @@ def gen_prog(r):
             tgt = r.choice(rips)
             if r.randrange(2):
                 prog.append(("jcc", (r.choice(CC), ("t", tgt))))
+            elif r.randrange(3) == 0:    # E9.4-1: косвенный jmp — [rip+PTR2]
+                prog.append(("jmp", (("m", None, None, 1, 0, 64,
+                                       ("abs", IMG_BASE + PTR2_SLOT)),)))
+            elif r.randrange(3) == 1:    # E9.4-1: косвенный jmp — r64
+                prog.append(("jmp", (("r", r.randrange(16), 64),)))
             else:
                 prog.append(("jmp", (("t", tgt),)))
         else:                              # call: прямой EXIT или
@@ -188,6 +194,9 @@ def make_cpu(seed, prog, spec, overlap=False):
     for i in range(0, STACK_SIZE, 11):
         stack[i] = r.randrange(256)
     image[PTR_SLOT:PTR_SLOT + 8] = EXIT_ADDR.to_bytes(8, "little")
+    # E9.4-1: слот косвенного jmp — rip финального call EXIT (чистый выход)
+    image[PTR2_SLOT:PTR2_SLOT + 8] = \
+        (IMG_BASE + CODE0 + len(prog) - 2).to_bytes(8, "little")
     if overlap:
         # ПЕРЕКРЫВАЮЩИЕСЯ регионы: memo запрещена (cpu.memo None) —
         # разрешение всегда первым совпавшим (как _region)

@@ -16,7 +16,8 @@ lab_verify).
   4 — секция 18 БЕЗ сборки (мост BRIDGE v1 — E9.1/E9.2 на артефакте
       репозитория: диффтесты фактов (M=/H=)/CLI/канона и PEG
       T-E9-22/24/23) + секция 18b — якоря (E9.3-1: T-E9-25, чистый
-      Python без эмуляции)
+      Python без эмуляции) + секция 18c — FF /4 (E9.4-1: T-E9-26,
+      оракул, чистый Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -54,6 +55,7 @@ def main():
         V.lab_t_bridge.run(V.check, V.kpath, V.kfile, V.kernel_host,
                            use_repo=True)
         V.lab_t_anchor.run(V.check, V.kfile)   # секция 18b — E9.3-1
+        V.lab_t_bridge_ff.run(V.check, V.kfile)   # 18c — E9.4-1
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)

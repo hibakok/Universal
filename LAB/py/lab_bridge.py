@@ -1,18 +1,16 @@
 """lab_bridge.py — оракул моста BRIDGE v1 (SPEC/15): EXE -> BRICK v2 + PEG v1.
 
-Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04; один kernel32.dll;
-       вход в секции). Выход: bridge(data) -> (текст BRICK v2, текст
-       PEG v1); BridgeError — образ вне семейства.
+Вход:  байты EXE семейства UNIVERSAL (PE32+ SPEC/04, один kernel32.dll).
+       Выход: bridge(data) -> (текст BRICK v2, PEG v1); BridgeError — чужое.
 Функция: эталонная семантика моста L5 (E9.1 «сначала истина семантики»,
        прецедент E7.1/E8.1): чужой машинный код входит в наш мир как
-       ИСХОДНИК. Композиция lab_pe + lab_x86; спуск от входа
-       (терминалы; нули/сбой — данные; тень — младший адрес побеждает);
-       метки l/d/iat_ (iat_ > l > d; $base — RVA 0; правило
-       представимости E9.2-3b); M-строка при точном воспроизведении
-       enc (иначе H-строка); данные DD/DQ с $ссылками, DB <= 16,
-       DZ >= 3; тело = max(ненулевой хвост, концы команд), вилка
-       SizeOfRawData, хвост -> !bss. Круг enc -> brick -> pegen(+peg)
-       == EXE байт-в-байт — секция 18 (T-E9-01..16). Правила — SPEC/15.
+       ИСХОДНИК. Композиция lab_pe + lab_x86; спуск от входа (терминалы:
+       прямой jmp/ret/int3 и косвенный FF /4 — E9.4-1; нули/сбой —
+       данные; тень — младший адрес побеждает); метки l/d/iat_ (iat_ >
+       l > d; $base — RVA 0; представимость E9.2-3b); M-строка при
+       точном воспроизведении enc (иначе H-строка); данные DD/DQ с
+       $ссылками, DB <= 16, DZ >= 3; тело = max(ненулевой хвост, концы
+       команд), вилка SizeOfRawData, хвост -> !bss. Правила — SPEC/15.
 """
 import bisect
 
@@ -73,8 +71,9 @@ def _walk(body, entry, limit):
             nxt = a + ln
             if name in ("ret", "int3"):
                 break
-            if name == "jmp":
-                pending.append(args[0][1])
+            if name == "jmp":   # прямой — кандидат; FF /4 — терминал (E9.4-1)
+                if args[0][0] == "t":
+                    pending.append(args[0][1])
                 break
             if name == "jcc":
                 pending.append(args[1][1])
@@ -259,6 +258,8 @@ def _mtext(name, args, ln, labels):
     rel8 = ln == 2 and name in ("jmp", "jcc")
     if name in ("jmp", "jcc"):
         t = args[1] if name == "jcc" else args[0]
+        if t[0] != "t":   # косвенный jmp (FF /4, E9.4-1) — всегда
+            return None   # H-строка: вне канона enc (круг байто-точен)
         nm = "jmp" if name == "jmp" else "j%s" % args[0]
         if t[1] == BASE_OFF:
             return nm, ["$base" + (":1" if rel8 else "")]

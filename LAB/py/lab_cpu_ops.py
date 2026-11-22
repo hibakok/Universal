@@ -314,7 +314,12 @@ class OpsMixin:
         return _CC[cc](self.zf, self.cf, self.sf, self.of)
 
     def _op_jmp(self, target):
-        self.rip = target[1]
+        if target[0] == "t":
+            self.rip = target[1]
+        elif target[0] == "r":   # FF /4 mod11 (E9.4-1): jmp r64
+            self.rip = self.get(target)
+        else:                     # FF /4 (E9.4-1): jmp qword [r/m64] —
+            self.rip = self.read(self._opaddr(target), 8)   # 8 байт, как call
 
     def _op_jcc(self, cc, target):
         if self._cond(cc):
