@@ -28,7 +28,11 @@ lab_verify).
       + секция 18g — PEG v2 оракул-сборщик (E9.4-3c-1: T-E9-30,
       lab_t_bridge_peg2 — якорные тексты чужих крафтов -> образы
       байт-в-байт + 25 отказов + нейтральность v1 на 12 артефактах;
-      чистый Python без эмуляции)
+      чистый Python без эмуляции) + секция 18h — PEG v2 ЭМИССИЯ
+      МОСТОМ (E9.4-3c-2: T-E9-31, lab_t_bridge_peg2e — emit_peg_v2
+      чужих крафтов == якорям T-E9-30 + круг wrap2 через ВЫХОД моста
+      + семья 12/12 через чужой путь + отказ «файл короче raw
+      прочих секций»; чистый Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -71,6 +75,7 @@ def main():
         V.lab_t_bridge_pe.run(V.check, V.kfile)   # 18e — E9.4-3a
         V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — 3b
         V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1
+        V.lab_t_bridge_peg2e.run(V.check, V.kfile)   # 18h — 3c-2
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)

@@ -5,7 +5,9 @@
        lab_x86, таблица меток.
 Выход: ТЕКСТ: операнды в каноне enc (_mtext — мнемоника+операнды,
        иначе H-фолбэк), примечания H-строк (_note), шапки b2 (_b2_text)
-       и PEG (_peg_text) — чистые функции рендера, детерминированные.
+       и PEG (_peg_text v1; _peg2_text — E9.4-3c-2: канон патчей PEG v2
+       из фактов parse_foreign — сворачивание _fold/_chunks64) — чистые
+       функции рендера, детерминированные.
 Функция: ветвь РЕНДЕР оракула — выделена из lab_bridge.py по лимиту
        500 строк (срез E9.4-2, гигиена; прецедент front/back —
        lab_l2.py + lab_l2_gen.py). Спуск/факты/метки/семантика —
@@ -193,4 +195,64 @@ def _peg_text(fam):
         out.append("!stackcom %X" % fam["stackcom"])
     if fam["heapcom"] != 0x1000:
         out.append("!heapcom %X" % fam["heapcom"])
+    return "\n".join(out) + "\n"
+
+
+# ------------------------------------------------------------ PEG v2 (3c-2)
+def _fold(data, lo, hi):
+    """Канон сворачивания (SPEC/07 «Канон патчей»): ненулевые пробеги
+    области [lo, hi); дырка < 4 нулей сливается в пробег -> [(off,
+    bytes)]. Хвостовые нули и дырки >= 4 — вне патчей (нули сборки)."""
+    out = []
+    i = lo
+    while i < hi:
+        if data[i] == 0:
+            i += 1
+            continue
+        j = i + 1
+        while j < hi:
+            if data[j] != 0:
+                j += 1
+                continue
+            z = j
+            while z < hi and data[z] == 0:
+                z += 1
+            if z - j >= 4 or z == hi:      # дырка >= 4 / конец области
+                break
+            j = z
+        out.append((i, bytes(data[i:j])))
+        i = j
+    return out
+
+
+def _chunks64(runs):
+    """Патч длиннее 64 байт режется кусками по 64 -> [(off, bytes)]."""
+    for off, blob in runs:
+        for k in range(0, len(blob), 64):
+            yield off + k, blob[k:k + 64]
+
+
+def _peg2_text(f, data, H):
+    """Факты parse_foreign + образ + H -> текст PEG v2 (E9.4-3c-2).
+    Чистый рендер канона SPEC/07: шапка + `!pev2 H` + патчи `!hdr`
+    области заголовков [0, H) + `!body <слот секции кода>` + патчи
+    `!sec` прочих raw-областей (порядок: !hdr по off, !sec по n,
+    затем off). Файл сворачивается ЦЕЛИКОМ: всё непокрытое — нули."""
+    pe = f["pe"]
+    secs = pe["sections"]
+    slot = next(i for i, s in enumerate(secs) if s is f["code"])
+    out = ["; UNIVERSAL / PEG v2 / мост BRIDGE v1 (SPEC/15)",
+            "; Исходник: чужой PE32+ (секций %d, DLL %d)"
+            % (len(secs), len(pe["imports"])),
+            "!pev2 %X" % H]
+    out.extend("!hdr %X %s" % (off, blob.hex().upper())
+               for off, blob in _chunks64(_fold(data, 0, H)))
+    out.append("!body %X" % slot)
+    for i, s in enumerate(secs):
+        if s is f["code"] or not s["raw_size"]:
+            continue
+        rp = s["raw_ptr"]
+        out.extend("!sec %X %X %s" % (i, off - rp, blob.hex().upper())
+                   for off, blob in _chunks64(_fold(data, rp,
+                                                    rp + s["raw_size"])))
     return "\n".join(out) + "\n"

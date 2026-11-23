@@ -12,7 +12,8 @@
        l/d/iat_ (iat_ > l > d; $base — RVA 0; представимость E9.2-3b);
        эмиссия — режимы _emit_lines(None/H/RAW). parse_foreign
        (E9.4-3b) — чужой путь: исполняемая секция по точке входа +
-       спуск в её теле + факты для PEG v2 (эмиссия чужих — E9.4-4+).
+       спуск в её теле + факты для PEG v2; эмиссия чужой обёртки —
+       emit_peg_v2 (E9.4-3c-2: канон патчей SPEC/07).
        РЕНДЕР текста — lab_bridge_text.py (M/H-строки, шапки b2/PEG;
        ветвь выделена по лимиту 500 строк — прецедент lab_l2/lab_l2_gen,
        E9.4-2). Правила — SPEC/15.
@@ -22,7 +23,8 @@ import bisect
 import lab_pe
 import lab_x86
 from lab_bridge_text import (BASE_OFF, SECT, _b2_text, _hx,
-                             _mtext, _note, _peg_text, _template)
+                             _mtext, _note, _peg2_text, _peg_text,
+                             _template)
 
 DB_MAX = 16                      # байт в одной DB-строке
 DZ_MIN = 3                       # минимальный пробег нулей для DZ
@@ -414,6 +416,25 @@ def emit_b2(data, mode=None):
 def emit_peg(data):
     """EXE -> текст PEG v1 (регенерация обёртки, SPEC/07)."""
     return _peg_text(parse_family(data))
+
+def emit_peg_v2(data):
+    """Чужой EXE -> текст PEG v2 (E9.4-3c-2, SPEC/07 «Рост v2»):
+    факты parse_foreign -> канон патчей (!pev2/!hdr/!body/!sec —
+    рендер lab_bridge_text._peg2_text; H = min raw_ptr секций с raw).
+    Отказы после проверок parse_foreign: нет секций с raw (защитная
+    ветвь — пустой код отвергается раньше) / файл короче raw прочих
+    секций (код цел, но сворачивать больше нечего — байто-точность
+    круга невозможна)."""
+    f = parse_foreign(data)
+    pe = f["pe"]
+    raws = [s for s in pe["sections"] if s["raw_size"] > 0]
+    if not raws:
+        raise BridgeError("нет секций с raw")
+    H = min(s["raw_ptr"] for s in raws)
+    for s in raws:
+        if s["raw_ptr"] + s["raw_size"] > len(data):
+            raise BridgeError("файл короче raw секции")
+    return _peg2_text(f, data, H)
 
 def bridge(data):
     """EXE -> (текст BRICK v2, текст PEG v1). Полный мост."""

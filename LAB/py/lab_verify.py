@@ -69,8 +69,8 @@
             на реальных исходниках; вывод == оракулу == якорям;
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
-            18d) таблицы; 18e) PE32+ (E9.4-3a); 18f) спуск (3b); 18g)
-            PEG v2 оракул-сборщик (E9.4-3c-1); данные — corpus;
+            18d) таблицы; 18e) PE32+; 18f) спуск; 18g) PEG v2 сборщик;
+            18h) PEG v2 эмиссия (3c-2); данные — corpus;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -105,6 +105,7 @@ import lab_t_bridge_jt
 import lab_t_bridge_pe
 import lab_t_bridge_foreign
 import lab_t_bridge_peg2
+import lab_t_bridge_peg2e
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -183,12 +184,9 @@ def t_pe_invariants():
         bad = lab_pe.check_spec04(pe)
         if m in ("L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva",
                  "L5-BRIDGE/bridge"):
-            # wall.exe, kernel.exe, uva.exe и bridge.exe — программы,
-            # скомпилированные WALL (самосборные артефакты из
-            # wall.wall/kernel.wall/uva.wall/bridge.wall):
-            # вход 0x1200 после фиксированной области импортов 0x200 —
-            # документированное отклонение SPEC/11 п.6 (батарея
-            # проверяет его явно — T-E6-22/T-E6-33; фильтр как в T-E6-30)
+            # wall/kernel/uva/bridge.exe — самосборные WALL-артефакты:
+            # вход 0x1200 после импортов 0x200 — отклонение SPEC/11
+            # п.6 (проверяется явно — T-E6-22/T-E6-33; фильтр T-E6-30)
             bad = [b for b in bad if b != "точка входа != 0x1000"]
         check("PE инварианты SPEC/04 %s" % m.split("/")[-1], not bad,
               "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
@@ -487,6 +485,7 @@ def main():
     lab_t_bridge_pe.run(check, kfile)   # секция 18e — PE32+ (3a)
     lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (3b)
     lab_t_bridge_peg2.run(check, kfile)   # 18g — PEG v2 (3c-1)
+    lab_t_bridge_peg2e.run(check, kfile)   # 18h — PEG v2 эмиссия (3c-2)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
