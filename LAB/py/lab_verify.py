@@ -69,8 +69,8 @@
             на реальных исходниках; вывод == оракулу == якорям;
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
-            18d) таблицы; 18e) произвольный PE32+ (E9.4-3a); 18f) спуск
-            в чужом теле parse_foreign (E9.4-3b); данные — corpus;
+            18d) таблицы; 18e) PE32+ (E9.4-3a); 18f) спуск (3b); 18g)
+            PEG v2 оракул-сборщик (E9.4-3c-1); данные — corpus;
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -104,6 +104,7 @@ import lab_t_bridge_ff
 import lab_t_bridge_jt
 import lab_t_bridge_pe
 import lab_t_bridge_foreign
+import lab_t_bridge_peg2
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -133,8 +134,7 @@ SHA = {
     "L3-UVA/uva": "32ABF177E0C01AA019E05244A0E12FEB18E13CE0A28DBFA4F59C3805802145EE",
     "L5-BRIDGE/bridge": "2C75C6F9ED811153347C19E368C64AC75E46023F17C6302B8ABAA4E75E2BCA2B",
 }
-# модули с .hex-листингами ATOM (для оракулов/кругов E4); enc и splice
-# ведут исходники в BRICK v2 (enc.b2/splice.b2 с !include)
+# модули с .hex-листингами ATOM (E4); enc/splice ведут исходники в b2
 MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice",
                         "L2-WALL/wall", "L3-UNIVM/kernel", "L3-UVA/uva",
                         "L5-BRIDGE/bridge")]
@@ -187,9 +187,8 @@ def t_pe_invariants():
             # скомпилированные WALL (самосборные артефакты из
             # wall.wall/kernel.wall/uva.wall/bridge.wall):
             # вход 0x1200 после фиксированной области импортов 0x200 —
-            # документированное отклонение SPEC/11 п.6 (батарея проверяет
-            # его явно —
-            # T-E6-22/T-E6-33; фильтр тот же, что в T-E6-30)
+            # документированное отклонение SPEC/11 п.6 (батарея
+            # проверяет его явно — T-E6-22/T-E6-33; фильтр как в T-E6-30)
             bad = [b for b in bad if b != "точка входа != 0x1000"]
         check("PE инварианты SPEC/04 %s" % m.split("/")[-1], not bad,
               "; ".join(bad) if bad else "vsize=%X" % pe["sec_vsize"])
@@ -485,8 +484,9 @@ def main():
     lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
     lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
     lab_t_bridge_jt.run(check, kfile)   # секция 18d — таблицы (E9.4-2)
-    lab_t_bridge_pe.run(check, kfile)   # секция 18e — произвольный PE
-    lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (E9.4-3b)
+    lab_t_bridge_pe.run(check, kfile)   # секция 18e — PE32+ (3a)
+    lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (3b)
+    lab_t_bridge_peg2.run(check, kfile)   # 18g — PEG v2 (3c-1)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

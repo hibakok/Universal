@@ -25,6 +25,10 @@ lab_verify).
       (E9.4-3b: T-E9-29, lab_t_bridge_foreign — parse_foreign:
       исполняемая секция по точке входа + спуск + факты PEG v2
       + согласованность с parse_family; чистый Python без эмуляции)
+      + секция 18g — PEG v2 оракул-сборщик (E9.4-3c-1: T-E9-30,
+      lab_t_bridge_peg2 — якорные тексты чужих крафтов -> образы
+      байт-в-байт + 25 отказов + нейтральность v1 на 12 артефактах;
+      чистый Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -65,7 +69,8 @@ def main():
         V.lab_t_bridge_ff.run(V.check, V.kfile)   # 18c — E9.4-1
         V.lab_t_bridge_jt.run(V.check, V.kfile)   # 18d — E9.4-2
         V.lab_t_bridge_pe.run(V.check, V.kfile)   # 18e — E9.4-3a
-        V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — E9.4-3b
+        V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — 3b
+        V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)
