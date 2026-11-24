@@ -32,7 +32,11 @@ lab_verify).
       МОСТОМ (E9.4-3c-2: T-E9-31, lab_t_bridge_peg2e — emit_peg_v2
       чужих крафтов == якорям T-E9-30 + круг wrap2 через ВЫХОД моста
       + семья 12/12 через чужой путь + отказ «файл короче raw
-      прочих секций»; чистый Python без эмуляции)
+      прочих секций»; чистый Python без эмуляции) + секция 18i —
+      B2 ЧУЖОГО ТЕЛА (E9.4-3c-3: T-E9-32, lab_t_bridge_b2f —
+      emit_b2_foreign: M/H-строки секции кода (base = vaddr) +
+      ЧУЖОЙ КРУГ через ОБА выхода моста + семья 12/12 двойным
+      путём; чистый Python без эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -76,6 +80,7 @@ def main():
         V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — 3b
         V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1
         V.lab_t_bridge_peg2e.run(V.check, V.kfile)   # 18h — 3c-2
+        V.lab_t_bridge_b2f.run(V.check, V.kfile)   # 18i — 3c-3
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)

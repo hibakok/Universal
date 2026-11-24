@@ -13,7 +13,9 @@
        эмиссия — режимы _emit_lines(None/H/RAW). parse_foreign
        (E9.4-3b) — чужой путь: исполняемая секция по точке входа +
        спуск в её теле + факты для PEG v2; эмиссия чужой обёртки —
-       emit_peg_v2 (E9.4-3c-2: канон патчей SPEC/07).
+       emit_peg_v2 (E9.4-3c-2: канон патчей SPEC/07); эмиссия b2
+       чужого тела — emit_b2_foreign (E9.4-3c-3: канон п. 4-6,
+       base = vaddr секции кода).
        РЕНДЕР текста — lab_bridge_text.py (M/H-строки, шапки b2/PEG;
        ветвь выделена по лимиту 500 строк — прецедент lab_l2/lab_l2_gen,
        E9.4-2). Правила — SPEC/15.
@@ -22,9 +24,9 @@ import bisect
 
 import lab_pe
 import lab_x86
-from lab_bridge_text import (BASE_OFF, SECT, _b2_text, _hx,
-                             _mtext, _note, _peg2_text, _peg_text,
-                             _template)
+from lab_bridge_text import (BASE_OFF, SECT, _b2_foreign_text,
+                             _b2_text, _hx, _mtext, _note,
+                             _peg2_text, _peg_text, _template)
 
 DB_MAX = 16                      # байт в одной DB-строке
 DZ_MIN = 3                       # минимальный пробег нулей для DZ
@@ -224,20 +226,22 @@ def parse_foreign(data):
     }
 
 # --------------------------------------------------- метки/импорты
-def _import_map(fam):
+def _import_map(fam, base=SECT):
     """Структуры импорта -> (labels, semantic, known_rva): offset ->
     имя метки (iat_*, d*) / ("DD"|"DQ", [значения]) с $ссылками /
-    RVA -> имя. Представимость (E9.2-3b, SPEC/15 п. 4/6): метка НЕ
+    RVA -> имя. base — RVA секции кода (E9.4-3c-3: семья — SECT;
+    чужой путь — vaddr секции кода; структуры вне тела — сырыми
+    байтами). Представимость (E9.2-3b, SPEC/15 п. 4/6): метка НЕ
     создаётся строго внутри выжившей инструкции (наложение разрезов
     — невалидный b2); DQ с не-созданной меткой — сырыми байтами.
     """
     body, pe = fam["body"], fam["pe"]
     labels, semantic, known = {}, {}, {}
     imp = pe["imports"][0]
-    iat_off = imp["iat_rva"] - SECT
-    int_off = (imp["oft_rva"] or imp["iat_rva"]) - SECT
-    name_off = imp["name_rva"] - SECT
-    hints = [(fn, hr - SECT) for fn, hr in imp["funcs"]]
+    iat_off = imp["iat_rva"] - base
+    int_off = (imp["oft_rva"] or imp["iat_rva"]) - base
+    name_off = imp["name_rva"] - base
+    hints = [(fn, hr - base) for fn, hr in imp["funcs"]]
     n = len(hints)
     limit = fam["target"]
     if not (0 <= iat_off and iat_off + 8 * (n + 1) <= limit
@@ -255,34 +259,34 @@ def _import_map(fam):
         if not inside_ins(iat_off + 8 * k):
             labels[iat_off + 8 * k] = "iat_" + _san(fn)
         if not inside_ins(h):
-            labels.setdefault(h, "d%x" % (h + SECT))
-            known[h + SECT] = labels[h]
+            labels.setdefault(h, "d%x" % (h + base))
+            known[h + base] = labels[h]
     if not inside_ins(name_off):
-        labels.setdefault(name_off, "d%x" % (name_off + SECT))
-        known[name_off + SECT] = labels[name_off]
+        labels.setdefault(name_off, "d%x" % (name_off + base))
+        known[name_off + base] = labels[name_off]
     if int_off != iat_off and not inside_ins(int_off):
-        labels.setdefault(int_off, "d%x" % (int_off + SECT))
+        labels.setdefault(int_off, "d%x" % (int_off + base))
     if int_off in labels:
-        known[int_off + SECT] = labels[int_off]
+        known[int_off + base] = labels[int_off]
     if iat_off in labels:
-        known[iat_off + SECT] = labels[iat_off]
-    idt_off = pe["dd1_import_rva"] - SECT
+        known[iat_off + base] = labels[iat_off]
+    idt_off = pe["dd1_import_rva"] - base
     if 0 <= idt_off and idt_off + 20 <= limit:
         semantic[idt_off] = ("DD", [_dollar(_u32(body, idt_off + 4 * k),
                                             known) for k in range(5)])
-    for base in {iat_off, int_off}:
+    for itab in {iat_off, int_off}:
         rows = []
         for k in range(n + 1):
-            v = _u64(body, base + 8 * k)
+            v = _u64(body, itab + 8 * k)
             if v == 0 and k == n:
                 t = "0"
-            elif k < n and v == hints[k][1] + SECT \
+            elif k < n and v == hints[k][1] + base \
                     and hints[k][1] in labels:
                 t = "$" + labels[hints[k][1]]
             else:
                 rows = None
                 break
-            rows.append((base + 8 * k, t))
+            rows.append((itab + 8 * k, t))
         if rows is not None:               # по записи на строку:
             for off, t in rows:            # метки слотов — между строк
                 semantic[off] = ("DQ", [t])
@@ -294,19 +298,25 @@ def _dollar(v, known):
     return "$" + s if s else _hx(v)
 
 # ------------------------------------------------------------ эмиссия b2
-def _emit_lines(fam, mode=None):
+def _emit_lines(fam, mode=None, base=SECT):
     """Факты моста -> (строки BRICK v2, статистика). Чистый рендер.
 
     mode (срезы E9.2-3, SPEC/15 п. 10): None — канон (M-строки при
     точном воспроизведении enc + метки + семантика); "H" — H-строки
     с метками/семантикой (E9.2-3b); "RAW" — без них (E9.2-3a).
-    Байто-точность круга — во всех режимах (H-строка — те же байты)."""
+    base — RVA секции кода (E9.4-3c-3): имена меток l/d — RVA
+    (семья и чужой путь с vaddr 0x1000 — одни и те же имена);
+    $base — ТЕЛЕСНОЕ смещение -0x1000 (ABI brick SPEC/08: при
+    vaddr != 0x1000 имя обозначает RVA vaddr-0x1000 — байты
+    точны контролем повторного кодирования, пересмотр — при
+    порте). Байто-точность круга — во всех режимах (H-строка —
+    те же байты)."""
     body, ins = fam["body"], fam["ins"]
     limit = fam["target"]
     if mode == "RAW":
         labels, semantic = {}, {}
     else:
-        labels, semantic, _known = _import_map(fam)
+        labels, semantic, _known = _import_map(fam, base)
     # семантика не пересекает инструкции/друг друга/метки (E9.2-3b)
     ins_ranges = [(a, a + ins[a][1]) for a in ins]
     sem = {}
@@ -350,10 +360,10 @@ def _emit_lines(fam, mode=None):
                     if off == BASE_OFF or off in labels:
                         continue
                     if off in ins or off in sem:
-                        labels[off] = "l%x" % (off + SECT)
+                        labels[off] = "l%x" % (off + base)
                     elif 0 <= off < limit and not inside_ins(off) \
                             and not inside_sem(off):
-                        labels[off] = "d%x" % (off + SECT)
+                        labels[off] = "d%x" % (off + base)
                     # иначе метка невозможна — инструкция возьмёт H-форму
     rlabels = {v: k for k, v in labels.items()}
     # линейная эмиссия: разрезы по стартам строк
@@ -435,6 +445,18 @@ def emit_peg_v2(data):
         if s["raw_ptr"] + s["raw_size"] > len(data):
             raise BridgeError("файл короче raw секции")
     return _peg2_text(f, data, H)
+
+def emit_b2_foreign(data):
+    """Чужой EXE -> (текст b2 тела секции кода, статистика) — E9.4-3c-3
+    (SPEC/15 п. 10): parse_foreign -> канон п. 4-6 (M-строки при точном
+    воспроизведении enc / H-фолбэк, метки l/d/iat_, семантика DD/DQ —
+    только импорты ВНУТРИ тела; base = vaddr секции кода). Шапка —
+    lab_bridge_text._b2_foreign_text (выводимые факты; БЕЗ module/
+    stackcom/heapcom — их у чужих образов нет). Отказы — наследованные
+    parse_foreign: эмиссия — чистый рендер над проверенными фактами."""
+    f = parse_foreign(data)
+    lines, stats = _emit_lines(f, None, f["code"]["vaddr"])
+    return _b2_foreign_text(f, lines), stats
 
 def bridge(data):
     """EXE -> (текст BRICK v2, текст PEG v1). Полный мост."""

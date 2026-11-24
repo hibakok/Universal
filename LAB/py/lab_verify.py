@@ -70,7 +70,7 @@
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
             18d) таблицы; 18e) PE32+; 18f) спуск; 18g) PEG v2 сборщик;
-            18h) PEG v2 эмиссия (3c-2); данные — corpus;
+            18h) PEG v2 эмиссия; 18i) b2 чужого тела (3c-3);
 Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
 """
 import hashlib
@@ -106,6 +106,7 @@ import lab_t_bridge_pe
 import lab_t_bridge_foreign
 import lab_t_bridge_peg2
 import lab_t_bridge_peg2e
+import lab_t_bridge_b2f
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -486,6 +487,7 @@ def main():
     lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (3b)
     lab_t_bridge_peg2.run(check, kfile)   # 18g — PEG v2 (3c-1)
     lab_t_bridge_peg2e.run(check, kfile)   # 18h — PEG v2 эмиссия (3c-2)
+    lab_t_bridge_b2f.run(check, kfile)   # 18i — b2 чужого тела (3c-3)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))

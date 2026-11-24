@@ -1,10 +1,12 @@
 """lab_bridge_text.py — рендер-ветвь оракула моста BRIDGE v1 (SPEC/15).
 
 Вход:  факты моста (словарь parse_family из lab_bridge.py: body/ins/
-       labels/target/bss/module/pe/stackcom/heapcom), операнды декодера
+       labels/target/bss/module/pe/stackcom/heapcom — или parse_foreign
+       для _peg2_text/_b2_foreign_text), операнды декодера
        lab_x86, таблица меток.
 Выход: ТЕКСТ: операнды в каноне enc (_mtext — мнемоника+операнды,
-       иначе H-фолбэк), примечания H-строк (_note), шапки b2 (_b2_text)
+       иначе H-фолбэк), примечания H-строк (_note), шапки b2 (_b2_text;
+       _b2_foreign_text — E9.4-3c-3: чужое тело — выводимые факты)
        и PEG (_peg_text v1; _peg2_text — E9.4-3c-2: канон патчей PEG v2
        из фактов parse_foreign — сворачивание _fold/_chunks64) — чистые
        функции рендера, детерминированные.
@@ -177,6 +179,26 @@ def _b2_text(fam, lines):
         "; Исходник: %s.exe (тело секции RVA %X, %X Б; !bss %X)"
         % (fam["module"], SECT, fam["target"], fam["bss"]),
         "; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE",
+    ]
+    return "\n".join(head + lines) + "\n"
+
+
+def _b2_foreign_text(f, lines):
+    """Шапка b2 ЧУЖОГО ТЕЛА (E9.4-3c-3): только ВЫВОДИМЫЕ факты —
+    прецедент PEG v2 (сессия 81): число секций/DLL, RVA секции кода,
+    target/!bss. Семейных полей (module — имя в DOS-заглушке шаблона
+    pegen; stackcom/heapcom) у чужих образов НЕТ — шапка без них.
+    Круг чужого тела двухступенчатый: enc+brick дают тело, обёртка —
+    PEG v2 (wrap2)."""
+    pe = f["pe"]
+    head = [
+        "; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)",
+        "; Исходник: чужой PE32+ (секций %d, DLL %d; тело секции кода"
+        " RVA %X, %X Б; !bss %X)"
+        % (len(pe["sections"]), len(pe["imports"]),
+           f["code"]["vaddr"], f["target"], f["bss"]),
+        "; Круг: enc -> brick -> тело; wrap2(тело, PEG v2) == исходный"
+        " EXE",
     ]
     return "\n".join(head + lines) + "\n"
 
