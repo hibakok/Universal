@@ -1,38 +1,105 @@
-; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a)
+; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a/4-4a)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_w.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь W моста — СЛОВАРЬ спуска оракула _walk/_sweep/
 ; parse_family (SPEC/15 п. 3, п. 7): K5-W001 walk_code — стек целей
-; (куча GlobalAlloc 1048584 — 131073 qword, доказуемый предел: 1 +
-; число ветвящихся инструкций <= rawlim/2), проход вперёд от каждой
-; цели до обрыва (терминалы ret/int3 и jmp; сбой декодирования и
-; ВСЕ-НУЛЕВЫЕ байты инструкции — данные; карта стартов insmap 262145
-; и карта длин lenmap 262145 — байтовые, кучи GlobalAlloc; rawlim =
-; min(vsize, rawsize) — эквивалент предела vsize оракула при чтениях,
-; ограниченных телом); K5-W002 sweep_ins — пересечения: младший адрес
-; побеждает (курсор концов; выжившая инструкция, конец за vsize —
-; ERR=FAMILY; счёт inscount и maxend) + СДАМП ВЫЖИВШИХ sdump (E9.2-3a:
-; куча rawlim*8+8 — по qword на старт, эмиссия ветви E идёт по нему
-; в порядке возрастания — без повторных сканов insmap; доказуемый
-; предел: выживших <= rawlim — каждая занимает >= 1 байт); K5-W003
-; calc_target — длина тела: max(последний ненулевой байт + 1, концы
-; выживших, 1); выравнивающая вилка: align_up(target) != rawsize ->
-; target = rawsize - 511 (минимальная длина той же вилки); target >
-; vsize — ERR=FAMILY; bss = vsize - target. Факты INS/TARGET/BSS —
-; факты оракула parse_family (диффтест T-E9-18/21); raw-эмиссия по
-; sdump — T-E9-22/23 (ветвь E).
+; (куча GlobalAlloc 2097160 — 262145 qword, доказуемый предел
+; 1 + rawlim: каждый офсет тела — в стеке РОВНО один раз, карта
+; дедупликации pushmap 262145 — K5-W005; прямые цели/кандидаты
+; таблиц — повторами не кладутся, холосты для спуска — семантика
+; == оракулу), карты стартов insmap 262145 и длин lenmap 262145 —
+; байтовые, кучи GlobalAlloc; rawlim = min(vsize, rawsize) —
+; эквивалент предела vsize оракула при чтениях, ограниченных телом;
+; проход вперёд от каждой цели до обрыва (терминалы ret/int3,
+; прямой jmp и КОСВЕННЫЙ FF /4 — класс 5: K5-W004 jtab — кандидаты
+; таблицы переходов E9.4-2, затем обрыв; сбой декодирования и
+; ВСЕ-НУЛЕВЫЕ байты инструкции — данные); K5-W002 sweep_ins —
+; пересечения: младший адрес побеждает (курсор концов; выжившая
+; инструкция, конец за vsize — ERR=FAMILY; счёт inscount и maxend)
+; + СДАМП ВЫЖИВШИХ sdump (E9.2-3a: куча rawlim*8+8 — по qword на
+; старт, эмиссия ветви E идёт по нему в порядке возрастания — без
+; повторных сканов insmap; доказуемый предел: выживших <= rawlim —
+; каждая занимает >= 1 байт); K5-W003 calc_target — длина тела:
+; max(последний ненулевой байт + 1, концы выживших, 1); выравнивающая
+; вилка: align_up(target) != rawsize -> target = rawsize - 511
+; (минимальная длина той же вилки); target > vsize — ERR=FAMILY;
+; bss = vsize - target. Факты INS/TARGET/BSS — факты оракула
+; parse_family (диффтест T-E9-18/21); raw-эмиссия по sdump —
+; T-E9-22/23 (ветвь E).
+
+; цель в стек — ДЕДУПЛИКАЦИЯ по значению (K5-W005, E9.4-4a):
+; каждый офсет тела — в стеке РОВНО один раз (карта pushmap;
+; повторы — прямые цели разных переходов и строки таблиц — холосты
+; для спуска: ins-карта уже стоит / поставит первый) — семантика
+; == оракулу (список Python без предела); вне [0, rawlim) НЕ
+; кладётся — цикл спуска отбросил бы сразу (== поведению оракула);
+; предел pend: 1 + rawlim < 262145 qword
+func push_tgt(v)
+  if v >= 0
+    if v < rawlim
+      if getb(pushmap, v) == 0
+        setb(pushmap, v, 1)
+        pend[psp] = v
+        psp = psp + 1
+      end
+    end
+  end
+  return 0
+end
+
+; таблица переходов (K5-W004, E9.4-2 -> порт E9.4-4a; == _jtab
+; оракула): косвенный jmp qword [rip+X] (память rip БЕЗ базы и
+; индекса, размер 64) — qword-строки данных «до первого non-code
+; qword» — цели-кандидаты; чтение qword — тело + виртуальные нули
+; (за концом файла — нули: fb -1 -> 0, == усечению срезки оракула);
+; кандидат 0 < v < vsize -> push_tgt (дедупликация); терминатор —
+; первый non-code qword (0 или вне VirtualSize — отрицательное
+; переполнение знакового qword гасится тем же условием v <= 0);
+; регистровые/индексные формы (jmp r64, [base+idx]) — БЕЗ кандидатов
+; (E9.4-1: цель = значение операнда, без исполнения не вычислить).
+; Вызов — ТОЛЬКО из walk_code при dcls 5 (терминал)
+func jtab
+  var off
+  var v
+  var bt
+  var j
+  if da1k != 2 || mripon != 1 || da1s != 64 || ombase >= 0 || omidx >= 0
+    return 0
+  end
+  off = omrip
+  while off >= 0 && off + 8 <= vsize
+    v = 0
+    j = 0
+    while j < 8
+      bt = fb(rawptr + off + j)
+      if bt < 0
+        bt = 0
+      end
+      v = v + (bt << (j * 8))
+      j = j + 1
+    end
+    if v <= 0 || v >= vsize
+      break
+    end
+    push_tgt(v)
+    off = off + 8
+  end
+  return 0
+end
 
 ; спуск от точки входа: карты стартов/длин + стек целей (кучи);
 ; проход каждой цели вперёд: уже разобрана / сбой декодера / нули —
-; обрыв пути; ret/int3 и jmp — терминалы; jcc/call rel32 кладут цель
-; в стек (jmp и jcc/call — путь: jmp только цель, jcc/call и дальше)
+; обрыв пути; ret/int3 — терминалы; dcls 5 (косвенный jmp FF /4) —
+; терминал с кандидатами jtab; jcc/call rel32 кладут цель в стек
+; (jmp и jcc/call — путь: jmp только цель, jcc/call и дальше)
 func walk_code
   var a
   var z
   var j
   insmap = GlobalAlloc(0, 262145)
   lenmap = GlobalAlloc(0, 262145)
-  pend = GlobalAlloc(0, 1048584)
-  if insmap == 0 || lenmap == 0 || pend == 0
+  pend = GlobalAlloc(0, 2097160)
+  pushmap = GlobalAlloc(0, 262145)
+  if insmap == 0 || lenmap == 0 || pend == 0 || pushmap == 0
     print_error(s_rexe, len(s_rexe), 5)
   end
   if vsize < rawsize
@@ -40,8 +107,12 @@ func walk_code
   else
     rawlim = rawsize
   end
-  pend[0] = entryrva - 4096
+  a = entryrva - 4096
+  pend[0] = a
   psp = 1
+  if a >= 0 && a < rawlim
+    setb(pushmap, a, 1)
+  end
   while psp > 0
     psp = psp - 1
     a = pend[psp]
@@ -69,9 +140,12 @@ func walk_code
       if dcls == 1
         break
       end
+      if dcls == 5
+        jtab()
+        break
+      end
       if dcls == 2 || dcls == 3 || dcls == 4
-        pend[psp] = dtgt
-        psp = psp + 1
+        push_tgt(dtgt)
       end
       if dcls == 2
         break

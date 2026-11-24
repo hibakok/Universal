@@ -74,8 +74,8 @@ def main():
         V.lab_t_bridge.run(V.check, V.kpath, V.kfile, V.kernel_host,
                            use_repo=True)
         V.lab_t_anchor.run(V.check, V.kfile)   # секция 18b — E9.3-1
-        V.lab_t_bridge_ff.run(V.check, V.kfile)   # 18c — E9.4-1
-        V.lab_t_bridge_jt.run(V.check, V.kfile)   # 18d — E9.4-2
+        V.lab_t_bridge_ff.run(V.check, V.kpath, V.kfile)   # 18c — E9.4-1 (+порт 4-4a)
+        V.lab_t_bridge_jt.run(V.check, V.kpath, V.kfile)   # 18d — E9.4-2 (+порт 4-4a)
         V.lab_t_bridge_pe.run(V.check, V.kfile)   # 18e — E9.4-3a
         V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — 3b
         V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1

@@ -134,7 +134,7 @@ SHA = {
                     "0A46EE1CF7",
     "L3-UNIVM/kernel": "9F5696178E26452D66B3F0FCC3BFDE0704D926AA12B61C9A0B351EFF51BE4799",
     "L3-UVA/uva": "32ABF177E0C01AA019E05244A0E12FEB18E13CE0A28DBFA4F59C3805802145EE",
-    "L5-BRIDGE/bridge": "2C75C6F9ED811153347C19E368C64AC75E46023F17C6302B8ABAA4E75E2BCA2B",
+    "L5-BRIDGE/bridge": "E79BE472725F71F170FC4825123795176E58C4F2CA096C8D49DE9E20477EE8C4",
 }
 # модули с .hex-листингами ATOM (E4); enc/splice ведут исходники в b2
 MODS = [m for m in SHA if m not in ("L1-ENC/enc", "L1-SPLICE/splice",
@@ -481,8 +481,8 @@ def main():
     lab_t_prj.run(check, kpath, kfile, kernel_host)
     lab_t_bridge.run(check, kpath, kfile, kernel_host)
     lab_t_anchor.run(check, kfile)      # секция 18b — якоря (E9.3)
-    lab_t_bridge_ff.run(check, kfile)   # секция 18c — FF /4 (E9.4-1)
-    lab_t_bridge_jt.run(check, kfile)   # секция 18d — таблицы (E9.4-2)
+    lab_t_bridge_ff.run(check, kpath, kfile)   # 18c — FF /4 (+порт 4-4a)
+    lab_t_bridge_jt.run(check, kpath, kfile)   # 18d — таблицы (+порт 4-4a)
     lab_t_bridge_pe.run(check, kfile)   # секция 18e — PE32+ (3a)
     lab_t_bridge_foreign.run(check, kfile)   # 18f — спуск (3b)
     lab_t_bridge_peg2.run(check, kfile)   # 18g — PEG v2 (3c-1)

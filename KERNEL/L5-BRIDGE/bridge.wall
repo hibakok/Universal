@@ -51,10 +51,24 @@
 ; диффтест T-E9-24 (12 артефактов + синтетика == оракулу) и сквозной
 ; круг T-E9-23 С PEG МОСТА (мост -> enc -> brick -> pegen == вход) —
 ; ЭТАП E9.2 ЗАКРЫТ.
+; Срез E9.4-4a (ПОРТ В ИНСТРУМЕНТ — первый срез E9.4-4): FF /4 —
+; косвенный jmp в ДЕКОДЕРЕ моста (K5-D024 decff — bridge_self_d3.wall,
+; разрез d2 по лимиту 500: peek modrm -> ext с REX.R до modrm_read,
+; размер /4 ВСЕГДА 64; dcls 5 — НОВЫЙ класс терминала спуска) +
+; таблицы переходов (K5-W004 jtab — qword-строки данных «до первого
+; non-code qword» — цели-кандидаты, == _jtab оракула E9.4-2) +
+; ДЕДУПЛИКАЦИЯ целей стека (K5-W005 push_tgt — карта pushmap: каждый
+; офсет тела в стеке РОВНО один раз, предел pend 1+rawlim — 262145
+; qword; семантика == оракулу) + защита m_bjmp (K5-M011: косвенный
+; jmp — вне канона enc, вид операнда != цель — H-фолбэк). Семантика —
+; оракул уже с E9.4-1/2 (сессии 75/76: лаб, SPEC/05 «Расширение
+; E9.4», SPEC/15 п. 3); срез — ПОРТ в WALL; диффтесты инструмента —
+; T-E9-26/27 (синтетика synth4/5/6/7 — факты/строки/PEG == оракулу).
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
-; bridge_self_d2.wall; спуск W — bridge_self_w.wall; примитивы эмиссии
+; bridge_self_d2.wall + bridge_self_d3.wall (FF — E9.4-4a); спуск W —
+; bridge_self_w.wall; примитивы эмиссии
 ; E — bridge_self_e.wall; метки/семантика/драйвер L —
 ; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500;
 ; примитивы M — bridge_self_m.wall, семейства — m2/m3, драйвер — m4,
@@ -116,6 +130,7 @@ var impn
 var insmap
 var lenmap
 var pend
+var pushmap
 var rawlim
 var psp
 var inscount
@@ -258,6 +273,7 @@ str s_ph = '\n!heapcom '
 !include bridge_self_pe.wall
 !include bridge_self_d.wall
 !include bridge_self_d2.wall
+!include bridge_self_d3.wall
 !include bridge_self_w.wall
 !include bridge_self_e.wall
 !include bridge_self_l.wall

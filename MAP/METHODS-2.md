@@ -61,7 +61,7 @@
 | K5-D008 | decimm | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
 | K5-D009 | decshift | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
 | K5-D010 | decgrp | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
-| K5-D011 | decgrp2 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D011 | decgrp2 | D | готов (E9.2-2/4-4a) | `MAP/M5-BRIDGE-D.md` |
 | K5-D012 | decbr | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
 | K5-D013 | decode_ins | D | готов (E9.2-2/3a) | `MAP/M5-BRIDGE-D.md` |
 | K5-D014 | u32 | D | готов (E9.2-3a) | `MAP/M5-BRIDGE-D.md` |
@@ -74,9 +74,12 @@
 | K5-D021 | set_cl | D | готов (E9.2-3a) | `MAP/M5-BRIDGE-D.md` |
 | K5-D022 | set_cnt | D | готов (E9.2-3a) | `MAP/M5-BRIDGE-D.md` |
 | K5-D023 | alu_id | D | готов (E9.2-3a) | `MAP/M5-BRIDGE-D.md` |
-| K5-W001 | walk_code | W | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-D024 | decff | D | готов (E9.4-4a) | `MAP/M5-BRIDGE-D.md` |
+| K5-W001 | walk_code | W | готов (E9.2-2/4-4a) | `MAP/M5-BRIDGE-D.md` |
 | K5-W002 | sweep_ins | W | готов (E9.2-2/3a) | `MAP/M5-BRIDGE-D.md` |
 | K5-W003 | calc_target | W | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
+| K5-W004 | jtab | W | готов (E9.4-4a) | `MAP/M5-BRIDGE-D.md` |
+| K5-W005 | push_tgt | W | готов (E9.4-4a) | `MAP/M5-BRIDGE-D.md` |
 | K5-X001 | main | X | готов (E9.2-1/2/3a) | `MAP/M5-BRIDGE.md` |
 | K5-E001 | fill_offs | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
 | K5-E002 | init_tables | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
@@ -123,7 +126,7 @@
 | K5-M008 | m_opmem | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M009 | m_opr | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M010 | m_bsimple | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
-| K5-M011 | m_bjmp | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
+| K5-M011 | m_bjmp | M | готов (E9.2-3c/4-4a) | `MAP/M5-BRIDGE-M.md` |
 | K5-M012 | m_bjcc | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M013 | m_bcall | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-M014 | m_bmovzx | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |

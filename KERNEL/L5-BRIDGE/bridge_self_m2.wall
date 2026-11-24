@@ -4,8 +4,9 @@
 ; (== таблице ENCODERS оракула lab_enc по SPEC/09; рендер операндов —
 ; m_opr/m_dollar части 1; примитивы — m/m3): K5-M010 m_bsimple —
 ; cdqe/cqo/ret/int3 (SIMPLE: 48 98 / 48 99 / C3 / CC; cdq — вне
-; SIMPLE enc -> H), K5-M011 m_bjmp — jmp ($base/-4096 | метка labmap;
-; EB слот 1 Б при dlen 2, иначе E9 слот 4 Б — == _enc_jmp), K5-M012
+; SIMPLE enc -> H), K5-M011 m_bjmp — jmp ПРЯМОЙ (E9.4-4a: da1k != 4
+; — отказ, косвенный FF /4 вне канона enc -> H; $base/-4096 | метка
+; labmap; EB слот 1 Б при dlen 2, иначе E9 слот 4 Б — == _enc_jmp), K5-M012
 ; m_bjcc — jcc (70|cc слот 1 / 0F 80|cc слот 4 — == _enc_jcc), K5-M013
 ; m_bcall — call (E8 $метка слот 4 — $base НЕВОЗМОЖЕН (оракула нет);
 ; FF 15 [rip+$имя] слот 4 — == _enc_call), K5-M014 m_bmovzx — movzx
@@ -44,11 +45,18 @@ func m_bsimple
   return 1
 end
 
-; K5-M011: jmp — цель da1v ($base = -4096 | метка labmap; нет — H);
-; короткая форма (dlen 2): EB + слот 1 Б, длинная: E9 + слот 4 Б;
-; «$имя(:1)» — m_dollar
+; K5-M011: jmp — ПРЯМОЙ только (E9.4-4a: FF /4 — косвенный — вид
+; операнда da1k != 4 — отказ до чтения da1v (память-безопасность:
+; da1v у косвенных — НЕ задан, чтение с устаревшего значения может
+; выйти за labmap) -> H-строка, как _mtext оракула: косвенный jmp —
+; вне канона enc, круг байто-точен); цель da1v ($base = -4096 |
+; метка labmap; нет — H); короткая форма (dlen 2): EB + слот 1 Б,
+; длинная: E9 + слот 4 Б; «$имя(:1)» — m_dollar
 func m_bjmp
   var rsh8
+  if da1k != 4
+    return 1
+  end
   if da1v != -4096
     if getb(labmap, da1v) == 0
       return 1

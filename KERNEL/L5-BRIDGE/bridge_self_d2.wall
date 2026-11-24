@@ -9,8 +9,10 @@
 ; cl), imm-группа (K5-D010 decgrp: 80/81/83 — reg из {add,or,and,sub,
 ; xor,cmp} с REX.R; imm 4/1 байта, при 81+W — знакорасширение s32),
 ; хвостовые группы (K5-D011 decgrp2: C6/C7 mov r/m,imm — reg НЕ
-; проверяется оракулом; F6/F7 — neg /3 и idiv /7 (только F7); FF —
-; inc /0, dec /1, call /2 — КОСВЕННЫЙ: целей спуску не даёт, класс 0)
+; проверяется оракулом; F6/F7 — neg /3 и idiv /7 (только F7)); FF —
+; с E9.4-4a в decff (K5-D024, bridge_self_d3.wall: /0 inc, /1 dec,
+; /2 call КОСВЕННЫЙ класс 0, /4 jmp КОСВЕННЫЙ класс 5 — терминал
+; спуска; разрез по лимиту 500 строк — прецедент m/m2/m3/m4)
 ; и переходы (K5-D012 decbr: E8 call rel32 класс 4, E9/EB jmp класс 2,
 ; 70..7F jcc rel8 класс 3 — dcc = условие, операнд-цель; цель -> dtgt
 ; как конец инструкции + rel). Диспетчер K5-D013 decode_ins — REX-префикс
@@ -237,8 +239,9 @@ end
 ; hexgen/pegen/brick/enc/splice: путь обрывался на mov [rcx],0)
 ; хвостовые группы: C6/C7 mov r/m,imm (reg НЕ проверяется оракулом —
 ; длина не зависит; imm 1/4 байта, при C7+W — s32), F6 (только neg /3),
-; F7 (neg /3 или idiv /7), FF (inc /0, dec /1, call /2 — КОСВЕННЫЙ:
-; целей спуску не даёт, путь продолжается, класс 0) — reg с REX.R
+; F7 (neg /3 или idiv /7); FF — делегация в decff (E9.4-4a: /4 —
+; косвенный jmp класса 5; peek ext с REX.R до modrm_read — размер /4
+; всегда 64; разрез по лимиту 500 строк)
 func decgrp2(pos, rex, b)
   var opsize
   var w
@@ -310,25 +313,10 @@ func decgrp2(pos, rex, b)
     set_rm(1, opsize)
     return 0
   end
-  if modrm_read(pos, rex, opsize) != 0
-    return 1
+  if b == 255
+    return decff(pos, rex, w)
   end
-  if mreg != 0 && mreg != 1 && mreg != 2
-    return 1
-  end
-  dpos = mpos
-  if mreg == 0
-    dname = 27
-  else
-    if mreg == 1
-      dname = 28
-    else
-      dname = 18
-    end
-  end
-  dargc = 1
-  set_rm(1, opsize)
-  return 0
+  return 1
 end
 
 ; переходы: E8 call rel32 (класс 4 — цель в стек спуска, путь идёт

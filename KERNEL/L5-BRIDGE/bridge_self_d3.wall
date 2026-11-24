@@ -1,0 +1,63 @@
+; bridge_self_d3.wall — ветвь D моста, ЧАСТЬ 3: группа FF (E9.4-4a)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_d3.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь D (декодер), ЧАСТЬ 3 — группа FF выделена из
+; decgrp2 (K5-D011) по лимиту 500 строк (прецедент разрезов m/m2/m3/m4
+; и l/l2; d2: 498 -> 482) при порте E9.4-1 (FF /4) в инструмент.
+; K5-D024 decff == decode оракула lab_x86 (группа FF): PEEK modrm ->
+; ext с REX.R (ДО modrm_read — размер /4 не зависит от REX.W);
+; /4 — jmp r/m64 КОСВЕННЫЙ (dcls 5 — ТЕРМИНАЛ спуска: целей не даёт,
+; кандидаты таблиц переходов — ветвь W / K5-W004; операнд — регистр
+; или память с полными полями, сырьё примечаний H-строк; M-строка
+; невозможна — нет в каноне enc, m_bjmp отказывает по виду операнда
+; (K5-M011), байто-точность H-фолбэком); /0 inc, /1 dec, /2 call r/m
+; (КОСВЕННЫЙ: класс 0 — путь продолжается, целей не даёт); прочее
+; (вкл. любые / с REX.R — ext 8..15) — отказ (данные). Части 1-2 —
+; bridge_self_d.wall + bridge_self_d2.wall; спуск — bridge_self_w.wall.
+
+; K5-D024: группа FF: peek modrm (fb — вне файла отказ) -> ext =
+; (mby>>3&7)+REX.R; ext 4 -> opsize 64 (Intel: near-переход — размер
+; от REX.W не зависит); modrm_read (операнд reg/mem с полями om*);
+; mreg 4 -> jmp (dname 17, dcls 5, dargc 1, слот 1 = rm 64);
+; mreg 0/1/2 -> inc/dec/call (dcls 0, слот 1 = rm opsize);
+; прочее — 1 (отказ декодирования — данные)
+func decff(pos, rex, w)
+  var mby
+  var opsize
+  opsize = 32
+  if w != 0
+    opsize = 64
+  end
+  mby = fb(pos)
+  if mby < 0
+    return 1
+  end
+  if ((mby >> 3) & 7) + (rex & 4) * 2 == 4
+    opsize = 64
+  end
+  if modrm_read(pos, rex, opsize) != 0
+    return 1
+  end
+  dpos = mpos
+  if mreg == 4
+    dname = 17
+    dcls = 5
+    dargc = 1
+    set_rm(1, 64)
+    return 0
+  end
+  if mreg != 0 && mreg != 1 && mreg != 2
+    return 1
+  end
+  if mreg == 0
+    dname = 27
+  else
+    if mreg == 1
+      dname = 28
+    else
+      dname = 18
+    end
+  end
+  dargc = 1
+  set_rm(1, opsize)
+  return 0
+end
