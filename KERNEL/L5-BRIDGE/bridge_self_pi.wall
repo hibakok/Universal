@@ -1,0 +1,238 @@
+; bridge_self_pi.wall — импорты семейства, цепочка-предикат, факт-строка, часть 2 (E9.2-1, E9.4-4b-1)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_pi.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь P моста, ЧАСТЬ 2 (разрез pe.wall по лимиту 500 —
+; прецедент d/d2/d3): ИМПОРТЫ СЕМЕЙСТВА (K5-P012 rva_off — RVA тела
+; 0x1000+ -> файловое смещение; K5-P013 walk_descs — дескрипторы IDT
+; по DD[1] @optoff+0x78 (вычисляемое смещение — E9.4-4b-1, как
+; dd1_import_rva оракула; было 272 фиксированное): ровно один
+; дескриптор + терминатор (нули ИЛИ за файлом — как break по None
+; оракула); K5-P014 cstr_len — quirk оракула: C-строка без NUL
+; обрезается до len-1; K5-P015 check_dll — kernel32.dll без учёта
+; регистра (| 32); K5-P016 walk_funcs — счёт записей INT/IAT по 8
+; байт + чётность hint-RVA) — все ПРЕДИКАТЫ (0 = ок, 1 = не
+; семейство; было — выход ERR=FAMILY); K5-P018 fam_chain — СЕМЕЙНАЯ
+; ЦЕПОЧКА-ПРЕДИКАТ (E9.4-4b-1): 0 = образ семейства, 1 = нет; порядок
+; E9.2-1 (opt -> base -> sect -> size -> body -> заглушка -> импорты);
+; вызывается из main ПОСЛЕ общего K5-P005 check_head — развилка
+; «семья | чужой»: не-семья уходит в ЧУЖОЙ ПУТЬ части 3
+; (bridge_self_pf.wall); K5-P017 print_facts — семейная факт-строка
+; (MODULE/ENTRY/VSIZE/RAW/IMP + INS/TARGET/BSS + M=/H=). Фронт и
+; проверки полей — ЧАСТЬ 1 (bridge_self_pe.wall); чужой путь — ЧАСТЬ 3.
+
+; RVA тела (0x1000+) -> файловое смещение (тело лежит с rawptr)
+func rva_off(rva)
+  return rva - 4096 + rawptr
+end
+
+; K5-P013: дескрипторы IDT (DD[1] @ optoff+0x78): размер >= 40;
+; дескриптор 1 — в файле и НЕ нулевой (поля: oft @+0, name_rva @+12,
+; ft @+16); дескриптор 2 — терминатор: 20 нулей ИЛИ за файлом (как
+; break по None оракула); хвост: INT (oft) либо IAT (ft) -> глобаль
+; thunk; файловое смещение имени DLL -> глобаль dllfile; 0 — ок,
+; 1 — не семья
+func walk_descs
+  var f
+  var oft
+  var namerva
+  var ft
+  var z
+  var k
+  if guard(optoff, 128) != 0
+    return 1
+  end
+  if rd32(exebuf, optoff + 120) < 40
+    return 1
+  end
+  f = rva_off(rd32(exebuf, optoff + 120))
+  if guard(f, 20) != 0
+    return 1
+  end
+  z = 0
+  k = 0
+  while k < 20
+    if getb(exebuf, f + k) != 0
+      z = 1
+      break
+    end
+    k = k + 1
+  end
+  if z == 0
+    return 1
+  end
+  oft = rd32(exebuf, f)
+  namerva = rd32(exebuf, f + 12)
+  ft = rd32(exebuf, f + 16)
+  f = rva_off(rd32(exebuf, optoff + 120) + 20)
+  z = 1
+  if f >= 0 && f + 20 <= exelen
+    k = 0
+    while k < 20
+      if getb(exebuf, f + k) != 0
+        z = 0
+        break
+      end
+      k = k + 1
+    end
+  end
+  if z == 0
+    return 1
+  end
+  if oft != 0
+    thunk = oft
+  else
+    thunk = ft
+  end
+  dllfile = rva_off(namerva)
+  return 0
+end
+
+; длина C-строки @ off (до NUL); quirk оракула: строки без NUL
+; обрезаются до len-1 (data[off:-1] у lab_pe._read_cstr_rva)
+func cstr_len(off)
+  var j
+  j = off
+  while j < exelen
+    if getb(exebuf, j) == 0
+      return j - off
+    end
+    j = j + 1
+  end
+  return exelen - 1 - off
+end
+
+; имя DLL == kernel32.dll без учёта регистра: вне файла — не семья
+; (как «?» оракула), длина 12, байты | 32 равны образцу; 0 — ок,
+; 1 — не семья
+func check_dll
+  var nlen
+  var j
+  if dllfile < 0 || dllfile >= exelen
+    return 1
+  end
+  nlen = cstr_len(dllfile)
+  if nlen != 12
+    return 1
+  end
+  j = 0
+  while j < 12
+    if (getb(exebuf, dllfile + j) | 32) != getb(s_dll, j)
+      return 1
+    end
+    j = j + 1
+  end
+  return 0
+end
+
+; счёт функций: записи по 8 байт с файлового смещения rva_off(thunk);
+; терминатор — 8 нулей или за файлом; чётность hint-RVA (младший бит
+; первого байта записи) — нечётное: не семья; impn -> глобаль.
+; Предел k < 32768 покрывает вход 256 КиБ (больше записей не влезает);
+; 0 — ок, 1 — не семья
+func walk_funcs
+  var f
+  var k
+  var z
+  var j
+  impn = 0
+  k = 0
+  while k < 32768
+    f = thunk + 8 * k - 4096 + rawptr
+    if f < 0 || f + 8 > exelen
+      break
+    end
+    z = 0
+    j = 0
+    while j < 8
+      if getb(exebuf, f + j) != 0
+        z = 1
+        break
+      end
+      j = j + 1
+    end
+    if z == 0
+      break
+    end
+    if (getb(exebuf, f) & 1) != 0
+      return 1
+    end
+    impn = impn + 1
+    k = k + 1
+  end
+  return 0
+end
+
+; K5-P018: СЕМЕЙНАЯ ЦЕПОЧКА-ПРЕДИКАТ (E9.4-4b-1): 0 — образ
+; семейства (все инварианты SPEC/04 минус два легальных отклонения +
+; заглушка + импорты), 1 — не семейство; порядок — как E9.2-1
+; (opt -> base -> sect -> size -> body -> заглушка -> импорты);
+; вызывается из main ПОСЛЕ общего check_head — развилка «семья |
+; чужой»: не-семья уходит в ветвь P2 (bridge_self_pf.wall), отказы
+; чужого фронта и семейных инвариантов сходятся в ERR=FAMILY
+func fam_chain
+  if check_opt() != 0
+    return 1
+  end
+  if check_base() != 0
+    return 1
+  end
+  if check_sect() != 0
+    return 1
+  end
+  if check_size() != 0
+    return 1
+  end
+  if check_body() != 0
+    return 1
+  end
+  if stub_name() != 0
+    return 1
+  end
+  if walk_descs() != 0
+    return 1
+  end
+  if check_dll() != 0
+    return 1
+  end
+  if walk_funcs() != 0
+    return 1
+  end
+  return 0
+end
+
+; факт-строка (срезы E9.2-1/2/3c): MODULE=<имя> ENTRY=<hex8>
+; VSIZE=<hex8> RAW=<hex8> IMP=<dec> INS=<dec> TARGET=<hex8> BSS=<hex8>
+; M=<dec> H=<dec> + CRLF — в factbuf, одним WriteFile в stdout (имя —
+; байты exebuf[77..77+modlen)); INS/TARGET/BSS — факты спуска (глобали
+; ветви W: inscount/target/bss — значения == parse_family оракула);
+; M/H (E9.2-3c) — ВЫХОД моста: числа M-/H-строк записанного <выход>.b2
+; (глобали mcount/hcount драйвера emit_body — == статистика m/h
+; оракула emit_b2 без mode; замена факт-строки реальным выходом —
+; ROADMAP E9.2-3c: факты PE сохранены префиксом, выход добавлен)
+func print_facts
+  var k
+  k = 0
+  k = copy_str(factbuf, k, s_f1, len(s_f1))
+  k = copy_str(factbuf, k, exebuf + 77, modlen)
+  k = copy_str(factbuf, k, s_f2, len(s_f2))
+  k = out_hex(factbuf, k, entryrva)
+  k = copy_str(factbuf, k, s_f3, len(s_f3))
+  k = out_hex(factbuf, k, vsize)
+  k = copy_str(factbuf, k, s_f4, len(s_f4))
+  k = out_hex(factbuf, k, rawsize)
+  k = copy_str(factbuf, k, s_f5, len(s_f5))
+  k = out_dec(factbuf, k, impn)
+  k = copy_str(factbuf, k, s_f6, len(s_f6))
+  k = out_dec(factbuf, k, inscount)
+  k = copy_str(factbuf, k, s_f7, len(s_f7))
+  k = out_hex(factbuf, k, target)
+  k = copy_str(factbuf, k, s_f8, len(s_f8))
+  k = out_hex(factbuf, k, bss)
+  k = copy_str(factbuf, k, s_f9, len(s_f9))
+  k = out_dec(factbuf, k, mcount)
+  k = copy_str(factbuf, k, s_fa, len(s_fa))
+  k = out_dec(factbuf, k, hcount)
+  k = copy_str(factbuf, k, s_crlf, len(s_crlf))
+  written = 0
+  WriteFile(hstdout, factbuf, k, &written, 0)
+  return 0
+end

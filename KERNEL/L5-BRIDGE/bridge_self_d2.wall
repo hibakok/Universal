@@ -12,7 +12,10 @@
 ; проверяется оракулом; F6/F7 — neg /3 и idiv /7 (только F7)); FF —
 ; с E9.4-4a в decff (K5-D024, bridge_self_d3.wall: /0 inc, /1 dec,
 ; /2 call КОСВЕННЫЙ класс 0, /4 jmp КОСВЕННЫЙ класс 5 — терминал
-; спуска; разрез по лимиту 500 строк — прецедент m/m2/m3/m4)
+; спуска; разрез по лимиту 500 строк — прецедент m/m2/m3/m4).
+; Границы чтений (E9.4-4b-1): fend — конец ТЕЛА секции кода
+; (rawptr+rawsize; у семьи == exelen — нейтрально, как len(body)
+; оракула — см. bridge_self_d.wall)
 ; и переходы (K5-D012 decbr: E8 call rel32 класс 4, E9/EB jmp класс 2,
 ; 70..7F jcc rel8 класс 3 — dcc = условие, операнд-цель; цель -> dtgt
 ; как конец инструкции + rel). Диспетчер K5-D013 decode_ins — REX-префикс
@@ -77,7 +80,7 @@ func decimm(pos, rex, b)
     return 0
   end
   if b >= 176 && b <= 183
-    if pos + 1 > exelen
+    if pos + 1 > fend
       return 1
     end
     dpos = pos + 1
@@ -88,7 +91,7 @@ func decimm(pos, rex, b)
     return 0
   end
   if w != 0
-    if pos + 8 > exelen
+    if pos + 8 > fend
       return 1
     end
     dpos = pos + 8
@@ -98,7 +101,7 @@ func decimm(pos, rex, b)
     set_immu(2, u64(pos), 64)
     return 0
   end
-  if pos + 4 > exelen
+  if pos + 4 > fend
     return 1
   end
   dpos = pos + 4
@@ -147,7 +150,7 @@ func decshift(pos, rex, b)
     end
   end
   if b == 192 || b == 193
-    if mpos + 1 > exelen
+    if mpos + 1 > fend
       return 1
     end
     cnt = getb(exebuf, mpos)
@@ -210,7 +213,7 @@ func decgrp(pos, rex, b)
     end
   end
   if b == 129
-    if mpos + 4 > exelen
+    if mpos + 4 > fend
       return 1
     end
     v = u32(mpos)
@@ -221,7 +224,7 @@ func decgrp(pos, rex, b)
     dpos = mpos + 4
     return 0
   end
-  if mpos + 1 > exelen
+  if mpos + 1 > fend
     return 1
   end
   v = getb(exebuf, mpos)
@@ -255,7 +258,7 @@ func decgrp2(pos, rex, b)
     if modrm_read(pos, rex, 8) != 0
       return 1
     end
-    if mpos + 1 > exelen
+    if mpos + 1 > fend
       return 1
     end
     dpos = mpos + 1
@@ -269,7 +272,7 @@ func decgrp2(pos, rex, b)
     if modrm_read(pos, rex, opsize) != 0
       return 1
     end
-    if mpos + 4 > exelen
+    if mpos + 4 > fend
       return 1
     end
     v = u32(mpos)
@@ -326,7 +329,7 @@ end
 func decbr(pos, b)
   var rel
   if b == 232
-    if pos + 4 > exelen
+    if pos + 4 > fend
       return 1
     end
     rel = rel32(pos)
@@ -338,7 +341,7 @@ func decbr(pos, b)
     return 0
   end
   if b == 233
-    if pos + 4 > exelen
+    if pos + 4 > fend
       return 1
     end
     rel = rel32(pos)
@@ -350,7 +353,7 @@ func decbr(pos, b)
     return 0
   end
   if b == 235
-    if pos + 1 > exelen
+    if pos + 1 > fend
       return 1
     end
     rel = rel8(pos)
@@ -361,7 +364,7 @@ func decbr(pos, b)
     set_tgt(dtgt)
     return 0
   end
-  if pos + 1 > exelen
+  if pos + 1 > fend
     return 1
   end
   rel = rel8(pos)

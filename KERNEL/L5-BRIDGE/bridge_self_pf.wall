@@ -1,0 +1,152 @@
+; bridge_self_pf.wall — чужой фронт моста: ветвь P, часть 2 (E9.4-4b-1)
+; Паспорт: KERNEL/L5-BRIDGE/bridge_self_pf.wall | слой: L5 (исходник —
+; WALL) | роль: ветвь P моста, ЧАСТЬ 3 — ЧУЖОЙ ПУТЬ развилки «семья |
+; чужой» (SPEC/15 п. 10, E9.4-4b-1; вход в путь — K5-P018 fam_chain
+; вернул «не семья» после ОБЩЕГО K5-P005 check_head): K5-P019
+; foreign_front — ПОРТ parse_foreign оракула LAB/py/lab_bridge.py
+; (E9.4-3b, порядок проверок SPEC/15 п. 10): чтения оракула покрывают
+; [optoff, optoff+0xD8) (guard — как struct.error разбора) ->
+; Machine 0x8664 + Magic 0x020B -> FileAlignment СТЕПЕНЬ 2 (fa < 1 |
+; fa & (fa-1)) -> секция кода ПО ТОЧКЕ ВХОДА (первый слот виртуального
+; диапазона входа [vaddr, vaddr+vsize); слот 0 обязан быть в файле —
+; как разбор оракула; слоты за файлом ОБРЫВАЮТ таблицу — как break
+; parse) -> EXECUTE (0x20000000) -> файл покрывает raw секции ->
+; тело не из одних нулей -> вход в raw-части (иначе bss); глобали
+; vsize/rawsize/rawptr/entryrva/codevaddr/falign/fend/fsect — от
+; СЕКЦИИ КОДА (спуск ветви W и декодер ветви D работают по ним без
+; изменений: fend = rawptr+rawsize — границы декодера как len(body)
+; оракула; вилка target — falign образа). Отказ — ERR=FAMILY (общий
+; код 6: не чужой валидный образ). K5-P020 print_ffacts — ЧУЖАЯ
+; ФАКТ-СТРОКА «U-L5-BRIDGE FOREIGN=1 SECT=<i> ENTRY=<hex8> VSIZE=
+; <hex8> RAW=<hex8> INS=<dec> TARGET=<hex8> BSS=<hex8>» — факты ==
+; parse_foreign оракула (SECT — индекс секции кода, начиная с 0);
+; M=/H= и запись <выход>.b2/.peg для чужих — срезы ЭМИССИИ
+; E9.4-4b-2+ (срез 4b-1 — только факты; выходные файлы для чужих
+; не создаются, как каркас E9.2-1 до срезов E9.2-3+).
+
+; K5-P019: чужой фронт — проверки порядка SPEC/15 п. 10 + выбор
+; секции кода по точке входа + глобали спуска от секции кода;
+; все отказы — fail_family (код 6)
+func foreign_front
+  var entry
+  var fa
+  var i
+  var slot
+  var svaddr
+  var svsize
+  var srawptr
+  var srawsize
+  var schars
+  var found
+  var z
+  var k
+  ; чтения полей разбора оракула: [optoff, optoff+0xD8) — magic,
+  ; вход, FileAlignment, каталоги (за файлом = не PE32+, как
+  ; struct.error lab_pe.parse)
+  if guard(optoff, 216) != 0
+    fail_family()
+  end
+  if rd16(exebuf, coffoff) != 34404
+    fail_family()
+  end
+  if rd16(exebuf, optoff) != 523
+    fail_family()
+  end
+  fa = rd32(exebuf, optoff + 36)
+  if fa < 1
+    fail_family()
+  end
+  if fa & (fa - 1) != 0
+    fail_family()
+  end
+  ; секция кода: первый слот таблицы с vaddr <= entry < vaddr+vsize
+  ; (слот 0 обязан быть в файле; слоты за файлом обрывают таблицу)
+  entry = rd32(exebuf, optoff + 16)
+  if guard(tbloff, 40) != 0
+    fail_family()
+  end
+  found = -1
+  i = 0
+  while i < numsect
+    slot = tbloff + 40 * i
+    if slot + 40 > exelen
+      break
+    end
+    svaddr = rd32(exebuf, slot + 12)
+    svsize = rd32(exebuf, slot + 8)
+    if svaddr <= entry && entry < svaddr + svsize
+      found = i
+      srawptr = rd32(exebuf, slot + 20)
+      srawsize = rd32(exebuf, slot + 16)
+      schars = rd32(exebuf, slot + 36)
+      break
+    end
+    i = i + 1
+  end
+  if found < 0
+    fail_family()
+  end
+  ; EXECUTE в секции входа обязателен (0x20000000)
+  if (schars & 536870912) == 0
+    fail_family()
+  end
+  ; файл покрывает raw секции кода (len(body) == raw_size оракула)
+  if srawptr + srawsize > exelen
+    fail_family()
+  end
+  ; тело не пустое и не из одних нулей (any(body) оракула)
+  z = 0
+  k = 0
+  while k < srawsize
+    if getb(exebuf, srawptr + k) != 0
+      z = 1
+      break
+    end
+    k = k + 1
+  end
+  if z == 0
+    fail_family()
+  end
+  ; вход в raw-части (entry_off < len(body); иначе — bss)
+  if entry - svaddr >= srawsize
+    fail_family()
+  end
+  ; глобали спуска — от СЕКЦИИ КОДА (ветви W/D работают без изменений)
+  entryrva = entry
+  vsize = svsize
+  rawsize = srawsize
+  rawptr = srawptr
+  codevaddr = svaddr
+  falign = fa
+  fend = rawptr + rawsize
+  fsect = found
+  return 0
+end
+
+; K5-P020: ЧУЖАЯ факт-строка (E9.4-4b-1): FOREIGN=1 SECT=<индекс
+; секции кода> + ENTRY/VSIZE/RAW/INS/TARGET/BSS — в factbuf (базовые
+; s_f2..s_f8 семейной строки), одним WriteFile в stdout; факты ==
+; parse_foreign оракула (entry = addr_entry_point, vsize/raw — секция
+; кода, INS — выжившие спуска, TARGET/BSS — п. 7 с falign образа)
+func print_ffacts
+  var k
+  k = 0
+  k = copy_str(factbuf, k, s_ff1, len(s_ff1))
+  k = out_dec(factbuf, k, fsect)
+  k = copy_str(factbuf, k, s_f2, len(s_f2))
+  k = out_hex(factbuf, k, entryrva)
+  k = copy_str(factbuf, k, s_f3, len(s_f3))
+  k = out_hex(factbuf, k, vsize)
+  k = copy_str(factbuf, k, s_f4, len(s_f4))
+  k = out_hex(factbuf, k, rawsize)
+  k = copy_str(factbuf, k, s_f6, len(s_f6))
+  k = out_dec(factbuf, k, inscount)
+  k = copy_str(factbuf, k, s_f7, len(s_f7))
+  k = out_hex(factbuf, k, target)
+  k = copy_str(factbuf, k, s_f8, len(s_f8))
+  k = out_hex(factbuf, k, bss)
+  k = copy_str(factbuf, k, s_crlf, len(s_crlf))
+  written = 0
+  WriteFile(hstdout, factbuf, k, &written, 0)
+  return 0
+end

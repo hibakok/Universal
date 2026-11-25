@@ -53,8 +53,11 @@ end
 ; в хвосте) + запись <выход>.peg; nlen3 — длина слова-пути выхода
 ; (аргумент 3 CLI); глобали: entryrva/bss (факты ветвей P/W), modlen
 ; (имя модуля), outmem/outbuf/outcur (буфер emit_body — пере-
-; используется), w1 (UTF-16LE имя файла); idata/iat/stackcom/heapcom
-; читаются rd32 по фиксированным смещениям SPEC/04 из exebuf
+; используется), w1 (UTF-16LE имя файла); idata/iat — DD[1]/DD[12] по
+; ВЫЧИСЛЯЕМЫМ смещениям optoff+0x78/+0x7C и optoff+0xD0/+0xD4
+; (E9.4-4b-1, как dd1/dd12 оракула; было 272/276/360/364 фикс.),
+; stackcom/heapcom — ФИКСИРОВАННЫЕ 232/248 (0xE8/0xF8 — так читает
+; parse_family оракула) из exebuf
 func emit_peg(nlen3)
   var fh
   var rc
@@ -73,13 +76,13 @@ func emit_peg(nlen3)
   outcur = copy_str(outbuf, outcur, s_pe, len(s_pe))
   out_hexv(entryrva)
   outcur = copy_str(outbuf, outcur, s_pi, len(s_pi))
-  out_hexv(rd32(exebuf, 272))
+  out_hexv(rd32(exebuf, optoff + 120))
   app_ch(32)
-  out_hexv(rd32(exebuf, 276))
+  out_hexv(rd32(exebuf, optoff + 124))
   outcur = copy_str(outbuf, outcur, s_pa, len(s_pa))
-  out_hexv(rd32(exebuf, 360))
+  out_hexv(rd32(exebuf, optoff + 208))
   app_ch(32)
-  out_hexv(rd32(exebuf, 364))
+  out_hexv(rd32(exebuf, optoff + 212))
   if bss != 0
     outcur = copy_str(outbuf, outcur, s_pb, len(s_pb))
     out_hexv(bss)

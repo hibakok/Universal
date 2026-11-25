@@ -77,7 +77,7 @@ def main():
         V.lab_t_bridge_ff.run(V.check, V.kpath, V.kfile)   # 18c — E9.4-1 (+порт 4-4a)
         V.lab_t_bridge_jt.run(V.check, V.kpath, V.kfile)   # 18d — E9.4-2 (+порт 4-4a)
         V.lab_t_bridge_pe.run(V.check, V.kfile)   # 18e — E9.4-3a
-        V.lab_t_bridge_foreign.run(V.check, V.kfile)   # 18f — 3b
+        V.lab_t_bridge_foreign.run(V.check, V.kpath, V.kfile)   # 18f — 3b + порт (4-4b-1)
         V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1
         V.lab_t_bridge_peg2e.run(V.check, V.kfile)   # 18h — 3c-2
         V.lab_t_bridge_b2f.run(V.check, V.kfile)   # 18i — 3c-3

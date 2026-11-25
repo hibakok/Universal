@@ -120,13 +120,15 @@ end
 
 ; K5-L003: базовые смещения структур импорта (от начала тела):
 ; iatoff (ft @+16 дескриптора 1), nameoff (name_rva @+12), idtoff
-; (DD[1] @0x110), intoff (oft @+0, иначе ft — как thunk семейства)
+; (DD[1] @optoff+0x78 — вычисляемое смещение E9.4-4b-1, как
+; dd1_import_rva оракула; было 272 фиксированное), intoff (oft @+0,
+; иначе ft — как thunk семейства)
 func imp_offs
   var f
-  f = rva_off(rd32(exebuf, 272))
+  f = rva_off(rd32(exebuf, optoff + 120))
   iatoff = rd32(exebuf, f + 16) - 4096
   nameoff = rd32(exebuf, f + 12) - 4096
-  idtoff = rd32(exebuf, 272) - 4096
+  idtoff = rd32(exebuf, optoff + 120) - 4096
   intoff = thunk - 4096
   return 0
 end

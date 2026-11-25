@@ -15,16 +15,19 @@
 ; оракулу LAB/py/lab_x86.decode: длины/классы/цели (E9.2-2, T-E9-18/21)
 ; + ПОЛНЫЕ ОПЕРАНДЫ (E9.2-3a: имена регистров по таблицам s_r64/s_r8/
 ; s_r16/s_r32, значения imm, память с полями, цели) — сырьё примечаний
-; H-строк (T-E9-22). Чтение за границей файла = отказ декодирования
-; (как IndexError оракула; fb -> -1). Границы: exelen — конец файла ==
-; конец тела (семейный инвариант размеров SPEC/04).
+; H-строк (T-E9-22). Чтение за границей ТЕЛА = отказ декодирования
+; (как IndexError оракула; fb -> -1). Границы (E9.4-4b-1): fend —
+; конец ТЕЛА секции кода (глобаль rawptr+rawsize развилки ветвей P/
+; P2; у семьи rawptr+rawsize == exelen — инвариант размеров SPEC/04,
+; поведение нейтрально; у чужих образов за телом лежат прочие секции
+; файла — декодер обязан читать ТОЛЬКО тело, как len(body) оракула).
 
-; чтение байта файла по смещению off с границей: -1 = вне файла
+; чтение байта ТЕЛА по смещению off с границей fend: -1 = вне тела
 func fb(off)
   if off < 0
     return -1
   end
-  if off >= exelen
+  if off >= fend
     return -1
   end
   return getb(exebuf, off)
@@ -120,7 +123,7 @@ func modrm_read(pos, rex, opsize)
     bas = s & 7
     mpos = mpos + 1
     if mod == 0 && bas == 5
-      if mpos + 4 > exelen
+      if mpos + 4 > fend
         return 1
       end
       omdisp = u32(mpos)
@@ -129,14 +132,14 @@ func modrm_read(pos, rex, opsize)
     end
     ombase = bas + bbit
     if mod == 1
-      if mpos + 1 > exelen
+      if mpos + 1 > fend
         return 1
       end
       omdisp = rel8(mpos)
       mpos = mpos + 1
     end
     if mod == 2
-      if mpos + 4 > exelen
+      if mpos + 4 > fend
         return 1
       end
       omdisp = rel32(mpos)
@@ -145,7 +148,7 @@ func modrm_read(pos, rex, opsize)
     return 0
   end
   if rm == 5 && mod == 0
-    if mpos + 4 > exelen
+    if mpos + 4 > fend
       return 1
     end
     mripon = 1
@@ -155,14 +158,14 @@ func modrm_read(pos, rex, opsize)
   end
   ombase = rm + bbit
   if mod == 1
-    if mpos + 1 > exelen
+    if mpos + 1 > fend
       return 1
     end
     omdisp = rel8(mpos)
     mpos = mpos + 1
   end
   if mod == 2
-    if mpos + 4 > exelen
+    if mpos + 4 > fend
       return 1
     end
     omdisp = rel32(mpos)
@@ -303,7 +306,7 @@ func dec0f(pos, rex, w)
     size = 64
   end
   if b >= 128 && b <= 143
-    if pos + 4 > exelen
+    if pos + 4 > fend
       return 1
     end
     rel = rel32(pos)
@@ -376,7 +379,7 @@ func decalu(pos, rex, w, b)
     return 0
   end
   if (b & 7) == 4
-    if pos + 1 > exelen
+    if pos + 1 > fend
       return 1
     end
     dpos = pos + 1
@@ -386,7 +389,7 @@ func decalu(pos, rex, w, b)
     set_imm(2, getb(exebuf, pos), 8)
     return 0
   end
-  if pos + 4 > exelen
+  if pos + 4 > fend
     return 1
   end
   v = u32(pos)

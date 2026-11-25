@@ -1,7 +1,10 @@
-; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a/4-4a)
+; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a/4-4a/4-4b-1)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_w.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь W моста — СЛОВАРЬ спуска оракула _walk/_sweep/
-; parse_family (SPEC/15 п. 3, п. 7): K5-W001 walk_code — стек целей
+; parse_family/parse_foreign (SPEC/15 п. 3, п. 7; E9.4-4b-1: старт —
+; entryrva - codevaddr (RVA секции кода — семья 4096), вилка target —
+; falign ОБРАЗА (семья 512), границы — глобали секции кода от ветви
+; P/P2): K5-W001 walk_code — стек целей
 ; (куча GlobalAlloc 2097160 — 262145 qword, доказуемый предел
 ; 1 + rawlim: каждый офсет тела — в стеке РОВНО один раз, карта
 ; дедупликации pushmap 262145 — K5-W005; прямые цели/кандидаты
@@ -107,7 +110,7 @@ func walk_code
   else
     rawlim = rawsize
   end
-  a = entryrva - 4096
+  a = entryrva - codevaddr
   pend[0] = a
   psp = 1
   if a >= 0 && a < rawlim
@@ -194,8 +197,9 @@ func sweep_ins
 end
 
 ; длина тела: target = max(последний ненулевой байт + 1, концы
-; выживших, 1); выравнивающая вилка: align_up(target) != rawsize —
-; target = rawsize - 511 (та же вилка минимальной длины); target >
+; выживших, 1); выравнивающая вилка (E9.4-4b-1 — falign ОБРАЗА,
+; семья: 512): align_up(target, falign) != rawsize — target =
+; rawsize - (falign - 1) (та же вилка минимальной длины); target >
 ; vsize — ERR=FAMILY; bss = vsize - target (SPEC/15 п. 7)
 func calc_target
   var k
@@ -217,9 +221,9 @@ func calc_target
   if maxend > target
     target = maxend
   end
-  fork = (target + 511) / 512 * 512
+  fork = (target + falign - 1) / falign * falign
   if fork != rawsize
-    target = rawsize - 511
+    target = rawsize - (falign - 1)
   end
   if target > vsize
     fail_family()

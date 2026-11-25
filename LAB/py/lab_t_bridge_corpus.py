@@ -32,6 +32,19 @@ S_FAMILY = b"U-L5-BRIDGE ERR=FAMILY\r\n"
 S_BIG = b"U-L5-BRIDGE ERR=BIG EXE\r\n"
 
 
+def foreign_line(data):
+    """Чужая факт-строка моста (E9.4-4b-1) — факты parse_foreign:
+    FOREIGN=1 SECT=<индекс секции кода> ENTRY/VSIZE/RAW/INS/TARGET/BSS."""
+    f = lab_bridge.parse_foreign(data)
+    pe = f["pe"]
+    return ("U-L5-BRIDGE FOREIGN=1 SECT=%d ENTRY=%08X VSIZE=%08X RAW=%08X"
+            " INS=%d TARGET=%08X BSS=%08X\r\n"
+            % (pe["sections"].index(f["code"]), pe["addr_entry_point"],
+               f["vsize"], f["raw"], len(f["ins"]), f["target"],
+               f["bss"])).encode("latin1")
+
+
+
 def cli_cases(seed):
     """Мутанты seed.exe для T-E9-19: (имя, аргументы, хост, ожидание,
     код возврата). CLI-контракт каркаса + семейные отказы (инварианты
@@ -48,6 +61,12 @@ def cli_cases(seed):
         b = bytearray(seed)
         b[off] = val
         return bytes(b)
+
+    def fcase(name, data):
+        """Мутант-«перевёртыш» E9.4-4b-1: семейный инвариант сломан,
+        образ остаётся ВАЛИДНЫМ чужим PE32+ — чужая факт-строка, код 0."""
+        return (name, ["in.exe", "t.b2", "t.peg"], {"in.exe": data},
+                foreign_line(data), 0)
 
     def vsz(val):
         # vsize (dword @ 0x190): мутанты спуска E9.2-2 — инструкция
@@ -82,38 +101,26 @@ def cli_cases(seed):
          {"in.exe": mut(128, 81)}, S_FAMILY, 6),
         ("Machine", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": mut(132, 101)}, S_FAMILY, 6),
-        ("NumberOfSections", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(134, 2)}, S_FAMILY, 6),
+        fcase("NumberOfSections", mut(134, 2)),
         ("Magic", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": mut(153, 12)}, S_FAMILY, 6),
-        ("ImageBase", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(176, 1)}, S_FAMILY, 6),
-        ("Subsystem", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(221, 4)}, S_FAMILY, 6),
-        ("имя секции", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(392, 120)}, S_FAMILY, 6),
-        ("SizeOfImage", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(208, 1)}, S_FAMILY, 6),
-        ("SizeOfHeaders", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(213, 3)}, S_FAMILY, 6),
+        fcase("ImageBase", mut(176, 1)),
+        fcase("Subsystem", mut(221, 4)),
+        fcase("имя секции", mut(392, 120)),
+        fcase("SizeOfImage", mut(208, 1)),
+        fcase("SizeOfHeaders", mut(213, 3)),
         ("вход вне секции", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": mut(169, 80)}, S_FAMILY, 6),
         ("файл короче raw", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": bytes(seed[:-1])}, S_FAMILY, 6),
         ("нулевой код", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": zero_body}, S_FAMILY, 6),
-        ("заглушка", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(64, 117)}, S_FAMILY, 6),
-        ("игла", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(81, 120)}, S_FAMILY, 6),
-        ("пробел в имени", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(77, 32)}, S_FAMILY, 6),
-        ("DLL-имя", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(dll_off, 120)}, S_FAMILY, 6),
-        ("hint нечётный", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(thunk_off, seed[thunk_off] | 1)}, S_FAMILY, 6),
-        ("терминатор IDT", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": mut(idt2_off, 1)}, S_FAMILY, 6),
+        fcase("заглушка", mut(64, 117)),
+        fcase("игла", mut(81, 120)),
+        fcase("пробел в имени", mut(77, 32)),
+        fcase("DLL-имя", mut(dll_off, 120)),
+        fcase("hint нечётный", mut(thunk_off, seed[thunk_off] | 1)),
+        fcase("терминатор IDT", mut(idt2_off, 1)),
         ("инструкция за vsize", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": vsz(61)}, S_FAMILY, 6),
         ("длина тела > vsize", ["in.exe", "t.b2", "t.peg"],

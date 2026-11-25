@@ -64,9 +64,29 @@
 ; оракул уже с E9.4-1/2 (сессии 75/76: лаб, SPEC/05 «Расширение
 ; E9.4», SPEC/15 п. 3); срез — ПОРТ в WALL; диффтесты инструмента —
 ; T-E9-26/27 (синтетика synth4/5/6/7 — факты/строки/PEG == оракулу).
+; Срез E9.4-4b-1 (РАЗВИЛКА «СЕМЬЯ | ЧУЖОЙ» + ЧУЖИЕ ФАКТЫ — SPEC/15
+; п. 10): общий фронт заголовков (K5-P005 check_head — MZ/PE-сигнатура
+; + раскладка полей ОТ e_lfanew: lfanew/coffoff/optoff/sizopt/numsect/
+; tbloff; как lab_pe.parse оракула E9.4-3a) -> семейная цепочка
+; ПРЕДИКАТОМ (K5-P018 fam_chain: 0 = семейство, 1 = нет; проверки
+; K5-P005..P016 — чтения по ВЫЧИСЛЯЕМЫМ смещениям с guard-границами;
+; для образов семейства e_lfanew == 0x80 — значения те же, нейтраль)
+; -> не-семья уходит в ЧУЖОЙ ПУТЬ: K5-P019 foreign_front (порт
+; parse_foreign E9.4-3b: Machine/Magic, FileAlignment степень 2,
+; секция кода ПО ТОЧКЕ ВХОДА, EXECUTE, файл покрывает raw, тело не
+; нулевое, вход в raw-части) + спуск/тени/target по глобалям секции
+; кода (codevaddr/falign/fend — K5-W001/K5-W003 параметризованы,
+; fend = rawptr+rawsize — границы декодера ветви D как len(body)
+; оракула; у семьи rawptr+rawsize == exelen — нейтрально) + K5-P020
+; print_ffacts: «U-L5-BRIDGE FOREIGN=1 SECT=<i> ENTRY=… INS=…
+; TARGET=… BSS=…» == факты parse_foreign; ЭМИССИЯ чужих (.b2/PEG v2)
+; — срезы E9.4-4b-2+ (файлы для чужих не создаются); отказы семьи и
+; чужого фронта сходятся в ERR=FAMILY (код 6). Диффтесты порта:
+; T-E9-29 (+инструмент на крафтах/мутантах), мутанты T-E9-19.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
-; разбор PE — bridge_self_pe.wall; декодер D — bridge_self_d.wall +
+; разбор PE — bridge_self_pe.wall + bridge_self_pi.wall (импорты+цепочка+факты) +
+; bridge_self_pf.wall (чужой путь — E9.4-4b-1); декодер D — bridge_self_d.wall +
 ; bridge_self_d2.wall + bridge_self_d3.wall (FF — E9.4-4a); спуск W —
 ; bridge_self_w.wall; примитивы эмиссии
 ; E — bridge_self_e.wall; метки/семантика/драйвер L —
@@ -197,6 +217,16 @@ var mopc
 var mis8
 var mcount
 var hcount
+var lfanew
+var coffoff
+var optoff
+var sizopt
+var numsect
+var tbloff
+var codevaddr
+var falign
+var fend
+var fsect
 var arg1[16]
 var arg2[16]
 var arg3[16]
@@ -231,6 +261,7 @@ str s_f7 = ' TARGET='
 str s_f8 = ' BSS='
 str s_f9 = ' M='
 str s_fa = ' H='
+str s_ff1 = 'U-L5-BRIDGE FOREIGN=1 SECT='
 str s_crlf = '\r\n'
 str s_pref = 'Universal L0 '
 str s_needle = '. No DOS support.'
@@ -271,6 +302,8 @@ str s_ph = '\n!heapcom '
 
 !include bridge_self_c.wall
 !include bridge_self_pe.wall
+!include bridge_self_pi.wall
+!include bridge_self_pf.wall
 !include bridge_self_d.wall
 !include bridge_self_d2.wall
 !include bridge_self_d3.wall
@@ -320,15 +353,19 @@ func main
   end
   CloseHandle(fh)
   check_head()
-  check_opt()
-  check_base()
-  check_sect()
-  check_size()
-  check_body()
-  stub_name()
-  walk_descs()
-  check_dll()
-  walk_funcs()
+  ; РАЗВИЛКА «СЕМЬЯ | ЧУЖОЙ» (E9.4-4b-1, SPEC/15 п. 10): общий
+  ; check_head (MZ/PE-сигнатура + раскладка от e_lfanew) — далее
+  ; семейная цепочка-предикат; не-семья -> ЧУЖОЙ ПУТЬ (факты спуска
+  ; в секции кода по точке входа; эмиссия .b2/.peg для чужих — срезы
+  ; E9.4-4b-2+, файлы не создаются); отказы обеих сторон — ERR=FAMILY
+  if fam_chain() != 0
+    foreign_front()
+    walk_code()
+    sweep_ins()
+    calc_target()
+    print_ffacts()
+    ExitProcess(0)
+  end
   walk_code()
   sweep_ins()
   calc_target()
