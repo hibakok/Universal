@@ -102,6 +102,22 @@
 ; Диффтесты порта: T-E9-29 (+t.b2 == оракулу на крафтах), T-E9-19
 ; (12 мутантов-«перевёртышей» + «нет импортов»: факты с M=/H= и
 ; t.b2 == оракулу emit_b2_foreign).
+; Срез E9.4-4b-3 (ПОРТ PEG v2 — ВЕТВЬ G, SPEC/15 п. 10 / SPEC/07
+; «Рост v2»+«Канон патчей»): чужой путь ЭМИТИТ <выход>.peg КАНОНОМ
+; ПАТЧЕЙ (== оракул emit_peg_v2 E9.4-3c-2): K5-G004 peg2_check (H =
+; min raw_ptr секций с raw + файл покрывает raw ВСЕХ секций — ДО
+; спуска/эмиссии, отказ ERR=FAMILY БЕЗ частичных выходов; у оракула
+; — отказ emit_peg_v2 «файл короче raw прочих секций») + K5-G003
+; gtpl_dec (HEX-литерал s_gtpl 103 Б -> gtplb — шапка «; UNIVERSAL /
+; PEG v2 / …\n; Исходник: чужой PE32+ (секций <dec>, DLL <dec>)») +
+; K5-G005 fold_emit (сворачивание области в патчи: ненулевые пробеги,
+; дырка >= 4 нулей обрывает, куски <= 64 Б; «!hdr off HEX» / «!sec n
+; off HEX») + K5-G006 emit_peg2 (драйвер: шапка + !pev2 H + !hdr
+; [0,H) + !body fsect + !sec прочих raw-секций + запись файла, коды
+; 8/9); буфер outmem переиспользуется ПОСЛЕ emit_body. Диффтесты
+; порта: T-E9-29 (+t.peg == emit_peg_v2 на крафтах) + T-E9-19
+; (перевёртыши: t.peg == оракулу); pegen.exe (wrap2) — следующий
+; срез E9.4-4b-4+, ПЕРВЫЙ ЧУЖОЙ КРУГ.
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall + bridge_self_pi.wall (импорты+цепочка+факты) +
@@ -111,7 +127,9 @@
 ; E — bridge_self_e.wall; метки/семантика/драйвер L —
 ; bridge_self_l.wall + bridge_self_l2.wall, разрез по лимиту 500;
 ; примитивы M — bridge_self_m.wall, семейства — m2/m3, драйвер — m4,
-; разрез по лимиту 500; PEG-выход G — bridge_self_g.wall, E9.2-4).
+; разрез по лимиту 500; PEG-выход G — bridge_self_g.wall, E9.2-4;
+; E9.4-4b-3 — PEG v2 ЧУЖОГО пути (peg2_check/gtpl_dec/fold_emit/
+; emit_peg2 — там же).
 ; Контракт CLI: bridge.exe <вход.exe> <выход.b2> <выход.peg>;
 ; диагностика — справка (код 2), ERR=LONG NAME (3), ERR=OPEN EXE (4),
 ; ERR=READ EXE (5), ERR=FAMILY (6), ERR=BIG EXE (7), ERR=OPEN OUT (8,
@@ -155,6 +173,8 @@ ext GlobalAlloc
 ; E9.4-4b-2: ftplb[25] (шапка чужого b2 — ftpl_dec из s_ftpl, 194 Б)
 ; ПЕРЕД w1 — как ptplb (E9.2-4): w1 остаётся ПОСЛЕДНИМ, инвариант
 ; 0 H-строк сохранён (rip-ссылок внутрь хвоста нет).
+; E9.4-4b-3: gtplb[13] (шапка PEG v2 — gtpl_dec из s_gtpl, 103 Б)
+; перед w1 — тот же прецедент.
 var hstdout
 var cmdline
 var written
@@ -251,6 +271,7 @@ var fend
 var fsect
 var dllcnt
 var sectcnt
+var peg2h
 var arg1[16]
 var arg2[16]
 var arg3[16]
@@ -266,6 +287,7 @@ var tplb[25]
 var mbuf[24]
 var ptplb[9]
 var ftplb[25]
+var gtplb[13]
 var w1[64]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
@@ -325,6 +347,12 @@ str s_pa = '\n!iat '
 str s_pb = '\n!bss '
 str s_ps = '\n!stackcom '
 str s_ph = '\n!heapcom '
+str s_gtpl = '3B20554E4956455253414C202F20504547207632202F20D0BCD0BED181D182204252494447452076312028535045432F3135290A3B20D098D181D185D0BED0B4D0BDD0B8D0BA3A20D187D183D0B6D0BED0B920504533322B2028D181D0B5D0BAD186D0B8D0B920'
+str s_gdll = ', DLL '
+str s_gpev = ')\n!pev2 '
+str s_ghdr = '\n!hdr '
+str s_gbody = '\n!body '
+str s_gsec = '\n!sec '
 
 !include bridge_self_c.wall
 !include bridge_self_pe.wall
@@ -392,12 +420,14 @@ func main
     foreign_front()
     fimp_walk()
     count_sects()
+    peg2_check()
     walk_code()
     sweep_ins()
     calc_target()
     init_tables()
     build_maps()
     emit_body(nlen2, 1)
+    emit_peg2(nlen3)
     print_ffacts()
     ExitProcess(0)
   end

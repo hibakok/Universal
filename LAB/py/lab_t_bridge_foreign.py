@@ -24,19 +24,25 @@
          семейства факты обоих путей СОВПАДАЮТ на общих ключах
          (body/vsize/raw/target/bss/entry_off/ins) — обобщение вилки
          на FileAlignment верно семейству (0x200), спуск не изменился;
-         (4) ПОРТ E9.4-4b-1/2 — bridge.exe на крафтах 3a/3b: ЧУЖАЯ
+         (4) ПОРТ E9.4-4b-1/2/3 — bridge.exe на крафтах 3a/3b: ЧУЖАЯ
          факт-строка «U-L5-BRIDGE FOREIGN=1 SECT=… M=… H=…» == фактам
          parse_foreign + ВЫХОД M=/H= (K.foreign_line — статистика
          emit_b2_foreign, как семейная строка с E9.2-3c), код 0,
          ЗАПИСАН <выход>.b2 == тексту emit_b2_foreign байт-в-байт
          (E9.4-4b-2 — ПОРТ ЭМИССИИ b2 ЧУЖОГО ТЕЛА: шапка из
-         выводимых фактов + M/H-строки, base = vaddr секции кода);
-         <выход>.peg НЕ создается (PEG v2 — срезы E9.4-4b-3+); 7
-         мутантов — ERR=FAMILY, код 6 (отказы семьи и чужого фронта
-         сходятся в общий код).
+         выводимых фактов + M/H-строки, base = vaddr секции кода) и
+         <выход>.peg == тексту emit_peg_v2 байт-в-байт (E9.4-4b-3 —
+         ПОРТ PEG v2 ВЕТВИ G: канон патчей !pev2/!hdr/!body/!sec —
+         сворачивание _fold/_chunks64 оракула); 7 мутантов —
+         ERR=FAMILY, код 6 (отказы семьи и чужого фронта сходятся в
+         общий код); НОВЫЙ отказ E9.4-4b-3 «файл короче raw прочих
+         секций» (чужой крафт, обрезка .rdata при целом коде — у
+         оракула отказ emit_peg_v2; у инструмента peg2_check ДО
+         спуска/эмиссии): ERR=FAMILY, код 6, БЕЗ частичных выходов
+         (t.b2/t.peg не создаются).
 Функция: «сначала истина семантики» (прецедент E9.1/E9.4-3a): чужой
-         путь — в оракуле ДО инструмента; срез E9.4-4b-1 — ПОРТ
-         развилки и фактов в bridge.exe (диффтест инструмент ==
+         путь — в оракуле ДО инструмента; срезы E9.4-4b-1..3 — ПОРТЫ
+         развилки/фактов/эмиссий в bridge.exe (диффтест инструмент ==
          оракулу — «оракул впереди» замкнут; мутанты-«перевёртыши»
          T-E9-19 — тем же прогоном батареи). Число проверок: 1.
 """
@@ -94,23 +100,40 @@ def run(check, kpath, kfile):
         for k in SHARED:
             if fam[k] != fore[k]:
                 bad.append("%s: %s != parse_family" % (m, k))
-    # (4) ПОРТ E9.4-4b-1/2: bridge.exe — чужая факт-строка с M=/H=
-    # == оракулу, код 0, t.b2 == emit_b2_foreign байт-в-байт
-    # (E9.4-4b-2 — ПОРТ ЭМИССИИ b2 ЧУЖОГО ТЕЛА), t.peg НЕ создаётся
-    # (PEG v2 — срезы 4b-3+); мутанты — ERR=FAMILY (6)
+    # (4) ПОРТ E9.4-4b-1/2/3: bridge.exe — чужая факт-строка с M=/H=
+    # == оракулу, код 0, t.b2 == emit_b2_foreign И t.peg ==
+    # emit_peg_v2 байт-в-байт (E9.4-4b-3 — ПОРТ PEG v2, ветвь G);
+    # мутанты + НОВЫЙ «файл короче raw прочих секций» (обрезка .rdata
+    # при целом коде — peg2_check ДО эмиссии) — ERR=FAMILY (6) БЕЗ
+    # частичных выходов
     bexe = kpath("L5-BRIDGE/bridge.exe")
     for name, img in (("foreign", K.foreign_image()),
                       ("foreign2", K.foreign2_image())):
         want_b2, _st = lab_bridge.emit_b2_foreign(img)
+        want_peg = lab_bridge.emit_peg_v2(img)
         r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                            {"in.exe": img})
         if (r.exit_code != 0 or r.stdout != K.foreign_line(img)
                 or r.files.get("t.b2") != want_b2.encode("utf-8")
-                or "t.peg" in r.files):
-            bad.append("%s: ПОРТ (код %s, факт %r, b2 %s Б, файлы %r)"
+                or r.files.get("t.peg") != want_peg.encode("utf-8")):
+            bad.append("%s: ПОРТ (код %s, факт %r, b2 %s Б, peg %s Б,"
+                       " файлы %r)"
                        % (name, r.exit_code, r.stdout[:60],
                           len(r.files.get("t.b2") or b""),
+                          len(r.files.get("t.peg") or b""),
                           sorted(r.files)))
+    trunc = K.foreign_image()[:0x900]
+    try:
+        lab_bridge.emit_peg_v2(trunc)
+        bad.append("нет отказа оракула: файл короче raw прочих секций")
+    except ValueError:
+        pass
+    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                       {"in.exe": trunc})
+    if (r.exit_code != 6 or r.stdout != FAMILY_MSG
+            or "t.b2" in r.files or "t.peg" in r.files):
+        bad.append("trunc-rdata: ПОРТ отказ (код %s, файлы %r)"
+                   % (r.exit_code, sorted(r.files)))
     for name, data in K.foreign2_rejects():
         r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                            {"in.exe": data})
@@ -120,8 +143,9 @@ def run(check, kpath, kfile):
           " + спуск 11 инструкций вкл. таблицу переходов + факты"
           " PEG v2) + 7 отказов + согласованность 12 артефактов с"
           " parse_family + ПОРТ bridge.exe (чужая факт-строка с M=/H="
-          " + t.b2 == emit_b2_foreign; peg не пишется)", not bad,
+          " + t.b2 == emit_b2_foreign + t.peg == emit_peg_v2;"
+          " отказы 8/8 без частичных выходов)", not bad,
           "; ".join(bad[:3]) if bad else
           "чужой: .text по входу, target 73/bss 38D, импорты 2 DLL;"
-          " отказы 7/7; семья: 12x7 общих ключей == parse_family;"
-          " ПОРТ 2/2 крафта (факты+M/H+b2) + 7/7 отказов == оракулу")
+          " отказы 7/7 + trunc-rdata; семья: 12x7 общих ключей =="
+          " parse_family; ПОРТ 2/2 крафта (факты+M/H+b2+peg)")

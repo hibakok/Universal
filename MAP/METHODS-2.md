@@ -154,3 +154,7 @@
 | K5-M028 | m_line | M | готов (E9.2-3c) | `MAP/M5-BRIDGE-M.md` |
 | K5-G001 | ptpl_dec | G | готов (E9.2-4) | `MAP/M5-BRIDGE-G.md` |
 | K5-G002 | emit_peg | G | готов (E9.2-4) | `MAP/M5-BRIDGE-G.md` |
+| K5-G003 | gtpl_dec | G | готов (E9.4-4b-3) | `MAP/M5-BRIDGE-G.md` |
+| K5-G004 | peg2_check | G | готов (E9.4-4b-3) | `MAP/M5-BRIDGE-G.md` |
+| K5-G005 | fold_emit | G | готов (E9.4-4b-3) | `MAP/M5-BRIDGE-G.md` |
+| K5-G006 | emit_peg2 | G | готов (E9.4-4b-3) | `MAP/M5-BRIDGE-G.md` |

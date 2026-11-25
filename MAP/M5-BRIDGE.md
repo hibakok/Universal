@@ -1,7 +1,7 @@
-# M5-BRIDGE — карточки кирпичей моста, часть 1 (C/P/X — 32; итог ветвей: 128)
+# M5-BRIDGE — карточки кирпичей моста, часть 1 (C/P/X — 32; итог ветвей: 132)
 
 Паспорт файла: MAP/M5-BRIDGE.md | слой: L5 | роль: реестр кирпичей M5-BRIDGE
-(C/P/X 32 + D/W 29 + E 20 + L 17 + M 28 + G 2). Формат карточки —
+(C/P/X 32 + D/W 29 + E 20 + L 17 + M 28 + G 6). Формат карточки —
 SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 
 > Модуль — мост BRIDGE v1 (KERNEL/L5-BRIDGE): EXE семейства UNIVERSAL ->
@@ -15,7 +15,13 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 > ВСЕМ СЕКЦИЯМ (как _read_rva оракула; для семьи == rva_off),
 > K5-P022 fimp_walk — обход IDT DD[1] (dllcnt шапки + дескриптор 1
 > -> thunk/impn, БЕЗ семейных проверок), K5-P023 count_sects —
-> sectcnt шапки. Ветви D/W — MAP/M5-BRIDGE-D.md, E —
+> sectcnt шапки. E9.4-4b-3 (ПОРТ PEG v2 — ВЕТВЬ G): K5-G003
+> gtpl_dec (шапка PEG v2 из s_gtpl), K5-G004 peg2_check (H = min
+> raw_ptr + файл покрывает raw ВСЕХ секций — ДО спуска, отказ
+> ERR=FAMILY без частичных выходов), K5-G005 fold_emit (сворачивание
+> области в патчи «!hdr»/«!sec» — _fold/_chunks64 оракула), K5-G006
+> emit_peg2 (ДРАЙВЕР PEG v2 — !pev2/!hdr/!body/!sec + запись
+> файла). Ветви D/W — MAP/M5-BRIDGE-D.md, E —
 > MAP/M5-BRIDGE-E.md, L — MAP/M5-BRIDGE-L.md, M — MAP/M5-BRIDGE-M.md
 > (разрезы по лимиту 500 строк). Карта RVA — BYTECODE.md §2.
 

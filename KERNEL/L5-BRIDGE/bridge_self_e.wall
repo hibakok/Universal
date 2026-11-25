@@ -43,7 +43,8 @@ end
 ; слова размера kw (4 — byte/word/dword/qword с пробелом, E9.2-3c —
 ; ветвь M); шапки — HEX-литералы s_tpl (199 байт UTF-8) -> массив
 ; tplb (b2) и s_ptpl (72 байта) -> массив ptplb (PEG — E9.2-4,
-; ветвь G); E9.4-4b-2: s_ftpl (194 байта) -> ftplb — ЧУЖАЯ шапка b2
+; ветвь G); E9.4-4b-2: s_ftpl (194 байта) -> ftplb — ЧУЖАЯ шапка b2;
+; E9.4-4b-3: s_gtpl (103 байта) -> gtplb — ШАПКА PEG v2 (ветвь G)
 func init_tables
   fill_offs(s_mn, o_mn, 28)
   fill_offs(s_cc, o_cc, 16)
@@ -55,6 +56,7 @@ func init_tables
   tpl_dec()
   ptpl_dec()
   ftpl_dec()
+  gtpl_dec()
   return 0
 end
 

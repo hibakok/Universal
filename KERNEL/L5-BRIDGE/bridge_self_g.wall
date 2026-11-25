@@ -1,23 +1,38 @@
-; bridge_self_g.wall — PEG-выход моста (E9.2-4)
+; bridge_self_g.wall — PEG-выход моста (E9.2-4; E9.4-4b-3 — PEG v2)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_g.wall | слой: L5 (исходник —
-; WALL) | роль: ветвь G моста — ЗАПИСЬ <выход>.peg: регенерация
-; обёртки PEG v1 (SPEC/15 п. 8 == _peg_text оракула emit_peg):
-; строка 1 — шапка «; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) /
-; исходник: <имя>.exe» (кириллица UTF-8 хранится HEX-текстом в
-; литерале s_ptpl корня — литералы WALL только ASCII; идиома s_tpl
-; шапки b2 — K5-G001 ptpl_dec) + !module <имя> + !entry <rva> +
+; WALL) | роль: ветвь G моста — ЗАПИСЬ <выход>.peg: СЕМЬЯ —
+; регенерация обёртки PEG v1 (K5-G001/G002, SPEC/15 п. 8 == _peg_text
+; оракула emit_peg): строка 1 — шапка «; UNIVERSAL / PEG v1 / мост
+; BRIDGE v1 (SPEC/15) / исходник: <имя>.exe» (кириллица UTF-8 хранится
+; HEX-текстом в литерале s_ptpl корня — литералы WALL только ASCII; идиома
+; s_tpl шапки b2 — K5-G001 ptpl_dec) + !module <имя> + !entry <rva> +
 ; !idata <rva> <размер> (каталог импорта DD[1] @0x110/@0x114) +
 ; !iat <rva> <размер> (каталог IAT DD[12] @0x168/@0x16C) + !bss <n>
 ; (если != 0) + !stackcom <n> (@0xE8) / !heapcom <n> (@0xF8) (если
-; != 0x1000 — значения по умолчанию опускаются, SPEC/07); числа —
-; ЗАГЛАВНЫЙ hex без ведущих нулей (out_hexv — «%X» оракула); имя
-; модуля — байты exebuf[77..77+modlen] (DOS-заглушка, ветвь P).
+; != 0x1000 — значения по умолчанию опускаются, SPEC/07); ЧУЖОЙ ПУТЬ
+; (E9.4-4b-3) — КАНОН ПАТЧЕЙ PEG v2 (SPEC/07 «Рост v2»/«Канон патчей»
+; == _peg2_text оракула emit_peg_v2): K5-G004 peg2_check (H = min
+; raw_ptr секций с raw + файл покрывает raw ВСЕХ секций — ДО спуска,
+; отказ ERR=FAMILY без частичных выходов; у оракула — отказ
+; emit_peg_v2 «файл короче raw прочих секций») + K5-G006 emit_peg2 —
+; шапка «; UNIVERSAL / PEG v2 / мост BRIDGE v1 (SPEC/15)\n; Исходник:
+; чужой PE32+ (секций <dec>, DLL <dec>)» (HEX-литерал s_gtpl корня ->
+; gtplb — идиома s_ftpl шапки чужого b2 — K5-G003 gtpl_dec) + «!pev2
+; <H>» + патчи «!hdr <off> <HEX>» области заголовков [0, H) +
+; «!body <слот секции кода>» + патчи «!sec <n> <off> <HEX>» прочих
+; raw-секций (K5-G005 fold_emit: сворачивание _fold — ненулевые
+; пробеги, дырка >= 4 нулей обрывает, куски <= 64 Б; байты — 2
+; ЗАГЛАВНЫЕ цифры); числа — ЗАГЛАВНЫЙ hex без ведущих нулей
+; (out_hexv), секций/DLL — десятичные (out_dec, как шапка чужого b2).
 ; Буфер вывода outmem переиспользуется ПОСЛЕ emit_body (текст b2 уже
-; записан в файл; PEG ~200 Б пишется с начала буфера — KW: outcur = 0).
+; записан в файл; худший случай текста PEG v2 ~2.2 символа/байт
+; образа < 8 МиБ outmem; PEG v1 ~200 Б — с начала буфера: outcur = 0).
 ; Запись — CreateFile2 WRITE/CREATE_ALWAYS (как emit_body): отказы
 ; OPEN OUT (8) / WRITE OUT (9). Диффтесты: T-E9-24 (12 артефактов +
 ; синтетика == оракулу emit_peg), круг T-E9-23 С PEG МОСТА —
-; приёмка DoD этапа E9.2 (мост -> enc -> brick -> pegen == вход).
+; приёмка DoD этапа E9.2 (мост -> enc -> brick -> pegen == вход);
+; E9.4-4b-3: T-E9-29 (+t.peg == emit_peg_v2 на крафтах) + T-E9-19
+; (перевёртыши: t.peg == оракулу) + зонд probe_e94_4b3.py.
 
 ; K5-G001: декод шаблона шапки PEG: HEX-текст s_ptpl (2 символа на
 ; байт, 144 символа) -> массив ptplb (72 байта = фикс. префикс первой
@@ -94,6 +109,206 @@ func emit_peg(nlen3)
   if rd32(exebuf, 248) != 4096
     outcur = copy_str(outbuf, outcur, s_ph, len(s_ph))
     out_hexv(rd32(exebuf, 248))
+  end
+  app_ch(10)
+  widen(w1, arg3, nlen3)
+  fh = CreateFile2(w1, 1073741824, 0, 2, 0)
+  if fh == -1
+    print_error(s_oout, len(s_oout), 8)
+  end
+  written = 0
+  rc = WriteFile(fh, outbuf, outcur, &written, 0)
+  if rc == 0
+    print_error(s_wout, len(s_wout), 9)
+  end
+  CloseHandle(fh)
+  return 0
+end
+
+; K5-G003 (E9.4-4b-3): декод HEX-шаблона шапки PEG v2 — s_gtpl (2
+; символа на байт, 206 символов) -> массив gtplb (103 байта UTF-8):
+; фикс. префикс «; UNIVERSAL / PEG v2 / мост BRIDGE v1 (SPEC/15)\n;
+; Исходник: чужой PE32+ (секций » — до числа секций (идиома
+; ptpl_dec/ftpl_dec; литералы WALL только ASCII 0x20..0x7E)
+func gtpl_dec
+  var i
+  var c
+  var v
+  i = 0
+  while i < 103
+    c = getb(s_gtpl, 2 * i)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = c * 16
+    c = getb(s_gtpl, 2 * i + 1)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    setb(gtplb, i, v + c)
+    i = i + 1
+  end
+  return 0
+end
+
+; K5-G004 (E9.4-4b-3): проверки PEG v2 ЧУЖОГО пути (как оракул
+; emit_peg_v2 ДО рендера): по ВСЕМ читаемым слотам таблицы секций —
+; файл покрывает raw (raw_ptr + raw_size <= exelen; «файл короче raw
+; прочих секций» оракула — код уже проверен foreign_front) и H =
+; min raw_ptr секций с raw («нет секций с raw» — защитная ветвь:
+; секция кода всегда с raw); глобаль peg2h (H). Проверка ВЫЗЫВАЕТСЯ
+; В main ДО спуска и эмиссии — отказ ERR=FAMILY без частичных
+; выходов (у оракула отказ поднимает emit_peg_v2 ПОСЛЕ parse_foreign
+; — наблюдаемо то же: мост образ не принимает)
+func peg2_check
+  var i
+  var slot
+  var rs
+  var rp
+  peg2h = -1
+  i = 0
+  while i < numsect
+    slot = tbloff + 40 * i
+    if slot + 40 > exelen
+      break
+    end
+    rs = rd32(exebuf, slot + 16)
+    rp = rd32(exebuf, slot + 20)
+    if rs > 0
+      if rp + rs > exelen
+        fail_family()
+      end
+      if peg2h < 0 || rp < peg2h
+        peg2h = rp
+      end
+    end
+    i = i + 1
+  end
+  if peg2h < 0
+    fail_family()
+  end
+  return 0
+end
+
+; K5-G005 (E9.4-4b-3): СВОРАЧИВАНИЕ области [lo, hi) файла в
+; ПАТЧ-строки (SPEC/07 «Канон патчей» == _fold/_chunks64 оракула):
+; ненулевые пробеги; дырка из >= 4 нулей ИЛИ до конца области —
+; обрывает пробег (хвостовые нули и дырки — вне патчей, нули
+; сборки); патч длиннее 64 Б режется кусками по 64. n < 0 — строка
+; «!hdr <off> <HEX>» (off — файловое смещение, с префикса s_ghdr);
+; n >= 0 — «!sec <n> <off-rp> <HEX>» (off — от начала raw секции
+; rp); байты блоба — out_hex2 (2 ЗАГЛАВНЫЕ цифры); числа — out_hexv
+; («%X» оракула). Порядок строк — по построению (пробеги по
+; возрастанию, слоты — вызывающий)
+func fold_emit(lo, hi, n, rp)
+  var i
+  var j
+  var z
+  var k
+  var e
+  i = lo
+  while i < hi
+    if getb(exebuf, i) == 0
+      i = i + 1
+      continue
+    end
+    j = i + 1
+    while j < hi
+      if getb(exebuf, j) != 0
+        j = j + 1
+        continue
+      end
+      z = j
+      while z < hi
+        if getb(exebuf, z) != 0
+          break
+        end
+        z = z + 1
+      end
+      if z - j >= 4
+        break
+      end
+      if z == hi
+        break
+      end
+      j = z
+    end
+    k = i
+    while k < j
+      e = k + 64
+      if e > j
+        e = j
+      end
+      if n < 0
+        outcur = copy_str(outbuf, outcur, s_ghdr, len(s_ghdr))
+        out_hexv(k)
+      else
+        outcur = copy_str(outbuf, outcur, s_gsec, len(s_gsec))
+        out_hexv(n)
+        app_ch(32)
+        out_hexv(k - rp)
+      end
+      app_ch(32)
+      while k < e
+        out_hex2(getb(exebuf, k))
+        k = k + 1
+      end
+    end
+    i = j
+  end
+  return 0
+end
+
+; K5-G006 (E9.4-4b-3): ДРАЙВЕР PEG-выхода ЧУЖОГО пути — текст PEG v2
+; (SPEC/15 п. 10 / SPEC/07 «Рост v2» == _peg2_text оракула
+; emit_peg_v2): шапка (gtplb + «, DLL » + dllcnt + «)\n!pev2 » +
+; peg2h) + патчи «!hdr» области заголовков [0, H) + «!body <слот
+; секции кода fsect>» + патчи «!sec» прочих raw-секций (слоты по
+; возрастанию, внутри — смещения) + завершающий LF; запись
+; <выход>.peg (CreateFile2 WRITE/CREATE_ALWAYS — коды 8/9, как
+; emit_peg); буфер outmem переиспользуется ПОСЛЕ emit_body (outcur
+; = 0). nlen3 — длина слова-пути выхода (аргумент 3 CLI)
+func emit_peg2(nlen3)
+  var fh
+  var rc
+  var j
+  var i
+  var slot
+  var rs
+  var rp
+  outbuf = outmem
+  outcur = 0
+  j = 0
+  while j < 103
+    app_ch(getb(gtplb, j))
+    j = j + 1
+  end
+  outcur = out_dec(outbuf, outcur, sectcnt)
+  outcur = copy_str(outbuf, outcur, s_gdll, len(s_gdll))
+  outcur = out_dec(outbuf, outcur, dllcnt)
+  outcur = copy_str(outbuf, outcur, s_gpev, len(s_gpev))
+  out_hexv(peg2h)
+  fold_emit(0, peg2h, -1, 0)
+  outcur = copy_str(outbuf, outcur, s_gbody, len(s_gbody))
+  out_hexv(fsect)
+  i = 0
+  while i < numsect
+    slot = tbloff + 40 * i
+    if slot + 40 > exelen
+      break
+    end
+    rs = rd32(exebuf, slot + 16)
+    rp = rd32(exebuf, slot + 20)
+    if rs > 0
+      if i != fsect
+        fold_emit(rp, rp + rs, i, rp)
+      end
+    end
+    i = i + 1
   end
   app_ch(10)
   widen(w1, arg3, nlen3)
