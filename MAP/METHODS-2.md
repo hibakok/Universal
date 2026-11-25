@@ -22,7 +22,7 @@
 | K4-M001 | mem_copy | M | готов | `MAP/M4-LIB.md` |
 | K4-M002 | mem_fill | M | готов | `MAP/M4-LIB.md` |
 
-## Слой L5 — мост M5-BRIDGE (E9.2-1..4 + E9.4-4a/4b-1: каркас + спуск + эмиссия + PEG + порт FF/таблиц + развилка — 123 кирпича)
+## Слой L5 — мост M5-BRIDGE (E9.2-1..4 + E9.4-4a/4b-1/2: каркас + спуск + эмиссия + PEG + порт FF/таблиц + развилка + ПОРТ b2 чужого тела — 128 кирпичей)
 
 | ID | Имя | Ветвь | Статус | Карточка |
 |---|---|---|---|---|
@@ -54,6 +54,9 @@
 | K5-P018 | fam_chain | P | готов (E9.4-4b-1) | `MAP/M5-BRIDGE.md` |
 | K5-P019 | foreign_front | P | готов (E9.4-4b-1) | `MAP/M5-BRIDGE.md` |
 | K5-P020 | print_ffacts | P | готов (E9.4-4b-1) | `MAP/M5-BRIDGE.md` |
+| K5-P021 | rva_file | P | готов (E9.4-4b-2) | `MAP/M5-BRIDGE.md` |
+| K5-P022 | fimp_walk | P | готов (E9.4-4b-2) | `MAP/M5-BRIDGE.md` |
+| K5-P023 | count_sects | P | готов (E9.4-4b-2) | `MAP/M5-BRIDGE.md` |
 | K5-D001 | fb | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
 | K5-D002 | rel8 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
 | K5-D003 | rel32 | D | готов (E9.2-2) | `MAP/M5-BRIDGE-D.md` |
@@ -101,6 +104,8 @@
 | K5-E015 | emit_h | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
 | K5-E016 | emit_data | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
 | K5-E017 | app_tpl | E | готов (E9.2-3a) | `MAP/M5-BRIDGE-E.md` |
+| K5-E019 | ftpl_dec | E | готов (E9.4-4b-2) | `MAP/M5-BRIDGE-E.md` |
+| K5-E020 | app_ftpl | E | готов (E9.4-4b-2) | `MAP/M5-BRIDGE-E.md` |
 | K5-E018 | emit_raw | E | x — снят (E9.2-3b; заменён K5-L017) | `MAP/M5-BRIDGE-E.md` |
 | K5-L001 | imp_hints | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |
 | K5-L002 | san_put | L | готов (E9.2-3b) | `MAP/M5-BRIDGE-L.md` |

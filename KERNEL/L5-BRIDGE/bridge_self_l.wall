@@ -1,7 +1,12 @@
-; bridge_self_l.wall — карты и семантика режима "H", часть 1 (E9.2-3b)
+; bridge_self_l.wall — карты и семантика режима "H", часть 1 (E9.2-3b; E9.4-4b-2: base = codevaddr)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_l.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь L моста, ЧАСТЬ 1 — КАРТЫ И СЕМАНТИКА режима "H"
-; оракула _emit_lines(mode="H") (SPEC/15 п. 6/8): карта тела (K5-L005
+; оракула _emit_lines(mode="H") (SPEC/15 п. 6/8): с E9.4-4b-2 ветвь
+; ПАРАМЕТРИЗОВАНА base = codevaddr (RVA секции кода — оракул
+; _emit_lines(..., base) E9.4-3c-3; у семьи codevaddr == 4096 —
+; семейный выход НЕ меняется построением, якоря T-E9-25 зелёные);
+; чтения структур импорта — rva_file ПО ВСЕМ СЕКЦИЯМ (чужие
+; импорты вне тела — сырыми байтами: impbad). Карта тела (K5-L005
 ; sstate — выжившие: 1 старт /
 ; 2 строго внутри; по сдампу sdump), импорты (K5-L001 imp_hints —
 ; перечитывание записей INT/IAT: маскированный hint-RVA + имя с quirk
@@ -35,9 +40,15 @@
 ; в знаковой qword-арифметике WALL = бит 63 установлен — достаточно
 ; прибавить 2^63 = 16777216*256*16777216*128; СРАВНИВАТЬ с 2^63 НЕЛЬЗЯ
 ; — произведение представимо только как -2^63, урок E9.2-3b),
-; файловое смещение имени (hint-RVA+2
-; минус секция плюс rawptr; -1 = вне файла -> имя «?» -> san «_») и
-; его длина (quirk C-строки cstr_len — без NUL обрезается до len-1)
+; файловое смещение имени (hint-RVA+2 — E9.4-4b-2: по rva_file ПО
+; ВСЕМ СЕКЦИЯМ, как _read_cstr_rva оракула — чужие имена лежат вне
+; тела секции кода; для семьи тождественно hint-RVA+2-4096+rawptr —
+; нейтрально; -1 = вне файла -> имя «?» -> san «_») и
+; его длина (quirk C-строки cstr_len — без NUL обрезается до len-1);
+; чтение записи — rva_file(thunk+8k) (E9.4-4b-2: было
+; thunk+8k-4096+rawptr — семья нейтральна: одна секция,
+; exelen == rawptr+rawsize; k < impn гарантирует границы — обходы
+; walk_funcs/fimp_walk останавливаются ровно на конце файла)
 func imp_hints
   var k
   var f
@@ -51,13 +62,13 @@ func imp_hints
   end
   k = 0
   while k < impn
-    f = thunk + 8 * k - 4096 + rawptr
+    f = rva_file(thunk + 8 * k)
     v = u64(f)
     if v < 0
       v = v + 16777216 * 256 * 16777216 * 128
     end
     hhrv[k] = v
-    no = v + 2 - 4096 + rawptr
+    no = rva_file(v + 2)
     if no < 0 || no >= exelen
       hno[k] = -1
       hnl[k] = 1
@@ -122,14 +133,26 @@ end
 ; iatoff (ft @+16 дескриптора 1), nameoff (name_rva @+12), idtoff
 ; (DD[1] @optoff+0x78 — вычисляемое смещение E9.4-4b-1, как
 ; dd1_import_rva оракула; было 272 фиксированное), intoff (oft @+0,
-; иначе ft — как thunk семейства)
+; иначе ft — как thunk семейства); E9.4-4b-2: смещения — RVA минус
+; codevaddr (base = vaddr секции кода — у семьи 4096, нейтрально),
+; дескриптор — по rva_file (по ВСЕМ секциям; для семьи тождественно
+; rva_off — дескриптор в raw тела); НЕТ дескриптора (DD[1] вне
+; отображения/за файлом — нет импортов) — все смещения -1: impbad
+; (сырые байты — как _import_map оракула без pe["imports"])
 func imp_offs
   var f
-  f = rva_off(rd32(exebuf, optoff + 120))
-  iatoff = rd32(exebuf, f + 16) - 4096
-  nameoff = rd32(exebuf, f + 12) - 4096
-  idtoff = rd32(exebuf, optoff + 120) - 4096
-  intoff = thunk - 4096
+  f = rva_file(rd32(exebuf, optoff + 120))
+  if f < 0 || f + 20 > exelen
+    iatoff = -1
+    nameoff = -1
+    idtoff = -1
+    intoff = -1
+    return 0
+  end
+  iatoff = rd32(exebuf, f + 16) - codevaddr
+  nameoff = rd32(exebuf, f + 12) - codevaddr
+  idtoff = rd32(exebuf, optoff + 120) - codevaddr
+  intoff = thunk - codevaddr
   return 0
 end
 
@@ -139,7 +162,8 @@ end
 ; impbad=1 (меток/семантики нет — сырые байты). labmap: 1 = d*,
 ; 2 = l*, 3 = iat_. Слоты iat_ ПРИСВАИВАЮТСЯ (первые), d* — setdefault
 ; (не перезаписывают); knownoff — только созданные метки
-; (границы impn=0 — как «?» оракула)
+; (границы impn=0 — как «?» оракула); E9.4-4b-2: hint-смещения —
+; RVA минус codevaddr (base; у семьи 4096 — нейтрально)
 func imp_labels
   var k
   var h
@@ -156,7 +180,7 @@ func imp_labels
   if impbad == 0
     k = 0
     while k < impn
-      h = hhrv[k] - 4096
+      h = hhrv[k] - codevaddr
       if h < 0 || h >= target
         impbad = 1
       end
@@ -172,7 +196,7 @@ func imp_labels
     if getb(sstate, iatoff + 8 * k) != 2
       setb(labmap, iatoff + 8 * k, 3)
     end
-    h = hhrv[k] - 4096
+    h = hhrv[k] - codevaddr
     if getb(sstate, h) != 2
       if getb(labmap, h) == 0
         setb(labmap, h, 1)
@@ -257,7 +281,9 @@ end
 ; валидны, когда каждая запись k < impn равна маскированному hint-RVA_k
 ; И метка hint-смещения создана (иначе ссылка «$имя» невозможна), а
 ; терминатор (k = impn) нулевой; валидна — по строке-кандидату на
-; запись (метки слотов — между строк); u64 с бит 63 -> +2^64
+; запись (метки слотов — между строк); u64 с бит 63 -> +2^64;
+; E9.4-4b-2: hint-смещения — RVA минус codevaddr (base; у семьи
+; 4096 — нейтрально)
 func dq_base(base)
   var k
   var v
@@ -271,7 +297,7 @@ func dq_base(base)
     if v != hhrv[k]
       return 0
     end
-    h = hhrv[k] - 4096
+    h = hhrv[k] - codevaddr
     if getb(labmap, h) == 0
       return 0
     end
@@ -286,7 +312,7 @@ func dq_base(base)
   end
   k = 0
   while k < impn
-    sem_add(base + 8 * k, 2, hhrv[k] - 4096)
+    sem_add(base + 8 * k, 2, hhrv[k] - codevaddr)
     k = k + 1
   end
   sem_add(base + 8 * impn, 2, -1)

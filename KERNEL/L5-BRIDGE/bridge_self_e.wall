@@ -43,7 +43,7 @@ end
 ; слова размера kw (4 — byte/word/dword/qword с пробелом, E9.2-3c —
 ; ветвь M); шапки — HEX-литералы s_tpl (199 байт UTF-8) -> массив
 ; tplb (b2) и s_ptpl (72 байта) -> массив ptplb (PEG — E9.2-4,
-; ветвь G)
+; ветвь G); E9.4-4b-2: s_ftpl (194 байта) -> ftplb — ЧУЖАЯ шапка b2
 func init_tables
   fill_offs(s_mn, o_mn, 28)
   fill_offs(s_cc, o_cc, 16)
@@ -54,6 +54,7 @@ func init_tables
   fill_offs(s_kw, o_kw, 4)
   tpl_dec()
   ptpl_dec()
+  ftpl_dec()
   return 0
 end
 
@@ -80,6 +81,36 @@ func tpl_dec
       c = c - 48
     end
     setb(tplb, i, v + c)
+    i = i + 1
+  end
+  return 0
+end
+
+; K5-E019 (E9.4-4b-2): декод шаблона ЧУЖОЙ шапки — HEX-текст s_ftpl
+; -> ftplb (194 Б; как tpl_dec); куски: «; Исходник: чужой PE32+
+; (секций » [0,51), «, DLL » [51,57), «; тело секции кода RVA »
+; [57,94), «, » [94,96), « Б; !bss » [96,106), хвост «)\n; Круг:
+; ...\n» [106,194) — первая строка шапки ОБЩАЯ с семьёй (tplb [0,54))
+func ftpl_dec
+  var i
+  var c
+  var v
+  i = 0
+  while i < 194
+    c = getb(s_ftpl, 2 * i)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    v = c * 16
+    c = getb(s_ftpl, 2 * i + 1)
+    if c > 57
+      c = c - 55
+    else
+      c = c - 48
+    end
+    setb(ftplb, i, v + c)
     i = i + 1
   end
   return 0
@@ -394,6 +425,18 @@ func app_tpl(lo, hi)
   j = lo
   while j < hi
     app_ch(getb(tplb, j))
+    j = j + 1
+  end
+  return 0
+end
+
+; K5-E020 (E9.4-4b-2): кусок шаблона ЧУЖОЙ шапки [lo, hi) — байты
+; из массива ftplb (декод s_ftpl — ftpl_dec; как app_tpl)
+func app_ftpl(lo, hi)
+  var j
+  j = lo
+  while j < hi
+    app_ch(getb(ftplb, j))
     j = j + 1
   end
   return 0

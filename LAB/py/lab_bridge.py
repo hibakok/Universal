@@ -234,9 +234,15 @@ def _import_map(fam, base=SECT):
     байтами). Представимость (E9.2-3b, SPEC/15 п. 4/6): метка НЕ
     создаётся строго внутри выжившей инструкции (наложение разрезов
     — невалидный b2); DQ с не-созданной меткой — сырыми байтами.
+    E9.4-4b-2 (порт, защитная ветвь): pe["imports"] пуст (DD[1] не
+    отображается/терминатор сразу) — НЕТ импортов: пустые карты
+    (сырые байты — обобщение «импорты вне тела»; было — IndexError,
+    класс не был покрыт крафтами).
     """
     body, pe = fam["body"], fam["pe"]
     labels, semantic, known = {}, {}, {}
+    if not pe["imports"]:
+        return labels, semantic, known    # нет импортов — сырые байты
     imp = pe["imports"][0]
     iat_off = imp["iat_rva"] - base
     int_off = (imp["oft_rva"] or imp["iat_rva"]) - base

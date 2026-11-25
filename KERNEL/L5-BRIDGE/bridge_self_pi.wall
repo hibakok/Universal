@@ -1,8 +1,12 @@
-; bridge_self_pi.wall — импорты семейства, цепочка-предикат, факт-строка, часть 2 (E9.2-1, E9.4-4b-1)
+; bridge_self_pi.wall — импорты семейства, RVA-отображение, цепочка-предикат, факт-строка, часть 2 (E9.2-1, E9.4-4b-1/2)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_pi.wall | слой: L5 (исходник —
 ; WALL) | роль: ветвь P моста, ЧАСТЬ 2 (разрез pe.wall по лимиту 500 —
 ; прецедент d/d2/d3): ИМПОРТЫ СЕМЕЙСТВА (K5-P012 rva_off — RVA тела
-; 0x1000+ -> файловое смещение; K5-P013 walk_descs — дескрипторы IDT
+; 0x1000+ -> файловое смещение; K5-P021 rva_file — E9.4-4b-2: RVA ->
+; файловое смещение ПО ВСЕМ СЕКЦИЯМ, как _sec_of/_read_rva оракула
+; E9.4-3a — для чтения структур импорта ветвью L на ЛЮБОМ образе
+; (чужие импорты — вне тела секции кода); для семьи тождественно
+; rva_off — нейтрально; K5-P013 walk_descs — дескрипторы IDT
 ; по DD[1] @optoff+0x78 (вычисляемое смещение — E9.4-4b-1, как
 ; dd1_import_rva оракула; было 272 фиксированное): ровно один
 ; дескриптор + терминатор (нули ИЛИ за файлом — как break по None
@@ -22,6 +26,38 @@
 ; RVA тела (0x1000+) -> файловое смещение (тело лежит с rawptr)
 func rva_off(rva)
   return rva - 4096 + rawptr
+end
+
+; K5-P021 (E9.4-4b-2): RVA -> файловое смещение ПО ВСЕМ СЕКЦИЯМ
+; (порт _sec_of/_read_rva оракула lab_pe E9.4-3a): первая секция
+; виртуального диапазона [vaddr, vaddr+raw_size) (ФАЙЛОВАЯ часть —
+; виртуальный хвост bss не отображается), off = rva-vaddr+raw_ptr;
+; нет секции / слот за файлом — -1 (как None оракула; ЧИТАТЕЛЬ обязан
+; проверить границы файла — само отображение их не проверяет, как
+; _sec_of). Для семьи (одна секция, exelen == rawptr+rawsize) —
+; ТОЖДЕСТВЕННО rva_off на отображаемых RVA: нейтральность семейного
+; пути (замена rva_off в imp_offs/imp_hints — построением)
+func rva_file(rva)
+  var i
+  var slot
+  var svaddr
+  var srawsize
+  var srawptr
+  i = 0
+  while i < numsect
+    slot = tbloff + 40 * i
+    if slot + 40 > exelen
+      break
+    end
+    svaddr = rd32(exebuf, slot + 12)
+    srawsize = rd32(exebuf, slot + 16)
+    if rva >= svaddr && rva < svaddr + srawsize
+      srawptr = rd32(exebuf, slot + 20)
+      return rva - svaddr + srawptr
+    end
+    i = i + 1
+  end
+  return -1
 end
 
 ; K5-P013: дескрипторы IDT (DD[1] @ optoff+0x78): размер >= 40;

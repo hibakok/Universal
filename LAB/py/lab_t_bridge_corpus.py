@@ -33,15 +33,18 @@ S_BIG = b"U-L5-BRIDGE ERR=BIG EXE\r\n"
 
 
 def foreign_line(data):
-    """Чужая факт-строка моста (E9.4-4b-1) — факты parse_foreign:
-    FOREIGN=1 SECT=<индекс секции кода> ENTRY/VSIZE/RAW/INS/TARGET/BSS."""
+    """Чужая факт-строка моста (E9.4-4b-1/2) — факты parse_foreign:
+    FOREIGN=1 SECT=<индекс секции кода> ENTRY/VSIZE/RAW/INS/TARGET/
+    BSS + M=/H= (E9.4-4b-2: ВЫХОД моста — статистика emit_b2_foreign,
+    как семейная строка с E9.2-3c)."""
     f = lab_bridge.parse_foreign(data)
     pe = f["pe"]
+    _t, st = lab_bridge.emit_b2_foreign(data)
     return ("U-L5-BRIDGE FOREIGN=1 SECT=%d ENTRY=%08X VSIZE=%08X RAW=%08X"
-            " INS=%d TARGET=%08X BSS=%08X\r\n"
+            " INS=%d TARGET=%08X BSS=%08X M=%d H=%d\r\n"
             % (pe["sections"].index(f["code"]), pe["addr_entry_point"],
                f["vsize"], f["raw"], len(f["ins"]), f["target"],
-               f["bss"])).encode("latin1")
+               f["bss"], st["m"], st["h"])).encode("latin1")
 
 
 
@@ -121,6 +124,7 @@ def cli_cases(seed):
         fcase("DLL-имя", mut(dll_off, 120)),
         fcase("hint нечётный", mut(thunk_off, seed[thunk_off] | 1)),
         fcase("терминатор IDT", mut(idt2_off, 1)),
+        fcase("нет импортов (DD[1]=0)", mut(0x111, 0)),
         ("инструкция за vsize", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": vsz(61)}, S_FAMILY, 6),
         ("длина тела > vsize", ["in.exe", "t.b2", "t.peg"],

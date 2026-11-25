@@ -83,6 +83,25 @@
 ; — срезы E9.4-4b-2+ (файлы для чужих не создаются); отказы семьи и
 ; чужого фронта сходятся в ERR=FAMILY (код 6). Диффтесты порта:
 ; T-E9-29 (+инструмент на крафтах/мутантах), мутанты T-E9-19.
+; Срез E9.4-4b-2 (ПОРТ ЭМИССИИ b2 ЧУЖОГО ТЕЛА — SPEC/15 п. 10):
+; после чужого фронта/спуска чужой путь ЭМИТИТ <выход>.b2 — канон
+; тела секции кода (base = codevaddr, оракул emit_b2_foreign
+; E9.4-3c-3): шапка из ВЫВОДИМЫХ фактов (секций/DLL/RVA секции кода/
+; target/!bss — БЕЗ module/stackcom/heapcom, их у чужих нет; шаблон
+; s_ftpl -> ftplb, ветвь E), карты/семантика/метки/M-строки — ТЕ ЖЕ
+; ветви L/M с параметром base: импорты читаются по ВСЕМ секциям
+; (K5-P021 rva_file — как _read_rva оракула; структуры ВНЕ тела —
+; сырыми байтами: impbad), имена меток l/d — RVA (off + codevaddr;
+; у семьи codevaddr == 4096 — нейтрально, якоря T-E9-25 не задеты),
+; $base — телесное смещение -0x1000 (ABI brick, SPEC/08 п. 4 —
+; документированная условность при vaddr != 0x1000); чужая факт-строка
+; получает ВЫХОД M=/H= (прецедент E9.2-3c); <выход>.peg для чужих —
+; PEG v2, срезы E9.4-4b-3+ (файл .peg НЕ создаётся). Чужие импорты:
+; K5-P022 fimp_walk (обход IDT DD[1] по rva_file — dllcnt для шапки;
+; дескриптор 1: thunk/impn) + K5-P023 count_sects (sectcnt шапки).
+; Диффтесты порта: T-E9-29 (+t.b2 == оракулу на крафтах), T-E9-19
+; (12 мутантов-«перевёртышей» + «нет импортов»: факты с M=/H= и
+; t.b2 == оракулу emit_b2_foreign).
 ; Разрез — механизм SPEC/10 (как kernel.wall): корень держит объявления
 ; и main, части — функции по ветвям (сервис C — bridge_self_c.wall;
 ; разбор PE — bridge_self_pe.wall + bridge_self_pi.wall (импорты+цепочка+факты) +
@@ -133,6 +152,9 @@ ext GlobalAlloc
 ; < 0x200 Б, при w1[64] (0x200 Б) последним хвост ПОЛНОСТЬЮ внутри
 ; w1 при ЛЮБОМ vsize (w1base = vsize-0x200 <= raw-0x1FF) —
 ; БЕЗУСЛОВНЫЙ инвариант, пересчёт при росте больше не нужен.
+; E9.4-4b-2: ftplb[25] (шапка чужого b2 — ftpl_dec из s_ftpl, 194 Б)
+; ПЕРЕД w1 — как ptplb (E9.2-4): w1 остаётся ПОСЛЕДНИМ, инвариант
+; 0 H-строк сохранён (rip-ссылок внутрь хвоста нет).
 var hstdout
 var cmdline
 var written
@@ -227,6 +249,8 @@ var codevaddr
 var falign
 var fend
 var fsect
+var dllcnt
+var sectcnt
 var arg1[16]
 var arg2[16]
 var arg3[16]
@@ -241,6 +265,7 @@ var o_kw[5]
 var tplb[25]
 var mbuf[24]
 var ptplb[9]
+var ftplb[25]
 var w1[64]
 
 str s_use = 'U-L5-BRIDGE CMDS: BRIDGE <IN.EXE> <OUT.B2> <OUT.PEG>\r\n'
@@ -291,6 +316,7 @@ str s_r16 = 'ax\0cx\0dx\0bx\0sp\0bp\0si\0di\0r8w\0r9w\0r10w\0r11w\0r12w\0r13w\0r
 str s_r32 = 'eax\0ecx\0edx\0ebx\0esp\0ebp\0esi\0edi\0r8d\0r9d\0r10d\0r11d\0r12d\0r13d\0r14d\0r15d\0'
 str s_tpl = '3B20554E4956455253414C202F20425249434B207632202F20D0BCD0BED181D182204252494447452076312028535045432F3135290A3B20D098D181D185D0BED0B4D0BDD0B8D0BA3A202E6578652028D182D0B5D0BBD0BE20D181D0B5D0BAD186D0B8D0B82052564120313030302C2020D0913B202162737320290A3B20D09AD180D183D0B33A20656E63202D3E20627269636B202D3E20706567656E282B70656720D0BCD0BED181D182D0B029203D3D20D0B8D181D185D0BED0B4D0BDD18BD0B9204558450A'
 str s_ptpl = '3B20554E4956455253414C202F20504547207631202F20D0BCD0BED181D182204252494447452076312028535045432F313529202F20D0B8D181D185D0BED0B4D0BDD0B8D0BA3A20'
+str s_ftpl = '3B20D098D181D185D0BED0B4D0BDD0B8D0BA3A20D187D183D0B6D0BED0B920504533322B2028D181D0B5D0BAD186D0B8D0B9202C20444C4C203B20D182D0B5D0BBD0BE20D181D0B5D0BAD186D0B8D0B820D0BAD0BED0B4D0B020525641202C2020D0913B202162737320290A3B20D09AD180D183D0B33A20656E63202D3E20627269636B202D3E20D182D0B5D0BBD0BE3B20777261703228D182D0B5D0BBD0BE2C2050454720763229203D3D20D0B8D181D185D0BED0B4D0BDD18BD0B9204558450A'
 str s_dotexe = '.exe\n'
 str s_pm = '!module '
 str s_pe = '\n!entry '
@@ -353,16 +379,25 @@ func main
   end
   CloseHandle(fh)
   check_head()
-  ; РАЗВИЛКА «СЕМЬЯ | ЧУЖОЙ» (E9.4-4b-1, SPEC/15 п. 10): общий
+  ; РАЗВИЛКА «СЕМЬЯ | ЧУЖОЙ» (E9.4-4b-1/2, SPEC/15 п. 10): общий
   ; check_head (MZ/PE-сигнатура + раскладка от e_lfanew) — далее
-  ; семейная цепочка-предикат; не-семья -> ЧУЖОЙ ПУТЬ (факты спуска
-  ; в секции кода по точке входа; эмиссия .b2/.peg для чужих — срезы
-  ; E9.4-4b-2+, файлы не создаются); отказы обеих сторон — ERR=FAMILY
+  ; семейная цепочка-предикат; не-семья -> ЧУЖОЙ ПУТЬ: фронт P2 ->
+  ; импорты (fimp_walk/count_sects — данные шапки и карт L) -> спуск
+  ; -> карты (L, base = codevaddr) -> ЭМИССИЯ .b2 КАНОН ЧУЖОГО ТЕЛА
+  ; (E9.4-4b-2: шапка из выводимых фактов + M/H-строки, те же ветви
+  ; L/M; <выход>.peg — PEG v2, срезы E9.4-4b-3+, файл не создаётся)
+  ; -> чужая факт-строка с ВЫХОДОМ M=/H=; отказы обеих сторон —
+  ; ERR=FAMILY
   if fam_chain() != 0
     foreign_front()
+    fimp_walk()
+    count_sects()
     walk_code()
     sweep_ins()
     calc_target()
+    init_tables()
+    build_maps()
+    emit_body(nlen2, 1)
     print_ffacts()
     ExitProcess(0)
   end
@@ -371,7 +406,7 @@ func main
   calc_target()
   init_tables()
   build_maps()
-  emit_body(nlen2)
+  emit_body(nlen2, 0)
   emit_peg(nlen3)
   print_facts()
   ExitProcess(0)

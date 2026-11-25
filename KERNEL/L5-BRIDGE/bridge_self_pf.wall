@@ -1,4 +1,4 @@
-; bridge_self_pf.wall — чужой фронт моста: ветвь P, часть 2 (E9.4-4b-1)
+; bridge_self_pf.wall — чужой фронт моста: ветвь P, часть 2 (E9.4-4b-1/2)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_pf.wall | слой: L5 (исходник —
 ; WALL) | роль: ветвь P моста, ЧАСТЬ 3 — ЧУЖОЙ ПУТЬ развилки «семья |
 ; чужой» (SPEC/15 п. 10, E9.4-4b-1; вход в путь — K5-P018 fam_chain
@@ -18,11 +18,18 @@
 ; оракула; вилка target — falign образа). Отказ — ERR=FAMILY (общий
 ; код 6: не чужой валидный образ). K5-P020 print_ffacts — ЧУЖАЯ
 ; ФАКТ-СТРОКА «U-L5-BRIDGE FOREIGN=1 SECT=<i> ENTRY=<hex8> VSIZE=
-; <hex8> RAW=<hex8> INS=<dec> TARGET=<hex8> BSS=<hex8>» — факты ==
-; parse_foreign оракула (SECT — индекс секции кода, начиная с 0);
-; M=/H= и запись <выход>.b2/.peg для чужих — срезы ЭМИССИИ
-; E9.4-4b-2+ (срез 4b-1 — только факты; выходные файлы для чужих
-; не создаются, как каркас E9.2-1 до срезов E9.2-3+).
+; <hex8> RAW=<hex8> INS=<dec> TARGET=<hex8> BSS=<hex8> M=<dec>
+; H=<dec>» — факты == parse_foreign оракула (SECT — индекс секции
+; кода, начиная с 0; M=/H= — ВЫХОД моста, E9.4-4b-2). E9.4-4b-2
+; (ПОРТ ЭМИССИИ b2 ЧУЖОГО ТЕЛА): K5-P022 fimp_walk — обход IDT
+; DD[1] по rva_file: dllcnt (шапка) + глобали ветви L (thunk/impn —
+; дескриптор 1, БЕЗ семейных проверок: чётность hint и kernel32 —
+; только для семьи; нет импортов — dllcnt=0/impn=0/impbad) +
+; K5-P023 count_sects — sectcnt (шапка «секций N» == len(sections)
+; оракула, слоты за файлом обрываются); ЭМИССИЯ <выход>.b2 —
+; emit_body(nlen2, 1) (те же ветви L/M с base = codevaddr);
+; <выход>.peg для чужих — PEG v2, срезы E9.4-4b-3+ (файл НЕ
+; создаётся).
 
 ; K5-P019: чужой фронт — проверки порядка SPEC/15 п. 10 + выбор
 ; секции кода по точке входа + глобали спуска от секции кода;
@@ -123,11 +130,15 @@ func foreign_front
   return 0
 end
 
-; K5-P020: ЧУЖАЯ факт-строка (E9.4-4b-1): FOREIGN=1 SECT=<индекс
-; секции кода> + ENTRY/VSIZE/RAW/INS/TARGET/BSS — в factbuf (базовые
-; s_f2..s_f8 семейной строки), одним WriteFile в stdout; факты ==
-; parse_foreign оракула (entry = addr_entry_point, vsize/raw — секция
-; кода, INS — выжившие спуска, TARGET/BSS — п. 7 с falign образа)
+; K5-P020: ЧУЖАЯ факт-строка (E9.4-4b-1/2): FOREIGN=1 SECT=<индекс
+; секции кода> + ENTRY/VSIZE/RAW/INS/TARGET/BSS + M=<dec> H=<dec>
+; (E9.4-4b-2: ВЫХОД моста — числа M-/H-строк записанного <выход>.b2,
+; глобали mcount/hcount драйвера emit_body — == статистика m/h
+; оракула emit_b2_foreign; прецедент семейной строки E9.2-3c) — в
+; factbuf (базовые s_f2..s_f8/s_f9/s_fa), одним WriteFile в stdout;
+; факты == parse_foreign оракула (entry = addr_entry_point, vsize/
+; raw — секция кода, INS — выжившие спуска, TARGET/BSS — п. 7
+; с falign образа)
 func print_ffacts
   var k
   k = 0
@@ -145,8 +156,109 @@ func print_ffacts
   k = out_hex(factbuf, k, target)
   k = copy_str(factbuf, k, s_f8, len(s_f8))
   k = out_hex(factbuf, k, bss)
+  k = copy_str(factbuf, k, s_f9, len(s_f9))
+  k = out_dec(factbuf, k, mcount)
+  k = copy_str(factbuf, k, s_fa, len(s_fa))
+  k = out_dec(factbuf, k, hcount)
   k = copy_str(factbuf, k, s_crlf, len(s_crlf))
   written = 0
   WriteFile(hstdout, factbuf, k, &written, 0)
+  return 0
+end
+
+; K5-P022 (E9.4-4b-2): ЧУЖИЕ ИМПОРТЫ — обход IDT по DD[1]
+; (@optoff+0x78 — вычисляемое смещение) через rva_file (по ВСЕМ
+; секциям, как разбор оракула lab_pe.parse): дескрипторы по 20 Б —
+; терминатор 20 нулей ИЛИ вне файла (rva_file -1 / f+20 > exelen —
+; как None/struct.error оракула); dllcnt — для ШАПКИ чужого b2
+; («секций N, DLL N» — выводимые факты); дескриптор 1 -> глобали
+; ветви L: thunk (oft != 0 ? oft : ft — OriginalFirstThunk у
+; семейства 0) и impn (счёт записей таблицы 8 Б: терминатор 8 нулей
+; ИЛИ за файлом; предел 32768 покрывает вход 256 КиБ — как
+; walk_funcs); чётность hint-RVA НЕ проверяется (семейная
+; инвариантность — чужим порядковые записи легальны). Нет
+; импортов (DD[1] не отображается/терминатор сразу) — dllcnt=0,
+; impn=0: imp_labels даст impbad (сырые байты — как _import_map
+; оракула без дескрипторов)
+func fimp_walk
+  var dd1
+  var f
+  var oft
+  var ft
+  var z
+  var k
+  var j
+  var e
+  dllcnt = 0
+  thunk = 0
+  impn = 0
+  dd1 = rd32(exebuf, optoff + 120)
+  f = rva_file(dd1)
+  while f >= 0 && f + 20 <= exelen
+    z = 0
+    k = 0
+    while k < 20
+      if getb(exebuf, f + k) != 0
+        z = 1
+        break
+      end
+      k = k + 1
+    end
+    if z == 0
+      break
+    end
+    dllcnt = dllcnt + 1
+    if dllcnt == 1
+      oft = rd32(exebuf, f)
+      ft = rd32(exebuf, f + 16)
+      if oft != 0
+        thunk = oft
+      else
+        thunk = ft
+      end
+    end
+    dd1 = dd1 + 20
+    f = rva_file(dd1)
+  end
+  k = 0
+  while k < 32768
+    e = rva_file(thunk + 8 * k)
+    if e < 0 || e + 8 > exelen
+      break
+    end
+    z = 0
+    j = 0
+    while j < 8
+      if getb(exebuf, e + j) != 0
+        z = 1
+        break
+      end
+      j = j + 1
+    end
+    if z == 0
+      break
+    end
+    impn = impn + 1
+    k = k + 1
+  end
+  return 0
+end
+
+; K5-P023 (E9.4-4b-2): число ЧИТАЕМЫХ слотов таблицы секций —
+; sectcnt (шапка чужого b2 «секций N» == len(pe["sections"])
+; оракула: слот 0 читается всегда (guard в foreign_front), слоты за
+; файлом ОБРЫВАЮТ таблицу — как разбор оракула; numsect может
+; заявлять больше — count ограничен файлом)
+func count_sects
+  var i
+  sectcnt = 0
+  i = 0
+  while i < numsect
+    if tbloff + 40 * (i + 1) > exelen
+      break
+    end
+    sectcnt = sectcnt + 1
+    i = i + 1
+  end
   return 0
 end

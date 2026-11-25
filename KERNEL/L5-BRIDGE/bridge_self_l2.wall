@@ -1,8 +1,10 @@
-; bridge_self_l2.wall — рендер и драйвер эмиссии, часть 2 (E9.2-3b/c)
+; bridge_self_l2.wall — рендер и драйвер эмиссии, часть 2 (E9.2-3b/c; E9.4-4b-2: isf)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_l2.wall | слой: L5 (исходник —
 ; WALL) | роль: ветвь L моста, ЧАСТЬ 2 — РЕНДЕР И ДРАЙВЕР (КАНОН:
 ; E9.2-3c — m_line ветви M ПЕРЕД emit_h, счёты mcount/hcount в
-; факт-строку; режимы RAW/H оракула — срезы E9.2-3a/b): K5-L011 out_hexl
+; факт-строку; режимы RAW/H оракула — срезы E9.2-3a/b; E9.4-4b-2:
+; шапка — РАЗВИЛКА isf (семейная tplb/модуль | чужая ftplb/факты),
+; тело прохода — ОБЩЕЕ, карты построены с base = codevaddr): K5-L011 out_hexl
 ; (СТРОЧНЫЙ hex без ведущих нулей — имена l*/d*: «l%x»/«d%x»), K5-L012
 ; emit_labname (имя метки по labmap: d*/l* | iat_ из блоба snam —
 ; индекс (off-iatoff)/8), K5-L013 emit_cut (строка разреза «:имя ;
@@ -52,18 +54,20 @@ func out_hexl(v)
 end
 
 ; K5-L012: имя метки @ off по labmap: d* («d»+hex строчный),
-; l* («l»+hex), iat_ (блоб snam — индекс (off-iatoff)/8)
+; l* («l»+hex), iat_ (блоб snam — индекс (off-iatoff)/8);
+; E9.4-4b-2: имена — RVA = off + codevaddr (base = vaddr секции
+; кода — у семьи 4096, нейтрально; оракул «l%x»/(off + base))
 func emit_labname(off)
   var k
   var p
   if getb(labmap, off) == 1
     app_ch(100)
-    out_hexl(off + 4096)
+    out_hexl(off + codevaddr)
     return 0
   end
   if getb(labmap, off) == 2
     app_ch(108)
-    out_hexl(off + 4096)
+    out_hexl(off + codevaddr)
     return 0
   end
   k = (off - iatoff) / 8
@@ -86,12 +90,13 @@ func emit_cut(off)
 end
 
 ; K5-L014: значение dword v -> «$имя» (RVA метки из knownoff) |
-; ЗАГЛАВНЫЙ hex без ведущих нулей (как _dollar/_hx оракула)
+; ЗАГЛАВНЫЙ hex без ведущих нулей (как _dollar/_hx оракула);
+; E9.4-4b-2: RVA = смещение + codevaddr (base; у семьи 4096)
 func emit_dollar(v)
   var j
   j = 0
   while j < kn
-    if knownoff[j] + 4096 == v
+    if knownoff[j] + codevaddr == v
       app_ch(36)
       emit_labname(knownoff[j])
       return 0
@@ -179,16 +184,21 @@ end
 ; K5-L017: ДРАЙВЕР эмиссии тела b2 (E9.2-3c: КАНОН mode=None —
 ; выжившая сначала M-строкой m_line ветви M (точное воспроизведение
 ; enc, иначе H-фолбэк; счёты mcount/hcount — в факт-строку):
-; == оракул _emit_lines без mode): шапка SPEC/15 (шаблон tplb +
-; модуль/target/bss), затем линейный проход [0, target)
+; == оракул _emit_lines без mode): шапка (isf == 0 — СЕМЕЙНАЯ:
+; шаблон tplb + модуль/target/bss; isf != 0 — ЧУЖАЯ, E9.4-4b-2:
+; шаблон ftplb + выводимые факты секций/DLL/RVA секции кода/
+; target/bss — == _b2_foreign_text оракула, БЕЗ module), затем
+; линейный проход [0, target)
 ; по разрезам: строка метки (labmap), строка семантики (semstate == 1
 ; — курсор ri по принятым semrows, размер DD 20 / DQ 8), M/H-строка
 ; выжившей (sstate == 1 — m_line, при провале emit_h), между разрезами
 ; — данные DZ/DB (поиск следующего события вперёд — каждый байт
 ; посещён ≤ 2 раз, линейно); запись <выход>.b2 (CreateFile2
-; WRITE/CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe); outmem
-; 8388608 Б. nlen2 — длина слова-пути выхода (аргумент 2 CLI)
-func emit_body(nlen2)
+; WRITE/CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe; outmem
+; 8388608 Б). nlen2 — длина слова-пути выхода (аргумент 2 CLI);
+; ТЕЛО прохода — ОБЩЕЕ для семьи и чужого (карты L построены с
+; base = codevaddr — двойной путь, как оракул _emit_lines)
+func emit_body(nlen2, isf)
   var fh
   var rc
   var o
@@ -202,13 +212,28 @@ func emit_body(nlen2)
   outcur = 0
   mcount = 0
   hcount = 0
-  app_tpl(0, 74)
-  outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
-  app_tpl(74, 112)
-  out_hexv(target)
-  app_tpl(112, 122)
-  out_hexv(bss)
-  app_tpl(122, 199)
+  if isf == 0
+    app_tpl(0, 74)
+    outcur = copy_str(outbuf, outcur, exebuf + 77, modlen)
+    app_tpl(74, 112)
+    out_hexv(target)
+    app_tpl(112, 122)
+    out_hexv(bss)
+    app_tpl(122, 199)
+  else
+    app_tpl(0, 54)
+    app_ftpl(0, 51)
+    outcur = out_dec(outbuf, outcur, sectcnt)
+    app_ftpl(51, 57)
+    outcur = out_dec(outbuf, outcur, dllcnt)
+    app_ftpl(57, 94)
+    out_hexv(codevaddr)
+    app_ftpl(94, 96)
+    out_hexv(target)
+    app_ftpl(96, 106)
+    out_hexv(bss)
+    app_ftpl(106, 194)
+  end
   o = 0
   ri = 0
   while o < target

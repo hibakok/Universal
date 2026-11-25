@@ -1,8 +1,7 @@
 """lab_t_bridge.py — секция 18 батареи: мост BRIDGE v1 (SPEC/15, E9.1/E9.2).
 
 Вход:  колбэк check из lab_verify (kpath/kfile — единая сигнатура
-         секций); артефакты читаются ИЗ РЕПОЗИТОРИЯ напрямую (правка
-         EXE без обновления якоря = красный тест).
+         секций); артефакты читаются ИЗ РЕПОЗИТОРИЯ напрямую.
 Выход:  проверки T-E9-01..21 — мост EXE -> BRICK v2 + PEG v1:
          (1) T-E9-01 — факты разбора seed.exe == якорю (поля тела,
              импорты, !bss) + детерминированный отказ чужому образу;
@@ -12,8 +11,8 @@
              семейства: enc -> brick -> pegen (оракулы LAB) ==
              исходному EXE байт-в-байт (DoD среза E9.1, SPEC/15 п. 9);
          (4) T-E9-15/16 — сквозной круг РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ
-             (эмуляция LAB): enc.exe -> brick.exe -> pegen.exe на
-             мосте seed и hxdump — EXE == исходному, коды 0;
+             (эмуляция): enc.exe -> brick.exe -> pegen.exe на seed
+             и hxdump — EXE == исходному, коды 0;
          (5) E9.2-1 (КАРКАС bridge.exe, M5-BRIDGE на WALL):
              T-E9-17 — фикс-пункт: сборка bridge.wall конвейером
              инструментов (wall -> enc -> brick -> pegen + bridge.peg)
@@ -22,11 +21,9 @@
              аргумента, чтение EXE, разбор PE, семейная проверка) ==
              фактам оракула parse_family на ВСЕХ 11 артефактах +
              самом bridge.exe (12 прогонов); T-E9-19 — контракт CLI и
-             отказы семейства (мутанты seed.exe: каждый инвариант
-             SPEC/04 минус легальные отклонения; success-мутанты:
-             вход 0x1200 — легальное отклонение, регистр имени DLL);
-             T-E9-20 — оракульный круг моста над bridge.exe —
-             12-й артефакт семейства, байт-в-байт;
+             отказы семейства (мутанты seed.exe; success-мутанты:
+             вход 0x1200, регистр имени DLL); T-E9-20 — оракульный
+             круг моста над bridge.exe — 12-й артефакт;
          (6) E9.2-2 (СПУСК — декодер + тени + target/bss): факт-строка
              расширена INS/TARGET/BSS (T-E9-18/19 — с новыми отказами
              спуска: инструкция за VirtualSize, длина тела больше
@@ -224,8 +221,7 @@ def facts_line(data):
 
 
 def _facts(check, bexe, data, label, tid=None):
-    """Один прогон: факты + выход M=/H= (E9.2-3c) == оракулу
-    (или отказ — по оракулу)."""
+    """Один прогон: факты + выход M=/H= == оракулу (или отказ)."""
     try:
         want = facts_line(data)
         err = False
@@ -242,8 +238,7 @@ def _facts(check, bexe, data, label, tid=None):
 
 def _tool_cli(check, bexe, kfile):
     """T-E9-19: контракт CLI + семейные отказы (мутанты seed.exe —
-    кейсы в lab_t_bridge_corpus.py, вынесены по лимиту 500 строк —
-    решение №4 сессии 74, срез E9.4-1)."""
+    кейсы в corpus, вынесены по лимиту 500 — сессия 74)."""
     cases, legal = K.cli_cases(kfile("L0-SEED/seed.exe"))
     bad = []
     for name, args, host, want, code in cases:
@@ -251,6 +246,11 @@ def _tool_cli(check, bexe, kfile):
         if r.stdout != want or r.exit_code != code:
             bad.append("%s: %r код=%s" % (name, r.stdout[:30],
                                           r.exit_code))
+        elif want.startswith(b"U-L5-BRIDGE FOREIGN"):
+            # ПОРТ E9.4-4b-2: перевёртыш — t.b2 == оракулу
+            wtxt, _st = lab_bridge.emit_b2_foreign(host["in.exe"])
+            if r.files.get("t.b2") != wtxt.encode("utf-8"):
+                bad.append("%s: b2 чужого тела != оракулу" % name)
     # легальные отклонения семейства — успех с фактами == оракулу
     for name, data in legal:
         if not _facts(None, bexe, data, name):
