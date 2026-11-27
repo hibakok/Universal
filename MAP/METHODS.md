@@ -131,6 +131,20 @@ MAP/M3-UNIVM-V.md; полная ревизия карточек/дублей —
 | K0-D044 | шаблон PE-заголовка | D | готов | `MAP/M0-PEGEN.md` |
 | K0-D045 | таблица импортов | D | готов | `MAP/M0-PEGEN.md` |
 | K0-D046 | буферы | D | готов | `MAP/M0-PEGEN.md` |
+| K0-Q012 | sniff_v2 | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q013 | match_kw2 | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q014 | hex_blob | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q015 | do_pev2 | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q016 | do_hdr | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q017 | do_body | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q018 | do_sec | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-Q019 | parse_peg_v2 | Q | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-E005 | selfdesc | E | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-E006 | copy_body | E | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-E007 | apply_secs | E | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-G043 | wrap2_main | G | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-D047 | таблицы v2 | D | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
+| K0-D048 | ячейки и буферы v2 | D | готов (E9.4-4b-4) | `MAP/M0-PEGEN-V.md` |
 | K1-X001 | prepare_stack | X | готов | `MAP/M1-BRICK.md` |
 | K1-S001 | get_image_base | S | готов | `MAP/M1-BRICK.md` |
 | K1-C001 | get_cmdline | C | готов | `MAP/M1-BRICK.md` |

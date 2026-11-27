@@ -59,6 +59,7 @@ def main():
         V.t_cycles()
         V.t_enc()
         V.lab_t_exe.run(V.check, V.kpath, V.kfile, V.kernel_host)
+        V.lab_t_pegen2.run(V.check, V.kpath)   # 8d — порт PEG v2 (4b-4)
         V.lab_t_wall.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_wall2.run(V.check, V.kpath, V.kfile, V.kernel_host)
         V.lab_t_wall3.run(V.check, V.kpath, V.kfile, V.kernel_host)

@@ -70,8 +70,7 @@
          18) мост BRIDGE v1: круги 12 артефактов байт-в-байт; каркас/
             спуск/эмиссия/PEG — T-E9-17..24; 18b) якоря; 18c) FF /4;
             18d) таблицы; 18e) PE32+; 18f) спуск; 18g) PEG v2 сборщик;
-            18h) PEG v2 эмиссия; 18i) b2 чужого тела (3c-3);
-Запуск: python3 LAB/py/lab_verify.py   (из корня репозитория)
+            18h) 18i) 8d) — PEG v2/b2-чужого/порт в pegen.exe.
 """
 import hashlib
 import os
@@ -107,6 +106,7 @@ import lab_t_bridge_foreign
 import lab_t_bridge_peg2
 import lab_t_bridge_peg2e
 import lab_t_bridge_b2f
+import lab_t_pegen2
 import lab_x86
 
 KERNEL = os.path.join(os.path.dirname(os.path.dirname(
@@ -122,8 +122,7 @@ SHA = {
                         "F525CDD69A7B4A8E3",
     "L0-HEXGEN/hexgen": "947AD0182A0162CB402CB4D92A7932681CE6B2BF16B5B524"
                         "ACCE07AB3FD241BF",
-    "L0-PEGEN/pegen": "FAECAC2EF39B34B1339AB348A1DAB83700BD4C8E91A76B92A7"
-                      "8A3874C7A0DA74",
+    "L0-PEGEN/pegen": "D1547D93ED1530ADCD02BFA0AC54D87CE3838A3B71B97CAF21A2837C785CFFBD",
     "L1-BRICK/brick": "38E46B526EDE53C28D3B6746F2D159EF37DDBEDCE5CE6E0B15"
                       "419460A66A6DA0",
     "L1-ENC/enc": "B4B490414C333F9E3B14E0276F9429FDA4C2C79B346535402691"
@@ -470,6 +469,7 @@ def main():
     t_cycles()
     t_enc()
     lab_t_exe.run(check, kpath, kfile, kernel_host)
+    lab_t_pegen2.run(check, kpath)      # секция 8d — порт PEG v2 (E9.4-4b-4)
     lab_t_wall.run(check, kpath, kfile, kernel_host)
     lab_t_wall2.run(check, kpath, kfile, kernel_host)
     lab_t_wall3.run(check, kpath, kfile, kernel_host)

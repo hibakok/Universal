@@ -3,6 +3,6 @@
 !entry 1000
 !idata 1C60 28
 !iat 1C88 40
-!bss 30403
+!bss 7AE3F
 !stackcom 4000
 !heapcom 4000
