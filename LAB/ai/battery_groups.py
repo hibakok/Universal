@@ -36,7 +36,11 @@ lab_verify).
       B2 ЧУЖОГО ТЕЛА (E9.4-3c-3: T-E9-32, lab_t_bridge_b2f —
       emit_b2_foreign: M/H-строки секции кода (base = vaddr) +
       ЧУЖОЙ КРУГ через ОБА выхода моста + семья 12/12 двойным
-      путём; чистый Python без эмуляции)
+      путём; чистый Python без эмуляции) + секция 18j — ПЕРВЫЙ
+      ЧУЖОЙ КРУГ (E9.4-4b-5: T-E9-33, lab_t_bridge_round — DoD
+      этапа E9.4: чужой EXE -> мост (t.b2 + t.peg) -> enc -> brick
+      -> pegen == образ байт-в-байт; 3 крафта вкл. большой
+      0x30400 Б + границы пределов; ~40 с эмуляции)
   5 — T-E9-17 (фикс-пункт сборки моста: bridge.wall -> артефакты;
       с E9.2-4 — ~640 млн шагов wall)
 """
@@ -82,6 +86,7 @@ def main():
         V.lab_t_bridge_peg2.run(V.check, V.kfile)   # 18g — 3c-1
         V.lab_t_bridge_peg2e.run(V.check, V.kfile)   # 18h — 3c-2
         V.lab_t_bridge_b2f.run(V.check, V.kfile)   # 18i — 3c-3
+        V.lab_t_bridge_round.run(V.check, V.kpath)   # 18j — круг (4b-5)
     elif grp == "5":
         V.lab_t_bridge.run_fixpoint(V.check, V.kpath, V.kfile,
                                    V.kernel_host)
