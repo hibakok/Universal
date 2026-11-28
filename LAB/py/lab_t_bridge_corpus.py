@@ -16,7 +16,9 @@
        lab_t_bridge_jt.py), чужой образ E9.4-3a (foreign_image + якоря
        FOREIGN_* — lab_t_bridge_pe.py) и чужой образ E9.4-3b
        (foreign2_image + якоря FOREIGN2_* + мутанты —
-       lab_t_bridge_foreign.py).
+       lab_t_bridge_foreign.py). Срез E9.5-3a — крафт реального
+       паддинга realpad_image + якоря REALPAD_* ВЫНЕСЕН в
+       lab_t_bridge_realpad.py (лимит 500 строк — решение №4).
 Функция: держать данные секции 18 отдельно от логики прогона
        (lab_t_bridge.py), чтобы каждый файл был <= 500 строк.
 """

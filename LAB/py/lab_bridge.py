@@ -209,6 +209,13 @@ def parse_foreign(data):
     if entry_off >= len(body):
         raise BridgeError("вход в bss (вне raw-части)")
     vsize, raw = code["vsize"], code["raw_size"]
+    # E9.5-3a (SPEC/15 п. 7 «вилка raw>bss»): спуск и границы
+    # инструкций — по VirtualSize (тень за пределами НЕ ходит); тело
+    # эмиссии — ВСЯ raw-область (реальные компиляторы выравнивают
+    # raw ВВЕРХ: raw > vsize, хвост — паддинг 0xCC/0x90 — НЕ нули,
+    #nz-подъём target вытащил бы его за vsize). bss-вилка наоборот:
+    # vsize > raw — как у семейства. Отказ один: target > raw
+    # (конец инструкции за raw-областью — битый образ).
     ins = _sweep(_walk(body, entry_off, vsize))
     for a, (_nm, ln, _ar) in ins.items():
         if a + ln > vsize:
@@ -217,14 +224,13 @@ def parse_foreign(data):
     target = max([nz + 1, 1] + [a + ins[a][1] for a in ins])
     if (target + fa - 1) & ~(fa - 1) != raw:
         target = raw - (fa - 1)     # минимальная длина той же вилки (п. 7)
-    if target > vsize:
-        raise BridgeError("длина тела больше VirtualSize")
+    if target > raw:
+        raise BridgeError("длина тела больше raw-области")
     return {
         "pe": pe, "code": code, "body": body, "vsize": vsize,
-        "raw": raw, "target": target, "bss": vsize - target,
+        "raw": raw, "target": target, "bss": max(0, vsize - target),
         "entry_off": entry_off, "ins": ins,
     }
-
 # --------------------------------------------------- метки/импорты
 def _import_map(fam, base=SECT):
     """Структуры импорта -> (labels, semantic, known_rva): offset ->

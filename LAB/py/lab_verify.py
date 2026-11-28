@@ -28,7 +28,11 @@
  10) lab_t_bridge_round — секция 18j: ПЕРВЫЙ ЧУЖОЙ КРУГ (T-E9-33,
      E9.4-4b-5, DoD этапа E9.4): чужой EXE -> мост (t.b2 + t.peg)
      -> enc -> brick -> pegen == образ байт-в-байт (3 крафта, вкл.
-     большой 0x30400 Б) + границы пределов инструментов.
+     большой 0x30400 Б) + границы пределов инструментов;
+  11) lab_t_bridge_real — секция 18k: РЕАЛЬНЫЙ ПАДДИНГ raw > vsize
+     (T-E9-34, E9.5-3a: развилка SPEC/15 п. 7 «вилка raw>bss» —
+     образы mingw/MSVC с хвостом 0xCC; оракул принимает, круг ==
+     образу, нейтральность семьи/крафтов 3a/3b).
 """
 import hashlib
 import os
@@ -65,6 +69,7 @@ import lab_t_bridge_peg2
 import lab_t_bridge_peg2e
 import lab_t_bridge_b2f
 import lab_t_bridge_round
+import lab_t_bridge_real
 import lab_t_pegen2
 import lab_x86
 
@@ -448,6 +453,7 @@ def main():
     lab_t_bridge_peg2e.run(check, kfile)   # 18h — PEG v2 эмиссия (3c-2)
     lab_t_bridge_b2f.run(check, kfile)   # 18i — b2 чужого тела (3c-3)
     lab_t_bridge_round.run(check, kpath)   # 18j — первый чужой круг (4b-5)
+    lab_t_bridge_real.run(check, kfile)    # 18k — реальный паддинг (E9.5-3a)
     n, m = len(PASS), len(PASS) + len(FAIL)
     print("\nИТОГ: %d/%d %s" % (n, m, "OK" if n == m else
                                "— ЕСТЬ ПРОВАЛЫ:"))
