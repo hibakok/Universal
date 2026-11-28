@@ -13,7 +13,8 @@
   3) t_enc — оракул ENC (SPEC/09): якоря, отвержение, полный круг;
   4) lab_t_exe — инструменты enc/splice (M5/M6: T-M5-02..06);
   5) lab_t_pegen2 — секция 8d: порт PEG v2 в pegen.exe (T-M5-18,
-     E9.4-4b-4);
+     E9.4-4b-4 + E9.5-1a: 2 крафта == wrap2, 26 отказов,
+     стресс-крафт пределов и инструментальные границы);
   6) lab_t_wall/wall2/wall3/wallself — инструмент wall.exe: якоря
      v1/v2, отвержение, круги до эмуляции, самохостинг E6.4;
   7) lab_t_vm/kernel/uva — оракул UNIVM (ISA v1 + .UP v2), ядро
@@ -80,7 +81,7 @@ SHA = {
                         "F525CDD69A7B4A8E3",
     "L0-HEXGEN/hexgen": "947AD0182A0162CB402CB4D92A7932681CE6B2BF16B5B524"
                         "ACCE07AB3FD241BF",
-    "L0-PEGEN/pegen": "D1547D93ED1530ADCD02BFA0AC54D87CE3838A3B71B97CAF21A2837C785CFFBD",
+    "L0-PEGEN/pegen": "CB526F1AD57B602EA2544C86B2AC324FC3E02F6B4987ECF9D6122F4879420D2C",
     "L1-BRICK/brick": "38E46B526EDE53C28D3B6746F2D159EF37DDBEDCE5CE6E0B15"
                       "419460A66A6DA0",
     "L1-ENC/enc": "B4B490414C333F9E3B14E0276F9429FDA4C2C79B346535402691"

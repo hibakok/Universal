@@ -1,13 +1,13 @@
 ; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)
-; Исходник: pegen.exe (тело секции RVA 1000, 1543 Б; !bss 7AE3F)
+; Исходник: pegen.exe (тело секции RVA 1000, 154D Б; !bss A48C3F)
 ; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE
 M sub rsp, 38 ; @0000
 M lea rbx, [rip+$base] ; @0004
 M mov rcx, -B ; @000B
 M call [rip+$iat_getstdhandle] ; @0012
-H 48 89 05 CB 16 00 00 ; @0018 mov [rip+9962], rax
-H C7 05 F9 16 00 00 00 10 00 00 ; @001F mov [rip+10018], 1000
-H C7 05 F3 16 00 00 00 10 00 00 ; @0029 mov [rip+10022], 1000
+H 48 89 05 D5 16 00 00 ; @0018 mov [rip+9972], rax
+H C7 05 03 17 00 00 00 10 00 00 ; @001F mov [rip+10028], 1000
+H C7 05 FD 16 00 00 00 10 00 00 ; @0029 mov [rip+10032], 1000
 M call [rip+$iat_getcommandlinea] ; @0033
 M mov rdi, rax ; @0039
 :l103c ; @003C
@@ -48,13 +48,13 @@ M jmp $l1087:1 ; @007B
 M mov ecx, 0 ; @007D
 M call $l133e ; @0082
 :l1087 ; @0087
-H 4C 8D 05 BC 14 00 00 ; @0087 lea r8, [rip+9546]
+H 4C 8D 05 C6 14 00 00 ; @0087 lea r8, [rip+9556]
 M call $l13d0 ; @008E
-H 4C 8D 05 30 15 00 00 ; @0093 lea r8, [rip+9674]
+H 4C 8D 05 3A 15 00 00 ; @0093 lea r8, [rip+9684]
 M call $l13d0 ; @009A
-H 4C 8D 05 A4 15 00 00 ; @009F lea r8, [rip+9802]
+H 4C 8D 05 AE 15 00 00 ; @009F lea r8, [rip+9812]
 M call $l13d0 ; @00A6
-H 48 8D 0D 98 14 00 00 ; @00AB lea rcx, [rip+9546]
+H 48 8D 0D A2 14 00 00 ; @00AB lea rcx, [rip+9556]
 M call $l1239 ; @00B2
 M cmp rax, -1 ; @00B7
 M jnz $l10c7:1 ; @00BB
@@ -63,23 +63,23 @@ M call $l133e ; @00C2
 :l10c7 ; @00C7
 M mov r12, rax ; @00C7
 M mov rcx, r12 ; @00CA
-H 48 8D 15 62 16 01 00 ; @00CD lea rdx, [rip+75574]
-M mov r8d, 20001 ; @00D4
-H 4C 8D 0D 19 16 00 00 ; @00DA lea r9, [rip+9978]
+H 48 8D 15 6C 16 40 00 ; @00CD lea rdx, [rip+4204352]
+M mov r8d, 100001 ; @00D4
+H 4C 8D 0D 23 16 00 00 ; @00DA lea r9, [rip+9988]
 M call $l12b5 ; @00E1
 M cmp rax, -1 ; @00E6
 M jnz $l10f6:1 ; @00EA
 M mov ecx, 3 ; @00EC
 M call $l133e ; @00F1
 :l10f6 ; @00F6
-H 48 3D 00 00 02 00 ; @00F6 cmp rax, 20000
+H 48 3D 00 00 10 00 ; @00F6 cmp rax, 100000
 M jbe $l1108:1 ; @00FC
 M mov ecx, 4 ; @00FE
 M call $l133e ; @0103
 :l1108 ; @0108
 M mov rcx, r12 ; @0108
 M call $l12a6 ; @010B
-H 48 8D 0D B3 14 00 00 ; @0110 lea rcx, [rip+9674]
+H 48 8D 0D BD 14 00 00 ; @0110 lea rcx, [rip+9684]
 M call $l1239 ; @0117
 M cmp rax, -1 ; @011C
 M jnz $l112c:1 ; @0120
@@ -88,16 +88,16 @@ M call $l133e ; @0127
 :l112c ; @012C
 M mov r12, rax ; @012C
 M mov rcx, r12 ; @012F
-H 48 8D 15 FD 15 00 00 ; @0132 lea rdx, [rip+10038]
-M mov r8d, 10000 ; @0139
-H 4C 8D 0D BC 15 00 00 ; @013F lea r9, [rip+9986]
+H 48 8D 15 07 16 00 00 ; @0132 lea rdx, [rip+10048]
+M mov r8d, 400000 ; @0139
+H 4C 8D 0D C6 15 00 00 ; @013F lea r9, [rip+9996]
 M call $l12b5 ; @0146
 M cmp rax, -1 ; @014B
 M jnz $l115b:1 ; @014F
 M mov ecx, 6 ; @0151
 M call $l133e ; @0156
 :l115b ; @015B
-H 48 3D 00 00 01 00 ; @015B cmp rax, 10000
+H 48 3D 00 00 40 00 ; @015B cmp rax, 400000
 M jb $l116d:1 ; @0161
 M mov ecx, 6 ; @0163
 M call $l133e ; @0168
@@ -111,7 +111,7 @@ M mov ecx, 7 ; @017F
 M call $l133e ; @0184
 :l1189 ; @0189
 M call $l167b ; @0189
-H 48 8D 0D B5 14 00 00 ; @018E lea rcx, [rip+9802]
+H 48 8D 0D BF 14 00 00 ; @018E lea rcx, [rip+9812]
 M call $l1271 ; @0195
 M cmp rax, -1 ; @019A
 M jnz $l11aa:1 ; @019E
@@ -129,20 +129,20 @@ M mov ecx, 9 ; @01C7
 M call $l133e ; @01CC
 :l11d1 ; @01D1
 M mov rcx, r12 ; @01D1
-H 48 8D 15 5B 15 01 00 ; @01D4 lea rdx, [rip+75574]
-H 4C 8B 05 18 15 00 00 ; @01DB mov r8, [rip+9978]
+H 48 8D 15 65 15 40 00 ; @01D4 lea rdx, [rip+4204352]
+H 4C 8B 05 22 15 00 00 ; @01DB mov r8, [rip+9988]
 M call $l12dd ; @01E2
 M test rax, rax ; @01E7
 M jz $l11f6:1 ; @01EA
 M mov ecx, 9 ; @01EC
 M call $l133e ; @01F1
 :l11f6 ; @01F6
-H 44 8B 05 31 15 00 00 ; @01F6 mov r8d, [rip+10030]
-H 44 2B 05 F6 14 00 00 ; @01FD sub r8d, [rip+9978]
+H 44 8B 05 3B 15 00 00 ; @01F6 mov r8d, [rip+10040]
+H 44 2B 05 00 15 00 00 ; @01FD sub r8d, [rip+9988]
 M test r8d, r8d ; @0204
 M jz $l1227:1 ; @0207
 M mov rcx, r12 ; @0209
-H 48 8D 15 33 15 03 00 ; @020C lea rdx, [rip+206662]
+H 48 8D 15 3D 15 50 00 ; @020C lea rdx, [rip+5252944]
 M call $l12dd ; @0213
 M test rax, rax ; @0218
 M jz $l1227:1 ; @021B
@@ -196,13 +196,13 @@ M ret ; @02DC
 :l12dd ; @02DD
 M sub rsp, 28 ; @02DD
 M mov r13, r8 ; @02E1
-H 4C 8D 0D 07 14 00 00 ; @02E4 lea r9, [rip+9970]
+H 4C 8D 0D 11 14 00 00 ; @02E4 lea r9, [rip+9980]
 M mov qword [rsp+20], 0 ; @02EB
 M call [rip+$iat_writefile] ; @02F4
 M add rsp, 28 ; @02FA
 M test rax, rax ; @02FE
 M jz $l1312:1 ; @0301
-H 48 8B 05 E8 13 00 00 ; @0303 mov rax, [rip+9970]
+H 48 8B 05 F2 13 00 00 ; @0303 mov rax, [rip+9980]
 M cmp rax, r13 ; @030A
 M jnz $l1312:1 ; @030D
 M xor eax, eax ; @030F
@@ -212,8 +212,8 @@ M mov eax, 1 ; @0312
 M ret ; @0317
 :l1318 ; @0318
 M sub rsp, 28 ; @0318
-H 48 8B 0D C7 13 00 00 ; @031C mov rcx, [rip+9962]
-H 4C 8D 0D C8 13 00 00 ; @0323 lea r9, [rip+9970]
+H 48 8B 0D D1 13 00 00 ; @031C mov rcx, [rip+9972]
+H 4C 8D 0D D2 13 00 00 ; @0323 lea r9, [rip+9980]
 M mov qword [rsp+20], 0 ; @032A
 M call [rip+$iat_writefile] ; @0333
 M add rsp, 28 ; @0339
@@ -297,10 +297,10 @@ M ret ; @03F4
 M mov ecx, 0 ; @03F5
 M call $l133e ; @03FA
 :l13ff ; @03FF
-H 48 8D 35 30 13 00 00 ; @03FF lea rsi, [rip+10038]
-H 8B 05 F6 12 00 00 ; @0406 mov eax, [rip+9986]
+H 48 8D 35 3A 13 00 00 ; @03FF lea rsi, [rip+10048]
+H 8B 05 00 13 00 00 ; @0406 mov eax, [rip+9996]
 M cdqe ; @040C
-H 48 8D 0D 21 13 00 00 ; @040E lea rcx, [rip+10038]
+H 48 8D 0D 2B 13 00 00 ; @040E lea rcx, [rip+10048]
 M add rcx, rax ; @0415
 M mov byte [rcx], 0 ; @0418
 :l141b ; @041B
@@ -351,7 +351,7 @@ M jmp $l141b:1 ; @0478
 M mov eax, 1 ; @047A
 M ret ; @047F
 :l1480 ; @0480
-H 8B 05 80 12 00 00 ; @0480 mov eax, [rip+9990]
+H 8B 05 8A 12 00 00 ; @0480 mov eax, [rip+10000]
 M and eax, F ; @0486
 H 3D 0F 00 00 00 ; @0489 cmp eax, F
 M jnz $l147a:1 ; @048E
@@ -491,7 +491,7 @@ M cmp rax, 1F ; @05B3
 M ja $l15f8:1 ; @05B7
 M test rax, rax ; @05B9
 M jz $l15f8:1 ; @05BC
-H 4C 8D 15 05 11 00 00 ; @05BE lea r10, [rip+9930]
+H 4C 8D 15 0F 11 00 00 ; @05BE lea r10, [rip+9940]
 :l15c5 ; @05C5
 M cmp rsi, rdi ; @05C5
 M jz $l15d8:1 ; @05C8
@@ -505,9 +505,9 @@ M mov byte [r10], 0 ; @05D8
 M call $l1553 ; @05DC
 M test rax, rax ; @05E1
 M jnz $l15f8:1 ; @05E4
-H 8B 05 1A 11 00 00 ; @05E6 mov eax, [rip+9990]
+H 8B 05 24 11 00 00 ; @05E6 mov eax, [rip+10000]
 M or eax, 1 ; @05EC
-H 89 05 11 11 00 00 ; @05EF mov [rip+9990], eax
+H 89 05 1B 11 00 00 ; @05EF mov [rip+10000], eax
 M xor eax, eax ; @05F5
 M ret ; @05F7
 :l15f8 ; @05F8
@@ -541,8 +541,8 @@ M test rax, rax ; @064F
 M jnz $l166a:1 ; @0652
 M mov eax, 1 ; @0654
 M shl eax, cl ; @0659
-H 0B 05 A5 10 00 00 ; @065B or eax, [rip+9990]
-H 89 05 9F 10 00 00 ; @0661 mov [rip+9990], eax
+H 0B 05 AF 10 00 00 ; @065B or eax, [rip+10000]
+H 89 05 A9 10 00 00 ; @0661 mov [rip+10000], eax
 M xor eax, eax ; @0667
 M ret ; @0669
 :l166a ; @066A
@@ -554,51 +554,51 @@ M neg ecx ; @0676
 M and eax, ecx ; @0678
 M ret ; @067A
 :l167b ; @067B
-H 8B 05 79 10 00 00 ; @067B mov eax, [rip+9978]
-H 03 05 97 10 00 00 ; @0681 add eax, [rip+10014]
-H 89 05 9D 10 00 00 ; @0687 mov [rip+10026], eax
-H 8B 05 67 10 00 00 ; @068D mov eax, [rip+9978]
+H 8B 05 83 10 00 00 ; @067B mov eax, [rip+9988]
+H 03 05 A1 10 00 00 ; @0681 add eax, [rip+10024]
+H 89 05 A7 10 00 00 ; @0687 mov [rip+10036], eax
+H 8B 05 71 10 00 00 ; @068D mov eax, [rip+9988]
 M mov ecx, 200 ; @0693
 M call $l1672 ; @0698
-H 89 05 8B 10 00 00 ; @069D mov [rip+10030], eax
-H 8B 05 81 10 00 00 ; @06A3 mov eax, [rip+10026]
+H 89 05 95 10 00 00 ; @069D mov [rip+10040], eax
+H 8B 05 8B 10 00 00 ; @06A3 mov eax, [rip+10036]
 M mov ecx, 1000 ; @06A9
 M call $l1672 ; @06AE
 H 05 00 10 00 00 ; @06B3 add eax, 1000
-H 89 05 74 10 00 00 ; @06B8 mov [rip+10034], eax
+H 89 05 7E 10 00 00 ; @06B8 mov [rip+10044], eax
 M lea rdi, [rip+$d1a60] ; @06BE
-H 8B 05 5F 10 00 00 ; @06C5 mov eax, [rip+10026]
+H 8B 05 69 10 00 00 ; @06C5 mov eax, [rip+10036]
 M mov [rdi+190], eax ; @06CB
-H 8B 05 57 10 00 00 ; @06D1 mov eax, [rip+10030]
+H 8B 05 61 10 00 00 ; @06D1 mov eax, [rip+10040]
 M mov [rdi+198], eax ; @06D7
-H 8B 05 4B 10 00 00 ; @06DD mov eax, [rip+10030]
+H 8B 05 55 10 00 00 ; @06DD mov eax, [rip+10040]
 M mov [rdi+9C], eax ; @06E3
-H 8B 05 43 10 00 00 ; @06E9 mov eax, [rip+10034]
+H 8B 05 4D 10 00 00 ; @06E9 mov eax, [rip+10044]
 M mov [rdi+D0], eax ; @06EF
 M call $l1700 ; @06F5
 M call $l1755 ; @06FA
 M ret ; @06FF
 :l1700 ; @0700
-H 8B 05 04 10 00 00 ; @0700 mov eax, [rip+9994]
+H 8B 05 0E 10 00 00 ; @0700 mov eax, [rip+10004]
 M mov [rdi+A8], eax ; @0706
-H 8B 05 FC 0F 00 00 ; @070C mov eax, [rip+9998]
+H 8B 05 06 10 00 00 ; @070C mov eax, [rip+10008]
 M mov [rdi+110], eax ; @0712
-H 8B 05 F4 0F 00 00 ; @0718 mov eax, [rip+10002]
+H 8B 05 FE 0F 00 00 ; @0718 mov eax, [rip+10012]
 M mov [rdi+114], eax ; @071E
-H 8B 05 EC 0F 00 00 ; @0724 mov eax, [rip+10006]
+H 8B 05 F6 0F 00 00 ; @0724 mov eax, [rip+10016]
 M mov [rdi+168], eax ; @072A
-H 8B 05 E4 0F 00 00 ; @0730 mov eax, [rip+10010]
+H 8B 05 EE 0F 00 00 ; @0730 mov eax, [rip+10020]
 M mov [rdi+16C], eax ; @0736
-H 8B 05 E0 0F 00 00 ; @073C mov eax, [rip+10018]
+H 8B 05 EA 0F 00 00 ; @073C mov eax, [rip+10028]
 M mov [rdi+E8], eax ; @0742
-H 8B 05 D8 0F 00 00 ; @0748 mov eax, [rip+10022]
+H 8B 05 E2 0F 00 00 ; @0748 mov eax, [rip+10032]
 M mov [rdi+F8], eax ; @074E
 M ret ; @0754
 :l1755 ; @0755
 M add rdi, 40 ; @0755
 M lea rsi, [rip+$d199d] ; @0759
 M call $l179b ; @0760
-H 48 8D 35 5E 0F 00 00 ; @0765 lea rsi, [rip+9930]
+H 48 8D 35 68 0F 00 00 ; @0765 lea rsi, [rip+9940]
 M call $l179b ; @076C
 M lea rsi, [rip+$d19ab] ; @0771
 M call $l179b ; @0778
@@ -640,21 +640,21 @@ DZ 6 ; @07DA
 DB 6C 18 ; @07E0
 DZ 6 ; @07E2
 :d17e8 ; @07E8
-DB 0A 27 ; @07E8
+DB 14 27 ; @07E8
 DZ E ; @07EA
-DB 0E 27 ; @07F8
+DB 18 27 ; @07F8
 DZ 6 ; @07FA
-DB 12 27 ; @0800
+DB 1C 27 ; @0800
 DZ 6 ; @0802
-DB 16 27 ; @0808
+DB 20 27 ; @0808
 DZ 6 ; @080A
-DB 1A 27 ; @0810
+DB 24 27 ; @0810
 DZ 6 ; @0812
-DB 1E 27 ; @0818
+DB 28 27 ; @0818
 DZ E ; @081A
-DB 22 27 ; @0828
+DB 2C 27 ; @0828
 DZ E ; @082A
-DB 26 27 ; @0838
+DB 30 27 ; @0838
 DZ E ; @083A
 DB 6D 6F 64 75 6C 65 00 65 6E 74 72 79 00 69 64 61 ; @0848
 DB 74 61 00 69 61 74 00 62 73 73 00 73 74 61 63 6B ; @0858
@@ -817,10 +817,10 @@ DB 00 00 52 65 61 64 46 69 6C 65 00 00 ; @0D60
 :d1d6c ; @0D6C
 DB 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; @0D6C
 :l1d7a ; @0D7A
-H 48 8D 35 B5 09 00 00 ; @0D7A lea rsi, [rip+10038]
-H 8B 05 7B 09 00 00 ; @0D81 mov eax, [rip+9986]
+H 48 8D 35 BF 09 00 00 ; @0D7A lea rsi, [rip+10048]
+H 8B 05 85 09 00 00 ; @0D81 mov eax, [rip+9996]
 M cdqe ; @0D87
-H 48 8D 0D A6 09 00 00 ; @0D89 lea rcx, [rip+10038]
+H 48 8D 0D B0 09 00 00 ; @0D89 lea rcx, [rip+10048]
 M add rcx, rax ; @0D90
 M mov byte [rcx], 0 ; @0D93
 :l1d96 ; @0D96
@@ -855,7 +855,7 @@ M test eax, eax ; @0DCF
 M jz $l1dd5:1 ; @0DD1
 M jmp $l1dda:1 ; @0DD3
 :l1dd5 ; @0DD5
-M call $l248a ; @0DD5
+M call $l2494 ; @0DD5
 :l1dda ; @0DDA
 M call $l13ff ; @0DDA
 M ret ; @0DDF
@@ -869,7 +869,7 @@ M inc rsi ; @0DEB
 M jmp $l1de0:1 ; @0DEE
 :l1df0 ; @0DF0
 M mov r10, rsi ; @0DF0
-M lea r11, [rip+$l2512] ; @0DF3
+M lea r11, [rip+$l251c] ; @0DF3
 M xor r9d, r9d ; @0DFA
 :l1dfd ; @0DFD
 M mov r8, [r11] ; @0DFD
@@ -913,19 +913,19 @@ M ret ; @0E52
 :l1e53 ; @0E53
 M xor r9d, r9d ; @0E53
 :l1e56 ; @0E56
-H 49 3B F8 ; @0E56 cmp rdi, r8
-M jae $l1ea0:1 ; @0E59
-M movzx eax, byte [rsi] ; @0E5B
-M call $l1533 ; @0E5E
-M cmp rax, -1 ; @0E63
-M jz $l1e97:1 ; @0E67
-M mov r11, rax ; @0E69
-M movzx eax, byte [rsi+1] ; @0E6C
-M call $l1533 ; @0E70
-M cmp rax, -1 ; @0E75
-M jz $l1ea0:1 ; @0E79
-M shl r11d, 4 ; @0E7B
-M add r11d, eax ; @0E7F
+M movzx eax, byte [rsi] ; @0E56
+M call $l1533 ; @0E59
+M cmp rax, -1 ; @0E5E
+M jz $l1e97:1 ; @0E62
+M mov r11, rax ; @0E64
+M movzx eax, byte [rsi+1] ; @0E67
+M call $l1533 ; @0E6B
+M cmp rax, -1 ; @0E70
+M jz $l1ea0:1 ; @0E74
+M shl r11d, 4 ; @0E76
+M add r11d, eax ; @0E7A
+H 49 3B F8 ; @0E7D cmp rdi, r8
+M jae $l1ea0:1 ; @0E80
 M mov [rdi], r11b ; @0E82
 M inc rdi ; @0E85
 M add rsi, 2 ; @0E88
@@ -942,7 +942,7 @@ M ret ; @0E9F
 M mov rax, -1 ; @0EA0
 M ret ; @0EA7
 :l1ea8 ; @0EA8
-H 83 3D C8 0A 03 00 00 ; @0EA8 cmp [rip+207223], 0
+H 83 3D D1 0A 50 00 00 ; @0EA8 cmp [rip+5253504], 0
 M jnz $l1eec:1 ; @0EAF
 M call $l1598 ; @0EB1
 M call $l14f9 ; @0EB6
@@ -950,10 +950,10 @@ M cmp rax, -1 ; @0EBB
 M jz $l1eec:1 ; @0EBF
 M cmp rax, 40 ; @0EC1
 M jb $l1eec:1 ; @0EC5
-M cmp rax, 40000 ; @0EC7
+M cmp rax, 400000 ; @0EC7
 M ja $l1eec:1 ; @0ECE
-H 89 05 70 0A 03 00 ; @0ED0 mov [rip+207174], eax
-H C7 05 9A 0A 03 00 01 00 00 00 ; @0ED6 mov [rip+207226], 1
+H 89 05 7A 0A 50 00 ; @0ED0 mov [rip+5253456], eax
+H C7 05 A0 0A 50 00 01 00 00 00 ; @0ED6 mov [rip+5253504], 1
 M call $l1553 ; @0EE0
 M test eax, eax ; @0EE5
 M jnz $l1eec:1 ; @0EE7
@@ -966,438 +966,441 @@ M ret ; @0EF3
 M call $l1598 ; @0EF4
 M call $l14f9 ; @0EF9
 M cmp rax, -1 ; @0EFE
-M jz $l1faa ; @0F02
+M jz $l1fb4 ; @0F02
 M mov r12, rax ; @0F08
-H 44 3B 25 34 0A 03 00 ; @0F0B cmp r12d, [rip+207174]
-M jae $l1faa ; @0F12
-H 48 8D 3D 63 0A 03 00 ; @0F18 lea rdi, [rip+207234]
+H 44 3B 25 3E 0A 50 00 ; @0F0B cmp r12d, [rip+5253456]
+M jae $l1fb4 ; @0F12
+H 48 8D 3D 6D 0A 50 00 ; @0F18 lea rdi, [rip+5253516]
 M add rdi, r12 ; @0F1F
-H 4C 8D 05 59 0A 03 00 ; @0F22 lea r8, [rip+207234]
-H 8B 05 17 0A 03 00 ; @0F29 mov eax, [rip+207174]
+H 4C 8D 05 63 0A 50 00 ; @0F22 lea r8, [rip+5253516]
+H 8B 05 21 0A 50 00 ; @0F29 mov eax, [rip+5253456]
 M add r8, rax ; @0F2F
 M call $l1598 ; @0F32
 M call $l1e53 ; @0F37
 M cmp rax, -1 ; @0F3C
-M jz $l1faa ; @0F40
+M jz $l1fb4 ; @0F40
 M mov r13, rax ; @0F46
-H 8B 0D 1B 0A 03 00 ; @0F49 mov ecx, [rip+207210]
-M cmp rcx, 40 ; @0F4F
-M jae $l1faa ; @0F53
-H 4C 8D 15 22 0A 07 00 ; @0F59 lea r10, [rip+469378]
-M xor r8d, r8d ; @0F60
-:l1f63 ; @0F63
-H 44 3B 05 00 0A 03 00 ; @0F63 cmp r8d, [rip+207210]
-M jae $l1f8b:1 ; @0F6A
-M mov eax, [r10] ; @0F6C
-M mov edx, [r10+4] ; @0F6F
-H 44 3B E2 ; @0F73 cmp r12d, edx
-M jae $l1f82:1 ; @0F76
-H 41 3B C5 ; @0F78 cmp eax, r13d
-M jae $l1f82:1 ; @0F7B
-M jmp $l1faa ; @0F7D
-:l1f82 ; @0F82
-M add r10, 8 ; @0F82
-M inc r8d ; @0F86
-M jmp $l1f63:1 ; @0F89
-:l1f8b ; @0F8B
-M mov [r10], r12d ; @0F8B
-M mov [r10+4], r13d ; @0F8E
-M inc ecx ; @0F92
-H 89 0D D0 09 03 00 ; @0F94 mov [rip+207210], ecx
-M call $l1553 ; @0F9A
-M test eax, eax ; @0F9F
-M jnz $l1faa ; @0FA1
-M xor eax, eax ; @0FA7
-M ret ; @0FA9
-:l1faa ; @0FAA
-M mov rax, 1 ; @0FAA
-M ret ; @0FB1
-:l1fb2 ; @0FB2
-H 83 3D C2 09 03 00 00 ; @0FB2 cmp [rip+207227], 0
-M jnz $l1fe7:1 ; @0FB9
-M call $l1598 ; @0FBB
-M call $l14f9 ; @0FC0
-M cmp rax, -1 ; @0FC5
-M jz $l1fe7:1 ; @0FC9
-H 89 05 95 09 03 00 ; @0FCB mov [rip+207206], eax
-H C7 05 A3 09 03 00 01 00 00 00 ; @0FD1 mov [rip+207230], 1
-M call $l1553 ; @0FDB
-M test eax, eax ; @0FE0
-M jnz $l1fe7:1 ; @0FE2
-M xor eax, eax ; @0FE4
-M ret ; @0FE6
-:l1fe7 ; @0FE7
-M mov rax, 1 ; @0FE7
-M ret ; @0FEE
-:l1fef ; @0FEF
-M call $l1598 ; @0FEF
-M call $l14f9 ; @0FF4
-M cmp rax, -1 ; @0FF9
-M jz $l20dd ; @0FFD
-M mov r12, rax ; @1003
-M call $l1598 ; @1006
-M call $l14f9 ; @100B
-M cmp rax, -1 ; @1010
-M jz $l20dd ; @1014
-M mov r13, rax ; @101A
-H 48 8D 3D 5E 13 07 00 ; @101D lea rdi, [rip+471938]
-H 8B 05 48 09 03 00 ; @1024 mov eax, [rip+207218]
-M add rdi, rax ; @102A
-H 4C 8D 05 4E 13 07 00 ; @102D lea r8, [rip+471938]
-M add r8, 2000 ; @1034
-M call $l1598 ; @103B
-M call $l1e53 ; @1040
-M cmp rax, -1 ; @1045
-M jz $l20dd ; @1049
-M mov r14, rax ; @104F
-H 8B 0D 16 09 03 00 ; @1052 mov ecx, [rip+207214]
-M cmp rcx, 80 ; @1058
-M jae $l20dd ; @105F
-H 4C 8D 15 16 0B 07 00 ; @1065 lea r10, [rip+469890]
-M xor r8d, r8d ; @106C
-:l206f ; @106F
-H 44 3B 05 F8 08 03 00 ; @106F cmp r8d, [rip+207214]
-M jae $l20a7:1 ; @1076
-M mov eax, [r10] ; @1078
-H 41 3B C4 ; @107B cmp eax, r12d
-M jnz $l209e:1 ; @107E
-M mov eax, [r10+4] ; @1080
-M mov edx, [r10+C] ; @1084
-M add edx, eax ; @1088
-H 44 3B EA ; @108A cmp r13d, edx
-M jae $l209e:1 ; @108D
-M mov edx, r14d ; @108F
-M add edx, r13d ; @1092
-H 3B C2 ; @1095 cmp eax, edx
-M jae $l209e:1 ; @1097
-M jmp $l20dd ; @1099
-:l209e ; @109E
-M add r10, 10 ; @109E
-M inc r8d ; @10A2
-M jmp $l206f:1 ; @10A5
-:l20a7 ; @10A7
-M mov [r10], r12d ; @10A7
-M mov [r10+4], r13d ; @10AA
-H 8B 05 BE 08 03 00 ; @10AE mov eax, [rip+207218]
-M mov [r10+8], eax ; @10B4
-M mov [r10+C], r14d ; @10B8
-M add eax, r14d ; @10BC
-H 89 05 AD 08 03 00 ; @10BF mov [rip+207218], eax
-M inc ecx ; @10C5
-H 89 0D A1 08 03 00 ; @10C7 mov [rip+207214], ecx
-M call $l1553 ; @10CD
-M test eax, eax ; @10D2
-M jnz $l20dd ; @10D4
-M xor eax, eax ; @10DA
-M ret ; @10DC
-:l20dd ; @10DD
-M mov rax, 1 ; @10DD
-M ret ; @10E4
-:l20e5 ; @10E5
-H 48 8D 35 4A 06 00 00 ; @10E5 lea rsi, [rip+10038]
-:l20ec ; @10EC
-M movzx eax, byte [rsi] ; @10EC
-M test eax, eax ; @10EF
-M jz $l21b1 ; @10F1
-H 3C 3B ; @10F7 cmp al, 3B
-M jz $l2199 ; @10F9
-H 3C 0D ; @10FF cmp al, D
-M jz $l2199 ; @1101
-H 3C 0A ; @1107 cmp al, A
-M jz $l2120 ; @1109
-H 3C 20 ; @110F cmp al, 20
-M jz $l2128:1 ; @1111
-H 3C 09 ; @1113 cmp al, 9
-M jz $l2128:1 ; @1115
-H 3C 21 ; @1117 cmp al, 21
-M jz $l2130:1 ; @1119
-M jmp $l21bd ; @111B
-:l2120 ; @1120
-M inc rsi ; @1120
-M jmp $l20ec ; @1123
-:l2128 ; @1128
-M inc rsi ; @1128
-M jmp $l20ec ; @112B
-:l2130 ; @1130
-M inc rsi ; @1130
-M call $l1df0 ; @1133
-M cmp rax, -1 ; @1138
-M jz $l21bd ; @113C
-H 83 3D 2E 08 03 00 00 ; @1142 cmp [rip+207223], 0
-M jnz $l2151:1 ; @1149
-M test eax, eax ; @114B
-M jnz $l21bd:1 ; @114D
-M jmp $l216f:1 ; @114F
-:l2151 ; @1151
-M test eax, eax ; @1151
-M jz $l216f:1 ; @1153
-M cmp rax, 1 ; @1155
-M jz $l217d:1 ; @1159
-M cmp rax, 2 ; @115B
-M jz $l218b:1 ; @115F
-M call $l1fef ; @1161
-M test eax, eax ; @1166
-M jnz $l21bd:1 ; @1168
-M jmp $l20ec ; @116A
-:l216f ; @116F
-M call $l1ea8 ; @116F
-M test eax, eax ; @1174
-M jnz $l21bd:1 ; @1176
-M jmp $l20ec ; @1178
-:l217d ; @117D
-M call $l1ef4 ; @117D
-M test eax, eax ; @1182
-M jnz $l21bd:1 ; @1184
-M jmp $l20ec ; @1186
-:l218b ; @118B
-M call $l1fb2 ; @118B
-M test eax, eax ; @1190
-M jnz $l21bd:1 ; @1192
-M jmp $l20ec ; @1194
-:l2199 ; @1199
-M movzx eax, byte [rsi] ; @1199
-M test eax, eax ; @119C
-M jz $l21b1 ; @119E
-H 3C 0A ; @11A4 cmp al, A
-M jz $l2120 ; @11A6
-M inc rsi ; @11AC
-M jmp $l2199:1 ; @11AF
-:l21b1 ; @11B1
-H 83 3D C3 07 03 00 00 ; @11B1 cmp [rip+207227], 0
-M jz $l21bd:1 ; @11B8
-M xor eax, eax ; @11BA
-M ret ; @11BC
-:l21bd ; @11BD
-M mov rax, 1 ; @11BD
-M ret ; @11C4
-:l21c5 ; @11C5
-H 8B 05 7B 07 03 00 ; @11C5 mov eax, [rip+207174]
-M cmp rax, 40 ; @11CB
-M jb $l238d ; @11CF
-H 48 8D 3D A6 07 03 00 ; @11D5 lea rdi, [rip+207234]
-M cmp byte [rdi], 4D ; @11DC
-M jnz $l238d ; @11DF
-M cmp byte [rdi+1], 5A ; @11E5
-M jnz $l238d ; @11E9
-M mov r12d, [rdi+3C] ; @11EF
-M mov edx, r12d ; @11F3
-M add rdx, 18 ; @11F6
-H 3B 15 46 07 03 00 ; @11FA cmp edx, [rip+207174]
-M ja $l238d ; @1200
-H 48 8D 0D 75 07 03 00 ; @1206 lea rcx, [rip+207234]
-M add rcx, r12 ; @120D
-M cmp byte [rcx], 50 ; @1210
-M jnz $l238d ; @1213
-M cmp byte [rcx+1], 45 ; @1219
-M jnz $l238d ; @121D
-M cmp byte [rcx+2], 0 ; @1223
-M jnz $l238d ; @1227
-M cmp byte [rcx+3], 0 ; @122D
-M jnz $l238d ; @1231
-M movzx eax, word [rcx+6] ; @1237
-M test eax, eax ; @123B
-M jz $l238d ; @123D
-H 89 05 01 07 03 00 ; @1243 mov [rip+207178], eax
-M movzx edx, word [rcx+14] ; @1249
-M add edx, r12d ; @124D
-M add rdx, 18 ; @1250
-H 89 15 F4 06 03 00 ; @1254 mov [rip+207182], edx
-M mov r14d, edx ; @125A
-M xor r15d, r15d ; @125D
-M xor r9d, r9d ; @1260
-H 8B 05 DD 06 03 00 ; @1263 mov eax, [rip+207174]
-M mov r13, rax ; @1269
-:l226c ; @126C
-M mov eax, r14d ; @126C
-M add rax, 28 ; @126F
-H 3B 05 CD 06 03 00 ; @1273 cmp eax, [rip+207174]
-M ja $l238d ; @1279
-H 48 8D 0D FC 06 03 00 ; @127F lea rcx, [rip+207234]
-M add rcx, r14 ; @1286
-M mov eax, [rcx+14] ; @1289
-H 89 05 CC 06 03 00 ; @128C mov [rip+207198], eax
-M mov eax, [rcx+10] ; @1292
-H 89 05 C7 06 03 00 ; @1295 mov [rip+207202], eax
-H 44 3B 3D C4 06 03 00 ; @129B cmp r15d, [rip+207206]
-M jnz $l22bc:1 ; @12A2
-H 8B 05 B4 06 03 00 ; @12A4 mov eax, [rip+207198]
-H 89 05 A6 06 03 00 ; @12AA mov [rip+207190], eax
-H 8B 05 AC 06 03 00 ; @12B0 mov eax, [rip+207202]
-H 89 05 9E 06 03 00 ; @12B6 mov [rip+207194], eax
-:l22bc ; @12BC
-H 83 3D A0 06 03 00 00 ; @12BC cmp [rip+207203], 0
-M jz $l234b ; @12C3
-H 8B 05 8F 06 03 00 ; @12C9 mov eax, [rip+207198]
-H 3B 05 71 06 03 00 ; @12CF cmp eax, [rip+207174]
-M jb $l238d ; @12D5
-M mov r8, rax ; @12DB
-H 8B 05 7E 06 03 00 ; @12DE mov eax, [rip+207202]
-M add r8, rax ; @12E4
-M mov rcx, 40000 ; @12E7
-H 4C 3B C1 ; @12EE cmp r8, rcx
-M ja $l238d ; @12F1
-H 4D 3B C5 ; @12F7 cmp r8, r13
-M jbe $l22ff:1 ; @12FA
-M mov r13, r8 ; @12FC
-:l22ff ; @12FF
-H 4C 8D 1D 7C 30 07 00 ; @12FF lea r11, [rip+480130]
-M xor ecx, ecx ; @1306
-:l2308 ; @1308
-H 41 3B C9 ; @1308 cmp ecx, r9d
-M jae $l2335:1 ; @130B
-M mov edx, [r11] ; @130D
-M mov eax, [r11+4] ; @1310
-M add eax, edx ; @1314
-H 8B 15 42 06 03 00 ; @1316 mov edx, [rip+207198]
-H 3B D0 ; @131C cmp edx, eax
-M jae $l232d:1 ; @131E
-M mov eax, [r11] ; @1320
-H 41 3B C0 ; @1323 cmp eax, r8d
-M jae $l232d:1 ; @1326
-M jmp $l238d ; @1328
-:l232d ; @132D
-M add r11, 8 ; @132D
-M inc ecx ; @1331
-M jmp $l2308:1 ; @1333
-:l2335 ; @1335
-H 8B 05 23 06 03 00 ; @1335 mov eax, [rip+207198]
-M mov [r11], eax ; @133B
-H 8B 05 1E 06 03 00 ; @133E mov eax, [rip+207202]
-M mov [r11+4], eax ; @1344
-M inc r9d ; @1348
-:l234b ; @134B
-M add r14, 28 ; @134B
-M inc r15d ; @134F
-H 44 3B 3D F1 05 03 00 ; @1352 cmp r15d, [rip+207178]
-M jb $l226c ; @1359
-H 8B 05 01 06 03 00 ; @135F mov eax, [rip+207206]
-H 3B 05 DF 05 03 00 ; @1365 cmp eax, [rip+207178]
-M jae $l238d ; @136B
-H 8B 05 E3 05 03 00 ; @1371 mov eax, [rip+207194]
-H 3B 05 7D 03 00 00 ; @1377 cmp eax, [rip+9978]
-M jb $l238d ; @137D
-H 44 89 2D C8 05 03 00 ; @1383 mov [rip+207186], r13d
-M xor eax, eax ; @138A
-M ret ; @138C
-:l238d ; @138D
-M mov rax, 1 ; @138D
-M ret ; @1394
-:l2395 ; @1395
-H 48 8D 35 9A 03 01 00 ; @1395 lea rsi, [rip+75574]
-H 8B 0D 58 03 00 00 ; @139C mov ecx, [rip+9978]
-H 4C 8D 15 8D 03 01 00 ; @13A2 lea r10, [rip+75574]
-M add r10, rcx ; @13A9
-H 48 8D 3D CF 05 03 00 ; @13AC lea rdi, [rip+207234]
-H 8B 05 9D 05 03 00 ; @13B3 mov eax, [rip+207190]
-M add rdi, rax ; @13B9
-:l23bc ; @13BC
-M mov al, [rsi] ; @13BC
-M mov [rdi], al ; @13BE
-M inc rsi ; @13C0
-M inc rdi ; @13C3
-H 49 3B F2 ; @13C6 cmp rsi, r10
-M jb $l23bc:1 ; @13C9
-M xor eax, eax ; @13CB
-M ret ; @13CD
-:l23ce ; @13CE
-M xor r15d, r15d ; @13CE
-H 4C 8D 15 AA 07 07 00 ; @13D1 lea r10, [rip+469890]
+H 8B 0D 25 0A 50 00 ; @0F49 mov ecx, [rip+5253492]
+M cmp rcx, 100 ; @0F4F
+M jae $l1fb4 ; @0F56
+H 4C 8D 15 29 0A 90 00 ; @0F5C lea r10, [rip+9447820]
+M xor r8d, r8d ; @0F63
+:l1f66 ; @0F66
+H 44 3B 05 07 0A 50 00 ; @0F66 cmp r8d, [rip+5253492]
+M jae $l1f95:1 ; @0F6D
+M mov eax, [r10] ; @0F6F
+M mov edx, [r10+4] ; @0F72
+M add edx, eax ; @0F76
+H 44 3B E2 ; @0F78 cmp r12d, edx
+M jae $l1f8c:1 ; @0F7B
+M mov edx, r13d ; @0F7D
+M add edx, r12d ; @0F80
+H 3B C2 ; @0F83 cmp eax, edx
+M jae $l1f8c:1 ; @0F85
+M jmp $l1fb4 ; @0F87
+:l1f8c ; @0F8C
+M add r10, 8 ; @0F8C
+M inc r8d ; @0F90
+M jmp $l1f66:1 ; @0F93
+:l1f95 ; @0F95
+M mov [r10], r12d ; @0F95
+M mov [r10+4], r13d ; @0F98
+M inc ecx ; @0F9C
+H 89 0D D0 09 50 00 ; @0F9E mov [rip+5253492], ecx
+M call $l1553 ; @0FA4
+M test eax, eax ; @0FA9
+M jnz $l1fb4 ; @0FAB
+M xor eax, eax ; @0FB1
+M ret ; @0FB3
+:l1fb4 ; @0FB4
+M mov rax, 1 ; @0FB4
+M ret ; @0FBB
+:l1fbc ; @0FBC
+H 83 3D C1 09 50 00 00 ; @0FBC cmp [rip+5253508], 0
+M jnz $l1ff1:1 ; @0FC3
+M call $l1598 ; @0FC5
+M call $l14f9 ; @0FCA
+M cmp rax, -1 ; @0FCF
+M jz $l1ff1:1 ; @0FD3
+H 89 05 95 09 50 00 ; @0FD5 mov [rip+5253488], eax
+H C7 05 9F 09 50 00 01 00 00 00 ; @0FDB mov [rip+5253508], 1
+M call $l1553 ; @0FE5
+M test eax, eax ; @0FEA
+M jnz $l1ff1:1 ; @0FEC
+M xor eax, eax ; @0FEE
+M ret ; @0FF0
+:l1ff1 ; @0FF1
+M mov rax, 1 ; @0FF1
+M ret ; @0FF8
+:l1ff9 ; @0FF9
+M call $l1598 ; @0FF9
+M call $l14f9 ; @0FFE
+M cmp rax, -1 ; @1003
+M jz $l20e7 ; @1007
+M mov r12, rax ; @100D
+M call $l1598 ; @1010
+M call $l14f9 ; @1015
+M cmp rax, -1 ; @101A
+M jz $l20e7 ; @101E
+M mov r13, rax ; @1024
+H 48 8D 3D 5E 11 94 00 ; @1027 lea rdi, [rip+9712012]
+H 8B 05 48 09 50 00 ; @102E mov eax, [rip+5253500]
+M add rdi, rax ; @1034
+H 4C 8D 05 4E 11 94 00 ; @1037 lea r8, [rip+9712012]
+M add r8, 100000 ; @103E
+M call $l1598 ; @1045
+M call $l1e53 ; @104A
+M cmp rax, -1 ; @104F
+M jz $l20e7 ; @1053
+M mov r14, rax ; @1059
+H 8B 0D 16 09 50 00 ; @105C mov ecx, [rip+5253496]
+M cmp rcx, 4000 ; @1062
+M jae $l20e7 ; @1069
+H 4C 8D 15 16 11 90 00 ; @106F lea r10, [rip+9449868]
+M xor r8d, r8d ; @1076
+:l2079 ; @1079
+H 44 3B 05 F8 08 50 00 ; @1079 cmp r8d, [rip+5253496]
+M jae $l20b1:1 ; @1080
+M mov eax, [r10] ; @1082
+H 41 3B C4 ; @1085 cmp eax, r12d
+M jnz $l20a8:1 ; @1088
+M mov eax, [r10+4] ; @108A
+M mov edx, [r10+C] ; @108E
+M add edx, eax ; @1092
+H 44 3B EA ; @1094 cmp r13d, edx
+M jae $l20a8:1 ; @1097
+M mov edx, r14d ; @1099
+M add edx, r13d ; @109C
+H 3B C2 ; @109F cmp eax, edx
+M jae $l20a8:1 ; @10A1
+M jmp $l20e7 ; @10A3
+:l20a8 ; @10A8
+M add r10, 10 ; @10A8
+M inc r8d ; @10AC
+M jmp $l2079:1 ; @10AF
+:l20b1 ; @10B1
+M mov [r10], r12d ; @10B1
+M mov [r10+4], r13d ; @10B4
+H 8B 05 BE 08 50 00 ; @10B8 mov eax, [rip+5253500]
+M mov [r10+8], eax ; @10BE
+M mov [r10+C], r14d ; @10C2
+M add eax, r14d ; @10C6
+H 89 05 AD 08 50 00 ; @10C9 mov [rip+5253500], eax
+M inc ecx ; @10CF
+H 89 0D A1 08 50 00 ; @10D1 mov [rip+5253496], ecx
+M call $l1553 ; @10D7
+M test eax, eax ; @10DC
+M jnz $l20e7 ; @10DE
+M xor eax, eax ; @10E4
+M ret ; @10E6
+:l20e7 ; @10E7
+M mov rax, 1 ; @10E7
+M ret ; @10EE
+:l20ef ; @10EF
+H 48 8D 35 4A 06 00 00 ; @10EF lea rsi, [rip+10048]
+:l20f6 ; @10F6
+M movzx eax, byte [rsi] ; @10F6
+M test eax, eax ; @10F9
+M jz $l21bb ; @10FB
+H 3C 3B ; @1101 cmp al, 3B
+M jz $l21a3 ; @1103
+H 3C 0D ; @1109 cmp al, D
+M jz $l21a3 ; @110B
+H 3C 0A ; @1111 cmp al, A
+M jz $l212a ; @1113
+H 3C 20 ; @1119 cmp al, 20
+M jz $l2132:1 ; @111B
+H 3C 09 ; @111D cmp al, 9
+M jz $l2132:1 ; @111F
+H 3C 21 ; @1121 cmp al, 21
+M jz $l213a:1 ; @1123
+M jmp $l21c7 ; @1125
+:l212a ; @112A
+M inc rsi ; @112A
+M jmp $l20f6 ; @112D
+:l2132 ; @1132
+M inc rsi ; @1132
+M jmp $l20f6 ; @1135
+:l213a ; @113A
+M inc rsi ; @113A
+M call $l1df0 ; @113D
+M cmp rax, -1 ; @1142
+M jz $l21c7 ; @1146
+H 83 3D 2D 08 50 00 00 ; @114C cmp [rip+5253504], 0
+M jnz $l215b:1 ; @1153
+M test eax, eax ; @1155
+M jnz $l21c7:1 ; @1157
+M jmp $l2179:1 ; @1159
+:l215b ; @115B
+M test eax, eax ; @115B
+M jz $l2179:1 ; @115D
+M cmp rax, 1 ; @115F
+M jz $l2187:1 ; @1163
+M cmp rax, 2 ; @1165
+M jz $l2195:1 ; @1169
+M call $l1ff9 ; @116B
+M test eax, eax ; @1170
+M jnz $l21c7:1 ; @1172
+M jmp $l20f6 ; @1174
+:l2179 ; @1179
+M call $l1ea8 ; @1179
+M test eax, eax ; @117E
+M jnz $l21c7:1 ; @1180
+M jmp $l20f6 ; @1182
+:l2187 ; @1187
+M call $l1ef4 ; @1187
+M test eax, eax ; @118C
+M jnz $l21c7:1 ; @118E
+M jmp $l20f6 ; @1190
+:l2195 ; @1195
+M call $l1fbc ; @1195
+M test eax, eax ; @119A
+M jnz $l21c7:1 ; @119C
+M jmp $l20f6 ; @119E
+:l21a3 ; @11A3
+M movzx eax, byte [rsi] ; @11A3
+M test eax, eax ; @11A6
+M jz $l21bb ; @11A8
+H 3C 0A ; @11AE cmp al, A
+M jz $l212a ; @11B0
+M inc rsi ; @11B6
+M jmp $l21a3:1 ; @11B9
+:l21bb ; @11BB
+H 83 3D C2 07 50 00 00 ; @11BB cmp [rip+5253508], 0
+M jz $l21c7:1 ; @11C2
+M xor eax, eax ; @11C4
+M ret ; @11C6
+:l21c7 ; @11C7
+M mov rax, 1 ; @11C7
+M ret ; @11CE
+:l21cf ; @11CF
+H 8B 05 7B 07 50 00 ; @11CF mov eax, [rip+5253456]
+M cmp rax, 40 ; @11D5
+M jb $l2397 ; @11D9
+H 48 8D 3D A6 07 50 00 ; @11DF lea rdi, [rip+5253516]
+M cmp byte [rdi], 4D ; @11E6
+M jnz $l2397 ; @11E9
+M cmp byte [rdi+1], 5A ; @11EF
+M jnz $l2397 ; @11F3
+M mov r12d, [rdi+3C] ; @11F9
+M mov edx, r12d ; @11FD
+M add rdx, 18 ; @1200
+H 3B 15 46 07 50 00 ; @1204 cmp edx, [rip+5253456]
+M ja $l2397 ; @120A
+H 48 8D 0D 75 07 50 00 ; @1210 lea rcx, [rip+5253516]
+M add rcx, r12 ; @1217
+M cmp byte [rcx], 50 ; @121A
+M jnz $l2397 ; @121D
+M cmp byte [rcx+1], 45 ; @1223
+M jnz $l2397 ; @1227
+M cmp byte [rcx+2], 0 ; @122D
+M jnz $l2397 ; @1231
+M cmp byte [rcx+3], 0 ; @1237
+M jnz $l2397 ; @123B
+M movzx eax, word [rcx+6] ; @1241
+M test eax, eax ; @1245
+M jz $l2397 ; @1247
+H 89 05 01 07 50 00 ; @124D mov [rip+5253460], eax
+M movzx edx, word [rcx+14] ; @1253
+M add edx, r12d ; @1257
+M add rdx, 18 ; @125A
+H 89 15 F4 06 50 00 ; @125E mov [rip+5253464], edx
+M mov r14d, edx ; @1264
+M xor r15d, r15d ; @1267
+M xor r9d, r9d ; @126A
+H 8B 05 DD 06 50 00 ; @126D mov eax, [rip+5253456]
+M mov r13, rax ; @1273
+:l2276 ; @1276
+M mov eax, r14d ; @1276
+M add rax, 28 ; @1279
+H 3B 05 CD 06 50 00 ; @127D cmp eax, [rip+5253456]
+M ja $l2397 ; @1283
+H 48 8D 0D FC 06 50 00 ; @1289 lea rcx, [rip+5253516]
+M add rcx, r14 ; @1290
+M mov eax, [rcx+14] ; @1293
+H 89 05 CC 06 50 00 ; @1296 mov [rip+5253480], eax
+M mov eax, [rcx+10] ; @129C
+H 89 05 C7 06 50 00 ; @129F mov [rip+5253484], eax
+H 44 3B 3D C4 06 50 00 ; @12A5 cmp r15d, [rip+5253488]
+M jnz $l22c6:1 ; @12AC
+H 8B 05 B4 06 50 00 ; @12AE mov eax, [rip+5253480]
+H 89 05 A6 06 50 00 ; @12B4 mov [rip+5253472], eax
+H 8B 05 AC 06 50 00 ; @12BA mov eax, [rip+5253484]
+H 89 05 9E 06 50 00 ; @12C0 mov [rip+5253476], eax
+:l22c6 ; @12C6
+H 83 3D 9F 06 50 00 00 ; @12C6 cmp [rip+5253484], 0
+M jz $l2355 ; @12CD
+H 8B 05 8F 06 50 00 ; @12D3 mov eax, [rip+5253480]
+H 3B 05 71 06 50 00 ; @12D9 cmp eax, [rip+5253456]
+M jb $l2397 ; @12DF
+M mov r8, rax ; @12E5
+H 8B 05 7E 06 50 00 ; @12E8 mov eax, [rip+5253484]
+M add r8, rax ; @12EE
+M mov rcx, 400000 ; @12F1
+H 4C 3B C1 ; @12F8 cmp r8, rcx
+M ja $l2397 ; @12FB
+H 4D 3B C5 ; @1301 cmp r8, r13
+M jbe $l2309:1 ; @1304
+M mov r13, r8 ; @1306
+:l2309 ; @1309
+H 4C 8D 1D 7C 0E A4 00 ; @1309 lea r11, [rip+10760588]
+M xor ecx, ecx ; @1310
+:l2312 ; @1312
+H 41 3B C9 ; @1312 cmp ecx, r9d
+M jae $l233f:1 ; @1315
+M mov edx, [r11] ; @1317
+M mov eax, [r11+4] ; @131A
+M add eax, edx ; @131E
+H 8B 15 42 06 50 00 ; @1320 mov edx, [rip+5253480]
+H 3B D0 ; @1326 cmp edx, eax
+M jae $l2337:1 ; @1328
+M mov eax, [r11] ; @132A
+H 41 3B C0 ; @132D cmp eax, r8d
+M jae $l2337:1 ; @1330
+M jmp $l2397 ; @1332
+:l2337 ; @1337
+M add r11, 8 ; @1337
+M inc ecx ; @133B
+M jmp $l2312:1 ; @133D
+:l233f ; @133F
+H 8B 05 23 06 50 00 ; @133F mov eax, [rip+5253480]
+M mov [r11], eax ; @1345
+H 8B 05 1E 06 50 00 ; @1348 mov eax, [rip+5253484]
+M mov [r11+4], eax ; @134E
+M inc r9d ; @1352
+:l2355 ; @1355
+M add r14, 28 ; @1355
+M inc r15d ; @1359
+H 44 3B 3D F1 05 50 00 ; @135C cmp r15d, [rip+5253460]
+M jb $l2276 ; @1363
+H 8B 05 01 06 50 00 ; @1369 mov eax, [rip+5253488]
+H 3B 05 DF 05 50 00 ; @136F cmp eax, [rip+5253460]
+M jae $l2397 ; @1375
+H 8B 05 E3 05 50 00 ; @137B mov eax, [rip+5253476]
+H 3B 05 7D 03 00 00 ; @1381 cmp eax, [rip+9988]
+M jb $l2397 ; @1387
+H 44 89 2D C8 05 50 00 ; @138D mov [rip+5253468], r13d
+M xor eax, eax ; @1394
+M ret ; @1396
+:l2397 ; @1397
+M mov rax, 1 ; @1397
+M ret ; @139E
+:l239f ; @139F
+H 48 8D 35 9A 03 40 00 ; @139F lea rsi, [rip+4204352]
+H 8B 0D 58 03 00 00 ; @13A6 mov ecx, [rip+9988]
+H 4C 8D 15 8D 03 40 00 ; @13AC lea r10, [rip+4204352]
+M add r10, rcx ; @13B3
+H 48 8D 3D CF 05 50 00 ; @13B6 lea rdi, [rip+5253516]
+H 8B 05 9D 05 50 00 ; @13BD mov eax, [rip+5253472]
+M add rdi, rax ; @13C3
+:l23c6 ; @13C6
+M mov al, [rsi] ; @13C6
+M mov [rdi], al ; @13C8
+M inc rsi ; @13CA
+M inc rdi ; @13CD
+H 49 3B F2 ; @13D0 cmp rsi, r10
+M jb $l23c6:1 ; @13D3
+M xor eax, eax ; @13D5
+M ret ; @13D7
 :l23d8 ; @13D8
-H 44 3B 3D 8F 05 03 00 ; @13D8 cmp r15d, [rip+207214]
-M jae $l247f ; @13DF
-M mov r12d, [r10] ; @13E5
-H 44 3B 25 5B 05 03 00 ; @13E8 cmp r12d, [rip+207178]
-M jae $l2482 ; @13EF
-H 44 3B 25 6A 05 03 00 ; @13F5 cmp r12d, [rip+207206]
-M jz $l2482 ; @13FC
-M mov eax, r12d ; @1402
-M shl eax, 5 ; @1405
-M mov edx, r12d ; @1408
-M shl edx, 3 ; @140B
-M add eax, edx ; @140E
-H 03 05 38 05 03 00 ; @1410 add eax, [rip+207182]
-H 48 8D 0D 65 05 03 00 ; @1416 lea rcx, [rip+207234]
-M add rcx, rax ; @141D
-M mov edx, [rcx+10] ; @1420
-M mov eax, [rcx+14] ; @1423
-M test edx, edx ; @1426
-M jz $l2482 ; @1428
-M mov r8d, [r10+4] ; @142E
-M mov r9d, [r10+C] ; @1432
-M mov r11d, r8d ; @1436
-M add r11d, r9d ; @1439
-H 44 3B DA ; @143C cmp r11d, edx
-M ja $l2482 ; @143F
-H 48 8D 3D 36 05 03 00 ; @1445 lea rdi, [rip+207234]
-M add rdi, rax ; @144C
-M add rdi, r8 ; @144F
-H 48 8D 35 29 0F 07 00 ; @1452 lea rsi, [rip+471938]
-M mov eax, [r10+8] ; @1459
-M add rsi, rax ; @145D
-M xor ecx, ecx ; @1460
-:l2462 ; @1462
-M mov al, [rsi] ; @1462
-M mov [rdi], al ; @1464
-M inc rsi ; @1466
-M inc rdi ; @1469
-M inc ecx ; @146C
-H 41 3B C9 ; @146E cmp ecx, r9d
-M jb $l2462:1 ; @1471
-M add r10, 10 ; @1473
-M inc r15d ; @1477
-M jmp $l23d8 ; @147A
-:l247f ; @147F
-M xor eax, eax ; @147F
-M ret ; @1481
-:l2482 ; @1482
-M mov rax, 1 ; @1482
-M ret ; @1489
-:l248a ; @148A
-M call $l20e5 ; @148A
-M test eax, eax ; @148F
-M jnz $l2506:1 ; @1491
-M call $l21c5 ; @1493
-M test eax, eax ; @1498
-M jnz $l2506:1 ; @149A
-M call $l2395 ; @149C
-M test eax, eax ; @14A1
-M jnz $l2506:1 ; @14A3
-M call $l23ce ; @14A5
-M test eax, eax ; @14AA
-M jnz $l2506:1 ; @14AC
-H 48 8D 0D 95 01 00 00 ; @14AE lea rcx, [rip+9802]
-M call $l1271 ; @14B5
-M cmp rax, -1 ; @14BA
-M jz $l24ee:1 ; @14BE
-M mov r12, rax ; @14C0
-M mov rcx, r12 ; @14C3
-H 48 8D 15 B5 04 03 00 ; @14C6 lea rdx, [rip+207234]
-H 44 8B 05 7E 04 03 00 ; @14CD mov r8d, [rip+207186]
-M call $l12dd ; @14D4
-M test eax, eax ; @14D9
-M jnz $l24fa:1 ; @14DB
-M mov rcx, r12 ; @14DD
-M call $l12a6 ; @14E0
-M xor ecx, ecx ; @14E5
-M call [rip+$iat_exitprocess] ; @14E7
-M int3 ; @14ED
-:l24ee ; @14EE
-M mov rcx, 8 ; @14EE
-M call $l133e ; @14F5
-:l24fa ; @14FA
-M mov rcx, 9 ; @14FA
-M call $l133e ; @1501
-:l2506 ; @1506
-M mov rcx, 7 ; @1506
-M call $l133e ; @150D
-:l2512 ; @1512
-M xor spl, [rip+$d2518] ; @1512
-:d2518 ; @1518
-DB 00 00 37 25 ; @1518
-DZ 6 ; @151C
-DB 3B 25 ; @1522
-DZ 6 ; @1524
-DB 40 25 ; @152A
-DZ 6 ; @152C
-DB 70 65 76 32 00 68 64 72 00 62 6F 64 79 00 73 65 ; @1532
-DB 63 ; @1542
+M xor r15d, r15d ; @13D8
+H 4C 8D 15 AA 0D 90 00 ; @13DB lea r10, [rip+9449868]
+:l23e2 ; @13E2
+H 44 3B 3D 8F 05 50 00 ; @13E2 cmp r15d, [rip+5253496]
+M jae $l2489 ; @13E9
+M mov r12d, [r10] ; @13EF
+H 44 3B 25 5B 05 50 00 ; @13F2 cmp r12d, [rip+5253460]
+M jae $l248c ; @13F9
+H 44 3B 25 6A 05 50 00 ; @13FF cmp r12d, [rip+5253488]
+M jz $l248c ; @1406
+M mov eax, r12d ; @140C
+M shl eax, 5 ; @140F
+M mov edx, r12d ; @1412
+M shl edx, 3 ; @1415
+M add eax, edx ; @1418
+H 03 05 38 05 50 00 ; @141A add eax, [rip+5253464]
+H 48 8D 0D 65 05 50 00 ; @1420 lea rcx, [rip+5253516]
+M add rcx, rax ; @1427
+M mov edx, [rcx+10] ; @142A
+M mov eax, [rcx+14] ; @142D
+M test edx, edx ; @1430
+M jz $l248c ; @1432
+M mov r8d, [r10+4] ; @1438
+M mov r9d, [r10+C] ; @143C
+M mov r11d, r8d ; @1440
+M add r11d, r9d ; @1443
+H 44 3B DA ; @1446 cmp r11d, edx
+M ja $l248c ; @1449
+H 48 8D 3D 36 05 50 00 ; @144F lea rdi, [rip+5253516]
+M add rdi, rax ; @1456
+M add rdi, r8 ; @1459
+H 48 8D 35 29 0D 94 00 ; @145C lea rsi, [rip+9712012]
+M mov eax, [r10+8] ; @1463
+M add rsi, rax ; @1467
+M xor ecx, ecx ; @146A
+:l246c ; @146C
+M mov al, [rsi] ; @146C
+M mov [rdi], al ; @146E
+M inc rsi ; @1470
+M inc rdi ; @1473
+M inc ecx ; @1476
+H 41 3B C9 ; @1478 cmp ecx, r9d
+M jb $l246c:1 ; @147B
+M add r10, 10 ; @147D
+M inc r15d ; @1481
+M jmp $l23e2 ; @1484
+:l2489 ; @1489
+M xor eax, eax ; @1489
+M ret ; @148B
+:l248c ; @148C
+M mov rax, 1 ; @148C
+M ret ; @1493
+:l2494 ; @1494
+M call $l20ef ; @1494
+M test eax, eax ; @1499
+M jnz $l2510:1 ; @149B
+M call $l21cf ; @149D
+M test eax, eax ; @14A2
+M jnz $l2510:1 ; @14A4
+M call $l239f ; @14A6
+M test eax, eax ; @14AB
+M jnz $l2510:1 ; @14AD
+M call $l23d8 ; @14AF
+M test eax, eax ; @14B4
+M jnz $l2510:1 ; @14B6
+H 48 8D 0D 95 01 00 00 ; @14B8 lea rcx, [rip+9812]
+M call $l1271 ; @14BF
+M cmp rax, -1 ; @14C4
+M jz $l24f8:1 ; @14C8
+M mov r12, rax ; @14CA
+M mov rcx, r12 ; @14CD
+H 48 8D 15 B5 04 50 00 ; @14D0 lea rdx, [rip+5253516]
+H 44 8B 05 7E 04 50 00 ; @14D7 mov r8d, [rip+5253468]
+M call $l12dd ; @14DE
+M test eax, eax ; @14E3
+M jnz $l2504:1 ; @14E5
+M mov rcx, r12 ; @14E7
+M call $l12a6 ; @14EA
+M xor ecx, ecx ; @14EF
+M call [rip+$iat_exitprocess] ; @14F1
+M int3 ; @14F7
+:l24f8 ; @14F8
+M mov rcx, 8 ; @14F8
+M call $l133e ; @14FF
+:l2504 ; @1504
+M mov rcx, 9 ; @1504
+M call $l133e ; @150B
+:l2510 ; @1510
+M mov rcx, 7 ; @1510
+M call $l133e ; @1517
+:l251c ; @151C
+H 3C 25 ; @151C cmp al, 25
+DZ 6 ; @151E
+DB 41 25 ; @1524
+DZ 6 ; @1526
+DB 45 25 ; @152C
+DZ 6 ; @152E
+DB 4A 25 ; @1534
+DZ 6 ; @1536
+DB 70 65 76 32 00 68 64 72 00 62 6F 64 79 00 73 65 ; @153C
+DB 63 ; @154C

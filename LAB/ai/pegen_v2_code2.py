@@ -2,7 +2,10 @@
 """pegen_v2_code2.py — ЛИСТИНГ ветви v2 pegen.exe, часть 2 (E9.4-4b-4):
 кирпичи K0-E005 selfdesc, K0-E006 copy_body, K0-E007 apply_secs,
 K0-G043 wrap2_main (разрез pegen_v2_code.py по лимиту 500 строк —
-прецедент 03a/03a2, bridge d2/d3)."""
+прецедент 03a/03a2, bridge d2/d3).
+
+E9.5-1 (сессия 89): OUTLIM импортируется из pegen_v2_code (0x400000 —
+было 0x40000); пересборка — LAB/ai/pegen_build_e95.py."""
 import os
 import sys
 
@@ -78,7 +81,7 @@ def add_eg_bricks(A):
     A.mov_rr("r8", "rax", "E005 mov r8,rax (rp)")
     A.mov_rip("eax", "v2rs", "E005 mov eax,[rip+v2rs]", w=0)
     A.alu_rr("add", "r8", "rax", "E005 add r8,rax (end = rp+rs)")
-    A.mov_ri("ecx", OUTLIM, "E005 mov ecx,0x40000 (предел outbuf)")
+    A.mov_ri("ecx", OUTLIM, "E005 mov ecx,0x400000 (предел outbuf, E9.5-1)")
     A.alu_rr("cmp", "r8", "rcx", "E005 cmp r8,rcx")
     A.jcc_near("a", "sd_bad", "E005 ja sd_bad (образ вне outbuf — предел)")
     A.alu_rr("cmp", "r8", "r13", "E005 cmp r8,r13 (filesz)")

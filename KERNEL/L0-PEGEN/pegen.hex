@@ -10,9 +10,9 @@
 @0000 48 83 EC 38 ; K0-X041 sub rsp,0x38
 @0004 48 8D 1D F5 EF FF FF ; K0-S041 lea rbx,[rip+image_base]
 @000B 48 C7 C1 F5 FF FF FF FF 15 70 0C 00 00 ; K0-init mov rcx,-11 (STD_OUTPUT_HANDLE) + call [rip]GetStdHandle
-@0018 48 89 05 CB 16 00 00 ; K0-init mov [rip+hstdout],rax
-@001F C7 05 F9 16 00 00 00 10 00 00 ; K0-init mov dword [rip+stackcom],0x1000
-@0029 C7 05 F3 16 00 00 00 10 00 00 ; K0-init mov dword [rip+heapcom],0x1000
+@0018 48 89 05 D5 16 00 00 ; K0-init mov [rip+hstdout],rax
+@001F C7 05 03 17 00 00 00 10 00 00 ; K0-init mov dword [rip+stackcom],0x1000
+@0029 C7 05 FD 16 00 00 00 10 00 00 ; K0-init mov dword [rip+heapcom],0x1000
 @0033 FF 15 67 0C 00 00 48 89 C7 ; K0-C031 call [rip]GetCommandLineA + mov rdi,rax
 @003C 0F B6 07 3C 22 ; K0-C032 movzx eax,byte [rdi] + cmp al,'"'
 @0041 75 13 48 FF C7 ; K0-C032 jnz sa_unq + inc rdi
@@ -30,35 +30,35 @@
 @0077 3C 09 74 EC ; K0-C032 cmp al,9 + jz sa_adv
 @007B EB 0A ; K0-C032 jmp word1
 @007D B9 00 00 00 00 E8 B7 02 00 00 ; K0-G041 mov ecx,0 (индекс справки) + call print_error
-@0087 4C 8D 05 BC 14 00 00 E8 3D 03 00 00 ; K0-G041 lea r8,[rip+fname_img] + call next_arg
-@0093 4C 8D 05 30 15 00 00 E8 31 03 00 00 ; K0-G041 lea r8,[rip+fname_peg] + call next_arg
-@009F 4C 8D 05 A4 15 00 00 E8 25 03 00 00 ; K0-G041 lea r8,[rip+fname_out] + call next_arg
-@00AB 48 8D 0D 98 14 00 00 E8 82 01 00 00 ; K0-G041 lea rcx,[rip+fname_img] + call open_file_read
+@0087 4C 8D 05 C6 14 00 00 E8 3D 03 00 00 ; K0-G041 lea r8,[rip+fname_img] + call next_arg
+@0093 4C 8D 05 3A 15 00 00 E8 31 03 00 00 ; K0-G041 lea r8,[rip+fname_peg] + call next_arg
+@009F 4C 8D 05 AE 15 00 00 E8 25 03 00 00 ; K0-G041 lea r8,[rip+fname_out] + call next_arg
+@00AB 48 8D 0D A2 14 00 00 E8 82 01 00 00 ; K0-G041 lea rcx,[rip+fname_img] + call open_file_read
 @00B7 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok1
 @00BD B9 02 00 00 00 E8 77 02 00 00 ; K0-G041 mov ecx,2 (ERR=OPEN IMAGE) + call print_error
 @00C7 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл образа) + mov rcx,r12
-@00CD 48 8D 15 62 16 01 00 41 B8 01 00 02 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8d,0x20001 (вместимость, E6.4g-3)
-@00DA 4C 8D 0D 19 16 00 00 E8 CF 01 00 00 ; K0-G041 lea r9,[rip+imgsize] + call read_whole_dst
+@00CD 48 8D 15 6C 16 40 00 41 B8 01 00 10 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8d,0x100001 (вместимость, E9.5-1)
+@00DA 4C 8D 0D 23 16 00 00 E8 CF 01 00 00 ; K0-G041 lea r9,[rip+imgsize] + call read_whole_dst
 @00E6 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok2
 @00EC B9 03 00 00 00 E8 48 02 00 00 ; K0-G041 mov ecx,3 (ERR=READ IMAGE) + call print_error
-@00F6 48 3D 00 00 02 00 76 0A ; K0-G041 cmp rax,0x20000 (предел образа 128 КиБ, E6.4g-3) + jbe ok3
+@00F6 48 3D 00 00 10 00 76 0A ; K0-G041 cmp rax,0x100000 (предел образа 1 МиБ, E9.5-1) + jbe ok3
 @00FE B9 04 00 00 00 E8 36 02 00 00 ; K0-G041 mov ecx,4 (ERR=BIG IMAGE) + call print_error
 @0108 4C 89 E1 E8 96 01 00 00 ; K0-G041 mov rcx,r12 + call close_file
-@0110 48 8D 0D B3 14 00 00 E8 1D 01 00 00 ; K0-G041 lea rcx,[rip+fname_peg] + call open_file_read
+@0110 48 8D 0D BD 14 00 00 E8 1D 01 00 00 ; K0-G041 lea rcx,[rip+fname_peg] + call open_file_read
 @011C 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok4
 @0122 B9 05 00 00 00 E8 12 02 00 00 ; K0-G041 mov ecx,5 (ERR=OPEN PEG) + call print_error
 @012C 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл peg) + mov rcx,r12
-@0132 48 8D 15 FD 15 00 00 41 B8 00 00 01 00 ; K0-G041 lea rdx,[rip+filebuf] + mov r8d,0x10000 (вместимость)
-@013F 4C 8D 0D BC 15 00 00 E8 6A 01 00 00 ; K0-G041 lea r9,[rip+pegsize] + call read_whole_dst
+@0132 48 8D 15 07 16 00 00 41 B8 00 00 40 00 ; K0-G041 lea rdx,[rip+filebuf] + mov r8d,0x400000 (вместимость, E9.5-1)
+@013F 4C 8D 0D C6 15 00 00 E8 6A 01 00 00 ; K0-G041 lea r9,[rip+pegsize] + call read_whole_dst
 @014B 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz pg2
 @0151 B9 06 00 00 00 E8 E3 01 00 00 ; K0-G041 mov ecx,6 (ERR=READ PEG) + call print_error
-@015B 48 3D 00 00 01 00 72 0A ; K0-G041 cmp rax,0x10000 (сентинелу нужен запас) + jb ok5
+@015B 48 3D 00 00 40 00 72 0A ; K0-G041 cmp rax,0x400000 (сентинелу нужен запас, E9.5-1) + jb ok5
 @0163 B9 06 00 00 00 E8 D1 01 00 00 ; K0-G041 mov ecx,6 (ERR=READ PEG) + call print_error
 @016D 4C 89 E1 E8 31 01 00 00 ; K0-G041 mov rcx,r12 + call close_file
-@0175 E8 00 0C 00 00 48 85 C0 ; K0-G041 call sniff_v2 (развилка v2 E9.4-4b-4) + test rax,rax
+@0175 E8 00 0C 00 00 48 85 C0 ; K0-G041 call sniff_v2 (развилка v2 E9.4-4b-4; переточен E9.5-1) + test rax,rax
 @017D 74 0A B9 07 00 00 00 ; K0-G041 jz ok6 + mov ecx,7 (ERR=FORMAT)
 @0184 E8 B5 01 00 00 E8 ED 04 00 00 ; K0-G041 call print_error + call build_header
-@018E 48 8D 0D B5 14 00 00 E8 D7 00 00 00 ; K0-G041 lea rcx,[rip+fname_out] + call create_file_write
+@018E 48 8D 0D BF 14 00 00 E8 D7 00 00 00 ; K0-G041 lea rcx,[rip+fname_out] + call create_file_write
 @019A 48 83 F8 FF 75 0A ; K0-G041 cmp rax,-1 + jnz ok7
 @01A0 B9 08 00 00 00 E8 94 01 00 00 ; K0-G041 mov ecx,8 (ERR=OPEN OUT) + call print_error
 @01AA 49 89 C4 4C 89 E1 ; K0-G041 mov r12,rax (хэндл выхода) + mov rcx,r12
@@ -66,13 +66,13 @@
 @01BD E8 1B 01 00 00 48 85 C0 ; K0-G041 call write_all + test rax,rax
 @01C5 74 0A B9 09 00 00 00 ; K0-G041 jz ok8 + mov ecx,9 (ERR=WRITE OUT)
 @01CC E8 6D 01 00 00 4C 89 E1 ; K0-G041 call print_error + mov rcx,r12
-@01D4 48 8D 15 5B 15 01 00 4C 8B 05 18 15 00 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8,[rip+imgsize]
+@01D4 48 8D 15 65 15 40 00 4C 8B 05 22 15 00 00 ; K0-G041 lea rdx,[rip+imagebuf] + mov r8,[rip+imgsize]
 @01E2 E8 F6 00 00 00 48 85 C0 ; K0-G041 call write_all + test rax,rax
 @01EA 74 0A B9 09 00 00 00 ; K0-G041 jz ok9 + mov ecx,9 (ERR=WRITE OUT)
-@01F1 E8 48 01 00 00 44 8B 05 31 15 00 00 ; K0-G041 call print_error + mov r8d,[rip+srd]
-@01FD 44 2B 05 F6 14 00 00 45 85 C0 ; K0-G041 sub r8d,[rip+imgsize] + test r8d,r8d
+@01F1 E8 48 01 00 00 44 8B 05 3B 15 00 00 ; K0-G041 call print_error + mov r8d,[rip+srd]
+@01FD 44 2B 05 00 15 00 00 45 85 C0 ; K0-G041 sub r8d,[rip+imgsize] + test r8d,r8d
 @0207 74 1E 4C 89 E1 ; K0-G041 jz ok10 + mov rcx,r12
-@020C 48 8D 15 33 15 03 00 E8 C5 00 00 00 ; K0-G041 lea rdx,[rip+zeropad] + call write_all
+@020C 48 8D 15 3D 15 50 00 E8 C5 00 00 00 ; K0-G041 lea rdx,[rip+zeropad] + call write_all
 @0218 48 85 C0 74 0A ; K0-G041 test rax,rax + jz ok10b
 @021D B9 09 00 00 00 E8 17 01 00 00 ; K0-G041 mov ecx,9 (ERR=WRITE OUT) + call print_error
 @0227 4C 89 E1 E8 77 00 00 00 ; K0-G041 mov rcx,r12 + call close_file
@@ -100,16 +100,16 @@
 @02D1 48 C7 C0 FF FF FF FF C3 ; K0-F024 mov rax,-1 + ret
 @02D9 41 8B 01 C3 ; K0-F024 mov eax,[r9] (счётчик) + ret
 @02DD 48 83 EC 28 4D 89 C5 ; K0-F025 sub rsp,0x28 + mov r13,r8 (сохранить длину)
-@02E4 4C 8D 0D 07 14 00 00 ; K0-F025 lea r9,[rip+written]
+@02E4 4C 8D 0D 11 14 00 00 ; K0-F025 lea r9,[rip+written]
 @02EB 48 C7 44 24 20 00 00 00 00 ; K0-F025 mov qword [rsp+0x20],0 (ovl=NULL)
 @02F4 FF 15 96 09 00 00 48 83 C4 28 ; K0-F025 call [rip]WriteFile + add rsp,0x28
 @02FE 48 85 C0 74 0F ; K0-F025 test rax,rax + jz wa_err
-@0303 48 8B 05 E8 13 00 00 4C 39 E8 ; K0-F025 mov rax,[rip+written] + cmp rax,r13
+@0303 48 8B 05 F2 13 00 00 4C 39 E8 ; K0-F025 mov rax,[rip+written] + cmp rax,r13
 @030D 75 03 31 C0 ; K0-F025 jne wa_err + xor eax,eax (успех)
 @0311 C3 B8 01 00 00 00 ; K0-F025 ret + mov eax,1 (ошибка)
 @0317 C3 ; K0-F025 ret
-@0318 48 83 EC 28 48 8B 0D C7 13 00 00 ; K0-P041 sub rsp,0x28 + mov rcx,[rip+hstdout]
-@0323 4C 8D 0D C8 13 00 00 ; K0-P041 lea r9,[rip+written]
+@0318 48 83 EC 28 48 8B 0D D1 13 00 00 ; K0-P041 sub rsp,0x28 + mov rcx,[rip+hstdout]
+@0323 4C 8D 0D D2 13 00 00 ; K0-P041 lea r9,[rip+written]
 @032A 48 C7 44 24 20 00 00 00 00 ; K0-P041 mov qword [rsp+0x20],0 (ovl=NULL)
 @0333 FF 15 57 09 00 00 48 83 C4 28 ; K0-P041 call [rip]WriteFile + add rsp,0x28
 @033D C3 ; K0-P041 ret
@@ -147,8 +147,8 @@
 @03EA B9 01 00 00 00 E8 4A FF FF FF ; K0-C036 mov ecx,1 (ERR=LONG NAME) + call print_error
 @03F4 C3 B9 00 00 00 00 ; K0-C036 ret + mov ecx,0 (справка)
 @03FA E8 3F FF FF FF ; K0-C036 call print_error
-@03FF 48 8D 35 30 13 00 00 8B 05 F6 12 00 00 ; K0-Q001 lea rsi,[rip+filebuf] + mov eax,[rip+pegsize]
-@040C 48 98 48 8D 0D 21 13 00 00 ; K0-Q001 cdqe + lea rcx,[rip+filebuf]
+@03FF 48 8D 35 3A 13 00 00 8B 05 00 13 00 00 ; K0-Q001 lea rsi,[rip+filebuf] + mov eax,[rip+pegsize]
+@040C 48 98 48 8D 0D 2B 13 00 00 ; K0-Q001 cdqe + lea rcx,[rip+filebuf]
 @0415 48 01 C1 C6 01 00 ; K0-Q001 add rcx,rax (конец текста) + mov byte [rcx],0 (сентинел)
 @041B 0F B6 06 84 C0 ; K0-Q001 movzx eax,byte [rsi] + test al,al
 @0420 74 5E 3C 3B ; K0-Q001 jz pp_done + cmp al,';'
@@ -170,7 +170,7 @@
 @046E E8 8D 01 00 00 48 85 C0 ; K0-Q001 call do_value + test rax,rax
 @0476 75 02 EB A1 ; K0-Q001 jnz pp_bad + jmp pp_next
 @047A B8 01 00 00 00 C3 ; K0-Q001 mov eax,1 (ошибка) + ret
-@0480 8B 05 80 12 00 00 83 E0 0F ; K0-Q001 mov eax,[rip+seen] + and eax,0xF (обязательные)
+@0480 8B 05 8A 12 00 00 83 E0 0F ; K0-Q001 mov eax,[rip+seen] + and eax,0xF (обязательные)
 @0489 3D 0F 00 00 00 75 EA ; K0-Q001 cmp eax,0xF + jnz pp_bad
 @0490 31 C0 C3 ; K0-Q001 xor eax,eax (успех) + ret
 @0493 4C 8D 1D 16 03 00 00 45 31 C9 ; K0-Q002 lea r11,[rip+kwtab] + xor r9d,r9d (индекс)
@@ -231,14 +231,14 @@
 @05AD 48 89 F8 48 29 F0 ; K0-Q010 mov rax,rdi + sub rax,rsi (длина имени)
 @05B3 48 83 F8 1F 77 3F ; K0-Q010 cmp rax,31 + ja dm_bad (длиннее 31)
 @05B9 48 85 C0 74 3A ; K0-Q010 test rax,rax + jz dm_bad (пустое имя)
-@05BE 4C 8D 15 05 11 00 00 48 39 FE ; K0-Q010 lea r10,[rip+modname] + cmp rsi,rdi
+@05BE 4C 8D 15 0F 11 00 00 48 39 FE ; K0-Q010 lea r10,[rip+modname] + cmp rsi,rdi
 @05C8 74 0E 0F B6 06 ; K0-Q010 jz dm_end + movzx eax,byte [rsi]
 @05CD 41 88 02 48 FF C6 ; K0-Q010 mov [r10],al + inc rsi
 @05D3 49 FF C2 EB ED ; K0-Q010 inc r10 + jmp dm_loop
 @05D8 41 C6 02 00 E8 72 FF FF FF ; K0-Q010 mov byte [r10],0 (NUL) + call expect_eol
 @05E1 48 85 C0 75 12 ; K0-Q010 test rax,rax + jnz dm_bad
-@05E6 8B 05 1A 11 00 00 83 C8 01 ; K0-Q010 mov eax,[rip+seen] + or eax,1 (бит module)
-@05EF 89 05 11 11 00 00 31 C0 ; K0-Q010 mov [rip+seen],eax + xor eax,eax
+@05E6 8B 05 24 11 00 00 83 C8 01 ; K0-Q010 mov eax,[rip+seen] + or eax,1 (бит module)
+@05EF 89 05 1B 11 00 00 31 C0 ; K0-Q010 mov [rip+seen],eax + xor eax,eax
 @05F7 C3 48 C7 C0 FF FF FF FF ; K0-Q010 ret + mov rax,-1
 @05FF C3 ; K0-Q010 ret
 @0600 8D 41 FF C1 E0 04 ; K0-Q011 lea eax,[rcx-1] (индекс vdesc) + shl eax,4 (x16)
@@ -254,33 +254,33 @@
 @0648 89 02 E8 04 FF FF FF ; K0-Q011 mov [rdx],eax + call expect_eol
 @064F 48 85 C0 75 16 ; K0-Q011 test rax,rax + jnz dv_bad
 @0654 B8 01 00 00 00 D3 E0 ; K0-Q011 mov eax,1 + shl eax,cl (бит индекса)
-@065B 0B 05 A5 10 00 00 89 05 9F 10 00 00 ; K0-Q011 or eax,[rip+seen] + mov [rip+seen],eax
+@065B 0B 05 AF 10 00 00 89 05 A9 10 00 00 ; K0-Q011 or eax,[rip+seen] + mov [rip+seen],eax
 @0667 31 C0 C3 ; K0-Q011 xor eax,eax + ret
 @066A 48 C7 C0 FF FF FF FF C3 ; K0-Q011 mov rax,-1 + ret
 @0672 8D 44 08 FF F7 D9 ; K0-M001 lea eax,[rax+rcx-1] (v+a-1) + neg ecx (-a = маска ~(a-1))
 @0678 21 C8 C3 ; K0-M001 and eax,ecx (обнулить младшие) + ret
-@067B 8B 05 79 10 00 00 03 05 97 10 00 00 ; K0-E001 mov eax,[rip+imgsize] + add eax,[rip+bssv]
-@0687 89 05 9D 10 00 00 8B 05 67 10 00 00 ; K0-E001 mov [rip+vsize],eax + mov eax,[rip+imgsize]
+@067B 8B 05 83 10 00 00 03 05 A1 10 00 00 ; K0-E001 mov eax,[rip+imgsize] + add eax,[rip+bssv]
+@0687 89 05 A7 10 00 00 8B 05 71 10 00 00 ; K0-E001 mov [rip+vsize],eax + mov eax,[rip+imgsize]
 @0693 B9 00 02 00 00 E8 D5 FF FF FF ; K0-E001 mov ecx,0x200 (FileAlignment) + call align_up
-@069D 89 05 8B 10 00 00 8B 05 81 10 00 00 ; K0-E001 mov [rip+srd],eax + mov eax,[rip+vsize]
+@069D 89 05 95 10 00 00 8B 05 8B 10 00 00 ; K0-E001 mov [rip+srd],eax + mov eax,[rip+vsize]
 @06A9 B9 00 10 00 00 E8 BF FF FF FF ; K0-E001 mov ecx,0x1000 (SectionAlignment) + call align_up
-@06B3 05 00 10 00 00 89 05 74 10 00 00 ; K0-E001 add eax,0x1000 (страница заголовков) + mov [rip+soi],eax
-@06BE 48 8D 3D 9B 03 00 00 8B 05 5F 10 00 00 ; K0-E001 lea rdi,[rip+hdr] (шаблон) + mov eax,[rip+vsize]
-@06CB 89 87 90 01 00 00 8B 05 57 10 00 00 ; K0-E001 mov [rdi+0x190],eax (VirtualSize) + mov eax,[rip+srd]
-@06D7 89 87 98 01 00 00 8B 05 4B 10 00 00 ; K0-E001 mov [rdi+0x198],eax (SizeOfRawData) + mov eax,[rip+srd]
-@06E3 89 87 9C 00 00 00 8B 05 43 10 00 00 ; K0-E001 mov [rdi+0x9C],eax (SizeOfCode) + mov eax,[rip+soi]
+@06B3 05 00 10 00 00 89 05 7E 10 00 00 ; K0-E001 add eax,0x1000 (страница заголовков) + mov [rip+soi],eax
+@06BE 48 8D 3D 9B 03 00 00 8B 05 69 10 00 00 ; K0-E001 lea rdi,[rip+hdr] (шаблон) + mov eax,[rip+vsize]
+@06CB 89 87 90 01 00 00 8B 05 61 10 00 00 ; K0-E001 mov [rdi+0x190],eax (VirtualSize) + mov eax,[rip+srd]
+@06D7 89 87 98 01 00 00 8B 05 55 10 00 00 ; K0-E001 mov [rdi+0x198],eax (SizeOfRawData) + mov eax,[rip+srd]
+@06E3 89 87 9C 00 00 00 8B 05 4D 10 00 00 ; K0-E001 mov [rdi+0x9C],eax (SizeOfCode) + mov eax,[rip+soi]
 @06EF 89 87 D0 00 00 00 E8 06 00 00 00 ; K0-E001 mov [rdi+0xD0],eax (SizeOfImage) + call patch_dirs
 @06FA E8 56 00 00 00 C3 ; K0-E001 call build_stub + ret
-@0700 8B 05 04 10 00 00 89 87 A8 00 00 00 ; K0-E002 mov eax,[rip+entry] + mov [rdi+0xA8],eax (EntryPoint)
-@070C 8B 05 FC 0F 00 00 89 87 10 01 00 00 ; K0-E002 mov eax,[rip+idata_rva] + mov [rdi+0x110],eax (DD1 RVA)
-@0718 8B 05 F4 0F 00 00 89 87 14 01 00 00 ; K0-E002 mov eax,[rip+idata_size] + mov [rdi+0x114],eax (DD1 размер)
-@0724 8B 05 EC 0F 00 00 89 87 68 01 00 00 ; K0-E002 mov eax,[rip+iat_rva] + mov [rdi+0x168],eax (DD12 RVA)
-@0730 8B 05 E4 0F 00 00 89 87 6C 01 00 00 ; K0-E002 mov eax,[rip+iat_size] + mov [rdi+0x16C],eax (DD12 размер)
-@073C 8B 05 E0 0F 00 00 89 87 E8 00 00 00 ; K0-E002 mov eax,[rip+stackcom] + mov [rdi+0xE8],eax (фиксация стека)
-@0748 8B 05 D8 0F 00 00 89 87 F8 00 00 00 ; K0-E002 mov eax,[rip+heapcom] + mov [rdi+0xF8],eax (фиксация кучи)
+@0700 8B 05 0E 10 00 00 89 87 A8 00 00 00 ; K0-E002 mov eax,[rip+entry] + mov [rdi+0xA8],eax (EntryPoint)
+@070C 8B 05 06 10 00 00 89 87 10 01 00 00 ; K0-E002 mov eax,[rip+idata_rva] + mov [rdi+0x110],eax (DD1 RVA)
+@0718 8B 05 FE 0F 00 00 89 87 14 01 00 00 ; K0-E002 mov eax,[rip+idata_size] + mov [rdi+0x114],eax (DD1 размер)
+@0724 8B 05 F6 0F 00 00 89 87 68 01 00 00 ; K0-E002 mov eax,[rip+iat_rva] + mov [rdi+0x168],eax (DD12 RVA)
+@0730 8B 05 EE 0F 00 00 89 87 6C 01 00 00 ; K0-E002 mov eax,[rip+iat_size] + mov [rdi+0x16C],eax (DD12 размер)
+@073C 8B 05 EA 0F 00 00 89 87 E8 00 00 00 ; K0-E002 mov eax,[rip+stackcom] + mov [rdi+0xE8],eax (фиксация стека)
+@0748 8B 05 E2 0F 00 00 89 87 F8 00 00 00 ; K0-E002 mov eax,[rip+heapcom] + mov [rdi+0xF8],eax (фиксация кучи)
 @0754 C3 ; K0-E002 ret
 @0755 48 83 C7 40 48 8D 35 3D 02 00 00 ; K0-E003 add rdi,0x40 (зона заглушки) + lea rsi,[rip+stub_pfx]
-@0760 E8 36 00 00 00 48 8D 35 5E 0F 00 00 ; K0-E003 call copy_str + lea rsi,[rip+modname]
+@0760 E8 36 00 00 00 48 8D 35 68 0F 00 00 ; K0-E003 call copy_str + lea rsi,[rip+modname]
 @076C E8 2A 00 00 00 48 8D 35 33 02 00 00 ; K0-E003 call copy_str + lea rsi,[rip+stub_sfx]
 @0778 E8 1E 00 00 00 48 8D 05 DC 02 00 00 ; K0-E003 call copy_str + lea rax,[rip+hdr] (база шаблона)
 @0784 48 89 FA 48 29 C2 ; K0-E003 mov rdx,rdi + sub rdx,rax (позиция в шаблоне)
@@ -296,12 +296,12 @@ Z 07AD 07B0
 @07C0 55 18 00 00 00 00 00 00 5B 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
 @07D0 5F 18 00 00 00 00 00 00 63 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
 @07E0 6C 18 00 00 00 00 00 00 ; kwtab: RVA слов (module,entry,idata,iat,bss,stackcom,heapcom) (продолжение)
-@07E8 0A 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: entry {entry,-}
-@07F8 0E 27 00 00 00 00 00 00 12 27 00 00 00 00 00 00 ; vdesc: idata {idata_rva,idata_size}
-@0808 16 27 00 00 00 00 00 00 1A 27 00 00 00 00 00 00 ; vdesc: iat {iat_rva,iat_size}
-@0818 1E 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: bss {bssv,-}
-@0828 22 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: stackcom {stackcom,-}
-@0838 26 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: heapcom {heapcom,-}
+@07E8 14 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: entry {entry,-}
+@07F8 18 27 00 00 00 00 00 00 1C 27 00 00 00 00 00 00 ; vdesc: idata {idata_rva,idata_size}
+@0808 20 27 00 00 00 00 00 00 24 27 00 00 00 00 00 00 ; vdesc: iat {iat_rva,iat_size}
+@0818 28 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: bss {bssv,-}
+@0828 2C 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: stackcom {stackcom,-}
+@0838 30 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ; vdesc: heapcom {heapcom,-}
 @0848 6D 6F 64 75 6C 65 00 ; kw_module: ключевое слово module
 @084F 65 6E 74 72 79 00 ; kw_entry: ключевое слово entry
 @0855 69 64 61 74 61 00 ; kw_idata: ключевое слово idata
@@ -408,10 +408,10 @@ Z 0D25 0D26
 Z 0D6B 0D6C
 @0D6C 00 00 43 6C 6F 73 65 48 61 6E 64 6C 65 00 ; hint=0 + имя CloseHandle
 
-@0D7A 48 8D 35 B5 09 00 00 ; K0-Q012 lea rsi,[rip+filebuf] (сентинел)
-@0D81 8B 05 7B 09 00 00 ; K0-Q012 mov eax,[rip+pegsize]
+@0D7A 48 8D 35 BF 09 00 00 ; K0-Q012 lea rsi,[rip+filebuf] (сентинел)
+@0D81 8B 05 85 09 00 00 ; K0-Q012 mov eax,[rip+pegsize]
 @0D87 48 98 ; K0-Q012 cdqe
-@0D89 48 8D 0D A6 09 00 00 ; K0-Q012 lea rcx,[rip+filebuf]
+@0D89 48 8D 0D B0 09 00 00 ; K0-Q012 lea rcx,[rip+filebuf]
 @0D90 48 01 C1 ; K0-Q012 add rcx,rax (конец текста)
 @0D93 C6 01 00 ; K0-Q012 mov byte [rcx],0 (сентинел NUL)
 @0D96 0F B6 06 ; K0-Q012 movzx eax,byte [rsi]
@@ -441,7 +441,7 @@ Z 0D6B 0D6C
 @0DCF 85 C0 ; K0-Q012 test eax,eax
 @0DD1 74 02 ; K0-Q012 jz sv_v2 (индекс 0 == pev2)
 @0DD3 EB 05 ; K0-Q012 jmp sv_v1 (не pev2 первыми — путь v1)
-@0DD5 E8 B0 06 00 00 ; K0-Q012 call wrap2_main (v2 — не возвращает)
+@0DD5 E8 BA 06 00 00 ; K0-Q012 call wrap2_main (v2 — не возвращает)
 @0DDA E8 20 F6 FF FF ; K0-Q012 call parse_peg (v1)
 @0DDF C3 ; K0-Q012 ret (rax — от parse_peg)
 @0DE0 0F B6 06 ; K0-Q012 movzx eax,byte [rsi]
@@ -452,7 +452,7 @@ Z 0D6B 0D6C
 @0DEB 48 FF C6 ; K0-Q012 inc rsi
 @0DEE EB F0 ; K0-Q012 jmp sv_skipline
 @0DF0 49 89 F2 ; K0-Q013 mov r10,rsi (старт слова)
-@0DF3 4C 8D 1D 18 07 00 00 ; K0-Q013 lea r11,[rip+v2kwtab]
+@0DF3 4C 8D 1D 22 07 00 00 ; K0-Q013 lea r11,[rip+v2kwtab]
 @0DFA 45 31 C9 ; K0-Q013 xor r9d,r9d (индекс)
 @0DFD 4D 8B 03 ; K0-Q013 mov r8,[r11] (RVA слова)
 @0E00 49 01 D8 ; K0-Q013 add r8,rbx (адрес слова)
@@ -489,19 +489,19 @@ Z 0D6B 0D6C
 @0E4B 48 C7 C0 FF FF FF FF ; K0-Q013 mov rax,-1 (не найдено)
 @0E52 C3 ; K0-Q013 ret
 @0E53 45 31 C9 ; K0-Q014 xor r9d,r9d (счётчик байтов)
-@0E56 49 3B F8 ; K0-Q014 cmp rdi,r8 (предел записи)
-@0E59 73 45 ; K0-Q014 jae hb_bad (за пределом)
-@0E5B 0F B6 06 ; K0-Q014 movzx eax,byte [rsi] (цифра 1)
-@0E5E E8 D0 F6 FF FF ; K0-Q014 call hex_digit
-@0E63 48 83 F8 FF ; K0-Q014 cmp rax,-1
-@0E67 74 2E ; K0-Q014 jz hb_end (не hex — конец блоба)
-@0E69 49 89 C3 ; K0-Q014 mov r11,rax (старший полубайт)
-@0E6C 0F B6 46 01 ; K0-Q014 movzx eax,byte [rsi+1] (цифра 2)
-@0E70 E8 BE F6 FF FF ; K0-Q014 call hex_digit
-@0E75 48 83 F8 FF ; K0-Q014 cmp rax,-1
-@0E79 74 25 ; K0-Q014 jz hb_bad (нечётное число цифр)
-@0E7B 41 C1 E3 04 ; K0-Q014 shl r11d,4
-@0E7F 41 01 C3 ; K0-Q014 add r11d,eax (байт)
+@0E56 0F B6 06 ; K0-Q014 movzx eax,byte [rsi] (цифра 1)
+@0E59 E8 D5 F6 FF FF ; K0-Q014 call hex_digit
+@0E5E 48 83 F8 FF ; K0-Q014 cmp rax,-1
+@0E62 74 33 ; K0-Q014 jz hb_end (не hex — конец блоба)
+@0E64 49 89 C3 ; K0-Q014 mov r11,rax (старший полубайт)
+@0E67 0F B6 46 01 ; K0-Q014 movzx eax,byte [rsi+1] (цифра 2)
+@0E6B E8 C3 F6 FF FF ; K0-Q014 call hex_digit
+@0E70 48 83 F8 FF ; K0-Q014 cmp rax,-1
+@0E74 74 2A ; K0-Q014 jz hb_bad (нечётное число цифр)
+@0E76 41 C1 E3 04 ; K0-Q014 shl r11d,4
+@0E7A 41 01 C3 ; K0-Q014 add r11d,eax (байт)
+@0E7D 49 3B F8 ; K0-Q014 cmp rdi,r8 (предел записи)
+@0E80 73 1E ; K0-Q014 jae hb_bad (за пределом)
 @0E82 44 88 1F ; K0-Q014 mov [rdi],r11b
 @0E85 48 FF C7 ; K0-Q014 inc rdi
 @0E88 48 83 C6 02 ; K0-Q014 add rsi,2
@@ -515,7 +515,7 @@ Z 0D6B 0D6C
 @0E9F C3 ; K0-Q014 ret
 @0EA0 48 C7 C0 FF FF FF FF ; K0-Q014 mov rax,-1
 @0EA7 C3 ; K0-Q014 ret
-@0EA8 83 3D C8 0A 03 00 00 ; K0-Q015 cmp dword [rip+sawpev2],0
+@0EA8 83 3D D1 0A 50 00 00 ; K0-Q015 cmp dword [rip+sawpev2],0
 @0EAF 75 3B ; K0-Q015 jne dp_bad (повтор !pev2)
 @0EB1 E8 E2 F6 FF FF ; K0-Q015 call skip_spaces
 @0EB6 E8 3E F6 FF FF ; K0-Q015 call read_hexv (H)
@@ -523,10 +523,10 @@ Z 0D6B 0D6C
 @0EBF 74 2B ; K0-Q015 jz dp_bad
 @0EC1 48 83 F8 40 ; K0-Q015 cmp eax,0x40 (H >= 0x40)
 @0EC5 72 25 ; K0-Q015 jb dp_bad (H меньше DOS-заголовка)
-@0EC7 48 81 F8 00 00 04 00 ; K0-Q015 cmp eax,0x40000 (предел outbuf)
+@0EC7 48 81 F8 00 00 40 00 ; K0-Q015 cmp eax,0x400000 (предел outbuf, E9.5-1)
 @0ECE 77 1C ; K0-Q015 ja dp_bad (H больше outbuf — предел)
-@0ED0 89 05 70 0A 03 00 ; K0-Q015 mov [rip+v2h],eax
-@0ED6 C7 05 9A 0A 03 00 01 00 00 00 ; K0-Q015 mov dword [rip+sawpev2],1
+@0ED0 89 05 7A 0A 50 00 ; K0-Q015 mov [rip+v2h],eax
+@0ED6 C7 05 A0 0A 50 00 01 00 00 00 ; K0-Q015 mov dword [rip+sawpev2],1
 @0EE0 E8 6E F6 FF FF ; K0-Q015 call expect_eol
 @0EE5 85 C0 ; K0-Q015 test rax,rax
 @0EE7 75 03 ; K0-Q015 jnz dp_bad
@@ -537,389 +537,392 @@ Z 0D6B 0D6C
 @0EF4 E8 9F F6 FF FF ; K0-Q016 call skip_spaces
 @0EF9 E8 FB F5 FF FF ; K0-Q016 call read_hexv (off)
 @0EFE 48 83 F8 FF ; K0-Q016 cmp rax,-1
-@0F02 0F 84 A2 00 00 00 ; K0-Q016 jz dh_bad
+@0F02 0F 84 AC 00 00 00 ; K0-Q016 jz dh_bad
 @0F08 49 89 C4 ; K0-Q016 mov r12,rax (off)
-@0F0B 44 3B 25 34 0A 03 00 ; K0-Q016 cmp r12d,[rip+v2h]
-@0F12 0F 83 92 00 00 00 ; K0-Q016 jae dh_bad (off >= H — за границами)
-@0F18 48 8D 3D 63 0A 03 00 ; K0-Q016 lea rdi,[rip+outbuf]
+@0F0B 44 3B 25 3E 0A 50 00 ; K0-Q016 cmp r12d,[rip+v2h]
+@0F12 0F 83 9C 00 00 00 ; K0-Q016 jae dh_bad (off >= H — за границами)
+@0F18 48 8D 3D 6D 0A 50 00 ; K0-Q016 lea rdi,[rip+outbuf]
 @0F1F 4C 01 E7 ; K0-Q016 add rdi,r12 (outbuf+off)
-@0F22 4C 8D 05 59 0A 03 00 ; K0-Q016 lea r8,[rip+outbuf]
-@0F29 8B 05 17 0A 03 00 ; K0-Q016 mov eax,[rip+v2h]
+@0F22 4C 8D 05 63 0A 50 00 ; K0-Q016 lea r8,[rip+outbuf]
+@0F29 8B 05 21 0A 50 00 ; K0-Q016 mov eax,[rip+v2h]
 @0F2F 49 01 C0 ; K0-Q016 add r8,rax (предел = outbuf+H)
 @0F32 E8 61 F6 FF FF ; K0-Q016 call skip_spaces (перед блобом)
 @0F37 E8 17 FF FF FF ; K0-Q016 call hex_blob (блоб -> outbuf+off)
 @0F3C 48 83 F8 FF ; K0-Q016 cmp rax,-1
-@0F40 0F 84 64 00 00 00 ; K0-Q016 jz dh_bad
+@0F40 0F 84 6E 00 00 00 ; K0-Q016 jz dh_bad
 @0F46 49 89 C5 ; K0-Q016 mov r13,rax (длина)
-@0F49 8B 0D 1B 0A 03 00 ; K0-Q016 mov ecx,[rip+spancnt]
-@0F4F 48 83 F9 40 ; K0-Q016 cmp ecx,64 (предел спанов)
-@0F53 0F 83 51 00 00 00 ; K0-Q016 jae dh_bad
-@0F59 4C 8D 15 22 0A 07 00 ; K0-Q016 lea r10,[rip+spantab]
-@0F60 45 31 C0 ; K0-Q016 xor r8d,r8d (j)
-@0F63 44 3B 05 00 0A 03 00 ; K0-Q016 cmp r8d,[rip+spancnt]
-@0F6A 73 1F ; K0-Q016 jae dhl_ins
-@0F6C 41 8B 02 ; K0-Q016 mov eax,[r10] (start_j)
-@0F6F 41 8B 52 04 ; K0-Q016 mov edx,[r10+4] (end_j)
-@0F73 44 3B E2 ; K0-Q016 cmp r12d,edx (off vs end_j)
-@0F76 73 0A ; K0-Q016 jae dhl_next
-@0F78 41 3B C5 ; K0-Q016 cmp eax,r13d (start_j vs off+len)
-@0F7B 73 05 ; K0-Q016 jae dhl_next
-@0F7D E9 28 00 00 00 ; K0-Q016 jmp dh_bad (наложение патчей)
-@0F82 49 83 C2 08 ; K0-Q016 add r10,8
-@0F86 41 FF C0 ; K0-Q016 inc r8d
-@0F89 EB D8 ; K0-Q016 jmp dhl_loop
-@0F8B 45 89 22 ; K0-Q016 mov [r10],r12d (off)
-@0F8E 45 89 6A 04 ; K0-Q016 mov [r10+4],r13d (len)
-@0F92 FF C1 ; K0-Q016 inc ecx
-@0F94 89 0D D0 09 03 00 ; K0-Q016 mov [rip+spancnt],ecx
-@0F9A E8 B4 F5 FF FF ; K0-Q016 call expect_eol
-@0F9F 85 C0 ; K0-Q016 test rax,rax
-@0FA1 0F 85 03 00 00 00 ; K0-Q016 jnz dh_bad
-@0FA7 31 C0 ; K0-Q016 xor eax,eax
-@0FA9 C3 ; K0-Q016 ret
-@0FAA 48 C7 C0 01 00 00 00 ; K0-Q016 mov eax,1
-@0FB1 C3 ; K0-Q016 ret
-@0FB2 83 3D C2 09 03 00 00 ; K0-Q017 cmp dword [rip+sawbody],0
-@0FB9 75 2C ; K0-Q017 jne db_bad (повтор !body)
-@0FBB E8 D8 F5 FF FF ; K0-Q017 call skip_spaces
-@0FC0 E8 34 F5 FF FF ; K0-Q017 call read_hexv (n)
-@0FC5 48 83 F8 FF ; K0-Q017 cmp rax,-1
-@0FC9 74 1C ; K0-Q017 jz db_bad
-@0FCB 89 05 95 09 03 00 ; K0-Q017 mov [rip+bodyn],eax
-@0FD1 C7 05 A3 09 03 00 01 00 00 00 ; K0-Q017 mov dword [rip+sawbody],1
-@0FDB E8 73 F5 FF FF ; K0-Q017 call expect_eol
-@0FE0 85 C0 ; K0-Q017 test rax,rax
-@0FE2 75 03 ; K0-Q017 jnz db_bad
-@0FE4 31 C0 ; K0-Q017 xor eax,eax
-@0FE6 C3 ; K0-Q017 ret
-@0FE7 48 C7 C0 01 00 00 00 ; K0-Q017 mov eax,1
-@0FEE C3 ; K0-Q017 ret
-@0FEF E8 A4 F5 FF FF ; K0-Q018 call skip_spaces (n)
-@0FF4 E8 00 F5 FF FF ; K0-Q018 call read_hexv (n)
-@0FF9 48 83 F8 FF ; K0-Q018 cmp rax,-1
-@0FFD 0F 84 DA 00 00 00 ; K0-Q018 jz ds_bad
-@1003 49 89 C4 ; K0-Q018 mov r12,rax (n)
-@1006 E8 8D F5 FF FF ; K0-Q018 call skip_spaces (off)
-@100B E8 E9 F4 FF FF ; K0-Q018 call read_hexv (off)
-@1010 48 83 F8 FF ; K0-Q018 cmp rax,-1
-@1014 0F 84 C3 00 00 00 ; K0-Q018 jz ds_bad
-@101A 49 89 C5 ; K0-Q018 mov r13,rax (off)
-@101D 48 8D 3D 5E 13 07 00 ; K0-Q018 lea rdi,[rip+secdata]
-@1024 8B 05 48 09 03 00 ; K0-Q018 mov eax,[rip+secdpos]
-@102A 48 01 C7 ; K0-Q018 add rdi,rax (secdata+pos)
-@102D 4C 8D 05 4E 13 07 00 ; K0-Q018 lea r8,[rip+secdata]
-@1034 49 81 C0 00 20 00 00 ; K0-Q018 add r8,0x2000 (предел)
-@103B E8 58 F5 FF FF ; K0-Q018 call skip_spaces (перед блобом)
-@1040 E8 0E FE FF FF ; K0-Q018 call hex_blob (блоб -> secdata)
-@1045 48 83 F8 FF ; K0-Q018 cmp rax,-1
-@1049 0F 84 8E 00 00 00 ; K0-Q018 jz ds_bad
-@104F 49 89 C6 ; K0-Q018 mov r14,rax (длина)
-@1052 8B 0D 16 09 03 00 ; K0-Q018 mov ecx,[rip+secnt]
-@1058 48 81 F9 80 00 00 00 ; K0-Q018 cmp ecx,128 (предел записей)
-@105F 0F 83 78 00 00 00 ; K0-Q018 jae ds_bad
-@1065 4C 8D 15 16 0B 07 00 ; K0-Q018 lea r10,[rip+sectab]
-@106C 45 31 C0 ; K0-Q018 xor r8d,r8d (j)
-@106F 44 3B 05 F8 08 03 00 ; K0-Q018 cmp r8d,[rip+secnt]
-@1076 73 2F ; K0-Q018 jae dsl_ins
-@1078 41 8B 02 ; K0-Q018 mov eax,[r10] (n_j)
-@107B 41 3B C4 ; K0-Q018 cmp eax,r12d (та же секция?)
-@107E 75 1E ; K0-Q018 jne dsl_next (другая секция)
-@1080 41 8B 42 04 ; K0-Q018 mov eax,[r10+4] (off_j)
-@1084 41 8B 52 0C ; K0-Q018 mov edx,[r10+12] (len_j)
-@1088 01 C2 ; K0-Q018 add edx,eax (end_j)
-@108A 44 3B EA ; K0-Q018 cmp r13d,edx (off vs end_j)
-@108D 73 0F ; K0-Q018 jae dsl_next
-@108F 44 89 F2 ; K0-Q018 mov edx,r14d (len)
-@1092 44 01 EA ; K0-Q018 add edx,r13d (off+len)
-@1095 3B C2 ; K0-Q018 cmp eax,edx (off_j vs off+len)
-@1097 73 05 ; K0-Q018 jae dsl_next
-@1099 E9 3F 00 00 00 ; K0-Q018 jmp ds_bad (наложение !sec)
-@109E 49 83 C2 10 ; K0-Q018 add r10,16
-@10A2 41 FF C0 ; K0-Q018 inc r8d
-@10A5 EB C8 ; K0-Q018 jmp dsl_loop
-@10A7 45 89 22 ; K0-Q018 mov [r10],r12d (n)
-@10AA 45 89 6A 04 ; K0-Q018 mov [r10+4],r13d (off)
-@10AE 8B 05 BE 08 03 00 ; K0-Q018 mov eax,[rip+secdpos]
-@10B4 41 89 42 08 ; K0-Q018 mov [r10+8],eax (datapos)
-@10B8 45 89 72 0C ; K0-Q018 mov [r10+12],r14d (len)
-@10BC 44 01 F0 ; K0-Q018 add eax,r14d
-@10BF 89 05 AD 08 03 00 ; K0-Q018 mov [rip+secdpos],eax
-@10C5 FF C1 ; K0-Q018 inc ecx
-@10C7 89 0D A1 08 03 00 ; K0-Q018 mov [rip+secnt],ecx
-@10CD E8 81 F4 FF FF ; K0-Q018 call expect_eol
-@10D2 85 C0 ; K0-Q018 test rax,rax
-@10D4 0F 85 03 00 00 00 ; K0-Q018 jnz ds_bad
-@10DA 31 C0 ; K0-Q018 xor eax,eax
-@10DC C3 ; K0-Q018 ret
-@10DD 48 C7 C0 01 00 00 00 ; K0-Q018 mov eax,1
-@10E4 C3 ; K0-Q018 ret
-@10E5 48 8D 35 4A 06 00 00 ; K0-Q019 lea rsi,[rip+filebuf]
-@10EC 0F B6 06 ; K0-Q019 movzx eax,byte [rsi]
-@10EF 85 C0 ; K0-Q019 test al,al
-@10F1 0F 84 BA 00 00 00 ; K0-Q019 jz p2_end (конец текста)
-@10F7 3C 3B ; K0-Q019 cmp al,';'
-@10F9 0F 84 9A 00 00 00 ; K0-Q019 jz p2_skipline
-@10FF 3C 0D ; K0-Q019 cmp al,0x0D
-@1101 0F 84 92 00 00 00 ; K0-Q019 jz p2_skipline
-@1107 3C 0A ; K0-Q019 cmp al,0x0A
-@1109 0F 84 11 00 00 00 ; K0-Q019 jz p2_lf
-@110F 3C 20 ; K0-Q019 cmp al,' '
-@1111 74 15 ; K0-Q019 jz p2_adv
-@1113 3C 09 ; K0-Q019 cmp al,9
-@1115 74 11 ; K0-Q019 jz p2_adv
-@1117 3C 21 ; K0-Q019 cmp al,'!'
-@1119 74 15 ; K0-Q019 jz p2_dir
-@111B E9 9D 00 00 00 ; K0-Q019 jmp p2_bad (мусор)
-@1120 48 FF C6 ; K0-Q019 inc rsi
-@1123 E9 C4 FF FF FF ; K0-Q019 jmp p2_next
-@1128 48 FF C6 ; K0-Q019 inc rsi
-@112B E9 BC FF FF FF ; K0-Q019 jmp p2_next
-@1130 48 FF C6 ; K0-Q019 inc rsi (пропуск '!')
-@1133 E8 B8 FC FF FF ; K0-Q019 call match_kw2
-@1138 48 83 F8 FF ; K0-Q019 cmp rax,-1
-@113C 0F 84 7B 00 00 00 ; K0-Q019 jz p2_bad (неизвестная директива)
-@1142 83 3D 2E 08 03 00 00 ; K0-Q019 cmp dword [rip+sawpev2],0
-@1149 75 06 ; K0-Q019 jne p2_disp (pev2 уже был)
-@114B 85 C0 ; K0-Q019 test eax,eax
-@114D 75 6E ; K0-Q019 jnz p2_bad (первая — не pev2: отказ)
-@114F EB 1E ; K0-Q019 jmp p2_pev2
-@1151 85 C0 ; K0-Q019 test eax,eax
-@1153 74 1A ; K0-Q019 jz p2_pev2 (повтор — отвергнет do_pev2)
-@1155 48 83 F8 01 ; K0-Q019 cmp eax,1
-@1159 74 22 ; K0-Q019 je p2_hdr
-@115B 48 83 F8 02 ; K0-Q019 cmp eax,2
-@115F 74 2A ; K0-Q019 je p2_body
-@1161 E8 89 FE FF FF ; K0-Q019 call do_sec
-@1166 85 C0 ; K0-Q019 test rax,rax
-@1168 75 53 ; K0-Q019 jnz p2_bad
-@116A E9 7D FF FF FF ; K0-Q019 jmp p2_next
-@116F E8 34 FD FF FF ; K0-Q019 call do_pev2
-@1174 85 C0 ; K0-Q019 test rax,rax
-@1176 75 45 ; K0-Q019 jnz p2_bad
-@1178 E9 6F FF FF FF ; K0-Q019 jmp p2_next
-@117D E8 72 FD FF FF ; K0-Q019 call do_hdr
-@1182 85 C0 ; K0-Q019 test rax,rax
-@1184 75 37 ; K0-Q019 jnz p2_bad
-@1186 E9 61 FF FF FF ; K0-Q019 jmp p2_next
-@118B E8 22 FE FF FF ; K0-Q019 call do_body
-@1190 85 C0 ; K0-Q019 test rax,rax
-@1192 75 29 ; K0-Q019 jnz p2_bad
-@1194 E9 53 FF FF FF ; K0-Q019 jmp p2_next
-@1199 0F B6 06 ; K0-Q019 movzx eax,byte [rsi]
-@119C 85 C0 ; K0-Q019 test al,al
-@119E 0F 84 0D 00 00 00 ; K0-Q019 jz p2_end
-@11A4 3C 0A ; K0-Q019 cmp al,0x0A
-@11A6 0F 84 74 FF FF FF ; K0-Q019 jz p2_lf
-@11AC 48 FF C6 ; K0-Q019 inc rsi
-@11AF EB E8 ; K0-Q019 jmp p2_skipline
-@11B1 83 3D C3 07 03 00 00 ; K0-Q019 cmp dword [rip+sawbody],0
-@11B8 74 03 ; K0-Q019 je p2_bad (нет обязательного !body)
-@11BA 31 C0 ; K0-Q019 xor eax,eax
-@11BC C3 ; K0-Q019 ret
-@11BD 48 C7 C0 01 00 00 00 ; K0-Q019 mov eax,1
-@11C4 C3 ; K0-Q019 ret
-@11C5 8B 05 7B 07 03 00 ; K0-E005 mov eax,[rip+v2h]
-@11CB 48 83 F8 40 ; K0-E005 cmp eax,0x40
-@11CF 0F 82 B8 01 00 00 ; K0-E005 jb sd_bad (H < 0x40)
-@11D5 48 8D 3D A6 07 03 00 ; K0-E005 lea rdi,[rip+outbuf]
-@11DC 80 3F 4D ; K0-E005 cmp byte [rdi],'M'
-@11DF 0F 85 A8 01 00 00 ; K0-E005 jne sd_bad (нет MZ)
-@11E5 80 7F 01 5A ; K0-E005 cmp byte [rdi+1],'Z'
-@11E9 0F 85 9E 01 00 00 ; K0-E005 jne sd_bad
-@11EF 44 8B 67 3C ; K0-E005 mov r12d,[rdi+0x3C] (e_lfanew)
-@11F3 44 89 E2 ; K0-E005 mov edx,r12d
-@11F6 48 83 C2 18 ; K0-E005 add edx,0x18 (COFF+opt читаемы)
-@11FA 3B 15 46 07 03 00 ; K0-E005 cmp edx,[rip+v2h]
-@1200 0F 87 87 01 00 00 ; K0-E005 ja sd_bad (lfa+0x18 > H)
-@1206 48 8D 0D 75 07 03 00 ; K0-E005 lea rcx,[rip+outbuf]
-@120D 4C 01 E1 ; K0-E005 add rcx,r12 (outbuf+lfa)
-@1210 80 39 50 ; K0-E005 cmp byte [rcx],'P'
-@1213 0F 85 74 01 00 00 ; K0-E005 jne sd_bad (нет PE)
-@1219 80 79 01 45 ; K0-E005 cmp byte [rcx+1],'E'
-@121D 0F 85 6A 01 00 00 ; K0-E005 jne sd_bad
-@1223 80 79 02 00 ; K0-E005 cmp byte [rcx+2],0
-@1227 0F 85 60 01 00 00 ; K0-E005 jne sd_bad
-@122D 80 79 03 00 ; K0-E005 cmp byte [rcx+3],0
-@1231 0F 85 56 01 00 00 ; K0-E005 jne sd_bad
-@1237 0F B7 41 06 ; K0-E005 movzx eax,word [rcx+6] (nsec)
-@123B 85 C0 ; K0-E005 test eax,eax
-@123D 0F 84 4A 01 00 00 ; K0-E005 jz sd_bad (nsec=0)
-@1243 89 05 01 07 03 00 ; K0-E005 mov [rip+v2nsec],eax
-@1249 0F B7 51 14 ; K0-E005 movzx edx,word [rcx+0x14] (opt)
-@124D 44 01 E2 ; K0-E005 add edx,r12d
-@1250 48 83 C2 18 ; K0-E005 add edx,0x18 (tbl = lfa+0x18+opt)
-@1254 89 15 F4 06 03 00 ; K0-E005 mov [rip+v2tbl],edx
-@125A 41 89 D6 ; K0-E005 mov r14d,edx (cursor)
-@125D 45 31 FF ; K0-E005 xor r15d,r15d (i)
-@1260 45 31 C9 ; K0-E005 xor r9d,r9d (rawcnt)
-@1263 8B 05 DD 06 03 00 ; K0-E005 mov eax,[rip+v2h]
-@1269 49 89 C5 ; K0-E005 mov r13,rax (filesz = H)
-@126C 44 89 F0 ; K0-E005 mov eax,r14d
-@126F 48 83 C0 28 ; K0-E005 add eax,40
-@1273 3B 05 CD 06 03 00 ; K0-E005 cmp eax,[rip+v2h]
-@1279 0F 87 0E 01 00 00 ; K0-E005 ja sd_bad (таблица секций вне H)
-@127F 48 8D 0D FC 06 03 00 ; K0-E005 lea rcx,[rip+outbuf]
-@1286 4C 01 F1 ; K0-E005 add rcx,r14 (запись секции)
-@1289 8B 41 14 ; K0-E005 mov eax,[rcx+20] (rp)
-@128C 89 05 CC 06 03 00 ; K0-E005 mov [rip+v2rp],eax
-@1292 8B 41 10 ; K0-E005 mov eax,[rcx+16] (rs)
-@1295 89 05 C7 06 03 00 ; K0-E005 mov [rip+v2rs],eax
-@129B 44 3B 3D C4 06 03 00 ; K0-E005 cmp r15d,[rip+bodyn]
-@12A2 75 18 ; K0-E005 jne sd_nb (не секция body)
-@12A4 8B 05 B4 06 03 00 ; K0-E005 mov eax,[rip+v2rp]
-@12AA 89 05 A6 06 03 00 ; K0-E005 mov [rip+v2brp],eax
-@12B0 8B 05 AC 06 03 00 ; K0-E005 mov eax,[rip+v2rs]
-@12B6 89 05 9E 06 03 00 ; K0-E005 mov [rip+v2brs],eax
-@12BC 83 3D A0 06 03 00 00 ; K0-E005 cmp dword [rip+v2rs],0
-@12C3 0F 84 82 00 00 00 ; K0-E005 je sd_step (rs=0)
-@12C9 8B 05 8F 06 03 00 ; K0-E005 mov eax,[rip+v2rp]
-@12CF 3B 05 71 06 03 00 ; K0-E005 cmp eax,[rip+v2h]
-@12D5 0F 82 B2 00 00 00 ; K0-E005 jb sd_bad (raw залезает в заголовки)
-@12DB 49 89 C0 ; K0-E005 mov r8,rax (rp)
-@12DE 8B 05 7E 06 03 00 ; K0-E005 mov eax,[rip+v2rs]
-@12E4 49 01 C0 ; K0-E005 add r8,rax (end = rp+rs)
-@12E7 48 C7 C1 00 00 04 00 ; K0-E005 mov ecx,0x40000 (предел outbuf)
-@12EE 4C 3B C1 ; K0-E005 cmp r8,rcx
-@12F1 0F 87 96 00 00 00 ; K0-E005 ja sd_bad (образ вне outbuf — предел)
-@12F7 4D 3B C5 ; K0-E005 cmp r8,r13 (filesz)
-@12FA 76 03 ; K0-E005 jbe sd_nof
-@12FC 4D 89 C5 ; K0-E005 mov r13,r8 (filesz = end)
-@12FF 4C 8D 1D 7C 30 07 00 ; K0-E005 lea r11,[rip+rawtab]
-@1306 31 C9 ; K0-E005 xor ecx,ecx (j)
-@1308 41 3B C9 ; K0-E005 cmp ecx,r9d
-@130B 73 28 ; K0-E005 jae sd_ins
-@130D 41 8B 13 ; K0-E005 mov edx,[r11] (rp_j)
-@1310 41 8B 43 04 ; K0-E005 mov eax,[r11+4] (rs_j)
-@1314 01 D0 ; K0-E005 add eax,edx (end_j)
-@1316 8B 15 42 06 03 00 ; K0-E005 mov edx,[rip+v2rp] (rp_cur)
-@131C 3B D0 ; K0-E005 cmp edx,eax (rp vs end_j)
-@131E 73 0D ; K0-E005 jae sd_olpn (нет наложения)
-@1320 41 8B 03 ; K0-E005 mov eax,[r11] (rp_j)
-@1323 41 3B C0 ; K0-E005 cmp eax,r8d (rp_j vs end)
-@1326 73 05 ; K0-E005 jae sd_olpn (нет наложения)
-@1328 E9 60 00 00 00 ; K0-E005 jmp sd_bad (наложение raw)
-@132D 49 83 C3 08 ; K0-E005 add r11,8
-@1331 FF C1 ; K0-E005 inc ecx
-@1333 EB D3 ; K0-E005 jmp sd_olp
-@1335 8B 05 23 06 03 00 ; K0-E005 mov eax,[rip+v2rp]
-@133B 41 89 03 ; K0-E005 mov [r11],eax (rp)
-@133E 8B 05 1E 06 03 00 ; K0-E005 mov eax,[rip+v2rs]
-@1344 41 89 43 04 ; K0-E005 mov [r11+4],eax (rs)
-@1348 41 FF C1 ; K0-E005 inc r9d
-@134B 49 83 C6 28 ; K0-E005 add r14,40
-@134F 41 FF C7 ; K0-E005 inc r15d
-@1352 44 3B 3D F1 05 03 00 ; K0-E005 cmp r15d,[rip+v2nsec]
-@1359 0F 82 0D FF FF FF ; K0-E005 jb sd_walk
-@135F 8B 05 01 06 03 00 ; K0-E005 mov eax,[rip+bodyn]
-@1365 3B 05 DF 05 03 00 ; K0-E005 cmp eax,[rip+v2nsec]
-@136B 0F 83 1C 00 00 00 ; K0-E005 jae sd_bad (!body за таблицей)
-@1371 8B 05 E3 05 03 00 ; K0-E005 mov eax,[rip+v2brs]
-@1377 3B 05 7D 03 00 00 ; K0-E005 cmp eax,[rip+imgsize]
-@137D 0F 82 0A 00 00 00 ; K0-E005 jb sd_bad (тело больше raw)
-@1383 44 89 2D C8 05 03 00 ; K0-E005 mov [rip+v2fsz],r13d
-@138A 31 C0 ; K0-E005 xor eax,eax
-@138C C3 ; K0-E005 ret
-@138D 48 C7 C0 01 00 00 00 ; K0-E005 mov eax,1
-@1394 C3 ; K0-E005 ret
-@1395 48 8D 35 9A 03 01 00 ; K0-E006 lea rsi,[rip+imagebuf]
-@139C 8B 0D 58 03 00 00 ; K0-E006 mov ecx,[rip+imgsize]
-@13A2 4C 8D 15 8D 03 01 00 ; K0-E006 lea r10,[rip+imagebuf]
-@13A9 49 01 CA ; K0-E006 add r10,rcx (конец тела)
-@13AC 48 8D 3D CF 05 03 00 ; K0-E006 lea rdi,[rip+outbuf]
-@13B3 8B 05 9D 05 03 00 ; K0-E006 mov eax,[rip+v2brp]
-@13B9 48 01 C7 ; K0-E006 add rdi,rax (outbuf+brp)
-@13BC 8A 06 ; K0-E006 mov al,[rsi]
-@13BE 88 07 ; K0-E006 mov [rdi],al
-@13C0 48 FF C6 ; K0-E006 inc rsi
-@13C3 48 FF C7 ; K0-E006 inc rdi
-@13C6 49 3B F2 ; K0-E006 cmp rsi,r10
-@13C9 72 F1 ; K0-E006 jb cb_loop
-@13CB 31 C0 ; K0-E006 xor eax,eax
-@13CD C3 ; K0-E006 ret
-@13CE 45 31 FF ; K0-E007 xor r15d,r15d (индекс)
-@13D1 4C 8D 15 AA 07 07 00 ; K0-E007 lea r10,[rip+sectab]
-@13D8 44 3B 3D 8F 05 03 00 ; K0-E007 cmp r15d,[rip+secnt]
-@13DF 0F 83 9A 00 00 00 ; K0-E007 jae as_done
-@13E5 45 8B 22 ; K0-E007 mov r12d,[r10] (n)
-@13E8 44 3B 25 5B 05 03 00 ; K0-E007 cmp r12d,[rip+v2nsec]
-@13EF 0F 83 8D 00 00 00 ; K0-E007 jae as_bad (!sec за таблицей)
-@13F5 44 3B 25 6A 05 03 00 ; K0-E007 cmp r12d,[rip+bodyn]
-@13FC 0F 84 80 00 00 00 ; K0-E007 je as_bad (!sec на body)
-@1402 44 89 E0 ; K0-E007 mov eax,r12d
-@1405 C1 E0 05 ; K0-E007 shl eax,5 (32n)
-@1408 44 89 E2 ; K0-E007 mov edx,r12d
-@140B C1 E2 03 ; K0-E007 shl edx,3 (8n)
-@140E 01 D0 ; K0-E007 add eax,edx (40n)
-@1410 03 05 38 05 03 00 ; K0-E007 add eax,[rip+v2tbl]
-@1416 48 8D 0D 65 05 03 00 ; K0-E007 lea rcx,[rip+outbuf]
-@141D 48 01 C1 ; K0-E007 add rcx,rax (запись секции)
-@1420 8B 51 10 ; K0-E007 mov edx,[rcx+16] (rs)
-@1423 8B 41 14 ; K0-E007 mov eax,[rcx+20] (rp)
-@1426 85 D2 ; K0-E007 test edx,edx
-@1428 0F 84 54 00 00 00 ; K0-E007 je as_bad (!sec на пустой raw)
-@142E 45 8B 42 04 ; K0-E007 mov r8d,[r10+4] (off)
-@1432 45 8B 4A 0C ; K0-E007 mov r9d,[r10+12] (len)
-@1436 45 89 C3 ; K0-E007 mov r11d,r8d
-@1439 45 01 CB ; K0-E007 add r11d,r9d (off+len)
-@143C 44 3B DA ; K0-E007 cmp r11d,edx (за границами raw)
-@143F 0F 87 3D 00 00 00 ; K0-E007 ja as_bad
-@1445 48 8D 3D 36 05 03 00 ; K0-E007 lea rdi,[rip+outbuf]
-@144C 48 01 C7 ; K0-E007 add rdi,rax (outbuf+rp)
-@144F 4C 01 C7 ; K0-E007 add rdi,r8 (+off)
-@1452 48 8D 35 29 0F 07 00 ; K0-E007 lea rsi,[rip+secdata]
-@1459 41 8B 42 08 ; K0-E007 mov eax,[r10+8] (datapos)
-@145D 48 01 C6 ; K0-E007 add rsi,rax (+datapos)
-@1460 31 C9 ; K0-E007 xor ecx,ecx
-@1462 8A 06 ; K0-E007 mov al,[rsi]
-@1464 88 07 ; K0-E007 mov [rdi],al
-@1466 48 FF C6 ; K0-E007 inc rsi
-@1469 48 FF C7 ; K0-E007 inc rdi
-@146C FF C1 ; K0-E007 inc ecx
-@146E 41 3B C9 ; K0-E007 cmp ecx,r9d (len)
-@1471 72 EF ; K0-E007 jb as_cpy
-@1473 49 83 C2 10 ; K0-E007 add r10,16
-@1477 41 FF C7 ; K0-E007 inc r15d
-@147A E9 59 FF FF FF ; K0-E007 jmp as_loop
-@147F 31 C0 ; K0-E007 xor eax,eax
-@1481 C3 ; K0-E007 ret
-@1482 48 C7 C0 01 00 00 00 ; K0-E007 mov eax,1
-@1489 C3 ; K0-E007 ret
-@148A E8 56 FC FF FF ; K0-G043 call parse_peg_v2
-@148F 85 C0 ; K0-G043 test rax,rax
-@1491 75 73 ; K0-G043 jnz wm_bad
-@1493 E8 2D FD FF FF ; K0-G043 call selfdesc
-@1498 85 C0 ; K0-G043 test rax,rax
-@149A 75 6A ; K0-G043 jnz wm_bad
-@149C E8 F4 FE FF FF ; K0-G043 call copy_body
-@14A1 85 C0 ; K0-G043 test rax,rax
-@14A3 75 61 ; K0-G043 jnz wm_bad
-@14A5 E8 24 FF FF FF ; K0-G043 call apply_secs
-@14AA 85 C0 ; K0-G043 test rax,rax
-@14AC 75 58 ; K0-G043 jnz wm_bad
-@14AE 48 8D 0D 95 01 00 00 ; K0-G043 lea rcx,[rip+fname_out]
-@14B5 E8 B7 ED FF FF ; K0-G043 call create_file_write
-@14BA 48 83 F8 FF ; K0-G043 cmp rax,-1
-@14BE 74 2E ; K0-G043 je wm_open (ERR=OPEN OUT)
-@14C0 49 89 C4 ; K0-G043 mov r12,rax (хэндл)
-@14C3 4C 89 E1 ; K0-G043 mov rcx,r12
-@14C6 48 8D 15 B5 04 03 00 ; K0-G043 lea rdx,[rip+outbuf]
-@14CD 44 8B 05 7E 04 03 00 ; K0-G043 mov r8d,[rip+v2fsz]
-@14D4 E8 04 EE FF FF ; K0-G043 call write_all (outbuf, filesz)
-@14D9 85 C0 ; K0-G043 test rax,rax
-@14DB 75 1D ; K0-G043 jnz wm_werr
-@14DD 4C 89 E1 ; K0-G043 mov rcx,r12
-@14E0 E8 C1 ED FF FF ; K0-G043 call close_file
-@14E5 31 C9 ; K0-G043 xor ecx,ecx (код 0)
-@14E7 FF 15 AB F7 FF FF ; K0-G043 call [rip]ExitProcess
-@14ED CC ; K0-G043 int3 (страховка)
-@14EE 48 C7 C1 08 00 00 00 ; K0-G043 mov ecx,8 (ERR=OPEN OUT)
-@14F5 E8 44 EE FF FF ; K0-G043 call print_error
-@14FA 48 C7 C1 09 00 00 00 ; K0-G043 mov ecx,9 (ERR=WRITE OUT)
-@1501 E8 38 EE FF FF ; K0-G043 call print_error
-@1506 48 C7 C1 07 00 00 00 ; K0-G043 mov ecx,7 (ERR=FORMAT)
-@150D E8 2C EE FF FF ; K0-G043 call print_error
-@1512 32 25 00 00 00 00 00 00 37 25 00 00 00 00 00 00 3B 25 00 00 00 00 00 00 40 25 00 00 00 00 00 00 ; K0-D047 v2kwtab: RVA слов (pev2,hdr,body,sec)
-@1532 70 65 76 32 00 ; K0-D047 kw_pev2
-@1537 68 64 72 00 ; K0-D047 kw_hdr
-@153B 62 6F 64 79 00 ; K0-D047 kw_body
-@1540 73 65 63 00 ; K0-D047 kw_sec
+@0F49 8B 0D 25 0A 50 00 ; K0-Q016 mov ecx,[rip+spancnt]
+@0F4F 48 81 F9 00 01 00 00 ; K0-Q016 cmp ecx,256 (предел спанов, E9.5-1)
+@0F56 0F 83 58 00 00 00 ; K0-Q016 jae dh_bad
+@0F5C 4C 8D 15 29 0A 90 00 ; K0-Q016 lea r10,[rip+spantab]
+@0F63 45 31 C0 ; K0-Q016 xor r8d,r8d (j)
+@0F66 44 3B 05 07 0A 50 00 ; K0-Q016 cmp r8d,[rip+spancnt]
+@0F6D 73 26 ; K0-Q016 jae dhl_ins
+@0F6F 41 8B 02 ; K0-Q016 mov eax,[r10] (start_j)
+@0F72 41 8B 52 04 ; K0-Q016 mov edx,[r10+4] (len_j)
+@0F76 01 C2 ; K0-Q016 add edx,eax (end_j)
+@0F78 44 3B E2 ; K0-Q016 cmp r12d,edx (off vs end_j)
+@0F7B 73 0F ; K0-Q016 jae dhl_next
+@0F7D 44 89 EA ; K0-Q016 mov edx,r13d (len)
+@0F80 44 01 E2 ; K0-Q016 add edx,r12d (off+len)
+@0F83 3B C2 ; K0-Q016 cmp eax,edx (start_j vs off+len)
+@0F85 73 05 ; K0-Q016 jae dhl_next
+@0F87 E9 28 00 00 00 ; K0-Q016 jmp dh_bad (наложение патчей)
+@0F8C 49 83 C2 08 ; K0-Q016 add r10,8
+@0F90 41 FF C0 ; K0-Q016 inc r8d
+@0F93 EB D1 ; K0-Q016 jmp dhl_loop
+@0F95 45 89 22 ; K0-Q016 mov [r10],r12d (off)
+@0F98 45 89 6A 04 ; K0-Q016 mov [r10+4],r13d (len)
+@0F9C FF C1 ; K0-Q016 inc ecx
+@0F9E 89 0D D0 09 50 00 ; K0-Q016 mov [rip+spancnt],ecx
+@0FA4 E8 AA F5 FF FF ; K0-Q016 call expect_eol
+@0FA9 85 C0 ; K0-Q016 test rax,rax
+@0FAB 0F 85 03 00 00 00 ; K0-Q016 jnz dh_bad
+@0FB1 31 C0 ; K0-Q016 xor eax,eax
+@0FB3 C3 ; K0-Q016 ret
+@0FB4 48 C7 C0 01 00 00 00 ; K0-Q016 mov eax,1
+@0FBB C3 ; K0-Q016 ret
+@0FBC 83 3D C1 09 50 00 00 ; K0-Q017 cmp dword [rip+sawbody],0
+@0FC3 75 2C ; K0-Q017 jne db_bad (повтор !body)
+@0FC5 E8 CE F5 FF FF ; K0-Q017 call skip_spaces
+@0FCA E8 2A F5 FF FF ; K0-Q017 call read_hexv (n)
+@0FCF 48 83 F8 FF ; K0-Q017 cmp rax,-1
+@0FD3 74 1C ; K0-Q017 jz db_bad
+@0FD5 89 05 95 09 50 00 ; K0-Q017 mov [rip+bodyn],eax
+@0FDB C7 05 9F 09 50 00 01 00 00 00 ; K0-Q017 mov dword [rip+sawbody],1
+@0FE5 E8 69 F5 FF FF ; K0-Q017 call expect_eol
+@0FEA 85 C0 ; K0-Q017 test rax,rax
+@0FEC 75 03 ; K0-Q017 jnz db_bad
+@0FEE 31 C0 ; K0-Q017 xor eax,eax
+@0FF0 C3 ; K0-Q017 ret
+@0FF1 48 C7 C0 01 00 00 00 ; K0-Q017 mov eax,1
+@0FF8 C3 ; K0-Q017 ret
+@0FF9 E8 9A F5 FF FF ; K0-Q018 call skip_spaces (n)
+@0FFE E8 F6 F4 FF FF ; K0-Q018 call read_hexv (n)
+@1003 48 83 F8 FF ; K0-Q018 cmp rax,-1
+@1007 0F 84 DA 00 00 00 ; K0-Q018 jz ds_bad
+@100D 49 89 C4 ; K0-Q018 mov r12,rax (n)
+@1010 E8 83 F5 FF FF ; K0-Q018 call skip_spaces (off)
+@1015 E8 DF F4 FF FF ; K0-Q018 call read_hexv (off)
+@101A 48 83 F8 FF ; K0-Q018 cmp rax,-1
+@101E 0F 84 C3 00 00 00 ; K0-Q018 jz ds_bad
+@1024 49 89 C5 ; K0-Q018 mov r13,rax (off)
+@1027 48 8D 3D 5E 11 94 00 ; K0-Q018 lea rdi,[rip+secdata]
+@102E 8B 05 48 09 50 00 ; K0-Q018 mov eax,[rip+secdpos]
+@1034 48 01 C7 ; K0-Q018 add rdi,rax (secdata+pos)
+@1037 4C 8D 05 4E 11 94 00 ; K0-Q018 lea r8,[rip+secdata]
+@103E 49 81 C0 00 00 10 00 ; K0-Q018 add r8,0x100000 (предел, E9.5-1)
+@1045 E8 4E F5 FF FF ; K0-Q018 call skip_spaces (перед блобом)
+@104A E8 04 FE FF FF ; K0-Q018 call hex_blob (блоб -> secdata)
+@104F 48 83 F8 FF ; K0-Q018 cmp rax,-1
+@1053 0F 84 8E 00 00 00 ; K0-Q018 jz ds_bad
+@1059 49 89 C6 ; K0-Q018 mov r14,rax (длина)
+@105C 8B 0D 16 09 50 00 ; K0-Q018 mov ecx,[rip+secnt]
+@1062 48 81 F9 00 40 00 00 ; K0-Q018 cmp ecx,16384 (предел записей, E9.5-1)
+@1069 0F 83 78 00 00 00 ; K0-Q018 jae ds_bad
+@106F 4C 8D 15 16 11 90 00 ; K0-Q018 lea r10,[rip+sectab]
+@1076 45 31 C0 ; K0-Q018 xor r8d,r8d (j)
+@1079 44 3B 05 F8 08 50 00 ; K0-Q018 cmp r8d,[rip+secnt]
+@1080 73 2F ; K0-Q018 jae dsl_ins
+@1082 41 8B 02 ; K0-Q018 mov eax,[r10] (n_j)
+@1085 41 3B C4 ; K0-Q018 cmp eax,r12d (та же секция?)
+@1088 75 1E ; K0-Q018 jne dsl_next (другая секция)
+@108A 41 8B 42 04 ; K0-Q018 mov eax,[r10+4] (off_j)
+@108E 41 8B 52 0C ; K0-Q018 mov edx,[r10+12] (len_j)
+@1092 01 C2 ; K0-Q018 add edx,eax (end_j)
+@1094 44 3B EA ; K0-Q018 cmp r13d,edx (off vs end_j)
+@1097 73 0F ; K0-Q018 jae dsl_next
+@1099 44 89 F2 ; K0-Q018 mov edx,r14d (len)
+@109C 44 01 EA ; K0-Q018 add edx,r13d (off+len)
+@109F 3B C2 ; K0-Q018 cmp eax,edx (off_j vs off+len)
+@10A1 73 05 ; K0-Q018 jae dsl_next
+@10A3 E9 3F 00 00 00 ; K0-Q018 jmp ds_bad (наложение !sec)
+@10A8 49 83 C2 10 ; K0-Q018 add r10,16
+@10AC 41 FF C0 ; K0-Q018 inc r8d
+@10AF EB C8 ; K0-Q018 jmp dsl_loop
+@10B1 45 89 22 ; K0-Q018 mov [r10],r12d (n)
+@10B4 45 89 6A 04 ; K0-Q018 mov [r10+4],r13d (off)
+@10B8 8B 05 BE 08 50 00 ; K0-Q018 mov eax,[rip+secdpos]
+@10BE 41 89 42 08 ; K0-Q018 mov [r10+8],eax (datapos)
+@10C2 45 89 72 0C ; K0-Q018 mov [r10+12],r14d (len)
+@10C6 44 01 F0 ; K0-Q018 add eax,r14d
+@10C9 89 05 AD 08 50 00 ; K0-Q018 mov [rip+secdpos],eax
+@10CF FF C1 ; K0-Q018 inc ecx
+@10D1 89 0D A1 08 50 00 ; K0-Q018 mov [rip+secnt],ecx
+@10D7 E8 77 F4 FF FF ; K0-Q018 call expect_eol
+@10DC 85 C0 ; K0-Q018 test rax,rax
+@10DE 0F 85 03 00 00 00 ; K0-Q018 jnz ds_bad
+@10E4 31 C0 ; K0-Q018 xor eax,eax
+@10E6 C3 ; K0-Q018 ret
+@10E7 48 C7 C0 01 00 00 00 ; K0-Q018 mov eax,1
+@10EE C3 ; K0-Q018 ret
+@10EF 48 8D 35 4A 06 00 00 ; K0-Q019 lea rsi,[rip+filebuf]
+@10F6 0F B6 06 ; K0-Q019 movzx eax,byte [rsi]
+@10F9 85 C0 ; K0-Q019 test al,al
+@10FB 0F 84 BA 00 00 00 ; K0-Q019 jz p2_end (конец текста)
+@1101 3C 3B ; K0-Q019 cmp al,';'
+@1103 0F 84 9A 00 00 00 ; K0-Q019 jz p2_skipline
+@1109 3C 0D ; K0-Q019 cmp al,0x0D
+@110B 0F 84 92 00 00 00 ; K0-Q019 jz p2_skipline
+@1111 3C 0A ; K0-Q019 cmp al,0x0A
+@1113 0F 84 11 00 00 00 ; K0-Q019 jz p2_lf
+@1119 3C 20 ; K0-Q019 cmp al,' '
+@111B 74 15 ; K0-Q019 jz p2_adv
+@111D 3C 09 ; K0-Q019 cmp al,9
+@111F 74 11 ; K0-Q019 jz p2_adv
+@1121 3C 21 ; K0-Q019 cmp al,'!'
+@1123 74 15 ; K0-Q019 jz p2_dir
+@1125 E9 9D 00 00 00 ; K0-Q019 jmp p2_bad (мусор)
+@112A 48 FF C6 ; K0-Q019 inc rsi
+@112D E9 C4 FF FF FF ; K0-Q019 jmp p2_next
+@1132 48 FF C6 ; K0-Q019 inc rsi
+@1135 E9 BC FF FF FF ; K0-Q019 jmp p2_next
+@113A 48 FF C6 ; K0-Q019 inc rsi (пропуск '!')
+@113D E8 AE FC FF FF ; K0-Q019 call match_kw2
+@1142 48 83 F8 FF ; K0-Q019 cmp rax,-1
+@1146 0F 84 7B 00 00 00 ; K0-Q019 jz p2_bad (неизвестная директива)
+@114C 83 3D 2D 08 50 00 00 ; K0-Q019 cmp dword [rip+sawpev2],0
+@1153 75 06 ; K0-Q019 jne p2_disp (pev2 уже был)
+@1155 85 C0 ; K0-Q019 test eax,eax
+@1157 75 6E ; K0-Q019 jnz p2_bad (первая — не pev2: отказ)
+@1159 EB 1E ; K0-Q019 jmp p2_pev2
+@115B 85 C0 ; K0-Q019 test eax,eax
+@115D 74 1A ; K0-Q019 jz p2_pev2 (повтор — отвергнет do_pev2)
+@115F 48 83 F8 01 ; K0-Q019 cmp eax,1
+@1163 74 22 ; K0-Q019 je p2_hdr
+@1165 48 83 F8 02 ; K0-Q019 cmp eax,2
+@1169 74 2A ; K0-Q019 je p2_body
+@116B E8 89 FE FF FF ; K0-Q019 call do_sec
+@1170 85 C0 ; K0-Q019 test rax,rax
+@1172 75 53 ; K0-Q019 jnz p2_bad
+@1174 E9 7D FF FF FF ; K0-Q019 jmp p2_next
+@1179 E8 2A FD FF FF ; K0-Q019 call do_pev2
+@117E 85 C0 ; K0-Q019 test rax,rax
+@1180 75 45 ; K0-Q019 jnz p2_bad
+@1182 E9 6F FF FF FF ; K0-Q019 jmp p2_next
+@1187 E8 68 FD FF FF ; K0-Q019 call do_hdr
+@118C 85 C0 ; K0-Q019 test rax,rax
+@118E 75 37 ; K0-Q019 jnz p2_bad
+@1190 E9 61 FF FF FF ; K0-Q019 jmp p2_next
+@1195 E8 22 FE FF FF ; K0-Q019 call do_body
+@119A 85 C0 ; K0-Q019 test rax,rax
+@119C 75 29 ; K0-Q019 jnz p2_bad
+@119E E9 53 FF FF FF ; K0-Q019 jmp p2_next
+@11A3 0F B6 06 ; K0-Q019 movzx eax,byte [rsi]
+@11A6 85 C0 ; K0-Q019 test al,al
+@11A8 0F 84 0D 00 00 00 ; K0-Q019 jz p2_end
+@11AE 3C 0A ; K0-Q019 cmp al,0x0A
+@11B0 0F 84 74 FF FF FF ; K0-Q019 jz p2_lf
+@11B6 48 FF C6 ; K0-Q019 inc rsi
+@11B9 EB E8 ; K0-Q019 jmp p2_skipline
+@11BB 83 3D C2 07 50 00 00 ; K0-Q019 cmp dword [rip+sawbody],0
+@11C2 74 03 ; K0-Q019 je p2_bad (нет обязательного !body)
+@11C4 31 C0 ; K0-Q019 xor eax,eax
+@11C6 C3 ; K0-Q019 ret
+@11C7 48 C7 C0 01 00 00 00 ; K0-Q019 mov eax,1
+@11CE C3 ; K0-Q019 ret
+@11CF 8B 05 7B 07 50 00 ; K0-E005 mov eax,[rip+v2h]
+@11D5 48 83 F8 40 ; K0-E005 cmp eax,0x40
+@11D9 0F 82 B8 01 00 00 ; K0-E005 jb sd_bad (H < 0x40)
+@11DF 48 8D 3D A6 07 50 00 ; K0-E005 lea rdi,[rip+outbuf]
+@11E6 80 3F 4D ; K0-E005 cmp byte [rdi],'M'
+@11E9 0F 85 A8 01 00 00 ; K0-E005 jne sd_bad (нет MZ)
+@11EF 80 7F 01 5A ; K0-E005 cmp byte [rdi+1],'Z'
+@11F3 0F 85 9E 01 00 00 ; K0-E005 jne sd_bad
+@11F9 44 8B 67 3C ; K0-E005 mov r12d,[rdi+0x3C] (e_lfanew)
+@11FD 44 89 E2 ; K0-E005 mov edx,r12d
+@1200 48 83 C2 18 ; K0-E005 add edx,0x18 (COFF+opt читаемы)
+@1204 3B 15 46 07 50 00 ; K0-E005 cmp edx,[rip+v2h]
+@120A 0F 87 87 01 00 00 ; K0-E005 ja sd_bad (lfa+0x18 > H)
+@1210 48 8D 0D 75 07 50 00 ; K0-E005 lea rcx,[rip+outbuf]
+@1217 4C 01 E1 ; K0-E005 add rcx,r12 (outbuf+lfa)
+@121A 80 39 50 ; K0-E005 cmp byte [rcx],'P'
+@121D 0F 85 74 01 00 00 ; K0-E005 jne sd_bad (нет PE)
+@1223 80 79 01 45 ; K0-E005 cmp byte [rcx+1],'E'
+@1227 0F 85 6A 01 00 00 ; K0-E005 jne sd_bad
+@122D 80 79 02 00 ; K0-E005 cmp byte [rcx+2],0
+@1231 0F 85 60 01 00 00 ; K0-E005 jne sd_bad
+@1237 80 79 03 00 ; K0-E005 cmp byte [rcx+3],0
+@123B 0F 85 56 01 00 00 ; K0-E005 jne sd_bad
+@1241 0F B7 41 06 ; K0-E005 movzx eax,word [rcx+6] (nsec)
+@1245 85 C0 ; K0-E005 test eax,eax
+@1247 0F 84 4A 01 00 00 ; K0-E005 jz sd_bad (nsec=0)
+@124D 89 05 01 07 50 00 ; K0-E005 mov [rip+v2nsec],eax
+@1253 0F B7 51 14 ; K0-E005 movzx edx,word [rcx+0x14] (opt)
+@1257 44 01 E2 ; K0-E005 add edx,r12d
+@125A 48 83 C2 18 ; K0-E005 add edx,0x18 (tbl = lfa+0x18+opt)
+@125E 89 15 F4 06 50 00 ; K0-E005 mov [rip+v2tbl],edx
+@1264 41 89 D6 ; K0-E005 mov r14d,edx (cursor)
+@1267 45 31 FF ; K0-E005 xor r15d,r15d (i)
+@126A 45 31 C9 ; K0-E005 xor r9d,r9d (rawcnt)
+@126D 8B 05 DD 06 50 00 ; K0-E005 mov eax,[rip+v2h]
+@1273 49 89 C5 ; K0-E005 mov r13,rax (filesz = H)
+@1276 44 89 F0 ; K0-E005 mov eax,r14d
+@1279 48 83 C0 28 ; K0-E005 add eax,40
+@127D 3B 05 CD 06 50 00 ; K0-E005 cmp eax,[rip+v2h]
+@1283 0F 87 0E 01 00 00 ; K0-E005 ja sd_bad (таблица секций вне H)
+@1289 48 8D 0D FC 06 50 00 ; K0-E005 lea rcx,[rip+outbuf]
+@1290 4C 01 F1 ; K0-E005 add rcx,r14 (запись секции)
+@1293 8B 41 14 ; K0-E005 mov eax,[rcx+20] (rp)
+@1296 89 05 CC 06 50 00 ; K0-E005 mov [rip+v2rp],eax
+@129C 8B 41 10 ; K0-E005 mov eax,[rcx+16] (rs)
+@129F 89 05 C7 06 50 00 ; K0-E005 mov [rip+v2rs],eax
+@12A5 44 3B 3D C4 06 50 00 ; K0-E005 cmp r15d,[rip+bodyn]
+@12AC 75 18 ; K0-E005 jne sd_nb (не секция body)
+@12AE 8B 05 B4 06 50 00 ; K0-E005 mov eax,[rip+v2rp]
+@12B4 89 05 A6 06 50 00 ; K0-E005 mov [rip+v2brp],eax
+@12BA 8B 05 AC 06 50 00 ; K0-E005 mov eax,[rip+v2rs]
+@12C0 89 05 9E 06 50 00 ; K0-E005 mov [rip+v2brs],eax
+@12C6 83 3D 9F 06 50 00 00 ; K0-E005 cmp dword [rip+v2rs],0
+@12CD 0F 84 82 00 00 00 ; K0-E005 je sd_step (rs=0)
+@12D3 8B 05 8F 06 50 00 ; K0-E005 mov eax,[rip+v2rp]
+@12D9 3B 05 71 06 50 00 ; K0-E005 cmp eax,[rip+v2h]
+@12DF 0F 82 B2 00 00 00 ; K0-E005 jb sd_bad (raw залезает в заголовки)
+@12E5 49 89 C0 ; K0-E005 mov r8,rax (rp)
+@12E8 8B 05 7E 06 50 00 ; K0-E005 mov eax,[rip+v2rs]
+@12EE 49 01 C0 ; K0-E005 add r8,rax (end = rp+rs)
+@12F1 48 C7 C1 00 00 40 00 ; K0-E005 mov ecx,0x400000 (предел outbuf, E9.5-1)
+@12F8 4C 3B C1 ; K0-E005 cmp r8,rcx
+@12FB 0F 87 96 00 00 00 ; K0-E005 ja sd_bad (образ вне outbuf — предел)
+@1301 4D 3B C5 ; K0-E005 cmp r8,r13 (filesz)
+@1304 76 03 ; K0-E005 jbe sd_nof
+@1306 4D 89 C5 ; K0-E005 mov r13,r8 (filesz = end)
+@1309 4C 8D 1D 7C 0E A4 00 ; K0-E005 lea r11,[rip+rawtab]
+@1310 31 C9 ; K0-E005 xor ecx,ecx (j)
+@1312 41 3B C9 ; K0-E005 cmp ecx,r9d
+@1315 73 28 ; K0-E005 jae sd_ins
+@1317 41 8B 13 ; K0-E005 mov edx,[r11] (rp_j)
+@131A 41 8B 43 04 ; K0-E005 mov eax,[r11+4] (rs_j)
+@131E 01 D0 ; K0-E005 add eax,edx (end_j)
+@1320 8B 15 42 06 50 00 ; K0-E005 mov edx,[rip+v2rp] (rp_cur)
+@1326 3B D0 ; K0-E005 cmp edx,eax (rp vs end_j)
+@1328 73 0D ; K0-E005 jae sd_olpn (нет наложения)
+@132A 41 8B 03 ; K0-E005 mov eax,[r11] (rp_j)
+@132D 41 3B C0 ; K0-E005 cmp eax,r8d (rp_j vs end)
+@1330 73 05 ; K0-E005 jae sd_olpn (нет наложения)
+@1332 E9 60 00 00 00 ; K0-E005 jmp sd_bad (наложение raw)
+@1337 49 83 C3 08 ; K0-E005 add r11,8
+@133B FF C1 ; K0-E005 inc ecx
+@133D EB D3 ; K0-E005 jmp sd_olp
+@133F 8B 05 23 06 50 00 ; K0-E005 mov eax,[rip+v2rp]
+@1345 41 89 03 ; K0-E005 mov [r11],eax (rp)
+@1348 8B 05 1E 06 50 00 ; K0-E005 mov eax,[rip+v2rs]
+@134E 41 89 43 04 ; K0-E005 mov [r11+4],eax (rs)
+@1352 41 FF C1 ; K0-E005 inc r9d
+@1355 49 83 C6 28 ; K0-E005 add r14,40
+@1359 41 FF C7 ; K0-E005 inc r15d
+@135C 44 3B 3D F1 05 50 00 ; K0-E005 cmp r15d,[rip+v2nsec]
+@1363 0F 82 0D FF FF FF ; K0-E005 jb sd_walk
+@1369 8B 05 01 06 50 00 ; K0-E005 mov eax,[rip+bodyn]
+@136F 3B 05 DF 05 50 00 ; K0-E005 cmp eax,[rip+v2nsec]
+@1375 0F 83 1C 00 00 00 ; K0-E005 jae sd_bad (!body за таблицей)
+@137B 8B 05 E3 05 50 00 ; K0-E005 mov eax,[rip+v2brs]
+@1381 3B 05 7D 03 00 00 ; K0-E005 cmp eax,[rip+imgsize]
+@1387 0F 82 0A 00 00 00 ; K0-E005 jb sd_bad (тело больше raw)
+@138D 44 89 2D C8 05 50 00 ; K0-E005 mov [rip+v2fsz],r13d
+@1394 31 C0 ; K0-E005 xor eax,eax
+@1396 C3 ; K0-E005 ret
+@1397 48 C7 C0 01 00 00 00 ; K0-E005 mov eax,1
+@139E C3 ; K0-E005 ret
+@139F 48 8D 35 9A 03 40 00 ; K0-E006 lea rsi,[rip+imagebuf]
+@13A6 8B 0D 58 03 00 00 ; K0-E006 mov ecx,[rip+imgsize]
+@13AC 4C 8D 15 8D 03 40 00 ; K0-E006 lea r10,[rip+imagebuf]
+@13B3 49 01 CA ; K0-E006 add r10,rcx (конец тела)
+@13B6 48 8D 3D CF 05 50 00 ; K0-E006 lea rdi,[rip+outbuf]
+@13BD 8B 05 9D 05 50 00 ; K0-E006 mov eax,[rip+v2brp]
+@13C3 48 01 C7 ; K0-E006 add rdi,rax (outbuf+brp)
+@13C6 8A 06 ; K0-E006 mov al,[rsi]
+@13C8 88 07 ; K0-E006 mov [rdi],al
+@13CA 48 FF C6 ; K0-E006 inc rsi
+@13CD 48 FF C7 ; K0-E006 inc rdi
+@13D0 49 3B F2 ; K0-E006 cmp rsi,r10
+@13D3 72 F1 ; K0-E006 jb cb_loop
+@13D5 31 C0 ; K0-E006 xor eax,eax
+@13D7 C3 ; K0-E006 ret
+@13D8 45 31 FF ; K0-E007 xor r15d,r15d (индекс)
+@13DB 4C 8D 15 AA 0D 90 00 ; K0-E007 lea r10,[rip+sectab]
+@13E2 44 3B 3D 8F 05 50 00 ; K0-E007 cmp r15d,[rip+secnt]
+@13E9 0F 83 9A 00 00 00 ; K0-E007 jae as_done
+@13EF 45 8B 22 ; K0-E007 mov r12d,[r10] (n)
+@13F2 44 3B 25 5B 05 50 00 ; K0-E007 cmp r12d,[rip+v2nsec]
+@13F9 0F 83 8D 00 00 00 ; K0-E007 jae as_bad (!sec за таблицей)
+@13FF 44 3B 25 6A 05 50 00 ; K0-E007 cmp r12d,[rip+bodyn]
+@1406 0F 84 80 00 00 00 ; K0-E007 je as_bad (!sec на body)
+@140C 44 89 E0 ; K0-E007 mov eax,r12d
+@140F C1 E0 05 ; K0-E007 shl eax,5 (32n)
+@1412 44 89 E2 ; K0-E007 mov edx,r12d
+@1415 C1 E2 03 ; K0-E007 shl edx,3 (8n)
+@1418 01 D0 ; K0-E007 add eax,edx (40n)
+@141A 03 05 38 05 50 00 ; K0-E007 add eax,[rip+v2tbl]
+@1420 48 8D 0D 65 05 50 00 ; K0-E007 lea rcx,[rip+outbuf]
+@1427 48 01 C1 ; K0-E007 add rcx,rax (запись секции)
+@142A 8B 51 10 ; K0-E007 mov edx,[rcx+16] (rs)
+@142D 8B 41 14 ; K0-E007 mov eax,[rcx+20] (rp)
+@1430 85 D2 ; K0-E007 test edx,edx
+@1432 0F 84 54 00 00 00 ; K0-E007 je as_bad (!sec на пустой raw)
+@1438 45 8B 42 04 ; K0-E007 mov r8d,[r10+4] (off)
+@143C 45 8B 4A 0C ; K0-E007 mov r9d,[r10+12] (len)
+@1440 45 89 C3 ; K0-E007 mov r11d,r8d
+@1443 45 01 CB ; K0-E007 add r11d,r9d (off+len)
+@1446 44 3B DA ; K0-E007 cmp r11d,edx (за границами raw)
+@1449 0F 87 3D 00 00 00 ; K0-E007 ja as_bad
+@144F 48 8D 3D 36 05 50 00 ; K0-E007 lea rdi,[rip+outbuf]
+@1456 48 01 C7 ; K0-E007 add rdi,rax (outbuf+rp)
+@1459 4C 01 C7 ; K0-E007 add rdi,r8 (+off)
+@145C 48 8D 35 29 0D 94 00 ; K0-E007 lea rsi,[rip+secdata]
+@1463 41 8B 42 08 ; K0-E007 mov eax,[r10+8] (datapos)
+@1467 48 01 C6 ; K0-E007 add rsi,rax (+datapos)
+@146A 31 C9 ; K0-E007 xor ecx,ecx
+@146C 8A 06 ; K0-E007 mov al,[rsi]
+@146E 88 07 ; K0-E007 mov [rdi],al
+@1470 48 FF C6 ; K0-E007 inc rsi
+@1473 48 FF C7 ; K0-E007 inc rdi
+@1476 FF C1 ; K0-E007 inc ecx
+@1478 41 3B C9 ; K0-E007 cmp ecx,r9d (len)
+@147B 72 EF ; K0-E007 jb as_cpy
+@147D 49 83 C2 10 ; K0-E007 add r10,16
+@1481 41 FF C7 ; K0-E007 inc r15d
+@1484 E9 59 FF FF FF ; K0-E007 jmp as_loop
+@1489 31 C0 ; K0-E007 xor eax,eax
+@148B C3 ; K0-E007 ret
+@148C 48 C7 C0 01 00 00 00 ; K0-E007 mov eax,1
+@1493 C3 ; K0-E007 ret
+@1494 E8 56 FC FF FF ; K0-G043 call parse_peg_v2
+@1499 85 C0 ; K0-G043 test rax,rax
+@149B 75 73 ; K0-G043 jnz wm_bad
+@149D E8 2D FD FF FF ; K0-G043 call selfdesc
+@14A2 85 C0 ; K0-G043 test rax,rax
+@14A4 75 6A ; K0-G043 jnz wm_bad
+@14A6 E8 F4 FE FF FF ; K0-G043 call copy_body
+@14AB 85 C0 ; K0-G043 test rax,rax
+@14AD 75 61 ; K0-G043 jnz wm_bad
+@14AF E8 24 FF FF FF ; K0-G043 call apply_secs
+@14B4 85 C0 ; K0-G043 test rax,rax
+@14B6 75 58 ; K0-G043 jnz wm_bad
+@14B8 48 8D 0D 95 01 00 00 ; K0-G043 lea rcx,[rip+fname_out]
+@14BF E8 AD ED FF FF ; K0-G043 call create_file_write
+@14C4 48 83 F8 FF ; K0-G043 cmp rax,-1
+@14C8 74 2E ; K0-G043 je wm_open (ERR=OPEN OUT)
+@14CA 49 89 C4 ; K0-G043 mov r12,rax (хэндл)
+@14CD 4C 89 E1 ; K0-G043 mov rcx,r12
+@14D0 48 8D 15 B5 04 50 00 ; K0-G043 lea rdx,[rip+outbuf]
+@14D7 44 8B 05 7E 04 50 00 ; K0-G043 mov r8d,[rip+v2fsz]
+@14DE E8 FA ED FF FF ; K0-G043 call write_all (outbuf, filesz)
+@14E3 85 C0 ; K0-G043 test rax,rax
+@14E5 75 1D ; K0-G043 jnz wm_werr
+@14E7 4C 89 E1 ; K0-G043 mov rcx,r12
+@14EA E8 B7 ED FF FF ; K0-G043 call close_file
+@14EF 31 C9 ; K0-G043 xor ecx,ecx (код 0)
+@14F1 FF 15 A1 F7 FF FF ; K0-G043 call [rip]ExitProcess
+@14F7 CC ; K0-G043 int3 (страховка)
+@14F8 48 C7 C1 08 00 00 00 ; K0-G043 mov ecx,8 (ERR=OPEN OUT)
+@14FF E8 3A EE FF FF ; K0-G043 call print_error
+@1504 48 C7 C1 09 00 00 00 ; K0-G043 mov ecx,9 (ERR=WRITE OUT)
+@150B E8 2E EE FF FF ; K0-G043 call print_error
+@1510 48 C7 C1 07 00 00 00 ; K0-G043 mov ecx,7 (ERR=FORMAT)
+@1517 E8 22 EE FF FF ; K0-G043 call print_error
+@151C 3C 25 00 00 00 00 00 00 41 25 00 00 00 00 00 00 45 25 00 00 00 00 00 00 4A 25 00 00 00 00 00 00 ; K0-D047 v2kwtab: RVA слов (pev2,hdr,body,sec)
+@153C 70 65 76 32 00 ; K0-D047 kw_pev2
+@1541 68 64 72 00 ; K0-D047 kw_hdr
+@1545 62 6F 64 79 00 ; K0-D047 kw_body
+@154A 73 65 63 00 ; K0-D047 kw_sec

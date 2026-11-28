@@ -89,8 +89,10 @@ def wrap(body, peg_text):
         return wrap2(body, peg_text)
     p = parse_peg(peg_text)
     imgsize = len(body)
-    if imgsize > 0x20000:
-        raise ValueError("образ больше 128 КиБ (E6.4g-3; было 64 КиБ)")
+    if imgsize > 0x100000:
+        raise ValueError("образ больше 1 МиБ (E9.5-1: тело brick — план"
+                         " E9.5-2; было 128 КиБ — E6.4g-3, до этого"
+                         " 64 КиБ)")
     vsize = imgsize + p["bss"]
     raw_size = _align(imgsize, 0x200)
     hdr = bytearray(SKELETON)

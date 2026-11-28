@@ -166,9 +166,16 @@ class Asm:
         self._add("mov", emit, cm)
 
     def mov_rip_i32(self, sym, imm, cm):
+        """mov dword [rip+sym], imm32 (C7 05 disp32 imm32).
+
+        E9.5-1: база rip — КОНЕЦ ИНСТРУКЦИИ (disp32 + imm32 = 10 Б),
+        а не конец поля disp (баг сессии 87: запись уходила на +4 мимо
+        ячейки — взаимно компенсировалась со чтениями cmp_rip_i8 и не
+        проявлялась на корпусе T-M5-18)."""
+
         def emit(a, t):
             pre = bytes([0xC7] + _modrm(0, 0, 5))
-            d = t.sym(sym) - (a + len(pre) + 4)
+            d = t.sym(sym) - (a + len(pre) + 4 + 4)   # + imm32!
             return pre + d.to_bytes(4, "little", signed=True) + \
                 (imm & 0xFFFFFFFF).to_bytes(4, "little")
         self._add("mov", emit, cm)
@@ -247,9 +254,15 @@ class Asm:
         self._add("add", emit, cm)
 
     def cmp_rip_i8(self, sym, imm, cm):
+        """cmp dword [rip+sym], imm8 (83 3D disp32 imm8).
+
+        E9.5-1: база rip — КОНЕЦ ИНСТРУКЦИИ (7 Б), не конец поля disp
+        (баг сессии 87: чтение на +1 мимо — dword захватывал соседнюю
+        ячейку; на корпусе компенсировался записями mov_rip_i32)."""
+
         def emit(a, t):
             pre = bytes([0x83] + _modrm(0, 7, 5))
-            d = t.sym(sym) - (a + len(pre) + 4)
+            d = t.sym(sym) - (a + len(pre) + 4 + 1)   # + imm8!
             return pre + d.to_bytes(4, "little", signed=True) + \
                 bytes([imm & 0xFF])
         self._add("cmp", emit, cm)

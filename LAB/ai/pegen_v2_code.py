@@ -6,6 +6,12 @@ K0-G043) для pegen_build_v2.py: функции build_v2_code(syms) — сбо
 Asm-объекта. Кодировки — мини-ассемблер pegen_v2_asm.py (принцип e4_ledger:
 ручные формы, компоновка лишь разрешает rip-смещения/длины переходов).
 Раздел на два файла — лимит методологии 500 строк.
+
+E9.5-1 (сессия 89): пределы инструмента подняты под реальные чужие EXE —
+OUTLIM 0x40000 -> 0x400000, SPANMAX 64 -> 256, SECMAX 128 -> 16384,
+SECLEN 0x2000 -> 0x100000 (константы ниже + комментарии инструкций);
+пересборка — LAB/ai/pegen_build_e95.py (переизлучение ветви v2: SPANMAX
+требует imm32 — длина формы меняется, адреса меток v2 сдвигаются).
 """
 import os
 import sys
@@ -14,10 +20,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pegen_v2_asm import Asm                # noqa: E402
 
-OUTLIM = 0x40000               # вместимость outbuf (предел инструмента)
-SPANMAX = 64                    # предел !hdr-патчей (спан-таблица)
-SECMAX = 128                    # предел !sec-записей (таблица)
-SECLEN = 0x2000                 # буфер сек-данных (128 x 64 Б)
+OUTLIM = 0x400000              # вместимость outbuf (предел инструмента;
+                                # E9.5-1: было 0x40000 — 256 КиБ)
+SPANMAX = 256                   # предел !hdr-патчей (спан-таблица;
+                                # E9.5-1: было 64; 256 требует imm32 —
+                                # форма растёт 4 -> 7 Б, длины пересчитаны)
+SECMAX = 16384                  # предел !sec-записей (таблица;
+                                # E9.5-1: было 128)
+SECLEN = 0x100000               # буфер сек-данных (E9.5-1: 16384 x 64 Б;
+                                # было 0x2000 — 128 x 64 Б)
 
 
 def build_v2_code(syms):
@@ -127,8 +138,6 @@ def build_v2_code(syms):
     A.label("hex_blob")
     A.alu_rr("xor", "r9d", "r9d", "Q014 xor r9d,r9d (счётчик байтов)", w=0)
     A.label("hb_pair")
-    A.alu_rr("cmp", "rdi", "r8", "Q014 cmp rdi,r8 (предел записи)")
-    A.jcc("ae", "hb_bad", "Q014 jae hb_bad (за пределом)")
     A.movzx("eax", "rsi", None, "Q014 movzx eax,byte [rsi] (цифра 1)")
     A.call("hex_digit", "Q014 call hex_digit")
     A.alu_ri("cmp", "rax", -1, "Q014 cmp rax,-1")
@@ -140,6 +149,10 @@ def build_v2_code(syms):
     A.jcc("e", "hb_bad", "Q014 jz hb_bad (нечётное число цифр)")
     A.shl_ri("r11d", 4, "Q014 shl r11d,4")
     A.alu_rr("add", "r11d", "eax", "Q014 add r11d,eax (байт)", w=0)
+    # E9.5-1: предел записи — ПОСЛЕ цифр (было ДО): блоб, кончающийся
+    # РОВНО на пределе, легален — конец блоба увидит следующая итерация
+    A.alu_rr("cmp", "rdi", "r8", "Q014 cmp rdi,r8 (предел записи)")
+    A.jcc("ae", "hb_bad", "Q014 jae hb_bad (за пределом)")
     A.mov_rm("rdi", None, "r11b", "Q014 mov [rdi],r11b", w=0, byte=True)
     A.inc("rdi", "Q014 inc rdi", w=1)
     A.alu_ri("add", "rsi", 2, "Q014 add rsi,2", w=1)
@@ -166,7 +179,7 @@ def build_v2_code(syms):
     A.jcc("e", "dp_bad", "Q015 jz dp_bad")
     A.alu_ri("cmp", "eax", 0x40, "Q015 cmp eax,0x40 (H >= 0x40)")
     A.jcc("b", "dp_bad", "Q015 jb dp_bad (H меньше DOS-заголовка)")
-    A.alu_ri("cmp", "eax", OUTLIM, "Q015 cmp eax,0x40000 (предел outbuf)")
+    A.alu_ri("cmp", "eax", OUTLIM, "Q015 cmp eax,0x400000 (предел outbuf, E9.5-1)")
     A.jcc("a", "dp_bad", "Q015 ja dp_bad (H больше outbuf — предел)")
     A.mov_rip("eax", "v2h", "Q015 mov [rip+v2h],eax", w=0, store=True)
     A.mov_rip_i32("sawpev2", 1, "Q015 mov dword [rip+sawpev2],1")
@@ -199,7 +212,7 @@ def build_v2_code(syms):
     A.jcc_near("e", "dh_bad", "Q016 jz dh_bad")
     A.mov_rr("r13", "rax", "Q016 mov r13,rax (длина)")
     A.mov_rip("ecx", "spancnt", "Q016 mov ecx,[rip+spancnt]", w=0)
-    A.alu_ri("cmp", "ecx", SPANMAX, "Q016 cmp ecx,64 (предел спанов)")
+    A.alu_ri("cmp", "ecx", SPANMAX, "Q016 cmp ecx,256 (предел спанов, E9.5-1)")
     A.jcc_near("ae", "dh_bad", "Q016 jae dh_bad")
     A.lea_rip("r10", "spantab", "Q016 lea r10,[rip+spantab]")
     A.alu_rr("xor", "r8d", "r8d", "Q016 xor r8d,r8d (j)", w=0)
@@ -207,10 +220,13 @@ def build_v2_code(syms):
     A.cmp_r_rip("r8d", "spancnt", "Q016 cmp r8d,[rip+spancnt]", w=0)
     A.jcc("ae", "dhl_ins", "Q016 jae dhl_ins")
     A.mov_mr("eax", "r10", None, "Q016 mov eax,[r10] (start_j)", w=0)
-    A.mov_mr("edx", "r10", 4, "Q016 mov edx,[r10+4] (end_j)", w=0)
+    A.mov_mr("edx", "r10", 4, "Q016 mov edx,[r10+4] (len_j)", w=0)
+    A.alu_rr("add", "edx", "eax", "Q016 add edx,eax (end_j)", w=0)
     A.alu_rr("cmp", "r12d", "edx", "Q016 cmp r12d,edx (off vs end_j)", w=0)
     A.jcc("ae", "dhl_next", "Q016 jae dhl_next")
-    A.alu_rr("cmp", "eax", "r13d", "Q016 cmp eax,r13d (start_j vs off+len)", w=0)
+    A.mov_rr("edx", "r13", "Q016 mov edx,r13d (len)", w=0)
+    A.alu_rr("add", "edx", "r12", "Q016 add edx,r12d (off+len)", w=0)
+    A.alu_rr("cmp", "eax", "edx", "Q016 cmp eax,edx (start_j vs off+len)", w=0)
     A.jcc("ae", "dhl_next", "Q016 jae dhl_next")
     A.jmp("dh_bad", "Q016 jmp dh_bad (наложение патчей)", short=False)
     A.label("dhl_next")
@@ -267,14 +283,14 @@ def build_v2_code(syms):
     A.mov_rip("eax", "secdpos", "Q018 mov eax,[rip+secdpos]", w=0)
     A.alu_rr("add", "rdi", "rax", "Q018 add rdi,rax (secdata+pos)")
     A.lea_rip("r8", "secdata", "Q018 lea r8,[rip+secdata]")
-    A.alu_ri("add", "r8", SECLEN, "Q018 add r8,0x2000 (предел)", w=1)
+    A.alu_ri("add", "r8", SECLEN, "Q018 add r8,0x100000 (предел, E9.5-1)", w=1)
     A.call("skip_spaces", "Q018 call skip_spaces (перед блобом)")
     A.call("hex_blob", "Q018 call hex_blob (блоб -> secdata)")
     A.alu_ri("cmp", "rax", -1, "Q018 cmp rax,-1")
     A.jcc_near("e", "ds_bad", "Q018 jz ds_bad")
     A.mov_rr("r14", "rax", "Q018 mov r14,rax (длина)")
     A.mov_rip("ecx", "secnt", "Q018 mov ecx,[rip+secnt]", w=0)
-    A.alu_ri("cmp", "ecx", SECMAX, "Q018 cmp ecx,128 (предел записей)")
+    A.alu_ri("cmp", "ecx", SECMAX, "Q018 cmp ecx,16384 (предел записей, E9.5-1)")
     A.jcc_near("ae", "ds_bad", "Q018 jae ds_bad")
     A.lea_rip("r10", "sectab", "Q018 lea r10,[rip+sectab]")
     A.alu_rr("xor", "r8d", "r8d", "Q018 xor r8d,r8d (j)", w=0)

@@ -315,16 +315,15 @@ def _t_brick(check, kpath, kfile, kernel_host):
 
 # ------------------------------------------------------------------ 8c
 def _t_pegen_lim(check, kpath, kfile, kernel_host):
-    """Инструмент pegen.exe: предел образа 128 КиБ (E6.4g-3)."""
+    """Инструмент pegen.exe: предел образа 1 МиБ (E9.5-1a; было 128 КиБ
+    с E6.4g-3 и 64 КиБ с E4 — мотив роста: тела чужих EXE до 1 МиБ,
+    синхронно плану E9.5-2 подъёма тела brick)."""
     pegen_exe = kpath("L0-PEGEN/pegen.exe")
     peg = kfile("L0-PEGEN/pegen.peg").decode("latin1")
 
-    # T-E6-53: предел образа 64 КиБ -> 128 КиБ (мотив: тело каркаса
-    # wall.wall после среза C ~71-77 КБ — круг упал бы на шаге pegen
-    # ERR=BIG IMAGE; найден при разборе плана E6.4g-2 — поднимался
-    # только BIG OUT brick; jbe — принят и ровно 0x20000):
-    # 0x10001 (старый предел — отверг бы) и 0x20000 (максимум)
-    # приняты и == оракулу wrap; 0x20001 отвергнут ERR=BIG IMAGE
+    # T-E6-53 (E9.5-1a): 0x10001 (старый предел 64 КиБ — отверг бы),
+    # 0x20000 (старый предел 128 КиБ — отверг бы) и 0x100000 (максимум)
+    # приняты и == оракулу wrap; 0x100001 отвергнут ERR=BIG IMAGE
     img65 = b"\x41" * 0x10001
     want65 = lab_pegen.wrap(img65, peg)
     r1 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
@@ -333,16 +332,21 @@ def _t_pegen_lim(check, kpath, kfile, kernel_host):
     want128 = lab_pegen.wrap(img128, peg)
     r2 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
                         {"a.bin": img128, "p.peg": peg.encode()})
-    img129 = b"\x43" * 0x20001
+    img1m = b"\x44" * 0x100000
+    want1m = lab_pegen.wrap(img1m, peg)
     r3 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
-                        {"a.bin": img129, "p.peg": peg.encode()})
-    check("T-E6-53 предел образа pegen 128 КиБ (64К+1 и 128К приняты =="
-          " оракулу / 128К+1 отвергнут)",
+                        {"a.bin": img1m, "p.peg": peg.encode()})
+    img_over = b"\x43" * 0x100001
+    r4 = lab_run.run_kv(pegen_exe, ["a.bin", "p.peg", "o.exe"],
+                        {"a.bin": img_over, "p.peg": peg.encode()})
+    check("T-E6-53 предел образа pegen 1 МиБ (64К+1 и 128К и 1М приняты =="
+          " оракулу / 1М+1 отвергнут)",
           r1.exit_code == 0 and r1.files.get("o.exe") == want65 and
           r2.exit_code == 0 and r2.files.get("o.exe") == want128 and
-          r3.exit_code == 6 and
-          r3.stdout == b"U-L0-PEGEN ERR=BIG IMAGE\r\n",
-          "шагов=%d+%d+%d" % (r1.steps, r2.steps, r3.steps))
+          r3.exit_code == 0 and r3.files.get("o.exe") == want1m and
+          r4.exit_code == 6 and
+          r4.stdout == b"U-L0-PEGEN ERR=BIG IMAGE\r\n",
+          "шагов=%d+%d+%d+%d" % (r1.steps, r2.steps, r3.steps, r4.steps))
 
 
 def run(check, kpath, kfile, kernel_host):

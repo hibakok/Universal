@@ -43,17 +43,19 @@ DD[1] = RVA 0x1C60 (размер 0x28), DD[12] = RVA 0x1C88 (размер 0x40),
 тело 0x0C84  IAT: 7 адресов + терминатор (заполняет загрузчик; 0x40)
 тело 0x0CC4  INT: копия IAT до заполнения (0x40)
 тело 0x0D04  имя "kernel32.dll"; hint-записи 7 функций
-тело 0x0D7A  код v2 (E9.4-4b-4): sniff/match_kw2/hex_blob/do_pev2/
-             do_hdr/do_body/do_sec/parse_peg_v2 (тело 0x0D7A..0x11C4),
-             selfdesc/copy_body/apply_secs/wrap2_main (0x11C5..0x152F)
-тело 0x1530  v2kwtab: 4 qword RVA слов (pev2,hdr,body,sec) + строки
-тело 0x1544  [виртуальные нули] переменные v1 (RVA 0x1F20, сдвиг +0x7CA):
-             fname×3 (0x80), modname (0x20), ячейки (0x50),
-             filebuf (0x10000), imagebuf (0x20010), zeropad (0x200)
-             v2 (RVA 0x32943): 15 ячеек (v2h…rawcnt, 0x3C), outbuf
-             (0x40000), spantab (0x200), sectab (0x800), secdata
-             (0x2000), rawtab (0x8000)
-тело 0x7C382 конец секции (VirtualSize)
+тело 0x0D7A  код v2 (E9.4-4b-4; ПЕРЕИЗЛУЧЕН E9.5-1a — пределы +
+             закрытые дефекты, адреса меток сдвинуты): sniff/match_kw2/
+             hex_blob/do_pev2/do_hdr/do_body/do_sec/parse_peg_v2,
+             selfdesc/copy_body/apply_secs/wrap2_main
+тело 0x151C  v2kwtab: 4 qword RVA слов (pev2,hdr,body,sec) + строки
+тело 0x154E  [виртуальные нули] переменные v1 (сдвиг +0x7D4 от
+             до-портовой раскладки): fname×3 (0x80), modname (0x20),
+             ячейки (0x50), filebuf (0x400000 — E9.5-1a), imagebuf
+             (0x100000), zeropad (0x200)
+             v2: 15 ячеек (v2h…rawcnt, 0x3C), outbuf (0x400000 —
+             E9.5-1a), spantab (0x800), sectab (0x40000), secdata
+             (0x100000), rawtab (0x8000)
+тело 0xA4A18C конец секции (VirtualSize)
 ```
 
 ## 3. Карта кирпичей (тело / RVA / число инструкций)
@@ -96,18 +98,22 @@ DD[1] = RVA 0x1C60 (размер 0x28), DD[12] = RVA 0x1C88 (размер 0x40),
 
 | Кирпич | Тело | Кирпич | Тело |
 |---|---|---|---|
-| K0-Q012 sniff_v2 | 0D7A | K0-Q019 parse_peg_v2 | 10E5 |
-| K0-Q013 match_kw2 | 0DF0 | K0-E005 selfdesc | 11C5 |
-| K0-Q014 hex_blob | 0E53 | K0-E006 copy_body | 1395 |
-| K0-Q015 do_pev2 | 0EA8 | K0-E007 apply_secs | 13CE |
-| K0-Q016 do_hdr | 0EF4 | K0-G043 wrap2_main | 148A |
-| K0-Q017 do_body | 0FB2 | K0-D047 таблицы v2 | 1530 |
-| K0-Q018 do_sec | 0FEF | K0-D048 bss v2 | RVA 32943 |
+| K0-Q012 sniff_v2 | 0D7A | K0-Q019 parse_peg_v2 | 10EF |
+| K0-Q013 match_kw2 | 0DF0 | K0-E005 selfdesc | 11CF |
+| K0-Q014 hex_blob | 0E53 | K0-E006 copy_body | 139F |
+| K0-Q015 do_pev2 | 0EA8 | K0-E007 apply_secs | 13D8 |
+| K0-Q016 do_hdr | 0EF4 | K0-G043 wrap2_main | 1494 |
+| K0-Q017 do_body | 0FBC | K0-D047 таблицы v2 | 151C |
+| K0-Q018 do_sec | 0FF9 | K0-D048 bss v2 | RVA 502950 |
 
 Вызов parse_peg в dispatch (@0175) переточен в sniff_v2 — развилка
-версий; 58 rip-ссылок старого кода на bss и 12 RVA vdesc сдвинуты на
-+0x7CA (компоновка — LAB/ai/pegen_build_v2.py, патчер с обходом по
-декодированию lab_x86). Тело v1 (0..0x7AD) не изменено ни байтом.
+версий; rip-ссылки старого кода на bss и 12 RVA vdesc переточены
+(первый раз +0x7CA — порт E9.4-4b-4, pegen_build_v2.py; второй —
+E9.5-1a: дельта тела +0x7D4-0x7CA и рост filebuf/imagebuf — ячейки
+v1/filebuf +дельта, imagebuf +рост filebuf, zeropad +рост обоих;
+патчер с обходом по декодированию lab_x86 — pegen_build_e95.py,
+63 сайта). Тело v1 (0..0x7AD) не сдвинуто ни байтом — только слова
+пределов (4 иммедиата) и rip-ссылки на bss.
 
 Конкретные адреса меток — в `pegen.hex` (каждая строка листинга адресуется
 своим телесным смещением; комментарии несут мнемонику и K-ID).
@@ -131,9 +137,10 @@ DD[1] = RVA 0x1C60 (размер 0x28), DD[12] = RVA 0x1C88 (размер 0x40),
 
 ## 5. Инварианты (проверены эмуляцией)
 
-1. `pegen.hex` материализуется в тело 0x1544 байта; SRD = 0x1600; файл
-   0x1800 байт; VirtualSize = 0x1544 + bss 0x7AE3E = 0x7C382
-   (E9.4-4b-4 — было 0xD7A/0xE00/0x1000/0x3117C).
+1. `pegen.hex` материализуется в тело 0x154E байт; SRD = 0x1600; файл
+   0x1800 байт; VirtualSize = 0x154E + bss 0xA48C41 = 0xA4A18C
+   (E9.5-1a — рост в виртуальных нулях: было 0x1544/0x1600/0x1800/
+   0x7C382 у E9.4-4b-4; файл НЕ изменился).
 2. pegen.exe = hexgen(pegen.hex) + pegen(·, pegen.peg) байт-в-байт
    (круг E4 под эмуляцией — шаги в T-M5-18 журнале).
 3. Все модули воспроизводятся конвейером E4 из текстовых исходников
