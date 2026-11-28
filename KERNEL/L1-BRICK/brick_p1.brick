@@ -54,8 +54,8 @@ H E8 $print_error ; K1-G001 call print_error
 :ok1
 H 49 89 C4 ; K1-G001 mov r12,rax (хэндл исходника)
 H 4C 89 E1 ; K1-G001 mov rcx,r12
-H 48 8D 15 $filebuf ; K1-G001 lea rdx,[rip+filebuf] (буфер 2 МиБ)
-H 41 B8 00 00 20 00 ; K1-G001 mov r8d,0x200000 (вместимость, E6.4g-6)
+H 48 8D 15 $filebuf ; K1-G001 lea rdx,[rip+filebuf] (буфер 17 МиБ)
+H 41 B8 00 00 10 01 ; K1-G001 mov r8d,0x1100000 (вместимость, E9.5-2)
 H 4C 8D 0D $srclen ; K1-G001 lea r9,[rip+srclen]
 H E8 $read_whole_dst ; K1-G001 call read_whole_dst
 H 48 83 F8 FF ; K1-G001 cmp rax,-1
@@ -63,7 +63,7 @@ H 75 $ok2:1 ; K1-G001 jnz ok2
 H B9 03 00 00 00 ; K1-G001 mov ecx,3 (ERR=READ SRC)
 H E8 $print_error ; K1-G001 call print_error
 :ok2
-H 48 3D 00 00 20 00 ; K1-G001 cmp rax,0x200000 (сентинелу нужен запас, E6.4g-6)
+H 48 3D 00 00 10 01 ; K1-G001 cmp rax,0x1100000 (предел 17 МиБ — синхронно выходу enc <= 23/11 x 8 МиБ, E9.5-2)
 H 72 $ok3:1 ; K1-G001 jb ok3
 H B9 04 00 00 00 ; K1-G001 mov ecx,4 (ERR=BIG SRC)
 H E8 $print_error ; K1-G001 call print_error
@@ -84,8 +84,8 @@ H C6 01 00 ; K1-G001 mov byte [rcx],0 (NUL-сентинел)
 H B9 01 00 00 00 ; K1-G001 mov ecx,1 (пассаж 1: метки и длины)
 H E8 $assemble_pass ; K1-G001 call assemble_pass
 H 89 05 $outlen ; K1-G001 mov [rip+outlen],eax (файловая длина)
-H 3D 00 00 02 00 ; K1-G001 cmp eax,0x20000 (предел тела 128 КиБ, E6.4g-2)
-H 72 $ok4:1 ; K1-G001 jb ok4
+H 3D 00 00 10 00 ; K1-G001 cmp eax,0x100000 (предел тела 1 МиБ — jbe, синхронно pegen/мосту, E9.5-2)
+H 76 $ok4:1 ; K1-G001 jbe ok4 (принят и ровно 0x100000 — как pegen E6.4g-3)
 H B9 07 00 00 00 ; K1-G001 mov ecx,7 (ERR=BIG OUT)
 H E8 $print_error ; K1-G001 call print_error
 :ok4

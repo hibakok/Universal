@@ -115,22 +115,31 @@ def _t_enc_exe(check, kpath, kfile, kernel_host):
           r.exit_code == 0 and r.files.get("t.brick") == want,
           "строк=%d шагов=%d" % (len(lines), r.steps))
 
-    # T-E6-10b: предел входа 2 МиБ (E6.4g-5): 0x80020 байт одной
-    # строкой приняты (семантика jb-края «< предела» не тронута),
-    # 0x200000 — ТОЧНЫЙ КРАЙ — отвергнуты ERR=BIG SRC (код 7; jb->jbe
-    # был бы пойман). Точки 0x100020 (старый предел 1 МиБ E6.4d-4
-    # отверг бы) и максимум 0x1FFFFF — dev LAB/ai/enc_build_lim3.py
-    # (17-34 млн шагов — вне бюджета батареи на каждый пуш); границу
-    # >1 МиБ дополнительно прижимает круг каркаса T-E6-49b (.b2 каркаса
-    # 879662 Б каждый пуш; после среза C-2/2 — свыше 1 МиБ); сам
-    # константный imm32 защищён пином SHA-256 enc.exe (секция 1).
+    # T-E6-10b: предел входа 8 МиБ (E9.5-2 — синхронно подъёму тела
+    # brick до 1 МиБ: канон b2 чужого тела 1 МиБ ~6 МБ не влезал в 2 МиБ
+    # и круг bridge -> enc -> brick -> pegen разорвался бы): 0x80020
+    # байт одной строкой приняты (регресс семантики jb-края «< предела»),
+    # 0x800000 — ТОЧНЫЙ КРАЙ — отвергнут ERR=BIG SRC (код 7; jb->jbe
+    # был бы пойман). Точки 0x200020 (старый предел 2 МиБ E6.4g-5
+    # отверг бы) и максимум 0x7FFFFF — dev LAB/ai/enc_build_lim4.py
+    # (34-134 млн шагов — вне бюджета батареи на каждый пуш); имм32
+    # предела дополнительно защищён пином SHA-256 enc.exe (секция 1)
+    # и ФОРМ-пином байтов тела ниже; синхронно outbuf 0x1100400
+    # (вход x 23/11 + 1 = 0x10BA2EA для 8 МиБ) и filebuf 0x800100.
     line520 = b";" + b"A" * (0x80020 - 2) + b"\n"
     r1 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line520})
-    line2m = b";" + b"A" * (0x200000 - 2) + b"\n"
-    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line2m})
-    check("T-E6-10b предел входа 2 МиБ (520К принят / 2М отвергнут)",
+    line8m = b";" + b"A" * (0x800000 - 2) + b"\n"
+    r2 = lab_run.run_kv(enc, ["t.b2", "t.brick"], {"t.b2": line8m})
+    # ФОРМ-пины imm32 (E9.5-2): вместимость/предел 0x800000 в байтах тела
+    enc_body = open(kpath("L1-ENC/enc.exe"), "rb").read()[
+        0x200:0x200 + 0x2CCE]
+    pins = (b"\x41\xB8\x00\x00\x80\x00" in enc_body and
+            b"\x48\x81\xF8\x00\x00\x80\x00" in enc_body)
+    check("T-E6-10b предел входа 8 МиБ (520К принят / 8М отвергнут"
+          " + imm32-пины)",
           r1.exit_code == 0 and r1.files.get("t.brick") == line520 and
-          r2.exit_code == 7 and r2.stdout == b"U-L1-ENC ERR=BIG SRC\r\n",
+          r2.exit_code == 7 and r2.stdout == b"U-L1-ENC ERR=BIG SRC\r\n" and
+          pins,
           "шагов=%d+%d" % (r1.steps, r2.steps))
 
     # концы строк: пустой вход, без LF, CRLF, одиночный CR (как splitlines)
@@ -264,15 +273,18 @@ def _t_brick(check, kpath, kfile, kernel_host):
     """Инструмент brick.exe: пределы E6.4g-6/E6.4g-2/E6.4f-2."""
     brick_exe = kpath("L1-BRICK/brick.exe")
 
-    # T-E6-36: пределы 2 МиБ и 2048 меток (E6.4g-6: подъём 1 МиБ ->
-    # 2 МиБ — мотив: .brick каркаса wall.wall после C-2/1 = 834018 Б =
-    # 80%, срезы C-2/2+ добавят ~60-100 КБ): исходник 0x80020 байт одной
-    # строкой-комментарием принят (точка прежней границы — регресс
-    # семантики jb-края); 1025 меток приняты (предел 2048 записи с
-    # E6.4f-2); исходник 0x200000 — ТОЧНЫЙ КРАЙ нового предела —
-    # отвергнут ERR=BIG SRC (код 7; точки 0x100020/0x1FFFFF — dev-only
-    # в LAB/ai/brick_build_lim4.py: 15-29 млн шагов вне бюджета пуша;
-    # константный imm32 дополнительно защищён пином SHA секции 1)
+    # T-E6-36: пределы 17 МиБ и 131072 меток и тело 1 МиБ (E9.5-2:
+    # подъём под реальные чужие EXE — тела .text до 1 МиБ; синхронно
+    # pegen E9.5-1a и мосту E9.5-1b: bridge BODY 1 МиБ == brick 1 МиБ
+    # == pegen imagebuf 1 МиБ; исходник 17 МиБ покрывает ВЕСЬ допустимый
+    # выход enc — вход enc < 8 МиБ => выход <= 23/11 x 8 МиБ + 1 =
+    # 0x10BA2EA < 0x1100000): исходник 0x80020 байт одной
+    # строкой-комментарием принят (регресс семантики jb-края); 1025 меток
+    # приняты; исходник 0x1100000 — ТОЧНЫЙ КРАЙ нового предела — отвергнут
+    # ERR=BIG SRC (код 7; точки 0x200020/0x1100000-1 — dev-only в
+    # LAB/ai/brick_build_lim5.py: 29-34 млн шагов вне бюджета пуша;
+    # константные imm32 дополнительно защищены пином SHA секции 1
+    # и ФОРМ-пином байтов ниже)
     line512 = b";" + b"A" * (0x80020 - 2) + b"\n"
     r1 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": line512})
@@ -280,13 +292,13 @@ def _t_brick(check, kpath, kfile, kernel_host):
     want1025 = lab_brick.assemble(src1025)
     r2 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": src1025})
-    line2m = b";" + b"A" * (0x200000 - 2) + b"\n"
+    line17m = b";" + b"A" * (0x1100000 - 2) + b"\n"
     r3 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": line2m})
-    # E6.4g-2: предел ТЕЛА 64 КиБ -> 128 КиБ (мотив: тело каркаса
-    # wall.wall после среза B 60967/64К = 93%, срез C добавит ~10-15 КБ;
-    # jb — принят < 0x20000): 0x10000 (старый предел — отверг бы) и
-    # 0x1FFFF (максимум) приняты; 0x20000 отвергнут ERR=BIG OUT (код 10)
+                        {"t.brick": line17m})
+    # E9.5-2: предел ТЕЛА 128 КиБ -> 1 МиБ (jbe — принят и ровно 0x100000,
+    # синхронно pegen E6.4g-3 и мосту BIG BODY E9.5-1b): 0x100000 —
+    # jbe-край — принят; 0x100001 отвергнут ERR=BIG OUT (код 10).
+    # Регресс прежних точек: 0x10000 и 0x1FFFF (приняты с E6.4g-2)
     src64 = b"DZ 10000\n"
     want64 = lab_brick.assemble(src64)
     r4 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
@@ -295,22 +307,40 @@ def _t_brick(check, kpath, kfile, kernel_host):
     want127 = lab_brick.assemble(src127)
     r5 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
                         {"t.brick": src127})
-    src128 = b"DZ 20000\n"
+    src1m = b"DZ 100000\n"
+    want1m = lab_brick.assemble(src1m)
     r6 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                        {"t.brick": src128})
-    check("T-E6-36 пределы brick 2 МиБ/2048 меток/тело 128 КиБ"
-          " (512К+20 и 1025 меток и тела 64К/128К-1 приняты /"
-          " 2М и тело 128К отвергнуты)",
+                        {"t.brick": src1m})
+    src1m1 = b"DZ 100001\n"
+    r7 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
+                        {"t.brick": src1m1})
+    # ФОРМ-пины imm32 (E9.5-2): байты тела фиксируют новые пределы —
+    # cmp eax,0x100000 + jbe (тело 1 МиБ), cmp rax,0x1100000 (исходник
+    # 17 МиБ), cmp r11d,0x20000 (метки 131072), errtab[8] BIG LABELS
+    # (код 11) + строка. Точный край меток 131073 — O(n^2) ~млрд шагов,
+    # поэтому предел меток пинится ФОРМОЙ (прецедент — imm32-пины
+    # SHA секции 1); семантика 2049+ меток — dev LAB/ai/brick_build_lim5.py
+    exe_body = open(brick_exe, "rb").read()[0x200:0x200 + 0xBC8]
+    pins = (b"\x3D\x00\x00\x10\x00\x76" in exe_body and
+            b"\x48\x3D\x00\x00\x10\x01" in exe_body and
+            b"\x41\x81\xFB\x00\x00\x02\x00" in exe_body and
+            b"U-L1-BRICK ERR=BIG LABELS" in exe_body)
+    check("T-E6-36 пределы brick 17 МиБ/131072 меток/тело 1 МиБ"
+          " (512К+20 и 1025 меток и тела 64К/128К-1/1М приняты /"
+          " 17М и тело 1М+1 отвергнуты; imm32-пины меток)",
           r1.exit_code == 0 and r1.files.get("t.bin") == b"" and
           r2.exit_code == 0 and r2.files.get("t.bin") == want1025 and
           r3.exit_code == 7 and
           r3.stdout == b"U-L1-BRICK ERR=BIG SRC\r\n" and
           r4.exit_code == 0 and r4.files.get("t.bin") == want64 and
           r5.exit_code == 0 and r5.files.get("t.bin") == want127 and
-          r6.exit_code == 10 and
-          r6.stdout == b"U-L1-BRICK ERR=BIG OUT\r\n",
-          "шагов=%d+%d+%d+%d+%d+%d" % (r1.steps, r2.steps, r3.steps,
-                                        r4.steps, r5.steps, r6.steps))
+          r6.exit_code == 0 and r6.files.get("t.bin") == want1m and
+          r7.exit_code == 10 and
+          r7.stdout == b"U-L1-BRICK ERR=BIG OUT\r\n" and
+          pins,
+          "шагов=%d+%d+%d+%d+%d+%d+%d" % (r1.steps, r2.steps, r3.steps,
+                                           r4.steps, r5.steps, r6.steps,
+                                           r7.steps))
 
 
 # ------------------------------------------------------------------ 8c

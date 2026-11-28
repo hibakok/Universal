@@ -1,5 +1,5 @@
 ; UNIVERSAL / BRICK v2 / мост BRIDGE v1 (SPEC/15)
-; Исходник: enc.exe (тело секции RVA 1000, 2CCD Б; !bss 643307)
+; Исходник: enc.exe (тело секции RVA 1000, 2CCD Б; !bss 1903607)
 ; Круг: enc -> brick -> pegen(+peg моста) == исходный EXE
 M sub rsp, 38 ; @0000
 M lea rbx, [rip+$base] ; @0004
@@ -60,7 +60,7 @@ M call $l3259 ; @00DC
 M mov r12, rax ; @00E1
 M mov rcx, r12 ; @00E4
 H 48 8D 15 18 30 00 00 ; @00E7 lea rdx, [rip+16646]
-M mov r8d, 200000 ; @00EE
+M mov r8d, 800000 ; @00EE
 H 4C 8D 0D E3 2B 00 00 ; @00F4 lea r9, [rip+15582]
 M call $l33f1 ; @00FB
 M cmp rax, -1 ; @0100
@@ -68,7 +68,7 @@ M jnz $l1114 ; @0104
 M mov ecx, 3 ; @010A
 M call $l3259 ; @010F
 :l1114 ; @0114
-M cmp rax, 200000 ; @0114
+M cmp rax, 800000 ; @0114
 M jb $l112b ; @011B
 M mov ecx, 4 ; @0121
 M call $l3259 ; @0126
@@ -81,7 +81,7 @@ M add rcx, rax ; @0140
 M mov byte [rcx], 0 ; @0143
 M mov eax, 1 ; @0146
 H 89 05 95 2B 00 00 ; @014B mov [rip+15590], eax
-H 4C 8D 15 AE 30 20 00 ; @0151 lea r10, [rip+2114054]
+H 4C 8D 15 AE 30 80 00 ; @0151 lea r10, [rip+8405510]
 M mov r12, r10 ; @0158
 H 4C 8D 2D 94 2C 00 00 ; @015B lea r13, [rip+15862]
 H 48 8D 35 9D 2F 00 00 ; @0162 lea rsi, [rip+16646]

@@ -15,12 +15,16 @@ pegen.exe(t.b2-тело, t.peg) == образ байт-в-байт) + ГРАНИ
        pegen.exe -> t.exe == исходному образу БАЙТ-В-БАЙТ; для big
        и huge — оракульный круг == образ и выход моста
        (факт-строка + t.b2 + t.peg) == оракулу;
-       (2) ГРАНИЦЫ ПРЕДЕЛОВ ИНСТРУМЕНТОВ (E9.5-1b): образ 0x400001
-       (4 МиБ + 1) — bridge.exe ERR=BIG EXE (7, отказ при чтении,
-       без частичных выходов); rawlim = 0x104000 > 1 МиБ — bridge.exe
-       ERR=BIG BODY (11, отказ ДО спуска, без частичных выходов);
-       тело 0x20400 > 128 КиБ (снятие — E9.5-2) — brick.exe
-       ERR=BIG OUT (10). Число проверок: 2.
+       (2) ГРАНИЦЫ ПРЕДЕЛОВ ИНСТРУМЕНТОВ (E9.5-1b + E9.5-2): образ
+       0x400001 (4 МиБ + 1) — bridge.exe ERR=BIG EXE (7, отказ при
+       чтении, без частичных выходов); rawlim = 0x104000 > 1 МиБ —
+       bridge.exe ERR=BIG BODY (11, отказ ДО спуска, без частичных
+       выходов); тело 0x20400 — БЫВШАЯ граница brick 128 КиБ (снятие
+       E9.5-2 — тело <= 1 МиБ) — ПОЛНЫЙ КРУГ bridge -> enc -> brick
+       -> pegen == образу (пределы конвейера сошлись: bridge BODY
+       1 МиБ == brick 1 МиБ == pegen imagebuf 1 МиБ; граница BIG OUT
+       самого brick — тело 0x100001 — покрыта T-E6-36). Число
+       проверок: 2.
 Функция: интеграция портов E9.4-4b-1..4 + пределов E9.5-1b (exebuf
          4 МиБ, карты спуска 1 МиБ + BIG BODY, outmem 16 МиБ +
          гвард BIG OUT) — круг инструментами, как T-E9-23 для
@@ -96,12 +100,14 @@ def big_image(text_raw=0x8000, rdata_raw=0x28000):
 
 
 def longbody_image(text_raw=0x20400):
-    """Образ с телом СЕКЦИИ КОДА > 128 КиБ (граница brick): .text
-    raw 0x20400 — короткий код в начале (mov/add/xor/ret), нулевой
-    разрыв и ненулевые данные в последнем окне: target = 0x20400
-    (последний ненулевый байт + 1, п. 7 SPEC/15; выравнивание уже
-    совпадает — без подъёма) = 132096 > 131072 — brick обязан
-    отказать ERR=BIG OUT."""
+    """Образ с телом СЕКЦИИ КОДА > 128 КиБ (БЫВШАЯ граница brick
+    E9.4-4b-5): .text raw 0x20400 — короткий код в начале
+    (mov/add/xor/ret), нулевой разрыв и ненулевые данные в последнем
+    окне: target = 0x20400 (последний ненулевый байт + 1, п. 7
+    SPEC/15; выравнивание уже совпадает) = 132096 > 131072 — до
+    E9.5-2 brick отказывал ERR=BIG OUT; с подъёмом тела до 1 МиБ
+    (E9.5-2) — ПОЛНЫЙ КРУГ (свидетель сходимости пределов: мост
+    BIG BODY 1 МиБ == brick 1 МиБ == pegen imagebuf 1 МиБ)."""
     b = bytearray(0x400 + text_raw)
     b[0:2] = b"MZ"
     struct.pack_into("<I", b, 0x3C, 0x100)
@@ -247,27 +253,24 @@ def run(check, kpath):
     if (r.exit_code != 11 or r.stdout != BIGBODY
             or "t.b2" in r.files or "t.peg" in r.files):
         bad.append("BIG BODY: код=%s %r" % (r.exit_code, r.stdout[:40]))
-    img = longbody_image()                      # тело 0x20400 > 128К
-    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"], {"in.exe": img})
-    if r.exit_code != 0:
-        bad.append("longbody: bridge код=%s" % r.exit_code)
-    else:
-        b2 = r.files.get("t.b2", b"")
-        r1 = lab_run.run_kv(enc_exe, ["t.b2", "t.brick"], {"t.b2": b2})
-        r2 = lab_run.run_kv(brick_exe, ["t.brick", "t.bin"],
-                            {"t.brick": r1.files.get("t.brick", b"")})
-        if (r1.exit_code != 0 or r2.exit_code != 10
-                or r2.stdout != BIGOUT or "t.bin" in r2.files):
-            bad.append("BIG OUT: enc=%s brick=%s %r"
-                       % (r1.exit_code, r2.exit_code, r2.stdout[:40]))
+    img = longbody_image()                  # тело 0x20400 — БЫВШАЯ
+    # граница brick 128 КиБ: с E9.5-2 (тело <= 1 МиБ) ПОЛНЫЙ КРУГ
+    errs, t_exe, _r = _chain(bexe, enc_exe, brick_exe, pegen_exe, img)
+    if errs or t_exe != img:
+        bad.append("longbody-круг: %s %r" % (errs[:1], t_exe is not None
+                                              and len(t_exe)))
     check("T-E9-33 ГРАНИЦЫ пределов инструментов (E9.5-1b: образ"
           " < 4 МиБ — exebuf, тело секции кода <= 1 МиБ — карты спуска;"
-          " тело brick 128 КиБ — снятие E9.5-2): образ 0x400001 —"
-          " bridge ERR=BIG EXE (7); rawlim 0x104000 — bridge"
-          " ERR=BIG BODY (11) без частичных выходов; тело 0x20400 —"
-          " brick ERR=BIG OUT (10) без t.bin", not bad,
+          " E9.5-2: тело 0x20400 — БЫВШАЯ граница brick 128 КиБ —"
+          " ПОЛНЫЙ КРУГ): образ 0x400001 — bridge ERR=BIG EXE (7);"
+          " rawlim 0x104000 — bridge ERR=BIG BODY (11) без частичных"
+          " выходов; тело 0x20400 — круг bridge -> enc -> brick ->"
+          " pegen == образу (пределы сошлись: мост 1 МиБ == brick"
+          " 1 МиБ == pegen 1 МиБ; граница BIG OUT самого brick —"
+          " T-E6-36)", not bad,
           "; ".join(bad[:2]) if bad else "BIG EXE + BIG BODY +"
-          " BIG OUT — как документировано (SPEC/07, SPEC/08, SPEC/15)")
+          " longbody-круг — как документировано (SPEC/07, SPEC/08,"
+          " SPEC/15)")
     return not bad
 
 

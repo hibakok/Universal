@@ -115,7 +115,10 @@ def assemble(text):
     labels = {"base": BASE_LABEL}
     # пасс 1: длины и метки; пасс 2: материализация
     for pas in (1, 2):
-        out, cursor, filelen = bytearray(0x80010), 0, 0
+        out, cursor, filelen = bytearray(0x200010), 0, 0
+        #                       ^ зеркало imagebuf brick.exe (2 МиБ + 16;
+        # было 0x80010 — зеркалом E6.4f-2; тела выросли до 1 МиБ —
+        # E9.5-2, иначе оракул упал бы IndexError на теле > 512 КиБ)
         lineno, p = 1, 0
         while True:
             c = buf[p]
@@ -144,12 +147,15 @@ def assemble(text):
                     name = buf[addr:addr + n].decode()
                     if name in labels:
                         _err(lineno)           # дубликат (вкл. base)
-                    if len(labels) >= 2048:
-                        _err(lineno)           # переполнение labtab (SPEC/08:
-                        # меток <= 2048, ВКЛ. предопределённую base; 512 ->
-                        # 1024 (E6.4e-3) -> 2048 (E6.4f-2); поймано
-                        # расхождение оракула с
-                        # brick.exe — E6.4c-3/1)
+                    if len(labels) >= 131072:
+                        # переполнение labtab (SPEC/08: меток <= 131072,
+                        # ВКЛ. предопределённую base; 512 -> 1024
+                        # (E6.4e-3) -> 2048 (E6.4f-2) -> 131072 (E9.5-2);
+                        # ЯВНЫЙ отказ BIG LABELS (код 11) вместо
+                        # ERR=FORMAT — зеркалит dl_full K1-N001;
+                        # поймано расхождение оракула с brick.exe —
+                        # E6.4c-3/1)
+                        raise BrickError("BIG LABELS")
                     labels[name] = cursor
                 while buf[p] not in (0, 0x0A):
                     p += 1
