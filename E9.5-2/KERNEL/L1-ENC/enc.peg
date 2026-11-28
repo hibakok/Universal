@@ -1,0 +1,9 @@
+; UNIVERSAL / PEG v1 / слой L1 / модуль M1-ENC
+; Управляющий файл обёртки: pegen.exe <image.bin> <ctrl.peg> <out.exe>
+!module enc
+!entry 1000
+!idata 3BB3 28
+!iat 3BDB 40
+!bss 1903606
+!stackcom 4000
+!heapcom 4000
