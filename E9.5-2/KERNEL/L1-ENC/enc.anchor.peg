@@ -1,8 +1,0 @@
-; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: enc.exe
-!module enc
-!entry 1000
-!idata 3BB3 28
-!iat 3BDB 40
-!bss 1903607
-!stackcom 4000
-!heapcom 4000
