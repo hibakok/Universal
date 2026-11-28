@@ -237,7 +237,7 @@ func build_sstate
   var i
   var a
   var j
-  sstate = GlobalAlloc(0, 262145)
+  sstate = GlobalAlloc(0, 1048577)
   if sstate == 0
     print_error(s_rexe, len(s_rexe), 5)
   end

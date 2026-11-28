@@ -1,16 +1,20 @@
-; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a/4-4a/4-4b-1)
+; bridge_self_w.wall — спуск от входа: проход кода, тени, target/bss (E9.2-2/3a/4-4a/4-4b-1; пределы — E9.5-1b)
 ; Паспорт: KERNEL/L5-BRIDGE/bridge_self_w.wall | слой: L5 (исходник — WALL)
 ; | роль: ветвь W моста — СЛОВАРЬ спуска оракула _walk/_sweep/
 ; parse_family/parse_foreign (SPEC/15 п. 3, п. 7; E9.4-4b-1: старт —
 ; entryrva - codevaddr (RVA секции кода — семья 4096), вилка target —
 ; falign ОБРАЗА (семья 512), границы — глобали секции кода от ветви
 ; P/P2): K5-W001 walk_code — стек целей
-; (куча GlobalAlloc 2097160 — 262145 qword, доказуемый предел
+; (куча GlobalAlloc 8388616 — 1048577 qword, доказуемый предел
 ; 1 + rawlim: каждый офсет тела — в стеке РОВНО один раз, карта
-; дедупликации pushmap 262145 — K5-W005; прямые цели/кандидаты
+; дедупликации pushmap 1048577 — K5-W005; прямые цели/кандидаты
 ; таблиц — повторами не кладутся, холосты для спуска — семантика
-; == оракулу), карты стартов insmap 262145 и длин lenmap 262145 —
-; байтовые, кучи GlobalAlloc; rawlim = min(vsize, rawsize) —
+; == оракулу), карты стартов insmap 1048577 и длин lenmap 1048577 —
+; байтовые, кучи GlobalAlloc; ПРЕДЕЛ ТЕЛА: rawlim > 1048576 (1 МиБ —
+; синхронно плану E9.5-2 brick) — ERR=BIG BODY (код 11) БЕЗ частичных
+; выходов, до спуска и эмиссии (E9.5-1b; карта спуска — индексы тела,
+; размер карт держит ВСЕ допустимые rawlim); rawlim = min(vsize,
+; rawsize) —
 ; эквивалент предела vsize оракула при чтениях, ограниченных телом;
 ; проход вперёд от каждой цели до обрыва (терминалы ret/int3,
 ; прямой jmp и КОСВЕННЫЙ FF /4 — класс 5: K5-W004 jtab — кандидаты
@@ -35,7 +39,7 @@
 ; для спуска: ins-карта уже стоит / поставит первый) — семантика
 ; == оракулу (список Python без предела); вне [0, rawlim) НЕ
 ; кладётся — цикл спуска отбросил бы сразу (== поведению оракула);
-; предел pend: 1 + rawlim < 262145 qword
+; предел pend: 1 + rawlim < 1048577 qword
 func push_tgt(v)
   if v >= 0
     if v < rawlim
@@ -98,10 +102,10 @@ func walk_code
   var a
   var z
   var j
-  insmap = GlobalAlloc(0, 262145)
-  lenmap = GlobalAlloc(0, 262145)
-  pend = GlobalAlloc(0, 2097160)
-  pushmap = GlobalAlloc(0, 262145)
+  insmap = GlobalAlloc(0, 1048577)
+  lenmap = GlobalAlloc(0, 1048577)
+  pend = GlobalAlloc(0, 8388616)
+  pushmap = GlobalAlloc(0, 1048577)
   if insmap == 0 || lenmap == 0 || pend == 0 || pushmap == 0
     print_error(s_rexe, len(s_rexe), 5)
   end
@@ -109,6 +113,9 @@ func walk_code
     rawlim = vsize
   else
     rawlim = rawsize
+  end
+  if rawlim > 1048576
+    print_error(s_bbody, len(s_bbody), 11)
   end
   a = entryrva - codevaddr
   pend[0] = a

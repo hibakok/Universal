@@ -9,18 +9,20 @@
 import lab_win
 
 
-def run(exe_path, args=(), host_files=None):
+def run(exe_path, args=(), host_files=None, max_steps=200_000_000):
     """Прогнать EXE. host_files: {'l0-seed/seed.hex': bytes, ...} —
-    файлы, которые программа может открыть (ключи нормализуются)."""
+    файлы, которые программа может открыть (ключи нормализуются).
+    max_steps — предел шагов эмуляции (по умолчанию 200 млн; для
+    МБ-масштаба — E9.5-1b: фолд PEG v2 на образе 3 МиБ ~250 млн)."""
     m = lab_win.Machine(exe_path, list(args), host_files or {})
-    return m.run()
+    return m.run(max_steps)
 
 
-def run_kv(exe_path, args=(), host_files=None):
+def run_kv(exe_path, args=(), host_files=None, max_steps=200_000_000):
     """То же, но имена host-файлов можно передавать в стиле Windows."""
     norm = {k.replace("\\", "/").strip("/").lower(): v
             for k, v in (host_files or {}).items()}
-    return run(exe_path, list(args), norm)
+    return run(exe_path, list(args), norm, max_steps)
 
 
 if __name__ == "__main__":

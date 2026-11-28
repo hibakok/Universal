@@ -16,7 +16,10 @@
 ; событиям (метка -> семантика DD 20 / DQ 8 -> H-строка выжившей ->
 ; данные DZ-DB до следующего события; поиск вперёд — каждый байт
 ; <= 2 раз, линейно), запись <выход>.b2 (CreateFile2 WRITE/
-; CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe; outmem 8388608 Б).
+; CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe; outmem 16777216 Б —
+; 16 МиБ с E9.5-1b: PEG v2 доказуемо <= ~2.3 симв/байт образа < 4 МиБ
+; = ~9.2 МиБ < 16 МиБ; b2 реалистично <= ~6 симв/байт тела <= 1 МиБ;
+; патологически длинные строки — гвард app_ch ERR=BIG OUT (10)).
 ; Карты/семантика — часть 1 (bridge_self_l.wall, K5-L001..L010 +
 ; K5-L016 build_maps); примитивы вывода/H-строки/данные — ветвь E;
 ; M-строки — ветвь M (bridge_self_m*.wall); эквивалентность оракулу —
@@ -145,12 +148,13 @@ end
 
 ; K5-L016: сборка всех карт режима H: sstate (выжившие), импорты
 ; (записи/имена/базы/метки/known), семантика (кандидаты DD/DQ ->
-; приёмка), метки операндов; кучи: labmap/semstate 262145 Б + массивы
+; приёмка), метки операндов; кучи: labmap/semstate 1048577 Б (E9.5-1b
+; — как карты спуска W, предел тела 1 МиБ) + массивы
 ; по impn (knownoff <= impn+3, noffs impn, snam <= 64*impn, semrows
 ; <= 3*(2*impn+3) qword)
 func build_maps
-  labmap = GlobalAlloc(0, 262145)
-  semstate = GlobalAlloc(0, 262145)
+  labmap = GlobalAlloc(0, 1048577)
+  semstate = GlobalAlloc(0, 1048577)
   if labmap == 0 || semstate == 0
     print_error(s_rexe, len(s_rexe), 5)
   end
@@ -195,7 +199,8 @@ end
 ; — данные DZ/DB (поиск следующего события вперёд — каждый байт
 ; посещён ≤ 2 раз, линейно); запись <выход>.b2 (CreateFile2
 ; WRITE/CREATE_ALWAYS — коды 8/9, как wall.exe/uva.exe; outmem
-; 8388608 Б). nlen2 — длина слова-пути выхода (аргумент 2 CLI);
+; 16777216 Б (E9.5-1b — 16 МиБ; гвард app_ch ERR=BIG OUT (10)).
+; nlen2 — длина слова-пути выхода (аргумент 2 CLI);
 ; ТЕЛО прохода — ОБЩЕЕ для семьи и чужого (карты L построены с
 ; base = codevaddr — двойной путь, как оракул _emit_lines)
 func emit_body(nlen2, isf)
@@ -204,7 +209,7 @@ func emit_body(nlen2, isf)
   var o
   var hi
   var ri
-  outmem = GlobalAlloc(0, 8388608)
+  outmem = GlobalAlloc(0, 16777216)
   if outmem == 0
     print_error(s_rexe, len(s_rexe), 5)
   end

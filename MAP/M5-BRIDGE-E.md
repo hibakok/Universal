@@ -70,10 +70,10 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | E |
-| Файл | bridge_self_e.wall (RVA 98C0) |
-| Функция | Один байт c в буфер вывода (outbuf/outcur — глобали; курсор двигает) |
+| Файл | bridge_self_e.wall (RVA AF92) |
+| Функция | Один байт c в буфер вывода (outbuf/outcur — глобали; курсор двигает) + ГВАРД (E9.5-1b): outcur >= 16777216 — ERR=BIG OUT (код 10) без частичных выходов (текст строится до открытия файла; воронка ЕДИНАЯ для всех эмиссий b2/PEG) |
 | Вход | c — байт |
-| Выход | outcur + 1 |
+| Выход | outcur + 1; гвард — код 10 |
 | Состоит из | — (setb) |
 | Используется в | K5-E005..E018 |
 | Тест | T-E9-22 |
@@ -281,7 +281,7 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 | Слой | L5 (исходник — WALL) |
 | Ветвь | E |
 | Файл | bridge_self_e.wall (RVA B1F8; срез E9.2-3b — код удалён) |
-| Функция | Полная raw-эмиссия (режим RAW оракула _emit_lines): outmem GlobalAlloc 8388608 (8 МиБ ≥ худший случай ~5.8 МиБ — 1-байтовые инструкции ~22 Б/байт; отказ — READ EXE 5); шапка SPEC/15 (куски tplb + имя модуля exebuf[77..] + target/bss hex); выжившие по дампу sdump (по возрастанию): emit_data до инструкции, emit_h инструкции, данные до target; запись <выход>.b2 — widen(arg2) → CreateFile2(GENERIC_WRITE, CREATE_ALWAYS) → WriteFile(outbuf, outcur) → CloseHandle; коды 8 OPEN OUT / 9 WRITE OUT (как wall.exe/uva.exe) |
+| Функция | Полная raw-эмиссия (режим RAW оракула _emit_lines): outmem GlobalAlloc 16777216 (16 МиБ — E9.5-1b; PEG v2 доказуемо < ~9.2 МиБ, b2 реалистично <= ~6 МиБ; гвард app_ch — BIG OUT 10; отказ аллокации — READ EXE 5); шапка SPEC/15 (куски tplb + имя модуля exebuf[77..] + target/bss hex); выжившие по дампу sdump (по возрастанию): emit_data до инструкции, emit_h инструкции, данные до target; запись <выход>.b2 — widen(arg2) → CreateFile2(GENERIC_WRITE, CREATE_ALWAYS) → WriteFile(outbuf, outcur) → CloseHandle; коды 8 OPEN OUT / 9 WRITE OUT (как wall.exe/uva.exe) |
 | Вход | nlen2 — длина слова-пути выхода; глобали sdump/inscount/lenmap/target/bss/modlen |
 | Выход | файл <выход>.b2; 0; коды 5/8/9 |
 | Состоит из | K5-C005, K5-C006, K5-E007, K5-E015..E017 |

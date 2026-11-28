@@ -1,26 +1,31 @@
 """lab_t_bridge_round.py — секция 18j батареи: ПЕРВЫЙ ЧУЖОЙ КРУГ
 (E9.4-4b-5; DoD этапа E9.4: чужой EXE -> мост (t.b2 + t.peg) ->
-pegen.exe(t.b2-тело, t.peg) == образ байт-в-байт) + ГРАНИЦЫ ПРЕДЕЛОВ.
+pegen.exe(t.b2-тело, t.peg) == образ байт-в-байт) + ГРАНИЦЫ ПРЕДЕЛОВ
+(E9.5-1b: образ < 4 МиБ, тело секции кода <= 1 МиБ).
 
 Вход:  колбэк check из lab_verify + kpath (артефакты KERNEL/ под
        эмуляцией lab_run) + корпуса чужих крафтов lab_t_bridge_corpus
-       (foreign/foreign2 — E9.4-3a/3b) + большой крафт big_image
-       (масштаб реальных EXE: образ 0x30400 — 75% outbuf pegen v2).
+       (foreign/foreign2 — E9.4-3a/3b) + большие крафты big_image
+       (0x30400 — масштаб реальных EXE; b256k 0x41000 — бывшая
+       граница BIG EXE, круг проходит с E9.5-1b; huge 0x300C00 =
+       3.0 МиБ — крафт-стресс 1-4 МиБ из плана E9.5-1b).
 Выход: проверки T-E9-33: (1) КРУГ РЕАЛЬНЫМИ ИНСТРУМЕНТАМИ — оба
-       чужих крафта корпуса + большой крафт: bridge.exe -> t.b2 +
-       t.peg -> enc.exe -> t.brick -> brick.exe -> t.bin -> pegen.exe
-       -> t.exe == исходному образу БАЙТ-В-БАЙТ; для большого крафта
-       — оракульный круг == образ («сначала истина семантики») и
-       выход моста (факт-строка + t.b2 + t.peg) == оракулу;
-       (2) ГРАНИЦЫ ПРЕДЕЛОВ ИНСТРУМЕНТОВ (снятие — E9.5): образ
-       >= 256 КиБ — bridge.exe ERR=BIG EXE (7, отказ при чтении);
-       тело > 128 КиБ (короткий код + нулевой разрыв + данные в
-       хвосте — target по п. 7 SPEC/15) — brick.exe ERR=BIG OUT
-       (10); отказы БЕЗ частичных выходов. Число проверок: 2.
-Функция: интеграция портов E9.4-4b-1..4 (развилка/факты/обе эмиссии
-         моста + ветвь v2 pegen) — круг инструментами, как T-E9-23
-         для семьи: на пути сборки НИ ОДНОГО оракула; оракул —
-         только эталон сравнения.
+       чужих крафта корпуса + big + b256k + huge: bridge.exe ->
+       t.b2 + t.peg -> enc.exe -> t.brick -> brick.exe -> t.bin ->
+       pegen.exe -> t.exe == исходному образу БАЙТ-В-БАЙТ; для big
+       и huge — оракульный круг == образ и выход моста
+       (факт-строка + t.b2 + t.peg) == оракулу;
+       (2) ГРАНИЦЫ ПРЕДЕЛОВ ИНСТРУМЕНТОВ (E9.5-1b): образ 0x400001
+       (4 МиБ + 1) — bridge.exe ERR=BIG EXE (7, отказ при чтении,
+       без частичных выходов); rawlim = 0x104000 > 1 МиБ — bridge.exe
+       ERR=BIG BODY (11, отказ ДО спуска, без частичных выходов);
+       тело 0x20400 > 128 КиБ (снятие — E9.5-2) — brick.exe
+       ERR=BIG OUT (10). Число проверок: 2.
+Функция: интеграция портов E9.4-4b-1..4 + пределов E9.5-1b (exebuf
+         4 МиБ, карты спуска 1 МиБ + BIG BODY, outmem 16 МиБ +
+         гвард BIG OUT) — круг инструментами, как T-E9-23 для
+         семьи: на пути сборки НИ ОДНОГО оракула; оракул — только
+         эталон сравнения.
 """
 import os
 import struct
@@ -36,6 +41,7 @@ import lab_run                           # noqa: E402
 import lab_t_bridge_corpus as K          # noqa: E402
 
 BIGEXE = b"U-L5-BRIDGE ERR=BIG EXE\r\n"
+BIGBODY = b"U-L5-BRIDGE ERR=BIG BODY\r\n"
 BIGOUT = b"U-L1-BRICK ERR=BIG OUT\r\n"
 
 
@@ -125,12 +131,17 @@ def longbody_image(text_raw=0x20400):
     return bytes(b)
 
 
-def _chain(bexe, enc_exe, brick_exe, pegen_exe, img):
+def _chain(bexe, enc_exe, brick_exe, pegen_exe, img, bridge_steps=None):
     """Круг инструментами: bridge -> t.b2/t.peg -> enc -> t.brick ->
-    brick -> t.bin -> pegen -> t.exe. Возврат: (ошибки, t.exe,
-    результат моста) — мост возвращается для сверки с оракулом
-    (БЕЗ повторного прогона)."""
-    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"], {"in.exe": img})
+    brick -> t.bin -> pegen -> t.exe. bridge_steps — предел шагов
+    фазы моста (МБ-образы — фолд PEG v2; None = 200 млн). Возврат:
+    (ошибки, t.exe, результат моста) — мост возвращается для сверки
+    с оракулом (БЕЗ повторного прогона)."""
+    kw = {}
+    if bridge_steps:
+        kw["max_steps"] = bridge_steps
+    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                       {"in.exe": img}, **kw)
     if r.exit_code != 0:
         return (["bridge код=%s %r" % (r.exit_code, r.stdout[:40])],
                 None, None)
@@ -151,30 +162,38 @@ def _chain(bexe, enc_exe, brick_exe, pegen_exe, img):
 
 
 def run(check, kpath):
-    """Секция 18j: T-E9-33 — первый чужой круг + границы (E9.4-4b-5)."""
+    """Секция 18j: T-E9-33 — чужой круг + границы (E9.4-4b-5 + E9.5-1b)."""
     bexe = kpath("L5-BRIDGE/bridge.exe")
     enc_exe = kpath("L1-ENC/enc.exe")
     brick_exe = kpath("L1-BRICK/brick.exe")
     pegen_exe = kpath("L0-PEGEN/pegen.exe")
 
-    # (1) круг инструментами: 2 крафта корпуса + большой крафт;
-    # большой крафт за ОДИН прогон: выход моста (факт-строка +
-    # t.b2 + t.peg) сверяется с оракулом тут же (без повторного
+    # (1) круг инструментами: 2 крафта корпуса + big + b256k (бывшая
+    # граница BIG EXE 256 КиБ — круг проходит с E9.5-1b) + huge
+    # (3.0 МиБ — крафт-стресс плана E9.5-1b); big и huge — сверка
+    # выхода моста с оракулом тем же прогоном (без повторного
     # запуска инструмента)
     bad = []
     bigr = None
+    huger = None
     for name, img in (("foreign", K.foreign_image()),
                       ("foreign2", K.foreign2_image()),
-                      ("big", big_image())):
-        errs, made, r = _chain(bexe, enc_exe, brick_exe, pegen_exe, img)
+                      ("big", big_image()),
+                      ("b256k", big_image(rdata_raw=0x38800)),
+                      ("huge", big_image(rdata_raw=0x2F8800))):
+        errs, made, r = _chain(bexe, enc_exe, brick_exe, pegen_exe, img,
+                               bridge_steps=300_000_000
+                               if name == "huge" else None)
         if name == "big":
             bigr = r
+        if name == "huge":
+            huger = r
         if errs:
             bad.extend("%s: %s" % (name, e) for e in errs)
         elif made != img:
             bad.append("%s: t.exe != образу (%d/%d Б)"
                        % (name, len(made or b""), len(img)))
-    # большой крафт: оракул вперёд + выход моста == оракулу
+    # big: оракул вперёд + выход моста == оракулу
     img = big_image()
     f = lab_bridge.parse_foreign(img)
     b2t, _st = lab_bridge.emit_b2_foreign(img)
@@ -188,24 +207,46 @@ def run(check, kpath):
             or bigr.files.get("t.peg") != pegt.encode("utf-8")):
         bad.append("big: мост != оракулу (код=%s)"
                    % (bigr.exit_code if bigr else "-"))
-    check("T-E9-33 ПЕРВЫЙ ЧУЖОЙ КРУГ (DoD этапа E9.4): чужой EXE ->"
-          " мост (t.b2 + t.peg) -> enc -> brick -> pegen == образ"
-          " байт-в-байт — крафты foreign/foreign2 + большой крафт"
-          " 0x30400 Б (тело 0x7FFE — 25% предела brick, образ — 75%"
-          " outbuf pegen v2, 3 патча !sec, импортов нет); большой"
-          " крафт: оракульный круг + выход моста == оракулу",
-          not bad, "; ".join(bad[:3]) if bad else
-          "3/3 круга зелёные; big: ins=%d target=%X bss=%X"
-          % (len(f["ins"]), f["target"], f["bss"]))
+    # huge (0x300C00 = 3.0 МиБ): оракульный круг + выход моста ==
+    # оракулу (fold_emit/!sec на МБ-масштабе — E9.5-1b)
+    img = big_image(rdata_raw=0x2F8800)
+    fh_ = lab_bridge.parse_foreign(img)
+    b2h, _sth = lab_bridge.emit_b2_foreign(img)
+    pegh = lab_bridge.emit_peg_v2(img)
+    bodyh = lab_brick.assemble(lab_enc.normalize(b2h).encode("utf-8"))
+    if lab_pegen.wrap2(bodyh, pegh) != img:
+        bad.append("huge: оракульный круг != образу")
+    if (huger is None or huger.exit_code != 0
+            or huger.stdout != K.foreign_line(img)
+            or huger.files.get("t.b2") != b2h.encode("utf-8")
+            or huger.files.get("t.peg") != pegh.encode("utf-8")):
+        bad.append("huge: мост != оракулу (код=%s)"
+                   % (huger.exit_code if huger else "-"))
+    check("T-E9-33 ПЕРВЫЙ ЧУЖОЙ КРУГ (DoD этапа E9.4 + пределы E9.5-1b):"
+          " чужой EXE -> мост (t.b2 + t.peg) -> enc -> brick -> pegen =="
+          " образ байт-в-байт — крафты foreign/foreign2 + big 0x30400 +"
+          " b256k 0x41000 (бывшая граница BIG EXE — круг проходит) +"
+          " huge 0x300C00 (3.0 МиБ, крафт-стресс плана; тело 0x7FFE —"
+          " 25% предела brick); big и huge: оракульный круг + выход"
+          " моста == оракулу", not bad, "; ".join(bad[:3]) if bad else
+          "5/5 кругов зелёные; big: ins=%d target=%X bss=%X;"
+          " huge: файл=%X"
+          % (len(f["ins"]), f["target"], f["bss"], len(img)))
 
-    # (2) границы пределов инструментов (снятие — E9.5)
+    # (2) границы пределов инструментов (E9.5-1b: exebuf 4 МиБ,
+    # тело 1 МиБ; тело brick 128 КиБ — снятие E9.5-2)
     bad = []
-    img = big_image(rdata_raw=0x38800)          # файл 0x41000 >= 256К
+    img = big_image(rdata_raw=0x3F7C01)      # файл 0x400001 = 4 МиБ + 1
     r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"], {"in.exe": img})
     if (r.exit_code != 7 or r.stdout != BIGEXE
             or "t.b2" in r.files or "t.peg" in r.files):
         bad.append("BIG EXE: код=%s файлы=%r" % (r.exit_code,
                                                  sorted(r.files)))
+    img = longbody_image(text_raw=0x104000)  # rawlim 0x104000 > 1 МиБ
+    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"], {"in.exe": img})
+    if (r.exit_code != 11 or r.stdout != BIGBODY
+            or "t.b2" in r.files or "t.peg" in r.files):
+        bad.append("BIG BODY: код=%s %r" % (r.exit_code, r.stdout[:40]))
     img = longbody_image()                      # тело 0x20400 > 128К
     r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"], {"in.exe": img})
     if r.exit_code != 0:
@@ -219,13 +260,14 @@ def run(check, kpath):
                 or r2.stdout != BIGOUT or "t.bin" in r2.files):
             bad.append("BIG OUT: enc=%s brick=%s %r"
                        % (r1.exit_code, r2.exit_code, r2.stdout[:40]))
-    check("T-E9-33 ГРАНИЦЫ пределов инструментов (круг внутри"
-          " пределов: образ < 256 КиБ, тело <= 128 КиБ; снятие —"
-          " E9.5): образ 0x41000 — bridge ERR=BIG EXE (7) без"
-          " частичных выходов; тело 0x20400 — brick ERR=BIG OUT"
-          " (10) без t.bin", not bad,
-          "; ".join(bad[:2]) if bad else "BIG EXE + BIG OUT — как"
-          " документировано (SPEC/07, SPEC/08)")
+    check("T-E9-33 ГРАНИЦЫ пределов инструментов (E9.5-1b: образ"
+          " < 4 МиБ — exebuf, тело секции кода <= 1 МиБ — карты спуска;"
+          " тело brick 128 КиБ — снятие E9.5-2): образ 0x400001 —"
+          " bridge ERR=BIG EXE (7); rawlim 0x104000 — bridge"
+          " ERR=BIG BODY (11) без частичных выходов; тело 0x20400 —"
+          " brick ERR=BIG OUT (10) без t.bin", not bad,
+          "; ".join(bad[:2]) if bad else "BIG EXE + BIG BODY +"
+          " BIG OUT — как документировано (SPEC/07, SPEC/08, SPEC/15)")
     return not bad
 
 

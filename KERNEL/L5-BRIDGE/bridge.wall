@@ -6,7 +6,8 @@
 ; LAB/py/lab_bridge.py (правило R8, SPEC/15).
 ; Срез E9.2-1 (КАРКАС): CLI — ровно три аргумента (вход .exe, выход .b2,
 ; выход .peg), чтение файла EXE в кучу одним ReadFile (GlobalAlloc
-; 262145; предел 256 КиБ), разбор PE-заголовков по ФИКСИРОВАННЫМ
+; 4194305; предел 4 МиБ — E9.5-1b, был 262145/256 КиБ), разбор
+; PE-заголовков по ФИКСИРОВАННЫМ
 ; смещениям SPEC/04 и СЕМЕЙНАЯ ПРОВЕРКА (ветвь P: инварианты SPEC/04
 ; минус два легальных отклонения семейства — вход 0x1200 и RawSize >
 ; VirtualSize, SPEC/15 п. 2; имя модуля из DOS-заглушки; структуры
@@ -58,7 +59,7 @@
 ; таблицы переходов (K5-W004 jtab — qword-строки данных «до первого
 ; non-code qword» — цели-кандидаты, == _jtab оракула E9.4-2) +
 ; ДЕДУПЛИКАЦИЯ целей стека (K5-W005 push_tgt — карта pushmap: каждый
-; офсет тела в стеке РОВНО один раз, предел pend 1+rawlim — 262145
+; офсет тела в стеке РОВНО один раз, предел pend 1+rawlim — 1048577
 ; qword; семантика == оракулу) + защита m_bjmp (K5-M011: косвенный
 ; jmp — вне канона enc, вид операнда != цель — H-фолбэк). Семантика —
 ; оракул уже с E9.4-1/2 (сессии 75/76: лаб, SPEC/05 «Расширение
@@ -296,6 +297,8 @@ str s_oexe = 'U-L5-BRIDGE ERR=OPEN EXE\r\n'
 str s_rexe = 'U-L5-BRIDGE ERR=READ EXE\r\n'
 str s_family = 'U-L5-BRIDGE ERR=FAMILY\r\n'
 str s_big = 'U-L5-BRIDGE ERR=BIG EXE\r\n'
+str s_bbody = 'U-L5-BRIDGE ERR=BIG BODY\r\n'
+str s_bout = 'U-L5-BRIDGE ERR=BIG OUT\r\n'
 str s_oout = 'U-L5-BRIDGE ERR=OPEN OUT\r\n'
 str s_wout = 'U-L5-BRIDGE ERR=WRITE OUT\r\n'
 str s_f1 = 'U-L5-BRIDGE MODULE='
@@ -393,16 +396,16 @@ func main
   if fh == -1
     print_error(s_oexe, len(s_oexe), 4)
   end
-  exebuf = GlobalAlloc(0, 262145)
+  exebuf = GlobalAlloc(0, 4194305)
   if exebuf == 0
     print_error(s_rexe, len(s_rexe), 5)
   end
   exelen = 0
-  rc = ReadFile(fh, exebuf, 262145, &exelen, 0)
+  rc = ReadFile(fh, exebuf, 4194305, &exelen, 0)
   if rc == 0
     print_error(s_rexe, len(s_rexe), 5)
   end
-  if exelen >= 262145
+  if exelen >= 4194305
     print_error(s_big, len(s_big), 7)
   end
   CloseHandle(fh)

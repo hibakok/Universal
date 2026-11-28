@@ -9,8 +9,9 @@
   (2) ОРАКУЛ большого крафта (parse_foreign + emit_b2_foreign +
       emit_peg_v2 + enc+brick + wrap2) == образ — «сначала истина
       семантики»; факт-строка моста == оракулу (K.foreign_line);
-  (3) ГРАНИЦЫ ПРЕДЕЛОВ (снятие — E9.5): образ >= 256 КиБ —
-      bridge.exe ERR=BIG EXE (7) без частичных выходов; тело
+  (3) ГРАНИЦЫ ПРЕДЕЛОВ (E9.5-1b): образ 0x400001 (4 МиБ + 1) —
+      bridge.exe ERR=BIG EXE (7) без частичных выходов; rawlim
+      0x104000 > 1 МиБ — bridge.exe ERR=BIG BODY (11); тело
       > 128 КиБ (longbody_image) — brick.exe ERR=BIG OUT (10)
       без t.bin.
 
@@ -96,14 +97,24 @@ def main():
           and r.files.get("t.peg") == pegt.encode("utf-8"),
           r.stdout.decode("latin1").strip()[:96])
 
-    # (3) границы пределов (снятие — E9.5)
-    img = big_image(rdata_raw=0x38800)      # файл 0x41000 >= 256 КиБ
+    # (3) границы пределов (E9.5-1b: exebuf 4 МиБ, тело 1 МиБ;
+    # тело brick 128 КиБ — снятие E9.5-2)
+    img = big_image(rdata_raw=0x3F7C01)   # файл 0x400001 = 4 МиБ + 1
     r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
                        {"in.exe": img})
-    check("граница bridge: образ 0x41000 — ERR=BIG EXE (7),"
+    check("граница bridge: образ 0x400001 — ERR=BIG EXE (7),"
           " без частичных выходов",
           r.exit_code == 7 and r.stdout == b"U-L5-BRIDGE ERR=BIG"
           b" EXE\r\n" and "t.b2" not in r.files
+          and "t.peg" not in r.files,
+          "шагов=%d; файлы=%r" % (r.steps, sorted(r.files)))
+    img = longbody_image(text_raw=0x104000)  # rawlim 0x104000 > 1 МиБ
+    r = lab_run.run_kv(bexe, ["in.exe", "t.b2", "t.peg"],
+                       {"in.exe": img})
+    check("граница bridge: rawlim 0x104000 — ERR=BIG BODY (11),"
+          " без частичных выходов (E9.5-1b)",
+          r.exit_code == 11 and r.stdout == b"U-L5-BRIDGE ERR=BIG"
+          b" BODY\r\n" and "t.b2" not in r.files
           and "t.peg" not in r.files,
           "шагов=%d; файлы=%r" % (r.steps, sorted(r.files)))
     img = longbody_image()                   # тело 0x20400 > 128 КиБ

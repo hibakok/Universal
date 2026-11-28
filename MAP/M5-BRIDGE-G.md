@@ -41,7 +41,7 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | G — PEG-выход |
-| Файл | KERNEL/L5-BRIDGE/bridge_self_g.wall (RVA 142A2) |
+| Файл | KERNEL/L5-BRIDGE/bridge_self_g.wall (RVA 16BCB) |
 | Функция | Декод HEX-литерала s_ptpl корня (2 символа на байт, 144 символа) -> массив ptplb[9] (72 байта UTF-8): фикс. префикс первой строки PEG «; UNIVERSAL / PEG v1 / мост BRIDGE v1 (SPEC/15) / исходник: » — до имени модуля (идиома tpl_dec/tplb шапки b2 — K5-E003; литералы WALL только ASCII 0x20..0x7E) |
 | Вход | — (глобаль s_ptpl) |
 | Выход | ptplb[0..71] — байты шапки |
@@ -60,7 +60,7 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 |
 | Ветвь | G — PEG-выход |
-| Файл | bridge_self_g.wall (RVA 1449D) |
+| Файл | bridge_self_g.wall (RVA 16DC6) |
 | Функция | ДРАЙВЕР PEG-выхода: текст PEG v1 в буфере outmem (переиспользуется после emit_body — текст b2 уже записан в файл; PEG ~130-180 Б с начала: outcur = 0) и запись <выход>.peg == _peg_text оракула (SPEC/15 п. 8): шапка (ptplb + exebuf[77..77+modlen) + «.exe») + !module <имя> + !entry <entryrva> + !idata <rva> <размер> + !iat <rva> <размер> + !bss <n> (если != 0) + !stackcom <n> (если rd32(@0xE8) != 0x1000) + !heapcom <n> (если rd32(@0xF8) != 0x1000) + LF |
 | Вход | nlen3 — длина слова-пути <выход>.peg (аргумент 3 CLI) |
 | Выход | файл <выход>.peg; коды 8 (ERR=OPEN OUT) / 9 (ERR=WRITE OUT) — CreateFile2 WRITE/CREATE_ALWAYS, как emit_body |
@@ -82,7 +82,7 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | G — PEG-выход (чужой путь) |
-| Файл | KERNEL/L5-BRIDGE/bridge_self_g.wall (RVA 1751D) |
+| Файл | KERNEL/L5-BRIDGE/bridge_self_g.wall (RVA 175C5) |
 | Функция | Декод HEX-литерала s_gtpl корня (2 символа на байт, 206 символов) -> массив gtplb[13] (103 байта UTF-8): фикс. префикс шапки PEG v2 «; UNIVERSAL / PEG v2 / мост BRIDGE v1 (SPEC/15)\n; Исходник: чужой PE32+ (секций » — до числа секций (идиома ptpl_dec/ftpl_dec; литералы WALL только ASCII 0x20..0x7E) |
 | Вход | — (глобаль s_gtpl) |
 | Выход | gtplb[0..102] — байты шапки PEG v2 |
@@ -101,7 +101,7 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 |
 | Ветвь | G — PEG-выход (чужой путь) |
-| Файл | bridge_self_g.wall (RVA 17718) |
+| Файл | bridge_self_g.wall (RVA 177C0) |
 | Функция | Проверки PEG v2 чужого пути (как оракул emit_peg_v2 ДО рендера): по ВСЕМ читаемым слотам таблицы секций — файл покрывает raw (raw_ptr + raw_size <= exelen; «файл короче raw прочих секций» оракула; код уже проверен foreign_front) и H = min raw_ptr секций с raw («нет секций с raw» — защитная ветвь: секция кода всегда с raw) -> глобаль peg2h |
 | Вход | — (глобали numsect/tbloff/exelen/exebuf) |
 | Выход | peg2h >= 0; отказ — ERR=FAMILY (код 6, fail_family) |
@@ -121,7 +121,7 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 |
 | Ветвь | G — PEG-выход (чужой путь) |
-| Файл | bridge_self_g.wall (RVA 1793D) |
+| Файл | bridge_self_g.wall (RVA 179E5) |
 | Функция | СВОРАЧИВАНИЕ области [lo, hi) файла в ПАТЧ-строки (SPEC/07 «Канон патчей» == _fold/_chunks64 оракула): ненулевые пробеги; дырка из >= 4 нулей ИЛИ до конца области обрывает пробег; патч длиннее 64 Б режется кусками по 64; n < 0 — «!hdr <off> <HEX>» (off — файловое), n >= 0 — «!sec <n> <off-rp> <HEX>» (off — от начала raw секции rp) |
 | Вход | lo, hi — границы области; n — слот секции (< 0 — заголовки); rp — raw_ptr секции |
 | Выход | патч-строки в буфере вывода (outbuf/outcur — глобали) |
@@ -141,8 +141,8 @@ PEG-выхода моста M5-BRIDGE (продолжение MAP/M5-BRIDGE-M.md
 |---|---|
 | Слой | L5 |
 | Ветвь | G — PEG-выход (чужой путь) |
-| Файл | bridge_self_g.wall (RVA 17D5D) |
-| Функция | ДРАЙВЕР PEG-выхода ЧУЖОГО пути: текст PEG v2 в буфере outmem (переиспользуется после emit_body; худший случай ~2.2 символа/байт образа < 8 МиБ) и запись <выход>.peg == _peg2_text оракула emit_peg_v2 (SPEC/15 п. 10 / SPEC/07): шапка (gtplb + sectcnt dec + «, DLL » + dllcnt dec + «)\n!pev2 » + peg2h) + патчи !hdr области [0, H) + «!body <fsect>» + патчи !sec прочих raw-секций (слоты по возрастанию) + LF |
+| Файл | bridge_self_g.wall (RVA 17E05) |
+| Функция | ДРАЙВЕР PEG-выхода ЧУЖОГО пути: текст PEG v2 в буфере outmem (переиспользуется после emit_body; худший случай ~2.3 символа/байт образа < 4 МиБ = ~9.2 МиБ < 16 МиБ — E9.5-1b; гвард app_ch — BIG OUT 10) и запись <выход>.peg == _peg2_text оракула emit_peg_v2 (SPEC/15 п. 10 / SPEC/07): шапка (gtplb + sectcnt dec + «, DLL » + dllcnt dec + «)\n!pev2 » + peg2h) + патчи !hdr области [0, H) + «!body <fsect>» + патчи !sec прочих raw-секций (слоты по возрастанию) + LF |
 | Вход | nlen3 — длина слова-пути <выход>.peg (аргумент 3 CLI) |
 | Выход | файл <выход>.peg; коды 8 (ERR=OPEN OUT) / 9 (ERR=WRITE OUT) — CreateFile2 WRITE/CREATE_ALWAYS, как emit_peg |
 | Состоит из | K5-G003 gtplb, K5-G005 fold_emit; K5-E002 app_ch, K5-E004 copy_str, K5-E008 out_hexv, K5-C004 out_dec, K5-C005 widen; глобали peg2h/sectcnt/dllcnt/fsect/numsect/tbloff/exelen |

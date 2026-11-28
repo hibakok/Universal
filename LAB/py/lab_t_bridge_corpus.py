@@ -92,7 +92,7 @@ def cli_cases(seed):
         ("длинное имя", ["a" * 128, "t.b2", "t.peg"], {}, S_LONG, 3),
         ("нет входа", ["x.exe", "t.b2", "t.peg"], {}, S_OEXE, 4),
         ("большой вход", ["in.exe", "t.b2", "t.peg"],
-         {"in.exe": b"\x00" * 262145}, S_BIG, 7),
+         {"in.exe": b"\x00" * 4194305}, S_BIG, 7),
         ("мусор 64 Б", ["in.exe", "t.b2", "t.peg"],
          {"in.exe": b"MZ\x00" * 21 + b"MZ"}, S_FAMILY, 6),
         ("пустой файл", ["in.exe", "t.b2", "t.peg"],

@@ -7,19 +7,19 @@
 | Параметр | Значение |
 |---|---|
 | Файл | KERNEL/L5-BRIDGE/bridge.exe, 107008 байт (0x1A200) |
-| SHA-256 | DDD6BFB8EBB97BAFF89FEAEBF629BF63D376382047A9EC2DE5C0B92828543666 |
-| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a/3b/3c/4 + E9.4-4a + E9.4-4b-1 + E9.4-4b-2 + E9.4-4b-3): сборка из bridge.wall — wall.exe(splice(bridge.wall)) -> bridge.b2 -> enc -> bridge.brick -> brick -> pegen + bridge.peg. Воспроизводимость закреплена в батарее (T-E9-17); bridge.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
-| Исходник | KERNEL/L5-BRIDGE/bridge.wall — корень + 16 частей bridge_self_*.wall (WALL v2, разрез SPEC/10; +pi/pf — E9.4-4b-1); склейка 175173 Б (66% предела входа 256 КиБ; 5482 строк — заголовок bridge.b2) |
-| Тело секции | 106007 байт (0x19E67), RVA 0x1000, SRD 0x1A000 |
-| VirtualSize | 0x19E17 (одна секция); target 0x19E01, bss 0x16 (хвост — виртуальные нули) |
+| SHA-256 | 9B4B9CAFF17BE155826F5F5FBE2FADCF5660C06F7157027C2555DB3994CA34E1 |
+| Происхождение | ГЕНЕРИРУЕМЫЙ артефакт (E9.2-1/2/3a/3b/3c/4 + E9.4-4a + E9.4-4b-1 + E9.4-4b-2 + E9.4-4b-3 + E9.5-1b): сборка из bridge.wall — wall.exe(splice(bridge.wall)) -> bridge.b2 -> enc -> bridge.brick -> brick -> pegen + bridge.peg. Воспроизводимость закреплена в батарее (T-E9-17); bridge.b2 == оракулу LAB/py/lab_l2.py байт-в-байт |
+| Исходник | KERNEL/L5-BRIDGE/bridge.wall — корень + 16 частей bridge_self_*.wall (WALL v2, разрез SPEC/10; +pi/pf — E9.4-4b-1); склейка 176751 Б (67% предела входа 256 КиБ; 5504 строк — заголовок bridge.b2) |
+| Тело секции | 106226 байт (0x19EE2), RVA 0x1000, SRD 0x1A000 |
+| VirtualSize | 0x19EF2 (одна секция); target 0x19E01, bss 0xF1 (хвост — виртуальные нули) |
 | Точка входа | 0x1200 (:_entry — константа SPEC/11 п. 6: после фиксированной области импортов 0x200) |
 | idata / iat / intt | 0x1000 (0x28) / 0x1028 (0x48) / 0x1070 — фиксированная область импортов SPEC/11 п. 6 |
 | Импорты | kernel32.dll, 8 функций: GetStdHandle, WriteFile, ExitProcess, GetCommandLineA, CreateFile2, ReadFile, CloseHandle, GlobalAlloc |
 | DOS-заглушка | «Universal L0 bridge. No DOS support.» (имя модуля — bridge.peg) |
-| M-строк в исходнике | 22516 (bridge.b2; 100% M — H=0, круг T-E9-20: M=22516 H=0) |
-| Меток в исходнике | 1410 из 2048 (лимит brick; карта — LAB/ai/bridge_labelmap.py) |
-| Функций | 131 (карта — §2; +gtpl_dec/peg2_check/fold_emit/emit_peg2 — E9.4-4b-3) + данные (§3) |
-| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E9-17: 816003916 + 76993247 + 85609127 + 5046 шагов; шаг wall выше лимита lab_run 200 млн — возобновляемые срезы build_bridge_resume.py, прецедент T-E6-49a) |
+| M-строк в исходнике | 22550 (bridge.b2; 100% M — H=0, круг T-E9-20: M=22550 H=0; +34 — гвард app_ch + BIG BODY + строки, E9.5-1b) |
+| Меток в исходнике | 1415 из 2048 (лимит brick; карта — LAB/ai/bridge_labelmap.py) |
+| Функций | 131 (карта — §2; пределы E9.5-1b — внутри существующих walk_code/app_ch/main) + данные (§3) |
+| Компилятор сборки | wall.exe (M2-WALL, самосборный) — конвейер под эмуляцией LAB (T-E9-17: 822144463 + 77125450 + 85973553 + 7217 шагов; шаг wall выше лимита lab_run 200 млн — возобновляемые срезы build_bridge_resume.py, прецедент T-E6-49a) |
 
 ## 2. Карта функций (RVA — LAB/ai/bridge_labelmap.py по bridge.brick)
 
@@ -96,100 +96,100 @@
   decff              9666  FF: peek ext с REX.R ДО modrm_read; /0 inc /1 dec /2 call /4 jmp r/m64 (КОСВЕННЫЙ — размер /4 ВСЕГДА 64, класс 5 — терминал спуска)
 
 спуск от входа (bridge_self_w.wall — срезы E9.2-2/3a + E9.4-4a + 4-4b-1):
-  push_tgt           9998  цель в стек — ДЕДУПЛИКАЦИЯ по значению (карта pushmap; вне [0, rawlim) не кладётся; предел pend 1+rawlim)
+  push_tgt           9998  цель в стек — ДЕДУПЛИКАЦИЯ по значению (карта pushmap; вне [0, rawlim) не кладётся; предел pend 1+rawlim — E9.5-1b: 1048577 qword)
   jtab               9AAB  таблицы переходов: jmp qword [rip+X] — qword-строки «до первого non-code qword» -> кандидаты (== _jtab; чтение — тело+вирт. нули)
-  walk_code          9D6D  стек целей (куча), проход, тени/нули/терминалы (dcls 5 — терминал + jtab; цели — push_tgt); старт — entryrva-codevaddr
-  sweep_ins          A398  выжившие (младший адрес), inscount/maxend; СДАМП sdump (E9.2-3a) — старты по возрастанию
-  calc_target        A613  target (вилка falign образа — E9.4-4b-1; семья 0x200) и bss
+  walk_code          9D6D  стек целей (куча), проход, тени/нули/терминалы (dcls 5 — терминал + jtab; цели — push_tgt); старт — entryrva-codevaddr; ПРЕДЕЛ ТЕЛА: rawlim > 1048576 — ERR=BIG BODY (11) ДО спуска — E9.5-1b
+  sweep_ins          A3EC  выжившие (младший адрес), inscount/maxend; СДАМП sdump (E9.2-3a) — старты по возрастанию
+  calc_target        A667  target (вилка falign образа — E9.4-4b-1; семья 0x200) и bss
 
 примитивы эмиссии b2 (bridge_self_e.wall — срез E9.2-3a; драйвер — ветвь L с E9.2-3b; с E9.2-4 — и вызовы ptpl_dec/gtpl_dec ветви G):
-  fill_offs          A877  смещения NUL-имён блоба -> массив offs
-  init_tables        A9BF  таблицы мнемоник/условий/регистров + шапки b2/PEG/чужая/PEG v2 (ftpl_dec/gtpl_dec — E9.4-4b-2/3)
-  tpl_dec            AB48  HEX-литерал s_tpl (199 Б) -> массив tplb
-  app_ch             AF3E  байт в буфер вывода
-  app_name           AFA9  имя из блоба по таблице смещений
-  app_reg            B067  имя регистра (блоб по размеру 8/16/32/64)
-  out_hexv           B1CC  ЗАГЛАВНЫЙ hex без ведущих нулей (v >= 0)
-  out_hxs            B477  знаковый hex (imm/цель/счётчик)
-  out_hxu64          B4E1  hex u64 (отрицательное = битовый образ)
-  out_hex2           B58B  ровно 2 hex-цифры (байты H/DB)
-  out_hex4m          B6D6  минимум 4 hex-цифры (@смещения)
-  out_sdec           BA43  знаковый dec со знаком +/-
-  note_op            BAEE  примечание одного операнда (== _note)
-  emit_note          BE73  примечание H-строки (jcc/имена/[rip±d])
-  emit_h             C12A  H-строка выжившей инструкции
-  emit_data          C31E  данные сегмента DZ/DB (== оракул)
-  app_tpl            C7E9  кусок шаблона шапки из tplb
-  ftpl_dec           AD43  HEX-литерал s_ftpl (194 Б) -> массив ftplb — ЧУЖАЯ шапка (E9.4-4b-2)
-  app_ftpl           C876  кусок ЧУЖОЙ шапки из ftplb (куски 0/51/57/94/96/106/194)
+  fill_offs          A8CB  смещения NUL-имён блоба -> массив offs
+  init_tables        AA13  таблицы мнемоник/условий/регистров + шапки b2/PEG/чужая/PEG v2 (ftpl_dec/gtpl_dec — E9.4-4b-2/3)
+  tpl_dec            AB9C  HEX-литерал s_tpl (199 Б) -> массив tplb
+  app_ch             AF92  байт в буфер вывода + ГВАРД: outcur >= 16777216 — ERR=BIG OUT (10) без частичных выходов — E9.5-1b
+  app_name           B051  имя из блоба по таблице смещений
+  app_reg            B10F  имя регистра (блоб по размеру 8/16/32/64)
+  out_hexv           B274  ЗАГЛАВНЫЙ hex без ведущих нулей (v >= 0)
+  out_hxs            B51F  знаковый hex (imm/цель/счётчик)
+  out_hxu64          B589  hex u64 (отрицательное = битовый образ)
+  out_hex2           B633  ровно 2 hex-цифры (байты H/DB)
+  out_hex4m          B77E  минимум 4 hex-цифры (@смещения)
+  out_sdec           BAEB  знаковый dec со знаком +/-
+  note_op            BB96  примечание одного операнда (== _note)
+  emit_note          BF1B  примечание H-строки (jcc/имена/[rip±d])
+  emit_h             C1D2  H-строка выжившей инструкции
+  emit_data          C3C6  данные сегмента DZ/DB (== оракул)
+  app_tpl            C891  кусок шаблона шапки из tplb
+  ftpl_dec           AD97  HEX-литерал s_ftpl (194 Б) -> массив ftplb — ЧУЖАЯ шапка (E9.4-4b-2)
+  app_ftpl           C91E  кусок ЧУЖОЙ шапки из ftplb (куски 0/51/57/94/96/106/194)
 
 карты и семантика (bridge_self_l.wall — часть 1, срез E9.2-3b):
-  imp_hints          C903  записи INT/IAT -> hhrv/hno/hnl (rva_file — E9.4-4b-2; бит 63: v<0 -> +2^63; сравнение с 2^63 НЕВОЗМОЖНО — урок)
-  san_put            CD72  имя функции k -> блоб snam «iat_»+san (ASCII, «_», 59, «f»)
-  imp_offs           D217  базы импортов: iatoff/intoff/nameoff/idtoff (DD[1] @optoff+0x78 по rva_file; минус codevaddr — E9.4-4b-2; нет дескриптора -> -1)
-  imp_labels         D44A  метки iat_/d* (представимость!) + knownoff; impbad (hint-смещения — RVA минус codevaddr)
-  build_sstate       DBB7  карта выживших: 1 старт / 2 внутри
-  sem_add            DDA1  кандидат-тройка (off, kind, h); совпадение off — замена
-  dq_base            E04A  твонки IAT/INT: валидность значений + меток hint (base = codevaddr — E9.4-4b-2)
-  dd_idt             E47E  дескриптор IDT — кандидат DD
-  sem_filter         E520  приёмка: сортировка + конфликты (инструкции/строки/метки внутри) -> semstate
-  ins_labels         EF71  метки l*/d* по операндам (цели/rip; приоритет iat_ > l > d)
+  imp_hints          C9AB  записи INT/IAT -> hhrv/hno/hnl (rva_file — E9.4-4b-2; бит 63: v<0 -> +2^63; сравнение с 2^63 НЕВОЗМОЖНО — урок)
+  san_put            CE1A  имя функции k -> блоб snam «iat_»+san (ASCII, «_», 59, «f»)
+  imp_offs           D2BF  базы импортов: iatoff/intoff/nameoff/idtoff (DD[1] @optoff+0x78 по rva_file; минус codevaddr — E9.4-4b-2; нет дескриптора -> -1)
+  imp_labels         D4F2  метки iat_/d* (представимость!) + knownoff; impbad (hint-смещения — RVA минус codevaddr)
+  build_sstate       DC5F  карта выживших: 1 старт / 2 внутри
+  sem_add            DE49  кандидат-тройка (off, kind, h); совпадение off — замена
+  dq_base            E0F2  твонки IAT/INT: валидность значений + меток hint (base = codevaddr — E9.4-4b-2)
+  dd_idt             E526  дескриптор IDT — кандидат DD
+  sem_filter         E5C8  приёмка: сортировка + конфликты (инструкции/строки/метки внутри) -> semstate
+  ins_labels         F019  метки l*/d* по операндам (цели/rip; приоритет iat_ > l > d)
 
 рендер и драйвер (bridge_self_l2.wall — часть 2, срез E9.2-3b/c):
-  out_hexl           F306  СТРОЧНЫЙ hex без нулей (имена l*/d*)
-  emit_labname       F5B1  имя метки по labmap (d/l/iat_ из snam; RVA = off+codevaddr — E9.4-4b-2)
-  emit_cut           F7A8  строка разреза «:имя ; @смещ4»
-  emit_dollar        F858  dword -> «$имя» (knownoff + codevaddr) | ЗАГЛАВНЫЙ hex
-  emit_sem           F96D  строка DD (5 значений) / DQ ($имя | 0)
-  build_maps         FCD6  сборка карт: кучи + sstate + импорты + семантика + метки операндов
-  emit_body          100E3  ДРАЙВЕР (КАНОН; isf — E9.4-4b-2): шапка (семейная tplb/модуль | чужая ftplb/факты) + проход по разрезам [0, target) — выжившая сначала m_line (M), при провале emit_h; счёты mcount/hcount; запись .b2 (коды 8/9)
+  out_hexl           F3AE  СТРОЧНЫЙ hex без нулей (имена l*/d*)
+  emit_labname       F659  имя метки по labmap (d/l/iat_ из snam; RVA = off+codevaddr — E9.4-4b-2)
+  emit_cut           F850  строка разреза «:имя ; @смещ4»
+  emit_dollar        F900  dword -> «$имя» (knownoff + codevaddr) | ЗАГЛАВНЫЙ hex
+  emit_sem           FA15  строка DD (5 значений) / DQ ($имя | 0)
+  build_maps         FD7E  сборка карт: кучи + sstate + импорты + семантика + метки операндов
+  emit_body          1018B  ДРАЙВЕР (КАНОН; isf — E9.4-4b-2): шапка (семейная tplb/модуль | чужая ftplb/факты) + проход по разрезам [0, target) — выжившая сначала m_line (M), при провале emit_h; счёты mcount/hcount; запись .b2 (коды 8/9)
 
 примитивы ветви M (bridge_self_m.wall — срез E9.2-3c):
-  m_put              109E9  байт в буфер кодировки mbuf
-  m_put4             10A54  dword LittleEndian в mbuf (imm32/disp32)
-  m_rex              10B4F  REX-префикс по аргументам-значениям (w==64, r/x/b — коды регистров)
-  m_enc_mem          10CB6  modrm+SIB+disp операнда-памяти (rip -> слот 4 Б в конце) — == _enc_mem
-  m_cmp              1116A  СВЕРКА mbuf с телом (слот последним; значение слота == метка - конец слота) — == _template
-  m_kw               1154E  слово размера byte/word/dword/qword + пробел
-  m_dollar           116BB  «$имя» ($base/-4096 | labmap; «:1» при rel8)
-  m_opmem            117DB  рендер памяти [base+idx±disp] | [rip+$имя] (kw; масштаб 1)
-  m_opr              11BAC  рендер одного операнда (рег/imm/cnt/cl/mem; 16 бит -> H)
+  m_put              10A91  байт в буфер кодировки mbuf
+  m_put4             10AFC  dword LittleEndian в mbuf (imm32/disp32)
+  m_rex              10BF7  REX-префикс по аргументам-значениям (w==64, r/x/b — коды регистров)
+  m_enc_mem          10D5E  modrm+SIB+disp операнда-памяти (rip -> слот 4 Б в конце) — == _enc_mem
+  m_cmp              11212  СВЕРКА mbuf с телом (слот последним; значение слота == метка - конец слота) — == _template
+  m_kw               115F6  слово размера byte/word/dword/qword + пробел
+  m_dollar           11763  «$имя» ($base/-4096 | labmap; «:1» при rel8)
+  m_opmem            11883  рендер памяти [base+idx±disp] | [rip+$имя] (kw; масштаб 1)
+  m_opr              11C54  рендер одного операнда (рег/imm/cnt/cl/mem; 16 бит -> H)
 
 кодировщики простых семейств (bridge_self_m2.wall — E9.2-3c):
-  m_bsimple          11E3B  cdqe/cqo/ret/int3 (SIMPLE)
-  m_bjmp             11F8E  jmp ($base/метка; EB слот 1 / E9 слот 4)
-  m_bjcc             12159  jcc (70|cc слот 1 / 0F 80|cc слот 4)
-  m_bcall            12331  call (E8 $метка | FF 15 [rip+$имя])
-  m_bmovzx           12582  movzx r32/r64 <- r8/mem 8/16 (0F B6/B7, kw)
-  m_bstack           12AB5  push/pop r64 (5x + REX.B)
-  m_btest            12C76  test r,r (84/85)
-  m_blea             12F51  lea r32/r64, mem (8D, без kw)
-  m_bimul            1319A  imul r64,r64 (REX.WRB 0F AF /r)
-  m_bshift           13451  rol/shl/shr/sar (C0/C1 imm8 | D2/D3 cl)
-  m_bf7              13A2A  neg/idiv (F7 /3 /7)
-  m_bff              13C1C  inc/dec (FF /0 /1)
+  m_bsimple          11EE3  cdqe/cqo/ret/int3 (SIMPLE)
+  m_bjmp             12036  jmp ($base/метка; EB слот 1 / E9 слот 4)
+  m_bjcc             12201  jcc (70|cc слот 1 / 0F 80|cc слот 4)
+  m_bcall            123D9  call (E8 $метка | FF 15 [rip+$имя])
+  m_bmovzx           1262A  movzx r32/r64 <- r8/mem 8/16 (0F B6/B7, kw)
+  m_bstack           12B5D  push/pop r64 (5x + REX.B)
+  m_btest            12D1E  test r,r (84/85)
+  m_blea             12FF9  lea r32/r64, mem (8D, без kw)
+  m_bimul            13242  imul r64,r64 (REX.WRB 0F AF /r)
+  m_bshift           134F9  rol/shl/shr/sar (C0/C1 imm8 | D2/D3 cl)
+  m_bf7              13AD2  neg/idiv (F7 /3 /7)
+  m_bff              13CC4  inc/dec (FF /0 /1)
 
 кодировщики ALU и MOV (bridge_self_m3.wall — E9.2-3c):
-  m_alu_base         13E0E  базовый опкод ALU по dname (00/08/20/28/30/38)
-  m_alu_ext          13F1A  /ext ALU по dname (0/1/4/5/6/7)
-  m_alu_imm          14026  форма группы imm 80/83/81 по значению/размеру (глобали mopc/mis8)
-  m_balu             141BD  add/or/and/sub/xor/cmp по парам операндов (r,r/r,i/r,m/m,r/m,i)
-  m_bmov             14F8B  mov по парам (r,r/r,i8 B0/r,i32 B8/r64 C7/r,m 8A-8B/m,r 88-89/m,i C6-C7; imm64 -> H)
+  m_alu_base         13EB6  базовый опкод ALU по dname (00/08/20/28/30/38)
+  m_alu_ext          13FC2  /ext ALU по dname (0/1/4/5/6/7)
+  m_alu_imm          140CE  форма группы imm 80/83/81 по значению/размеру (глобали mopc/mis8)
+  m_balu             14265  add/or/and/sub/xor/cmp по парам операндов (r,r/r,i/r,m/m,r/m,i)
+  m_bmov             15033  mov по парам (r,r/r,i8 B0/r,i32 B8/r64 C7/r,m 8A-8B/m,r 88-89/m,i C6-C7; imm64 -> H)
 
 драйвер ветви M (bridge_self_m4.wall — E9.2-3c):
-  m_body             1619E  диспетчер по dname: имя мнемоники (jcc — j+cc) + кодировщик семейства (рендер операндов)
-  m_line             16965  ДРАЙВЕР M-строки: decode + «M » + m_body + m_cmp + хвост « ; @смещ4»; провал — откат и 1 (H-фолбэк)
+  m_body             16246  диспетчер по dname: имя мнемоники (jcc — j+cc) + кодировщик семейства (рендер операндов)
+  m_line             16A0D  ДРАЙВЕР M-строки: decode + «M » + m_body + m_cmp + хвост « ; @смещ4»; провал — откат и 1 (H-фолбэк)
 
 PEG-выход (bridge_self_g.wall — срез E9.2-4 семья; E9.4-4b-3 — ЧУЖОЙ ПУТЬ: PEG v2):
-  ptpl_dec           16B23  HEX-литерал s_ptpl (72 Б) -> массив ptplb (шапка PEG)
-  emit_peg           16D1E  ДРАЙВЕР PEG v1 (семья): шапка + !module/!entry/!idata/!iat/!bss/!stackcom/!heapcom (SPEC/15 п. 8 == _peg_text; DD[1]/DD[12] по optoff); запись .peg (коды 8/9)
-  gtpl_dec           1751D  HEX-литерал s_gtpl (103 Б) -> массив gtplb — ШАПКА PEG v2 (E9.4-4b-3)
-  peg2_check         17718  проверки PEG v2: H = min raw_ptr + файл покрывает raw ВСЕХ секций (ДО спуска; отказ ERR=FAMILY без частичных выходов — E9.4-4b-3)
-  fold_emit          1793D  сворачивание области [lo,hi) в патчи «!hdr»/«!sec» (== _fold/_chunks64: дырка >= 4 нулей обрывает, куски <= 64 Б — E9.4-4b-3)
-  emit_peg2          17D5D  ДРАЙВЕР PEG v2 (чужой путь): шапка + !pev2 H + !hdr [0,H) + !body fsect + !sec прочих raw-секций (== _peg2_text); запись .peg (коды 8/9) — E9.4-4b-3
+  ptpl_dec           16BCB  HEX-литерал s_ptpl (72 Б) -> массив ptplb (шапка PEG)
+  emit_peg           16DC6  ДРАЙВЕР PEG v1 (семья): шапка + !module/!entry/!idata/!iat/!bss/!stackcom/!heapcom (SPEC/15 п. 8 == _peg_text; DD[1]/DD[12] по optoff); запись .peg (коды 8/9)
+  gtpl_dec           175C5  HEX-литерал s_gtpl (103 Б) -> массив gtplb — ШАПКА PEG v2 (E9.4-4b-3)
+  peg2_check         177C0  проверки PEG v2: H = min raw_ptr + файл покрывает raw ВСЕХ секций (ДО спуска; отказ ERR=FAMILY без частичных выходов — E9.4-4b-3)
+  fold_emit          179E5  сворачивание области [lo,hi) в патчи «!hdr»/«!sec» (== _fold/_chunks64: дырка >= 4 нулей обрывает, куски <= 64 Б — E9.4-4b-3)
+  emit_peg2          17E05  ДРАЙВЕР PEG v2 (чужой путь): шапка + !pev2 H + !hdr [0,H) + !body fsect + !sec прочих raw-секций (== _peg2_text); запись .peg (коды 8/9) — E9.4-4b-3
 
 вход (bridge.wall):
-  main ................. 18350  CLI -> чтение EXE -> общий фронт -> РАЗВИЛКА
+  main ................. 183F8  CLI -> чтение EXE -> общий фронт -> РАЗВИЛКА
                                «семья | чужой» (E9.4-4b-1): семья -> спуск ->
                                таблицы -> карты (L) -> эмиссия .b2 (КАНОН M/H)
                                -> PEG-выход (E9.2-4) -> факты M=/H=; чужой ->
@@ -202,59 +202,60 @@ PEG-выход (bridge_self_g.wall — срез E9.2-4 семья; E9.4-4b-3 —
 ## 3. Данные образа (RVA)
 
 ```
-строки (63):
-  s_use 187E2 s_long 18818 s_oexe 18833 s_rexe 1884D
-  s_family 18867 s_big 1887F s_oout 18898 s_wout 188B2
-  s_f1 188CD s_f2 188E0 s_f3 188E7 s_f4 188EE
-  s_f5 188F3 s_f6 188F8 s_f7 188FD s_f8 18905
-  s_f9 1890A s_fa 1890D s_ff1 18910 s_crlf 1892B
-  s_pref 1892D s_needle 1893A s_dll 1894B s_h 18957
-  s_at 18959 s_ml 1895D s_ripl 1895F s_base 18965
-  s_s1 18969 s_kw 1896B s_dz 18985 s_db 18988
-  s_iat 1898B s_dd 1898F s_dq 18992 s_mem 18995
-  s_rip 1899A s_cl 1899E s_j 189A0 s_comma 189A1
-  s_mn 189A3 s_cc 18A1C s_r64 18A44 s_r8 18A82
-  s_r16 18AC4 s_r32 18B02 s_tpl 18B48 s_ptpl 18CD6
-  s_ftpl 18D66 s_gtpl 18F28 s_dotexe 18EEA s_pm 18EEF
-  s_pe 18EF7 s_pi 18EFF s_pa 18F07 s_pb 18F0D
-  s_ps 18F13 s_ph 18F1E s_gdll 18FF6 s_gpev 18FFC
-  s_ghdr 19004 s_gbody 1900A s_gsec 19011
+строки (65):
+  s_use 1888A s_long 188C0 s_oexe 188DB s_rexe 188F5
+  s_family 1890F s_big 18927 s_bbody 18940 s_bout 1895A
+  s_oout 18973 s_wout 1898D s_f1 189A8 s_f2 189BB
+  s_f3 189C2 s_f4 189C9 s_f5 189CE s_f6 189D3
+  s_f7 189D8 s_f8 189E0 s_f9 189E5 s_fa 189E8
+  s_ff1 189EB s_crlf 18A06 s_pref 18A08 s_needle 18A15
+  s_dll 18A26 s_h 18A32 s_at 18A34 s_ml 18A38
+  s_ripl 18A3A s_base 18A40 s_s1 18A44 s_kw 18A46
+  s_dz 18A60 s_db 18A63 s_iat 18A66 s_dd 18A6A
+  s_dq 18A6D s_mem 18A70 s_rip 18A75 s_cl 18A79
+  s_j 18A7B s_comma 18A7C s_mn 18A7E s_cc 18AF7
+  s_r64 18B1F s_r8 18B5D s_r16 18B9F s_r32 18BDD
+  s_tpl 18C23 s_ptpl 18DB1 s_ftpl 18E41 s_gtpl 19003
+  s_dotexe 18FC5 s_pm 18FCA s_pe 18FD2 s_pi 18FDA
+  s_pa 18FE2 s_pb 18FE8 s_ps 18FEE s_ph 18FF9
+  s_gdll 190D1 s_gpev 190D7 s_ghdr 190DF s_gbody 190E5
+  s_gsec 190EC
 глобали (97):
-  hstdout 19017 cmdline 1901F written 19027 wlen 1902F
-  exebuf 19037 exelen 1903F entryrva 19047 vsize 1904F
-  rawsize 19057 rawptr 1905F modlen 19067 thunk 1906F
-  dllfile 19077 impn 1907F insmap 19087 lenmap 1908F
-  pend 19097 pushmap 1909F rawlim 190A7 psp 190AF
-  inscount 190B7 maxend 190BF swcur 190C7 target 190CF
-  bss 190D7 dlen 190DF dcls 190E7 dtgt 190EF
-  dpos 190F7 mpos 190FF mreg 19107 dname 1910F
-  dcc 19117 dargc 1911F da1k 19127 da2k 1912F
-  da1r 19137 da2r 1913F da1s 19147 da2s 1914F
-  da1v 19157 da2v 1915F damem 19167 ombase 1916F
-  omidx 19177 omscale 1917F omdisp 19187 omsize 1918F
-  omrip 19197 mkind 1919F mrreg 191A7 mrdip 191AF
-  mripon 191B7 sdump 191BF outmem 191C7 outbuf 191CF
-  outcur 191D7 iatoff 191DF intoff 191E7 nameoff 191EF
-  idtoff 191F7 impbad 191FF kn 19207 snlen 1920F
-  semcnt 19217 semacc 1921F hhrv 19227 hno 1922F
-  hnl 19237 snam 1923F noffs 19247 knownoff 1924F
-  semrows 19257 labmap 1925F sstate 19267 semstate 1926F
-  mblen 19277 mslot 1927F mslotz 19287 mslof 1928F
-  mopc 19297 mis8 1929F mcount 192A7 hcount 192AF
-  lfanew 192B7 coffoff 192BF optoff 192C7 sizopt 192CF
-  numsect 192D7 tbloff 192DF codevaddr 192E7 falign 192EF
-  fend 192F7 fsect 192FF dllcnt 19307 sectcnt 1930F
-  peg2h 19317
-  arg1 1931F (0x80) arg2 1939F (0x80) arg3 1941F (0x80)
-  factbuf 1949F (0xC0) o_mn 1955F (0xE8) o_cc 19647 (0x88)
-  o_r64 196CF (0x88) o_r8 19757 (0x88) o_r16 197DF (0x88)
-  o_r32 19867 (0x88) o_kw 198EF (0x28) tplb 19917 (0xC8)
-  mbuf 199DF (0xC0) ptplb 19A9F (0x48) ftplb 19AE7 (0xC8)
-  gtplb 19BAF (0x68) w1 19C17 (0x200)
-конец тела: 19E67 (vsize 0x19E17)
+  hstdout 190F2 cmdline 190FA written 19102 wlen 1910A
+  exebuf 19112 exelen 1911A entryrva 19122 vsize 1912A
+  rawsize 19132 rawptr 1913A modlen 19142 thunk 1914A
+  dllfile 19152 impn 1915A insmap 19162 lenmap 1916A
+  pend 19172 pushmap 1917A rawlim 19182 psp 1918A
+  inscount 19192 maxend 1919A swcur 191A2 target 191AA
+  bss 191B2 dlen 191BA dcls 191C2 dtgt 191CA
+  dpos 191D2 mpos 191DA mreg 191E2 dname 191EA
+  dcc 191F2 dargc 191FA da1k 19202 da2k 1920A
+  da1r 19212 da2r 1921A da1s 19222 da2s 1922A
+  da1v 19232 da2v 1923A damem 19242 ombase 1924A
+  omidx 19252 omscale 1925A omdisp 19262 omsize 1926A
+  omrip 19272 mkind 1927A mrreg 19282 mrdip 1928A
+  mripon 19292 sdump 1929A outmem 192A2 outbuf 192AA
+  outcur 192B2 iatoff 192BA intoff 192C2 nameoff 192CA
+  idtoff 192D2 impbad 192DA kn 192E2 snlen 192EA
+  semcnt 192F2 semacc 192FA hhrv 19302 hno 1930A
+  hnl 19312 snam 1931A noffs 19322 knownoff 1932A
+  semrows 19332 labmap 1933A sstate 19342 semstate 1934A
+  mblen 19352 mslot 1935A mslotz 19362 mslof 1936A
+  mopc 19372 mis8 1937A mcount 19382 hcount 1938A
+  lfanew 19392 coffoff 1939A optoff 193A2 sizopt 193AA
+  numsect 193B2 tbloff 193BA codevaddr 193C2 falign 193CA
+  fend 193D2 fsect 193DA dllcnt 193E2 sectcnt 193EA
+  peg2h 193F2
+  arg1 193FA (0x80) arg2 1947A (0x80) arg3 194FA (0x80)
+  factbuf 1957A (0xC0) o_mn 1963A (0xE8) o_cc 19722 (0x88)
+  o_r64 197AA (0x88) o_r8 19832 (0x88) o_r16 198BA (0x88)
+  o_r32 19942 (0x88) o_kw 199CA (0x28) tplb 199F2 (0xC8)
+  mbuf 19ABA (0xC0) ptplb 19B7A (0x48) ftplb 19BC2 (0xC8)
+  gtplb 19C8A (0x68) w1 19CF2 (0x200)
+конец тела: 19EE2 (vsize 0x19EF2)
 ```
 
-Массивы объявлены ПОСЛЕ скаляров, ПОСЛЕДНИЙ — w1[64] (0x200 Б; урок E9.2-2, ОБЩЁН срезом E9.2-3b): выравнивающий хвост (0x19E01..0x19E17, 0x16 Б) всегда < 0x200 Б и падает внутрь w1 при ЛЮБОМ vsize (w1base = vsize-0x200 <= raw-0x1FF — БЕЗУСЛОВНЫЙ инвариант, пересчёт при росте больше не нужен); rip-ссылок внутрь хвоста нет (lea — только базы массивов, они ниже target), разбор моста над bridge.exe даёт 0 H-строк (M=22516; как kernel/uva — T-E9-20). E9.2-4: массив ptplb[9] (0x48 Б) добавлен ПЕРЕД w1 — инвариант сохранён (проверен кругом T-E9-20). E9.4-4b-1: скаляры развилки lfanew/coffoff/optoff/sizopt/numsect/tbloff/codevaddr/falign/fend/fsect — инвариант хвоста внутри w1 не задет. E9.4-4b-2: скаляры dllcnt/sectcnt и массив ftplb[25] (0xC8 Б) ПЕРЕД w1 — инвариант сохранён. E9.4-4b-3: скаляр peg2h (+8 Б после sectcnt) и массив gtplb[13] (0x68 Б) ПЕРЕД w1 — тот же прецедент; хвост 0x16 Б, круг T-E9-20 зелёный (M=22516 H=0).
+Массивы объявлены ПОСЛЕ скаляров, ПОСЛЕДНИЙ — w1[64] (0x200 Б; урок E9.2-2, ОБЩЁН срезом E9.2-3b): выравнивающий хвост (0x19E01..0x19EF2, 0xF1 Б) всегда < 0x200 Б и падает внутрь w1 при ЛЮБОМ vsize (w1base = vsize-0x200 <= raw-0x1FF — БЕЗУСЛОВНЫЙ инвариант, пересчёт при росте больше не нужен); rip-ссылок внутрь хвоста нет (lea — только базы массивов, они ниже target), разбор моста над bridge.exe даёт 0 H-строк (M=22550; как kernel/uva — T-E9-20). E9.2-4: массив ptplb[9] (0x48 Б) добавлен ПЕРЕД w1 — инвариант сохранён. E9.4-4b-1: скаляры развилки — инвариант хвоста внутри w1 не задет. E9.4-4b-2: скаляры dllcnt/sectcnt и массив ftplb[25] (0xC8 Б) ПЕРЕД w1 — инвариант сохранён. E9.4-4b-3: скаляр peg2h и массив gtplb[13] (0x68 Б) ПЕРЕД w1 — тот же прецедент. E9.5-1b: строки s_bbody/s_bout (+2 str) и код гварда BIG BODY/BIG OUT — хвост 0xF1 Б < 0x200, инвариант сохранён (круг T-E9-20 зелёный, M=22550 H=0).
 
 ## 4. Контроль воспроизведения
 
@@ -268,4 +269,4 @@ brick.exe  bridge_s.brick bridge_s.bin
 pegen.exe  bridge_s.bin bridge.peg bridge.exe   (== артефакт)
 ```
 
-SHA-256 артефактов: bridge.b2 — 0B4D4375…F48896A9, bridge.brick — E13AE8AE…5437CE7A3, bridge.exe — DDD6BFB8…8543666 (полные — VERIFY.md).
+SHA-256 артефактов: bridge.b2 — 4CE36C71…F1DB0905, bridge.brick — 6F9F7750…52BBBC67, bridge.exe — 9B4B9CAF…94CA34E1 (полные — VERIFY.md).

@@ -382,10 +382,10 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | W — спуск |
-| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 8A03) |
-| Функция | Словарь _walk оракула (E9.2-2 + порт E9.4-4a): стек целей pend (куча 2097160 — 262145 qword, доказуемый предел 1 + rawlim — ДЕДУПЛИКАЦИЯ по значению, карта pushmap 262145: каждый офсет тела в стеке РОВНО один раз, повторы холосты — семантика == оракулу), карты стартов insmap и длин lenmap (262145 каждая), rawlim = min(vsize, rawsize); проход вперёд: уже разобрана / сбой декодера / ВСЕ-НУЛЕВЫЕ байты — обрыв пути; ret/int3/jmp — терминалы; dcls 5 (косвенный FF /4) — терминал с кандидатами jtab; jcc/call rel32 кладут цель в стек через push_tgt (jmp — только цель) |
+| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 9D6D) |
+| Функция | Словарь _walk оракула (E9.2-2 + порт E9.4-4a; пределы — E9.5-1b): стек целей pend (куча 8388616 — 1048577 qword, доказуемый предел 1 + rawlim — ДЕДУПЛИКАЦИЯ по значению, карта pushmap 1048577: каждый офсет тела в стеке РОВНО один раз, повторы холосты — семантика == оракулу), карты стартов insmap и длин lenmap (1048577 каждая — 1 МиБ + 1, синхронно плану E9.5-2), ПРЕДЕЛ ТЕЛА: rawlim > 1048576 — ERR=BIG BODY (код 11) ДО спуска, без частичных выходов (E9.5-1b; был неявный предел карт 256 КиБ); rawlim = min(vsize, rawsize); проход вперёд: уже разобрана / сбой декодера / ВСЕ-НУЛЕВЫЕ байты — обрыв пути; ret/int3/jmp — терминалы; dcls 5 (косвенный FF /4) — терминал с кандидатами jtab; jcc/call rel32 кладут цель в стек через push_tgt (jmp — только цель) |
 | Вход | глобали exebuf/rawptr/entryrva/vsize/rawsize/exelen |
-| Выход | глобали insmap/lenmap/rawlim/pend/pushmap/psp; 0; отказ GlobalAlloc — READ EXE (5) |
+| Выход | глобали insmap/lenmap/rawlim/pend/pushmap/psp; 0; отказы: GlobalAlloc — READ EXE (5), rawlim > 1 МиБ — BIG BODY (11) — E9.5-1b |
 | Состоит из | K5-C001, K5-D013, K5-W004, K5-W005 |
 | Используется в | K5-X001 |
 | Тест | T-E9-18/21 (INS == оракулу на 12 + синтетика), T-E9-26/27 (порт 4-4a) |
@@ -397,7 +397,7 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | W |
-| Файл | bridge_self_w.wall (RVA 8F80) |
+| Файл | bridge_self_w.wall (RVA A3EC) |
 | Функция | Тени как _sweep оракула: пересечения путей — младший адрес побеждает (курсор концов по возрастанию); выжившие: конец за VirtualSize — ERR=FAMILY (проверяются ТОЛЬКО выжившие); счёт inscount и максимум концов maxend; СДАМП ВЫЖИВШИХ (E9.2-3a): старты по возрастанию → куча sdump (rawlim*8+8 — по qword на выжившего; доказуемый предел: выживших ≤ rawlim — каждая ≥ 1 байт) — курс эмиссии K5-E018 без повторных сканов insmap |
 | Вход | глобали insmap/lenmap/rawlim/vsize |
 | Выход | глобали inscount/maxend/sdump; 0; конец за vsize — ERR=FAMILY; отказ GlobalAlloc — READ EXE (5) |
@@ -412,7 +412,7 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | W |
-| Файл | bridge_self_w.wall (RVA 91FB) |
+| Файл | bridge_self_w.wall (RVA A667) |
 | Функция | Длина тела по SPEC/15 п. 7: target = max(последний ненулевой байт + 1, концы выживших, 1); выравнивающая вилка: align_up(target) != rawsize — target = rawsize - 511 (минимальная длина той же вилки); target > vsize — ERR=FAMILY; bss = vsize - target |
 | Вход | глобали exebuf/rawptr/rawsize/vsize/maxend |
 | Выход | глобали target/bss; 0; длина тела > vsize — ERR=FAMILY |
@@ -427,7 +427,7 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | W |
-| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 7E12) |
+| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 9AAB) |
 | Функция | Таблица переходов (порт E9.4-2, == _jtab оракула): косвенный jmp qword [rip+X] (память rip БЕЗ базы/индекса, размер 64) — qword-строки данных «до первого non-code qword» — цели-кандидаты; чтение qword — тело + виртуальные нули (за концом файла — нули: fb -1 -> 0, == усечению срезки оракула); кандидат 0 < v < vsize -> push_tgt; регистровые/индексные формы — БЕЗ кандидатов (E9.4-1: цель = значение операнда); вызов — ТОЛЬКО из walk_code при dcls 5 (терминал) |
 | Вход | глобали da1k/mripon/da1s/ombase/omidx/omrip/rawptr/vsize/exelen |
 | Выход | кандидаты в pend (через K5-W005); 0 |
@@ -442,8 +442,8 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | W |
-| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 7CFF) |
-| Функция | Цель в стек — ДЕДУПЛИКАЦИЯ по значению (E9.4-4a): каждый офсет тела — в стеке РОВНО один раз (карта pushmap; повторы — прямые цели разных переходов и строки таблиц — холосты для спуска: ins-карта уже стоит / поставит первый) — семантика == оракулу (список Python без предела); вне [0, rawlim) НЕ кладётся — цикл спуска отбросил бы сразу; предел pend: 1 + rawlim < 262145 qword (старый предел «1 + rawlim/2» ломался кандидатами таблиц) |
+| Файл | KERNEL/L5-BRIDGE/bridge_self_w.wall (RVA 9998) |
+| Функция | Цель в стек — ДЕДУПЛИКАЦИЯ по значению (E9.4-4a): каждый офсет тела — в стеке РОВНО один раз (карта pushmap; повторы — прямые цели разных переходов и строки таблиц — холосты для спуска: ins-карта уже стоит / поставит первый) — семантика == оракулу (список Python без предела); вне [0, rawlim) НЕ кладётся — цикл спуска отбросил бы сразу; предел pend: 1 + rawlim < 1048577 qword (E9.5-1b — был 262145; старый предел «1 + rawlim/2» ломался кандидатами таблиц) |
 | Вход | v — смещение тела; глобали rawlim/pushmap/pend/psp |
 | Выход | глобали pend/psp/pushmap; 0 |
 | Состоит из | — |
@@ -459,8 +459,8 @@ SPEC/01-METHOD-CARD.md; указатель — MAP/METHODS-2.md.
 |---|---|
 | Слой | L5 (исходник — WALL) |
 | Ветвь | X — вход программы |
-| Файл | KERNEL/L5-BRIDGE/bridge.wall (RVA B6C1) |
-| Функция | Вход моста: CLI (3 аргумента; длины arg1/arg2 — nlen1/nlen2) → открытие входа (CreateFile2) → GlobalAlloc 262145 + один ReadFile (BIG EXE при 262145) → семейная проверка (check_head/opt/base/sect/size/body, stub_name, walk_descs, check_dll, walk_funcs) → спуск (walk_code → sweep_ins → calc_target) → таблицы имён/шапки (init_tables) → raw-эмиссия <выход>.b2 (emit_raw — E9.2-3a; коды 8/9) → факт-строка (MODULE/ENTRY/VSIZE/RAW/IMP/INS/TARGET/BSS) → ExitProcess(0) |
+| Файл | KERNEL/L5-BRIDGE/bridge.wall (RVA 183F8) |
+| Функция | Вход моста: CLI (3 аргумента; длины arg1/arg2 — nlen1/nlen2) → открытие входа (CreateFile2) → GlobalAlloc 4194305 + один ReadFile 4194305 (BIG EXE при 4194305; E9.5-1b — было 262145/256 КиБ) → общий фронт + РАЗВИЛКА «семья | чужой» (E9.4-4b-1) → спуск (walk_code → sweep_ins → calc_target) → таблицы имён/шапки (init_tables) → raw-эмиссия <выход>.b2 (emit_raw — E9.2-3a; коды 8/9) → факт-строка (MODULE/ENTRY/VSIZE/RAW/IMP/INS/TARGET/BSS) → ExitProcess(0) |
 | Вход | командная строка Windows |
 | Выход | факт-строка в stdout + файл <выход>.b2 (raw), код 0; диагностика — коды 2..9 (CARD.md) |
 | Состоит из | K5-C002..C005, K5-P005..P017, K5-W001..W003, K5-E002, K5-E018 |
